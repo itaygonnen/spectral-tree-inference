@@ -36,9 +36,14 @@ WARP.md
 # Virtual environments
 venv/
 env/
+.venv/
+
+# Theoretical-interpretation cache (regenerable, large)
+sub_sampled_fielder_vec/cache/
 
 # Test and demo files (local development)
 *.ipynb
+!sub_sampled_fielder_vec/analysis/theoretical_interpretation/**/*.ipynb
 test*.py
 comparing.py
 requirements.txt
