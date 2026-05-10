@@ -1,9 +1,13 @@
 """Shared utilities for theoretical-interpretation notebooks.
 
-Topology-specific code lives in the ``balanced_binary`` module (and future
-siblings). Everything else is generic over the similarity matrix.
+Topology-specific code lives in the ``balanced_binary`` and ``block_model``
+modules (and future siblings). Everything else is generic over the similarity
+matrix.
 """
 from .balanced_binary import build_balanced_binary_S, balanced_binary_population_fiedler
+from .block_model import build_flat_cbm_S, build_decay_cbm_S, flat_cbm_population_fiedler
+from .tree_features import imbalance_eta, n_min, structural_margin_rho, estimate_features_from_M
+from .linalg_features import coherence_mu, compute_top_eigenpairs, spectral_gap
 from .spectral import compute_fiedler_of_S, subsample_S
 from .recovery import compute_recovery, find_threshold_p_star
 from .cache import (
@@ -23,6 +27,16 @@ from .plotting import compute_C_constant, plot_recovery_figure
 __all__ = [
     "build_balanced_binary_S",
     "balanced_binary_population_fiedler",
+    "build_flat_cbm_S",
+    "build_decay_cbm_S",
+    "flat_cbm_population_fiedler",
+    "imbalance_eta",
+    "n_min",
+    "structural_margin_rho",
+    "estimate_features_from_M",
+    "coherence_mu",
+    "compute_top_eigenpairs",
+    "spectral_gap",
     "compute_fiedler_of_S",
     "subsample_S",
     "compute_recovery",
