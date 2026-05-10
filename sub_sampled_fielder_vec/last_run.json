@@ -1,15 +1,17 @@
 {
   "tree_model": "kingman",
   "taxa_values": [
-    512,
-    1024,
-    2048,
-    4096
+    500,
+    1000,
+    2000,
+    4000,
+    6000,
+    8000
   ],
   "sequence_length_values": [
     10000
   ],
-  "mutation_rate": 0.3,
+  "mutation_rate": 0.1,
   "tree_params": {
     "pop_size": 1.0
   },
@@ -39,10 +41,10 @@
   ],
   "use_middle_out": false,
   "sampling_method": "uniform",
-  "display_mode": "debug",
+  "display_mode": "progress",
   "guardrails_enabled": false,
   "run_name_prefix": "",
   "truncation_threshold": 0.0001,
   "use_persistent_cache": true,
-  "timestamp": "2026-03-17T21:38:28"
+  "timestamp": "2026-05-05T22:23:10"
 }

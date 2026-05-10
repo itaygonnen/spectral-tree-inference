@@ -1,0 +1,14 @@
+[16:16:46] new pool: n8000_L10000_mu0p1000_kingman_pop1p0000_JC69
+[16:16:46] params: n=8000 mu=0.1 pop_size=1.0 L=10000 model=kingman; targets=[1, 5, 10, 15] tol=±1.0; samples/bin=1; starting seed=0; max_attempts=2000
+[16:16:46] current bin counts: eta01=0/1  eta05=0/1  eta10=0/1  eta15=0/1
+[16:21:17] saved seed=1 eta=1.335 -> eta01 (idx=1, n1=4574, n2=3426, margin=0.1513); counts: eta01=1/1  eta05=0/1  eta10=0/1  eta15=0/1 [attempts=2, elapsed=270.9s]
+[16:31:50] saved seed=5 eta=15.162 -> eta15 (idx=1, n1=495, n2=7505, margin=-6.1631); counts: eta01=1/1  eta05=0/1  eta10=0/1  eta15=1/1 [attempts=6, elapsed=903.9s]
+[18:14:45] seed=9 eta=1.746 -> eta01 full; attempts=10 saves=2 elapsed=7078.8s
+[18:55:12] saved seed=11 eta=10.429 -> eta10 (idx=1, n1=700, n2=7300, margin=-1.7146); counts: eta01=1/1  eta05=0/1  eta10=1/1  eta15=1/1 [attempts=12, elapsed=9506.2s]
+[19:39:37] seed=19 eta=2.463 -> no match; attempts=20 saves=3 elapsed=12171.6s
+[20:04:08] seed=29 eta=12.675 -> no match; attempts=30 saves=3 elapsed=13641.7s
+[21:37:15] seed=39 eta=1.028 -> eta01 full; attempts=40 saves=3 elapsed=19229.6s
+[21:54:57] saved seed=46 eta=5.488 -> eta05 (idx=1, n1=6767, n2=1233, margin=-1.0179); counts: eta01=1/1  eta05=1/1  eta10=1/1  eta15=1/1 [attempts=47, elapsed=20291.5s]
+[21:54:57] done. attempts_this_run=47 saves_this_run=4 total_attempts=47 elapsed=20291.5s
+[21:54:57] final counts: eta01=1/1  eta05=1/1  eta10=1/1  eta15=1/1
+[21:54:57] all bins are full.
