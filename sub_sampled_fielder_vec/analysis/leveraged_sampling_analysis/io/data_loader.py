@@ -4,7 +4,7 @@ This module provides functions to load experiment results from JSON files
 and convert them into structured formats for analysis.
 
 Updated to support new organized directory structure:
-    results/{tree_model}/{sampling_method}/{timestamp-experiment_name}/
+    results/runs/{tree_model}/{sampling_method}/{timestamp-experiment_name}/
 
 You can now load data by specifying:
     1. Direct path (backward compatible): load_experiment_results(Path("results/..."))

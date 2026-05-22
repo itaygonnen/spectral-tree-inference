@@ -544,12 +544,12 @@ class ExperimentRunner:
             # Get the directory of the parent of src (sub_sampled_fielder_vec)
             repo_base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
-            # Organize by tree_model/sampling_method if provided
+            # All production runs live under results/runs/. Optionally
+            # organized by tree_model/sampling_method when provided.
             if tree_model and sampling_method:
-                path = os.path.join(repo_base, "results", tree_model, sampling_method, f"{ts}-{run_name}")
+                path = os.path.join(repo_base, "results", "runs", tree_model, sampling_method, f"{ts}-{run_name}")
             else:
-                # Fallback to flat structure for backward compatibility
-                path = os.path.join(repo_base, "results", f"{ts}-{run_name}")
+                path = os.path.join(repo_base, "results", "runs", f"{ts}-{run_name}")
 
         os.makedirs(path, exist_ok=True)
         return os.path.abspath(path)

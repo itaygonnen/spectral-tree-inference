@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 from analysis.leveraged_sampling_analysis import load_single_run_dataframe
 
 # Load a sample run
-RUN_DIR = Path(__file__).parent.parent.parent.parent / "results" / "20260117-155215-balanced_binary_leveraged"
+RUN_DIR = Path(__file__).parent.parent.parent.parent / "results" / "runs" / "20260117-155215-balanced_binary_leveraged"
 
 if RUN_DIR.exists():
     df = load_single_run_dataframe(RUN_DIR)

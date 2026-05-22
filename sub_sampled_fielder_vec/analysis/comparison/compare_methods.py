@@ -2,7 +2,7 @@
 
 This script runs both sampling methods on the SAME tree and sequences to enable
 fair comparison. Results are saved in nested structure:
-    results/{timestamp}-method_comparison[_{run_name}]/
+    results/runs/{timestamp}-method_comparison[_{run_name}]/
         ├── uniform/
         ├── leveraged/
         └── comparison_config.json
@@ -67,7 +67,7 @@ def _setup_comparison_directory(run_name: Optional[str] = None) -> Path:
         dir_name = f"{ts}-method_comparison_{run_name}"
     else:
         dir_name = f"{ts}-method_comparison"
-    base_dir = Path(__file__).resolve().parents[2] / "results" / dir_name
+    base_dir = Path(__file__).resolve().parents[2] / "results" / "runs" / dir_name
     base_dir.mkdir(parents=True, exist_ok=True)
 
     # Save config

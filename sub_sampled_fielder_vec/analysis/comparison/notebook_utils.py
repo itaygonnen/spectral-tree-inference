@@ -5,7 +5,7 @@ and generating merged result plots without triggering package __init__.py
 import chains that have external dependencies.
 
 Updated to support new organized directory structure:
-    results/{tree_model}/{sampling_method}/{timestamp-experiment_name}/
+    results/runs/{tree_model}/{sampling_method}/{timestamp-experiment_name}/
 """
 
 from __future__ import annotations

@@ -2,7 +2,7 @@
 
 This module provides functions to construct result paths from experiment components
 (tree_model, sampling_method, experiment_name) to work with the new organized
-directory structure: results/{tree_model}/{sampling_method}/{timestamp-experiment_name}/
+directory structure: results/runs/{tree_model}/{sampling_method}/{timestamp-experiment_name}/
 """
 from pathlib import Path
 from typing import Optional, Union
@@ -42,7 +42,7 @@ def construct_results_path(
     """
     if results_dir is None:
         # Default: go up from this file to sub_sampled_fielder_vec/results/
-        results_dir = Path(__file__).resolve().parents[3] / "results"
+        results_dir = Path(__file__).resolve().parents[3] / "results" / "runs"
     else:
         results_dir = Path(results_dir)
 
@@ -141,16 +141,21 @@ def parse_experiment_path(experiment_path: Union[str, Path]) -> dict[str, str]:
     except ValueError:
         raise ValueError(f"Path does not contain 'results' directory: {experiment_path}")
 
-    # Check we have enough parts after 'results'
-    if len(parts) < results_idx + 4:
+    # New layout interposes a "runs/" segment between results/ and the
+    # tree_model/sampling_method/experiment_name triple.
+    offset = 1
+    if results_idx + 1 < len(parts) and parts[results_idx + 1] == "runs":
+        offset = 2
+
+    if len(parts) < results_idx + offset + 3:
         raise ValueError(
             f"Path does not match expected structure "
-            f"results/{{tree_model}}/{{sampling_method}}/{{experiment_name}}: {experiment_path}"
+            f"results/[runs/]{{tree_model}}/{{sampling_method}}/{{experiment_name}}: {experiment_path}"
         )
 
-    tree_model = parts[results_idx + 1]
-    sampling_method = parts[results_idx + 2]
-    experiment_name = parts[results_idx + 3]
+    tree_model = parts[results_idx + offset]
+    sampling_method = parts[results_idx + offset + 1]
+    experiment_name = parts[results_idx + offset + 2]
 
     # Extract timestamp from experiment_name
     timestamp_match = re.match(r"^(\d{8}-\d{6})-", experiment_name)
@@ -179,7 +184,7 @@ def list_all_experiments(results_dir: Optional[Union[str, Path]] = None) -> list
         >>>     print(f"{exp['tree_model']}/{exp['sampling_method']}: {exp['experiment_name']}")
     """
     if results_dir is None:
-        results_dir = Path(__file__).resolve().parents[3] / "results"
+        results_dir = Path(__file__).resolve().parents[3] / "results" / "runs"
     else:
         results_dir = Path(results_dir)
 
