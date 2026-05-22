@@ -29,6 +29,25 @@ def structural_margin_rho(
     return (S_in_max - S_out_max) - (S_out_max - S_out_min)
 
 
+def hbm_d_max(clan_size: int) -> int:
+    """Maximum within-clan tree depth under recursive near-equal binary split.
+
+    Matches the depth produced by ``_within_clan_dist_matrix`` in block_model.py:
+    ``D_max(n) = ceil(log2(n))`` for ``n >= 2``, ``0`` for ``n <= 1``.
+    """
+    if clan_size <= 1:
+        return 0
+    return int(np.ceil(np.log2(clan_size)))
+
+
+def hbm_s_in_min(S_in: float, alpha: float, clan_size: int) -> float:
+    """Weakest within-clan similarity in the HBM: ``S_in * alpha**D_max``.
+
+    Reduces to ``S_in`` when ``alpha == 1`` or ``clan_size <= 1`` (flat CBM).
+    """
+    return float(S_in) * float(alpha) ** hbm_d_max(clan_size)
+
+
 def estimate_features_from_M(M: np.ndarray, v_pop: np.ndarray) -> dict:
     """Infer (η, ρ, S_in/out_max/min, n_min margin) from a real similarity matrix.
 
