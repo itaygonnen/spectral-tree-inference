@@ -1,29 +1,40 @@
 """Two-level disk cache for theoretical-interpretation experiments.
 
-Layout (under ``cache_dir``):
+Thin shim over :mod:`src.cache_io`. The unified layer owns the on-disk
+layout, the ``.complete`` sentinel discipline, and the key format. Public
+function names here are preserved for backward compat with existing
+notebooks; the ``cache_dir`` argument is accepted but ignored — the scope
+under :data:`src.cache_io.CACHE_ROOT` is canonical.
 
-    full/<full_key>/
-        S.npz, fiedler_full.npz, metadata.json, .complete
-    subsampled/<full_key>/p<p>_seed<seed>/
-        fiedler_hat.npz, agreement.json, .complete
+Old API → new scope:
+    * ``full/<key>/`` → ``cache_io.full_matrix``
+    * ``subsampled/<key>/<sub_key>/`` → ``cache_io.sweep_trial``
 
-Atomicity: every write touches the ``.complete`` sentinel last. Loaders return
-``None`` when the sentinel is missing, so a half-written cache entry behaves
-like a miss and is re-computed on the next call.
-
-The cache layer is fully topology-agnostic: callers supply the ``full_key`` and
-a builder closure. Only ``S_hat`` is intentionally NOT persisted — it is cheap
-to regenerate from full ``S`` and the ``(p, seed)`` and would otherwise blow up
-disk usage by orders of magnitude on the production sweep.
+The ``agreement`` scalar that ``save_subsample``/``load_subsample`` exposes
+is internally stored as ``metrics["sign_agreement"]`` so new metrics can
+be added alongside without re-sweeping. Use
+:func:`load_or_extend_metrics` in ``sweep.py`` for the metric-agnostic
+path.
 """
 from __future__ import annotations
 
-import json
-import shutil
 from pathlib import Path
 from typing import Any, Callable, Dict, Literal, Optional, Tuple
 
 import numpy as np
+
+# Local imports go through the project root via the same sys.path bootstrap
+# the notebooks already do; cache_io is the single source of truth.
+import sys
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+from src.cache_io import (  # noqa: E402
+    full_matrix as _full_matrix,
+    sweep_trial as _sweep_trial,
+    make_key as _make_key_unified,
+)
 
 
 def _fmt_value(value: Any) -> str:
@@ -36,15 +47,8 @@ def _fmt_value(value: Any) -> str:
 
 
 def make_full_key(prefix: str, **kwargs: Any) -> str:
-    """Deterministic, filesystem-safe key from a prefix and sorted kwargs.
-
-    Example: ``make_full_key("balanced_binary", alpha=0.9, n=512)`` returns
-    ``"balanced_binary_alpha0p9000_n0512"``.
-    """
-    parts = [prefix]
-    for key in sorted(kwargs):
-        parts.append(f"{key}{_fmt_value(kwargs[key])}")
-    return "_".join(parts)
+    """Deterministic, filesystem-safe key from a prefix and sorted kwargs."""
+    return _make_key_unified(prefix, **kwargs)
 
 
 def make_subsample_key(p: float, seed: int) -> str:
@@ -52,24 +56,14 @@ def make_subsample_key(p: float, seed: int) -> str:
     return f"p{_fmt_value(float(p))}_seed{_fmt_value(int(seed))}"
 
 
-def _full_dir(cache_dir: Path, full_key: str) -> Path:
-    return Path(cache_dir) / "full" / full_key
-
-
-def _subsample_dir(cache_dir: Path, full_key: str, p: float, seed: int) -> Path:
-    return Path(cache_dir) / "subsampled" / full_key / make_subsample_key(p, seed)
-
-
 def load_full(cache_dir: Path, full_key: str) -> Optional[Tuple[np.ndarray, np.ndarray]]:
-    d = _full_dir(cache_dir, full_key)
-    if not (d / ".complete").exists():
+    data = _full_matrix.try_load(full_key)
+    if data is None:
         return None
     try:
-        S = np.load(d / "S.npz")["S"]
-        fiedler = np.load(d / "fiedler_full.npz")["fiedler_full"]
-    except Exception:
+        return data["S"], data["fiedler"]
+    except KeyError:
         return None
-    return S, fiedler
 
 
 def save_full(
@@ -79,13 +73,7 @@ def save_full(
     fiedler_full: np.ndarray,
     metadata: Dict[str, Any],
 ) -> None:
-    d = _full_dir(cache_dir, full_key)
-    d.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(d / "S.npz", S=S)
-    np.savez_compressed(d / "fiedler_full.npz", fiedler_full=fiedler_full)
-    with open(d / "metadata.json", "w") as f:
-        json.dump(metadata, f, indent=2, default=str)
-    (d / ".complete").touch()
+    _full_matrix.save(full_key, S=S, fiedler=fiedler_full, metadata=metadata)
 
 
 def get_or_compute_full(
@@ -94,7 +82,6 @@ def get_or_compute_full(
     builder_fn: Callable[[], Tuple[np.ndarray, np.ndarray, Dict[str, Any]]],
     force: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Return ``(S, fiedler_full)`` from cache or compute via ``builder_fn``."""
     if not force:
         hit = load_full(cache_dir, full_key)
         if hit is not None:
@@ -107,16 +94,18 @@ def get_or_compute_full(
 def load_subsample(
     cache_dir: Path, full_key: str, p: float, seed: int
 ) -> Optional[Tuple[np.ndarray, float]]:
-    d = _subsample_dir(cache_dir, full_key, p, seed)
-    if not (d / ".complete").exists():
+    sub_key = make_subsample_key(p, seed)
+    data = _sweep_trial.try_load(full_key, sub_key)
+    if data is None:
         return None
     try:
-        fiedler_hat = np.load(d / "fiedler_hat.npz")["fiedler_hat"]
-        with open(d / "agreement.json", "r") as f:
-            agreement = float(json.load(f)["agreement"])
-    except Exception:
+        fiedler_hat = data["fiedler_hat"]
+        metrics = data.get("metrics") or {}
+        if "sign_agreement" not in metrics:
+            return None
+        return fiedler_hat, float(metrics["sign_agreement"])
+    except KeyError:
         return None
-    return fiedler_hat, agreement
 
 
 def save_subsample(
@@ -127,12 +116,12 @@ def save_subsample(
     fiedler_hat: np.ndarray,
     agreement: float,
 ) -> None:
-    d = _subsample_dir(cache_dir, full_key, p, seed)
-    d.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(d / "fiedler_hat.npz", fiedler_hat=fiedler_hat)
-    with open(d / "agreement.json", "w") as f:
-        json.dump({"p": float(p), "seed": int(seed), "agreement": float(agreement)}, f)
-    (d / ".complete").touch()
+    sub_key = make_subsample_key(p, seed)
+    _sweep_trial.save(
+        full_key, sub_key,
+        fiedler_hat=fiedler_hat,
+        metrics={"sign_agreement": float(agreement)},
+    )
 
 
 def get_or_compute_subsample(
@@ -143,7 +132,6 @@ def get_or_compute_subsample(
     compute_fn: Callable[[], Tuple[np.ndarray, float]],
     force: bool = False,
 ) -> Tuple[np.ndarray, float]:
-    """Return ``(fiedler_hat, agreement)`` from cache or compute via ``compute_fn``."""
     if not force:
         hit = load_subsample(cache_dir, full_key, p, seed)
         if hit is not None:
@@ -156,13 +144,7 @@ def get_or_compute_subsample(
 def clear_theoretical_cache(
     cache_dir: Path, scope: Literal["all", "full", "subsampled"] = "all"
 ) -> None:
-    """Remove cached entries. ``scope`` selects which level to wipe."""
-    cache_dir = Path(cache_dir)
-    targets = []
     if scope in ("all", "full"):
-        targets.append(cache_dir / "full")
+        _full_matrix.clear()
     if scope in ("all", "subsampled"):
-        targets.append(cache_dir / "subsampled")
-    for t in targets:
-        if t.exists():
-            shutil.rmtree(t)
+        _sweep_trial.clear()

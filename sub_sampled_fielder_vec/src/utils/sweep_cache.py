@@ -1,26 +1,12 @@
 """Disk cache for ``bootstrap_p_sweep_simple`` outputs.
 
-Keyed by ``(param_key, eta_target, sample_idx)`` (which locates the underlying
-``(M, v_pop)`` pair via ``eta_pool_cache.sample_dir``) plus a deterministic
-``sweep_key`` derived from the sweep config.
+Thin shim over :mod:`src.cache_io`. Backing scope is ``bootstrap_sweep``;
+``cache_root`` is accepted for backward compat but ignored.
 
-Layout, anchored under each pool sample dir::
-
-    src/cache/eta_pool/<param_key>/eta<TT>/sample_NNNN/
-        M.npz, fiedler_ref.npz, metadata.json, .complete   # eta_pool entries
-        sweeps/
-            <sweep_key>/
-                result.json     # {"config": ..., "result": ..., "saved_at": ...}
-                .complete       # atomic-write sentinel
-
-A sweep entry is written atomically: payload first via temp-file + rename,
-then a ``.complete`` sentinel touch. ``load_sweep_result`` returns ``None``
-unless the sentinel exists.
-
-Schema version is embedded in the config dict (``schema_version``) so a
-behaviour change in ``bootstrap_p_sweep_simple`` can be reflected by bumping
-it — old keys then re-derive into different sweep dirs and old caches stay
-inert until cleaned up.
+Each sweep entry is addressed by the flat key
+``<param_key>__<eta_name>__<sample_name>__<sweep_key>`` to keep all
+sweeps in one scope-level directory rather than nested inside pool
+samples (where they lived in the legacy layout).
 """
 from __future__ import annotations
 
@@ -31,18 +17,27 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from .eta_pool_cache import sample_dir
-from ..runners.p_sweep_inner import bootstrap_p_sweep_simple
+from ..cache_io import bootstrap_sweep as _scope, SENTINEL
+from .eta_pool_cache import bin_name
 
 
 SCHEMA_VERSION = "v1"
 
 
+def _flat_key(param_key: str, eta_target: int, idx: int, sweep_key: str) -> str:
+    return f"{param_key}__{bin_name(eta_target)}__sample_{int(idx):04d}__{sweep_key}"
+
+
 def sweep_cache_dir(
     cache_root: Path, param_key: str, eta_target: int, idx: int
 ) -> Path:
-    """``sweeps/`` subdir under the pool sample dir."""
-    return sample_dir(cache_root, param_key, eta_target, idx) / "sweeps"
+    """Legacy helper: previously the per-sample ``sweeps/`` parent.
+
+    Now redundant — sweep entries are flat under :data:`bootstrap_sweep`.
+    Returned path stays compatible (the parent of any sweep this trio
+    would have produced), but it is no longer used by ``load``/``save``.
+    """
+    return _scope.root / f"{param_key}__{bin_name(eta_target)}__sample_{int(idx):04d}"
 
 
 def _build_config(
@@ -53,6 +48,8 @@ def _build_config(
     min_split: int,
     early_stop_consecutive_100: int,
     partition_method: str,
+    matrix_kind: str = "similarity",
+    distance_alpha: float = 1.0,
 ) -> Dict[str, Any]:
     return {
         "p_values": [round(float(p), 9) for p in p_values],
@@ -62,6 +59,8 @@ def _build_config(
         "min_split": int(min_split),
         "early_stop_consecutive_100": int(early_stop_consecutive_100),
         "partition_method": str(partition_method),
+        "matrix_kind": str(matrix_kind),
+        "distance_alpha": round(float(distance_alpha), 9),
         "schema_version": SCHEMA_VERSION,
     }
 
@@ -74,11 +73,13 @@ def compute_sweep_key(
     min_split: int,
     early_stop_consecutive_100: int,
     partition_method: str,
+    matrix_kind: str = "similarity",
+    distance_alpha: float = 1.0,
 ) -> Tuple[str, Dict[str, Any]]:
-    """Return ``(sweep_key, config)`` where sweep_key is sha1[:12] of the config."""
     config = _build_config(
         p_values, bootstrap_reps, seed, num_gaps, min_split,
         early_stop_consecutive_100, partition_method,
+        matrix_kind=matrix_kind, distance_alpha=distance_alpha,
     )
     blob = json.dumps(config, sort_keys=True).encode("utf-8")
     return hashlib.sha1(blob).hexdigest()[:12], config
@@ -87,9 +88,9 @@ def compute_sweep_key(
 def load_sweep_result(
     cache_root: Path, param_key: str, eta_target: int, idx: int, sweep_key: str
 ) -> Optional[Dict[str, Any]]:
-    """Return the deserialized ``result`` dict, or ``None`` on cache miss."""
-    d = sweep_cache_dir(cache_root, param_key, eta_target, idx) / sweep_key
-    if not (d / ".complete").exists():
+    flat = _flat_key(param_key, eta_target, idx, sweep_key)
+    d = _scope.path(flat)
+    if not (d / SENTINEL).exists():
         return None
     with open(d / "result.json", "r") as f:
         payload = json.load(f)
@@ -109,9 +110,12 @@ def save_sweep_result(
     config: Dict[str, Any],
     result: Dict[str, Any],
 ) -> Path:
-    """Atomically persist (config, result) under the sweep dir."""
-    d = sweep_cache_dir(cache_root, param_key, eta_target, idx) / sweep_key
+    flat = _flat_key(param_key, eta_target, idx, sweep_key)
+    d = _scope.path(flat)
     d.mkdir(parents=True, exist_ok=True)
+    sentinel = d / SENTINEL
+    if sentinel.exists():
+        sentinel.unlink()
     payload = {
         "config": config,
         "result": result,
@@ -121,7 +125,7 @@ def save_sweep_result(
     with open(tmp, "w") as f:
         json.dump(payload, f, indent=2, default=str)
     os.replace(tmp, d / "result.json")
-    (d / ".complete").touch()
+    sentinel.touch()
     return d
 
 
@@ -139,18 +143,19 @@ def compute_or_load_sweep(
     min_split: int = 1,
     early_stop_consecutive_100: int = 0,
     partition_method: str = "sigma2",
+    matrix_kind: str = "similarity",
+    distance_alpha: float = 1.0,
     use_cache: bool = True,
 ) -> Optional[Tuple[Dict[str, Any], bool]]:
-    """Return ``(result, was_cached)`` for one sweep, or ``None`` if M_loader returns None.
+    """Return ``(result, was_cached)`` for one sweep, or ``None`` if M_loader returns None."""
+    from ..runners.p_sweep_inner import bootstrap_p_sweep_simple
 
-    ``M_loader`` is a zero-arg callable returning ``(M, v_pop)`` or ``None``;
-    on a cache hit it is never invoked, so the heavy ``M.npz`` load is skipped.
-    """
     sweep_key, config = compute_sweep_key(
         p_values=p_values, bootstrap_reps=bootstrap_reps, seed=seed,
         num_gaps=num_gaps, min_split=min_split,
         early_stop_consecutive_100=early_stop_consecutive_100,
         partition_method=partition_method,
+        matrix_kind=matrix_kind, distance_alpha=distance_alpha,
     )
 
     if use_cache:

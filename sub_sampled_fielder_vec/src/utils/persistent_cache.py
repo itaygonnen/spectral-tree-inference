@@ -1,55 +1,28 @@
 """Persistent disk-based caching for experiment data.
 
-This module provides functions to save and load expensive-to-compute experiment
-data (trees, sequences, similarity matrices, Fiedler vectors) to/from disk.
+Thin shim over :mod:`src.cache_io`. Backing scope is ``experiment_data``;
+all keys go through :func:`src.cache_io.make_key`. The public API is
+preserved so existing callers keep working unchanged.
 
-Design principles:
-- Each function has a single, well-defined responsibility
-- No hidden side effects except explicit save/load/clear operations
-- Cache keys are deterministic and based on experiment parameters
-- Uses NPZ format for efficient numpy array storage
+Stored artifacts (filenames unchanged for byte-compat with migrated entries):
+    ``tree.npz``  (multi-array NPZ — ``adjacency_matrix`` or ``newick`` keys)
+    ``observations.npz`` (single-array NPZ, key ``observations``)
+    ``similarity_matrix.npz`` (single-array NPZ, key ``similarity_matrix``)
+    ``fiedler_ref.npz`` (single-array NPZ, key ``fiedler_ref``)
+    ``metadata.json``
+    ``.complete`` (sentinel)
 """
-import os
+from __future__ import annotations
+
 import json
+import shutil
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
 from .logging import log_info, log_warning
-
-
-def _params_to_string(params: Dict[str, Any]) -> str:
-    """
-    Convert parameter dict to deterministic, filesystem-safe string.
-
-    Args:
-        params: Dictionary of parameters (e.g., {"pop_size": 1.0, "edge_length": 2.0})
-
-    Returns:
-        Sorted, compact string representation (e.g., "edge_length1.0_pop_size2.0")
-    """
-    if not params:
-        return ""
-
-    # Sort keys for deterministic ordering
-    sorted_keys = sorted(params.keys())
-
-    # Build compact string
-    parts = []
-    for key in sorted_keys:
-        value = params[key]
-        # Format floats to 3 decimal places, keep ints as-is
-        if isinstance(value, float):
-            value_str = f"{value:.3f}".replace(".", "p")  # Use 'p' instead of '.' for filesystem safety
-        elif isinstance(value, (list, tuple)):
-            # For lists/tuples, join with underscores
-            value_str = "_".join(str(v) for v in value)
-        else:
-            value_str = str(value)
-        parts.append(f"{key}{value_str}")
-
-    return "_".join(parts)
+from ..cache_io import experiment_data as _scope, make_key as _make_key, SENTINEL
 
 
 def _get_cache_key(
@@ -59,83 +32,39 @@ def _get_cache_key(
     tree_model_name: str,
     seq_model_name: str,
     tree_params: Optional[Dict[str, Any]] = None,
-    seq_params: Optional[Dict[str, Any]] = None
+    seq_params: Optional[Dict[str, Any]] = None,
+    matrix_kind: str = "similarity",
+    distance_alpha: float = 1.0,
 ) -> str:
-    """
-    Generate deterministic cache key from experiment parameters.
-
-    Note: Seed is NOT included - we always use fixed seed=42 for cached data.
-
-    Args:
-        n_taxa: Number of taxa
-        seq_len: Sequence length
-        mutation_rate: Mutation rate
-        tree_model_name: Name of tree model (e.g., "balanced_binary")
-        seq_model_name: Name of sequence model (e.g., "Jukes_Cantor")
-        tree_params: Tree-specific parameters (e.g., {"pop_size": 1.0} for kingman_mean)
-        seq_params: Sequence-specific parameters (e.g., {"kappa": 2.0} for HKY)
-
-    Returns:
-        Cache key string (safe for filesystem)
-
-    Example:
-        >>> _get_cache_key(512, 10000, 0.1, "kingman_mean", "JC69",
-        ...                tree_params={"pop_size": 1.0})
-        'n512_L10000_mu0.100_kingman_mean_pop_size1p0_JC69'
-    """
-    # Format mutation rate with 3 decimal places for consistency
-    mu_str = f"{mutation_rate:.3f}"
-
-    # Build base key
-    cache_key = f"n{n_taxa}_L{seq_len}_mu{mu_str}_{tree_model_name}"
-
-    # Add tree parameters (excluding num_taxa which is already in the key)
+    """Build the canonical experiment_data key for these parameters."""
+    kwargs: Dict[str, Any] = {
+        "n":    int(n_taxa),
+        "L":    int(seq_len),
+        "mu":   float(mutation_rate),
+        "tree": str(tree_model_name),
+        "seq":  str(seq_model_name),
+    }
     if tree_params:
-        # Filter out redundant params
-        filtered_tree_params = {k: v for k, v in tree_params.items() if k != "num_taxa"}
-        if filtered_tree_params:
-            tree_param_str = _params_to_string(filtered_tree_params)
-            cache_key += f"_{tree_param_str}"
-
-    # Add sequence model name
-    cache_key += f"_{seq_model_name}"
-
-    # Add sequence parameters (excluding mutation_rate which is already in the key)
+        for k, v in tree_params.items():
+            if k == "num_taxa":
+                continue
+            kwargs[k] = v
     if seq_params:
-        # Filter out redundant params
-        filtered_seq_params = {k: v for k, v in seq_params.items() if k != "mutation_rate"}
-        if filtered_seq_params:
-            seq_param_str = _params_to_string(filtered_seq_params)
-            cache_key += f"_{seq_param_str}"
-
-    return cache_key
+        for k, v in seq_params.items():
+            if k == "mutation_rate":
+                continue
+            kwargs[k] = v
+    if matrix_kind == "distance":
+        kwargs["matrix_kind"] = "distance"
+        kwargs["distance_alpha"] = float(distance_alpha)
+    return _make_key(**kwargs)
 
 
 def _get_cache_dir(cache_key: str) -> Path:
-    """
-    Get cache directory path for a given cache key.
-
-    Creates the directory if it doesn't exist.
-
-    Args:
-        cache_key: Cache key string
-
-    Returns:
-        Path object for cache directory
-
-    Example:
-        >>> _get_cache_dir("n8192_L1000_mu0.100_balanced_binary_JC")
-        PosixPath('.../cache/n8192_L1000_mu0.100_balanced_binary_JC')
-    """
-    # Get base directory (sub_sampled_fielder_vec)
-    base_dir = Path(__file__).parent.parent
-    cache_root = base_dir / "cache"
-    cache_dir = cache_root / cache_key
-
-    # Create directory if it doesn't exist
-    cache_dir.mkdir(parents=True, exist_ok=True)
-
-    return cache_dir
+    """Path under experiment_data scope for this key. Creates it if missing."""
+    d = _scope.path(cache_key)
+    d.mkdir(parents=True, exist_ok=True)
+    return d
 
 
 def save_experiment_data(
@@ -144,323 +73,129 @@ def save_experiment_data(
     observations: np.ndarray,
     similarity_matrix: np.ndarray,
     fiedler_ref: np.ndarray,
-    metadata: Dict[str, Any]
+    metadata: Dict[str, Any],
 ) -> None:
-    """
-    Save all experiment data to disk cache.
-
-    Side effect: Writes files to cache directory.
-
-    Args:
-        cache_key: Cache key identifying this experiment
-        tree: Tree object (will be converted to adjacency matrix or saved as Newick)
-        observations: Sequence observations (n_taxa × seq_len)
-        similarity_matrix: Full similarity matrix M
-        fiedler_ref: Reference Fiedler vector
-        metadata: Dictionary with experiment parameters for verification
-
-    Files created:
-        - tree.npz: Tree structure
-        - observations.npz: Sequence data
-        - similarity_matrix.npz: Full M matrix
-        - fiedler_ref.npz: Reference Fiedler vector
-        - metadata.json: Experiment parameters
-        - .complete: Sentinel file indicating successful cache write
-    """
-    cache_dir = _get_cache_dir(cache_key)
-
+    """Save (tree, observations, similarity_matrix, fiedler_ref, metadata) atomically."""
+    d = _scope.path(cache_key)
+    d.mkdir(parents=True, exist_ok=True)
+    sentinel = d / SENTINEL
+    if sentinel.exists():
+        sentinel.unlink()
     try:
-        # Save tree (convert to adjacency matrix if needed)
         tree_data = _serialize_tree(tree)
-        np.savez_compressed(cache_dir / "tree.npz", **tree_data)
-
-        # Save observations
-        np.savez_compressed(cache_dir / "observations.npz", observations=observations)
-
-        # Save similarity matrix
-        np.savez_compressed(cache_dir / "similarity_matrix.npz", similarity_matrix=similarity_matrix)
-
-        # Save reference Fiedler vector
-        np.savez_compressed(cache_dir / "fiedler_ref.npz", fiedler_ref=fiedler_ref)
-
-        # Save metadata
-        metadata_path = cache_dir / "metadata.json"
-        with open(metadata_path, 'w') as f:
-            json.dump(metadata, f, indent=2)
-
-        # Write sentinel file to mark cache as complete
-        # This MUST be the last operation to ensure atomicity
-        complete_marker = cache_dir / ".complete"
-        complete_marker.touch()
-
-        log_info('cache', f"Saved experiment data to cache: {cache_key}")
-
+        np.savez_compressed(d / "tree.npz", **tree_data)
+        np.savez_compressed(d / "observations.npz", observations=observations)
+        np.savez_compressed(d / "similarity_matrix.npz", similarity_matrix=similarity_matrix)
+        np.savez_compressed(d / "fiedler_ref.npz", fiedler_ref=fiedler_ref)
+        (d / "metadata.json").write_text(json.dumps(metadata, indent=2, default=str))
+        sentinel.touch()
+        log_info("cache", f"Saved experiment data to cache: {cache_key}")
     except Exception as e:
-        log_warning('cache', f"Failed to save cache {cache_key}: {e}")
-        # Don't raise - caching is optional
+        log_warning("cache", f"Failed to save cache {cache_key}: {e}")
 
 
 def load_experiment_data(cache_key: str) -> Optional[Dict[str, Any]]:
-    """
-    Load experiment data from disk cache.
-
-    Args:
-        cache_key: Cache key identifying this experiment
-
-    Returns:
-        Dictionary with keys: {tree, observations, similarity_matrix, fiedler_ref, metadata}
-        Returns None if cache doesn't exist or is invalid
-
-    Example:
-        >>> data = load_experiment_data("n8192_L1000_mu0.100_balanced_binary_JC")
-        >>> if data:
-        ...     tree = data['tree']
-        ...     observations = data['observations']
-    """
-    cache_dir = _get_cache_dir(cache_key)
-
-    # Check if all required files exist
-    required_files = [
-        ".complete",  # Sentinel file - checked first for fast fail on incomplete cache
-        "tree.npz",
-        "observations.npz",
-        "similarity_matrix.npz",
-        "fiedler_ref.npz",
-        "metadata.json"
-    ]
-
-    for filename in required_files:
-        if not (cache_dir / filename).exists():
-            log_info('cache', f"Cache miss: {cache_key} (missing {filename})")
+    """Load all five artifacts. Returns None on miss or corruption."""
+    d = _scope.path(cache_key)
+    required = [".complete", "tree.npz", "observations.npz",
+                "similarity_matrix.npz", "fiedler_ref.npz", "metadata.json"]
+    for f in required:
+        if not (d / f).exists():
+            log_info("cache", f"Cache miss: {cache_key} (missing {f})")
             return None
-
     try:
-        # Load tree
-        tree_npz = np.load(cache_dir / "tree.npz", allow_pickle=True)
+        tree_npz = np.load(d / "tree.npz", allow_pickle=True)
         tree = _deserialize_tree(tree_npz)
-
-        # Load observations
-        obs_npz = np.load(cache_dir / "observations.npz")
-        observations = obs_npz['observations']
-
-        # Load similarity matrix
-        sim_npz = np.load(cache_dir / "similarity_matrix.npz")
-        similarity_matrix = sim_npz['similarity_matrix']
-
-        # Load Fiedler vector
-        fiedler_npz = np.load(cache_dir / "fiedler_ref.npz")
-        fiedler_ref = fiedler_npz['fiedler_ref']
-
-        # Load metadata
-        with open(cache_dir / "metadata.json", 'r') as f:
-            metadata = json.load(f)
-
-        log_info('cache', f"Cache hit: {cache_key}")
-
+        observations = np.load(d / "observations.npz")["observations"]
+        similarity_matrix = np.load(d / "similarity_matrix.npz")["similarity_matrix"]
+        fiedler_ref = np.load(d / "fiedler_ref.npz")["fiedler_ref"]
+        metadata = json.loads((d / "metadata.json").read_text())
+        log_info("cache", f"Cache hit: {cache_key}")
         return {
-            'tree': tree,
-            'observations': observations,
-            'similarity_matrix': similarity_matrix,
-            'fiedler_ref': fiedler_ref,
-            'metadata': metadata
+            "tree": tree,
+            "observations": observations,
+            "similarity_matrix": similarity_matrix,
+            "fiedler_ref": fiedler_ref,
+            "metadata": metadata,
         }
-
     except Exception as e:
-        log_warning('cache', f"Failed to load cache {cache_key}: {e}")
+        log_warning("cache", f"Failed to load cache {cache_key}: {e}")
         return None
 
 
 def list_cached_experiments() -> List[Dict[str, Any]]:
-    """
-    List all cached experiments.
-
-    Returns:
-        List of dictionaries with cache info (cache_key, metadata)
-
-    Example:
-        >>> cached = list_cached_experiments()
-        >>> for item in cached:
-        ...     print(f"{item['cache_key']}: {item['metadata']['n_taxa']} taxa")
-    """
-    base_dir = Path(__file__).parent.parent
-    cache_root = base_dir / "cache"
-
-    if not cache_root.exists():
-        return []
-
-    cached_experiments = []
-
-    for cache_dir in cache_root.iterdir():
-        if not cache_dir.is_dir():
+    """List all complete entries under the experiment_data scope."""
+    out: List[Dict[str, Any]] = []
+    if not _scope.root.exists():
+        return out
+    for d in sorted(_scope.root.iterdir()):
+        if not d.is_dir() or not (d / SENTINEL).exists():
             continue
-
-        # Only include cache entries that have been fully written
-        complete_marker = cache_dir / ".complete"
-        if not complete_marker.exists():
+        meta_path = d / "metadata.json"
+        if not meta_path.exists():
             continue
-
-        metadata_path = cache_dir / "metadata.json"
-        if not metadata_path.exists():
-            continue
-
         try:
-            with open(metadata_path, 'r') as f:
-                metadata = json.load(f)
-
-            cached_experiments.append({
-                'cache_key': cache_dir.name,
-                'metadata': metadata,
-                'path': str(cache_dir)
-            })
+            metadata = json.loads(meta_path.read_text())
+            out.append({"cache_key": d.name, "metadata": metadata, "path": str(d)})
         except Exception as e:
-            log_warning('cache', f"Failed to read metadata for {cache_dir.name}: {e}")
-
-    return cached_experiments
+            log_warning("cache", f"Failed to read metadata for {d.name}: {e}")
+    return out
 
 
 def clear_cache(cache_key: Optional[str] = None) -> None:
-    """
-    Clear persistent cache.
-
-    Side effect: Deletes cache files from disk.
-
-    Args:
-        cache_key: Specific cache to clear. If None, clears all caches.
-
-    Example:
-        >>> clear_cache("n8192_L1000_mu0.100_balanced_binary_JC")  # Clear specific
-        >>> clear_cache()  # Clear all
-    """
-    base_dir = Path(__file__).parent.parent
-    cache_root = base_dir / "cache"
-
-    if not cache_root.exists():
-        log_info('cache', "No cache directory found")
-        return
-
+    """Remove a specific entry or the whole experiment_data scope."""
     if cache_key is None:
-        # Clear all caches
-        import shutil
-        try:
-            shutil.rmtree(cache_root)
-            log_info('cache', "Cleared all caches")
-        except Exception as e:
-            log_warning('cache', f"Failed to clear all caches: {e}")
+        _scope.clear()
+        log_info("cache", "Cleared all caches")
+        return
+    d = _scope.path(cache_key)
+    if d.exists():
+        shutil.rmtree(d)
+        log_info("cache", f"Cleared cache: {cache_key}")
     else:
-        # Clear specific cache
-        cache_dir = cache_root / cache_key
-        if cache_dir.exists():
-            import shutil
-            try:
-                shutil.rmtree(cache_dir)
-                log_info('cache', f"Cleared cache: {cache_key}")
-            except Exception as e:
-                log_warning('cache', f"Failed to clear cache {cache_key}: {e}")
-        else:
-            log_info('cache', f"Cache not found: {cache_key}")
+        log_info("cache", f"Cache not found: {cache_key}")
 
 
 def clean_incomplete_caches() -> int:
-    """
-    Remove incomplete cache entries (those missing .complete sentinel file).
-
-    This is useful for cleaning up caches from interrupted experiments.
-
-    Side effect: Deletes incomplete cache directories from disk.
-
-    Returns:
-        Number of incomplete cache entries removed
-
-    Example:
-        >>> num_cleaned = clean_incomplete_caches()
-        >>> print(f"Removed {num_cleaned} incomplete cache entries")
-    """
-    base_dir = Path(__file__).parent.parent
-    cache_root = base_dir / "cache"
-
-    if not cache_root.exists():
-        log_info('cache', "No cache directory found")
+    """Remove every cache entry under experiment_data that has no sentinel."""
+    if not _scope.root.exists():
         return 0
-
-    removed_count = 0
-    import shutil
-
-    for cache_dir in cache_root.iterdir():
-        if not cache_dir.is_dir():
+    removed = 0
+    for d in list(_scope.root.iterdir()):
+        if not d.is_dir():
             continue
-
-        complete_marker = cache_dir / ".complete"
-        if not complete_marker.exists():
-            # This is an incomplete cache entry - remove it
+        if not (d / SENTINEL).exists():
             try:
-                shutil.rmtree(cache_dir)
-                log_info('cache', f"Removed incomplete cache: {cache_dir.name}")
-                removed_count += 1
+                shutil.rmtree(d)
+                log_info("cache", f"Removed incomplete cache: {d.name}")
+                removed += 1
             except Exception as e:
-                log_warning('cache', f"Failed to remove incomplete cache {cache_dir.name}: {e}")
-
-    if removed_count > 0:
-        log_info('cache', f"Cleaned up {removed_count} incomplete cache entries")
-    else:
-        log_info('cache', "No incomplete cache entries found")
-
-    return removed_count
+                log_warning("cache", f"Failed to remove incomplete cache {d.name}: {e}")
+    if removed > 0:
+        log_info("cache", f"Cleaned up {removed} incomplete cache entries")
+    return removed
 
 
 def _serialize_tree(tree: Any) -> Dict[str, np.ndarray]:
-    """
-    Convert tree object to serializable format.
-
-    Args:
-        tree: Tree object from spectraltree
-
-    Returns:
-        Dictionary with numpy arrays for NPZ storage
-    """
-    # Check if tree has adjacency_matrix attribute
-    if hasattr(tree, 'adjacency_matrix'):
-        return {'adjacency_matrix': tree.adjacency_matrix}
-
-    # Check if tree has Newick string representation
-    if hasattr(tree, 'newick'):
+    if hasattr(tree, "adjacency_matrix"):
+        return {"adjacency_matrix": tree.adjacency_matrix}
+    if hasattr(tree, "newick"):
         newick_str = tree.newick() if callable(tree.newick) else str(tree.newick)
-        # Store as numpy array of strings
-        return {'newick': np.array([newick_str], dtype=object)}
-
-    # Fallback: try to convert to string
-    tree_str = str(tree)
-    return {'tree_str': np.array([tree_str], dtype=object)}
+        return {"newick": np.array([newick_str], dtype=object)}
+    return {"tree_str": np.array([str(tree)], dtype=object)}
 
 
 def _deserialize_tree(tree_npz) -> Any:
-    """
-    Reconstruct tree object from NPZ data.
-
-    Args:
-        tree_npz: Loaded NPZ file
-
-    Returns:
-        Tree object (or serialized representation)
-    """
-    # Import dendropy for tree reconstruction
     import dendropy
-
-    if 'adjacency_matrix' in tree_npz:
-        # TODO: Reconstruct tree from adjacency matrix if needed
-        return tree_npz['adjacency_matrix']
-    elif 'newick' in tree_npz:
-        # Reconstruct DendroPy Tree from Newick string
-        newick_str = str(tree_npz['newick'][0])
-        tree = dendropy.Tree.get(data=newick_str, schema="newick")
-        return tree
-    elif 'tree_str' in tree_npz:
-        # Try to parse as Newick string
-        tree_str = str(tree_npz['tree_str'][0])
+    if "adjacency_matrix" in tree_npz:
+        return tree_npz["adjacency_matrix"]
+    if "newick" in tree_npz:
+        newick_str = str(tree_npz["newick"][0])
+        return dendropy.Tree.get(data=newick_str, schema="newick")
+    if "tree_str" in tree_npz:
+        tree_str = str(tree_npz["tree_str"][0])
         try:
-            tree = dendropy.Tree.get(data=tree_str, schema="newick")
-            return tree
-        except:
-            # If parsing fails, return the string
+            return dendropy.Tree.get(data=tree_str, schema="newick")
+        except Exception:
             return tree_str
-    else:
-        return None
+    return None

@@ -1,17 +1,16 @@
 """Disk cache for the eta-binned matrix pool.
 
-Layout under ``cache_root / "eta_pool" / <param_key> /``:
+Thin shim over :mod:`src.cache_io`. Backing scope is ``pool_sample``;
+the ``cache_root`` argument is accepted for backward compat but ignored —
+the canonical location is :data:`src.cache_io.CACHE_ROOT`.
+
+Layout under ``cache/pool_sample/<param_key>/``::
 
     eta01/sample_0001/{M.npz, fiedler_ref.npz, metadata.json, .complete}
     eta05/sample_0001/...
-    eta10/...
-    eta15/...
     manifest.json
 
-A pool entry is written atomically: payload first, then a ``.complete``
-sentinel. Loaders treat a missing sentinel as a miss, so an interrupted run
-won't leave a half-written sample lying around. The manifest is updated
-after each successful save and persisted via temp-file + rename.
+The manifest sits next to the bins and is updated via temp-file + rename.
 """
 from __future__ import annotations
 
@@ -21,6 +20,8 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import numpy as np
+
+from ..cache_io import pool_sample as _scope, SENTINEL
 
 
 def _fmt_value(value: Any) -> str:
@@ -39,9 +40,11 @@ def param_key(
     tree_model: str,
     pop_size: float,
     seq_model: str = "JC69",
+    matrix_kind: str = "similarity",
+    distance_alpha: float = 1.0,
 ) -> str:
-    """Deterministic key identifying one (n, L, mu, model, pop_size) configuration."""
-    return (
+    """Deterministic key identifying one pool configuration."""
+    base = (
         f"n{_fmt_value(int(n))}"
         f"_L{_fmt_value(int(seq_len))}"
         f"_mu{_fmt_value(float(mu))}"
@@ -49,50 +52,57 @@ def param_key(
         f"_pop{_fmt_value(float(pop_size))}"
         f"_{seq_model}"
     )
+    if matrix_kind == "distance":
+        return base + f"_dist_a{_fmt_value(float(distance_alpha))}"
+    return base
 
 
 def bin_name(eta_target: int) -> str:
-    """Two-digit bin label, e.g. eta_target=5 -> 'eta05'."""
     return f"eta{int(eta_target):02d}"
 
 
+# ----- paths --------------------------------------------------------------
+
+
 def pool_root(cache_root: Path) -> Path:
-    return Path(cache_root) / "eta_pool"
+    """Legacy alias. Returns the canonical scope root regardless of input."""
+    return _scope.root
 
 
 def param_dir(cache_root: Path, key: str) -> Path:
-    return pool_root(cache_root) / key
+    return _scope.path(key)
 
 
 def bin_dir(cache_root: Path, key: str, eta_target: int) -> Path:
-    return param_dir(cache_root, key) / bin_name(eta_target)
+    return _scope.path(key, bin_name(eta_target))
 
 
 def sample_dir(cache_root: Path, key: str, eta_target: int, idx: int) -> Path:
-    return bin_dir(cache_root, key, eta_target) / f"sample_{int(idx):04d}"
+    return _scope.path(key, bin_name(eta_target), f"sample_{int(idx):04d}")
+
+
+# ----- per-sample I/O -----------------------------------------------------
 
 
 def count_completed_samples(cache_root: Path, key: str, eta_target: int) -> int:
-    """Number of sample subdirs in this bin that have a .complete sentinel."""
     d = bin_dir(cache_root, key, eta_target)
     if not d.exists():
         return 0
-    return sum(1 for child in d.iterdir() if child.is_dir() and (child / ".complete").exists())
+    return sum(
+        1 for child in d.iterdir()
+        if child.is_dir() and (child / SENTINEL).exists()
+    )
 
 
 def next_sample_idx(cache_root: Path, key: str, eta_target: int) -> int:
-    """Lowest unused 1-based sample index for this bin."""
     d = bin_dir(cache_root, key, eta_target)
     if not d.exists():
         return 1
-    used = set()
+    used: set[int] = set()
     for child in d.iterdir():
-        if not child.is_dir():
-            continue
-        name = child.name
-        if name.startswith("sample_"):
+        if child.is_dir() and child.name.startswith("sample_"):
             try:
-                used.add(int(name[len("sample_"):]))
+                used.add(int(child.name[len("sample_"):]))
             except ValueError:
                 pass
     idx = 1
@@ -111,14 +121,10 @@ def save_pool_entry(
     metadata: Dict[str, Any],
 ) -> Path:
     """Atomically persist (M, v_pop, metadata) under sample_dir; return that dir."""
-    d = sample_dir(cache_root, key, eta_target, idx)
-    d.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(d / "M.npz", M=M)
-    np.savez_compressed(d / "fiedler_ref.npz", fiedler_ref=v_pop)
-    with open(d / "metadata.json", "w") as f:
-        json.dump(metadata, f, indent=2, default=str)
-    (d / ".complete").touch()
-    return d
+    return _scope.save(
+        key, bin_name(eta_target), f"sample_{int(idx):04d}",
+        M=M, fiedler_ref=v_pop, metadata=metadata,
+    )
 
 
 def load_pool_entry(
@@ -127,27 +133,25 @@ def load_pool_entry(
     eta_target: int,
     idx: int,
 ) -> Optional[Tuple[np.ndarray, np.ndarray, Dict[str, Any]]]:
-    """Inverse of save_pool_entry. Returns None if .complete sentinel missing."""
-    d = sample_dir(cache_root, key, eta_target, idx)
-    if not (d / ".complete").exists():
+    data = _scope.try_load(key, bin_name(eta_target), f"sample_{int(idx):04d}")
+    if data is None:
         return None
-    M = np.load(d / "M.npz")["M"]
-    v_pop = np.load(d / "fiedler_ref.npz")["fiedler_ref"]
-    with open(d / "metadata.json", "r") as f:
-        metadata = json.load(f)
-    return M, v_pop, metadata
+    try:
+        return data["M"], data["fiedler_ref"], data["metadata"]
+    except KeyError:
+        return None
 
 
 def list_completed_samples(
     cache_root: Path, key: str, eta_target: int
 ) -> List[int]:
-    """1-based indices of completed samples in this bin (sorted ascending)."""
     d = bin_dir(cache_root, key, eta_target)
     if not d.exists():
         return []
     out: List[int] = []
     for child in sorted(d.iterdir()):
-        if child.is_dir() and child.name.startswith("sample_") and (child / ".complete").exists():
+        if (child.is_dir() and child.name.startswith("sample_")
+                and (child / SENTINEL).exists()):
             try:
                 out.append(int(child.name[len("sample_"):]))
             except ValueError:
@@ -155,8 +159,11 @@ def list_completed_samples(
     return sorted(out)
 
 
+# ----- manifest -----------------------------------------------------------
+
+
 def manifest_path(cache_root: Path, key: str) -> Path:
-    return param_dir(cache_root, key) / "manifest.json"
+    return _scope.path(key) / "manifest.json"
 
 
 def load_manifest(cache_root: Path, key: str) -> Optional[Dict[str, Any]]:
@@ -164,8 +171,7 @@ def load_manifest(cache_root: Path, key: str) -> Optional[Dict[str, Any]]:
     if not p.exists():
         return None
     try:
-        with open(p, "r") as f:
-            return json.load(f)
+        return json.loads(p.read_text())
     except Exception:
         return None
 
@@ -187,7 +193,6 @@ def init_manifest(
     eta_tol: float,
     samples_per_bin: int,
 ) -> Dict[str, Any]:
-    """Build a fresh manifest skeleton for a brand-new param_key."""
     targets = [int(t) for t in eta_targets]
     return {
         "param_key": key,
@@ -205,8 +210,10 @@ def init_manifest(
 def bin_counts_from_disk(
     cache_root: Path, key: str, eta_targets: Iterable[int]
 ) -> Dict[int, int]:
-    """Recount completed samples per bin from disk (ground truth, not manifest)."""
-    return {int(t): count_completed_samples(cache_root, key, int(t)) for t in eta_targets}
+    return {
+        int(t): count_completed_samples(cache_root, key, int(t))
+        for t in eta_targets
+    }
 
 
 def all_bins_full(manifest: Dict[str, Any]) -> bool:
@@ -223,7 +230,6 @@ def remaining_capacity(manifest: Dict[str, Any], eta_target: int) -> int:
 def closest_target(
     eta: float, eta_targets: List[int], eta_tol: float
 ) -> Optional[int]:
-    """Return the target whose |eta - target| is smallest and within tol; else None."""
     if not eta_targets:
         return None
     diffs = [(abs(eta - float(t)), int(t)) for t in eta_targets]

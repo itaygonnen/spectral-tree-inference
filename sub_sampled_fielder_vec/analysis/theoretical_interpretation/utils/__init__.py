@@ -6,10 +6,16 @@ matrix.
 """
 from .balanced_binary import build_balanced_binary_S, balanced_binary_population_fiedler
 from .block_model import build_flat_cbm_S, build_decay_cbm_S, flat_cbm_population_fiedler
-from .tree_features import imbalance_eta, n_min, structural_margin_rho, estimate_features_from_M
-from .linalg_features import coherence_mu, compute_top_eigenpairs, spectral_gap
-from .spectral import compute_fiedler_of_S, subsample_S
-from .recovery import compute_recovery, find_threshold_p_star
+from .tree_features import (
+    imbalance_eta, n_min, structural_margin_rho, estimate_features_from_M,
+    hbm_d_max, hbm_s_in_min,
+)
+from .linalg_features import coherence_mu, compute_top_eigenpairs, spectral_gap, compute_lemma04_row
+from .spectral import (
+    compute_fiedler_of_S, subsample_S,
+    uniform_mask, ipw_from_mask, nnm_from_mask,
+)
+from .recovery import compute_recovery, compute_ari, find_threshold_p_star
 from .cache import (
     make_full_key,
     make_subsample_key,
@@ -21,7 +27,7 @@ from .cache import (
     get_or_compute_subsample,
     clear_theoretical_cache,
 )
-from .sweep import run_sweep
+from .sweep import run_sweep, load_or_extend_metrics
 from .plotting import compute_C_constant, plot_recovery_figure
 
 __all__ = [
@@ -34,12 +40,19 @@ __all__ = [
     "n_min",
     "structural_margin_rho",
     "estimate_features_from_M",
+    "hbm_d_max",
+    "hbm_s_in_min",
     "coherence_mu",
     "compute_top_eigenpairs",
     "spectral_gap",
+    "compute_lemma04_row",
     "compute_fiedler_of_S",
     "subsample_S",
+    "uniform_mask",
+    "ipw_from_mask",
+    "nnm_from_mask",
     "compute_recovery",
+    "compute_ari",
     "find_threshold_p_star",
     "make_full_key",
     "make_subsample_key",
@@ -51,6 +64,7 @@ __all__ = [
     "get_or_compute_subsample",
     "clear_theoretical_cache",
     "run_sweep",
+    "load_or_extend_metrics",
     "compute_C_constant",
     "plot_recovery_figure",
 ]
