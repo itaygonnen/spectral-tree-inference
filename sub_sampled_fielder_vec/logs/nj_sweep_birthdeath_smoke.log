@@ -1,0 +1,17 @@
+RUN_DIR: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224536-nj_sweep_birth_death_smoke
+NJ | INFO | Building ground truth (n=128, L=10000)...
+NJ | INFO |   p = 1 (3 reps)
+NJ | INFO |   p = 0.5 (3 reps)
+NJ | INFO |   p = 0.1 (3 reps)
+NJ | INFO | Wrote results/20260519-224536-nj_sweep_birth_death_smoke/n128_L10000/nj_meta.json + nj_arrays.npz (0.6s)
+NJ | INFO | Building ground truth (n=256, L=10000)...
+NJ | INFO |   p = 1 (3 reps)
+NJ | INFO |   p = 0.5 (3 reps)
+NJ | INFO |   p = 0.1 (3 reps)
+NJ | INFO | Wrote results/20260519-224536-nj_sweep_birth_death_smoke/n256_L10000/nj_meta.json + nj_arrays.npz (4.0s)
+NJ | INFO | Building ground truth (n=512, L=10000)...
+NJ | INFO |   p = 1 (3 reps)
+NJ | INFO |   p = 0.5 (3 reps)
+NJ | INFO |   p = 0.1 (3 reps)
+NJ | INFO | Wrote results/20260519-224536-nj_sweep_birth_death_smoke/n512_L10000/nj_meta.json + nj_arrays.npz (31.1s)
+DONE /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224536-nj_sweep_birth_death_smoke

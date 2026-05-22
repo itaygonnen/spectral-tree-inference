@@ -428,5 +428,66 @@ def compute_reference_partition_and_quality(
     s_sliced = similarity[partition, :]
     s_sliced = s_sliced[:, ~partition]
     sigma2 = float(svd2(s_sliced))
-    
+
     return partition, sigma2, partition_split
+
+
+def compute_final_partition_agreement(
+    M: np.ndarray,
+    S_avg: np.ndarray,
+    threshold: int,
+    num_gaps: int = 0,
+    min_split: int = 1,
+    cluster_ids_M: np.ndarray | None = None,
+    bipartitions_M: list | None = None,
+) -> Dict[str, float]:
+    """Recursive-partition agreement metrics between M and S_avg.
+
+    Runs the STDR partition phase (no merge) once on each matrix and reports
+    two complementary scores:
+
+    - ``ari``: Adjusted Rand Index on the leaf-cluster assignments. Flat-clustering
+      metric, adjusted for chance against random labellings of the same size.
+    - ``jaccard``: ``|B_M ∩ B_S| / |B_M ∪ B_S|`` over the bipartition *sets*
+      emitted by the recursion (each bipartition = the smaller side of one
+      internal split, in full-taxon indexing). Robinson-Foulds-style;
+      directly counts preserved tree edges.
+
+    Args:
+        M, S_avg: similarity matrices.
+        threshold, num_gaps, min_split: forwarded to ``partition_taxa``.
+        cluster_ids_M, bipartitions_M: optional precomputed references for
+            ``M`` (M is constant across p-values; cache once per experiment).
+
+    Returns:
+        Dict with ``ari``, ``jaccard``, ``n_clusters_M``, ``n_clusters_S``,
+        ``mean_cluster_size_M``, ``mean_cluster_size_S``, ``n_bipartitions_M``,
+        ``n_bipartitions_S``, ``n_bipartitions_shared``.
+    """
+    from sklearn.metrics import adjusted_rand_score
+    from .recursive_partition import recursive_split
+
+    if cluster_ids_M is None or bipartitions_M is None:
+        cluster_ids_M, bipartitions_M = recursive_split(M, threshold, num_gaps, min_split)
+    cluster_ids_S, bipartitions_S = recursive_split(S_avg, threshold, num_gaps, min_split)
+
+    n_M = int(cluster_ids_M.max() + 1)
+    n_S = int(cluster_ids_S.max() + 1)
+    ari = float(adjusted_rand_score(cluster_ids_M, cluster_ids_S))
+
+    B_M = set(bipartitions_M)
+    B_S = set(bipartitions_S)
+    union = B_M | B_S
+    jaccard = float(len(B_M & B_S) / len(union)) if union else 1.0
+
+    return {
+        "ari": ari,
+        "jaccard": jaccard,
+        "n_clusters_M": n_M,
+        "n_clusters_S": n_S,
+        "mean_cluster_size_M": float(cluster_ids_M.size / n_M) if n_M > 0 else 0.0,
+        "mean_cluster_size_S": float(cluster_ids_S.size / n_S) if n_S > 0 else 0.0,
+        "n_bipartitions_M": len(B_M),
+        "n_bipartitions_S": len(B_S),
+        "n_bipartitions_shared": len(B_M & B_S),
+    }

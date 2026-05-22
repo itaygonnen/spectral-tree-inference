@@ -1,0 +1,77 @@
+[recompute] n=128 L=10000 (rebuilding ground truth)...
+  built D in 0.2s; computing ||D||...
+  ||D||_2 = 565   ||D||_F = 580.4   ||D||_inf = 5.363  (0.0s)
+  p=1: linf=4.443, rel_spec=0.007863, rel_frob=0.01083  (0.0s)
+  p=0.9: linf=4.936, rel_spec=0.1112, rel_frob=0.1306  (0.0s)
+  p=0.5: linf=8.886, rel_spec=0.999, rel_frob=1  (0.0s)
+  p=0.1: linf=47.79, rel_spec=8.941, rel_frob=8.764  (0.0s)
+  p=0.05: linf=100.2, rel_spec=18.98, rel_frob=18.57  (0.0s)
+  p=0.01: linf=511.3, rel_spec=100.4, rel_frob=98.18  (0.0s)
+  p=0.005: linf=1023, rel_spec=195.4, rel_frob=191  (0.0s)
+  p=0.001: linf=5060, rel_spec=1013, rel_frob=990.2  (0.0s)
+  p=0.0005: linf=1.002e+04, rel_spec=2043, rel_frob=1997  (0.0s)
+  p=0.0001: linf=2.991e+04, rel_spec=6151, rel_frob=6011  (0.0s)
+  wrote /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n128_L10000/nj_meta_extra.json
+[recompute] n=256 L=10000 (rebuilding ground truth)...
+  built D in 0.4s; computing ||D||...
+  ||D||_2 = 1530   ||D||_F = 1567   ||D||_inf = 8.447  (0.0s)
+  p=1: linf=5.971, rel_spec=0.003904, rel_frob=0.005388  (0.0s)
+  p=0.9: linf=6.633, rel_spec=0.1106, rel_frob=0.1322  (0.0s)
+  p=0.5: linf=11.94, rel_spec=0.9952, rel_frob=0.9996  (0.0s)
+  p=0.1: linf=74.97, rel_spec=8.973, rel_frob=8.802  (0.0s)
+  p=0.05: linf=158.1, rel_spec=18.83, rel_frob=18.44  (0.0s)
+  p=0.01: linf=810.5, rel_spec=98.77, rel_frob=96.61  (0.0s)
+  p=0.005: linf=1597, rel_spec=197.2, rel_frob=192.9  (0.0s)
+  p=0.001: linf=7828, rel_spec=988.1, rel_frob=966.3  (0.0s)
+  p=0.0005: linf=1.5e+04, rel_spec=1945, rel_frob=1902  (0.0s)
+  p=0.0001: linf=6.818e+04, rel_spec=1.073e+04, rel_frob=1.049e+04  (0.0s)
+  wrote /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n256_L10000/nj_meta_extra.json
+[recompute] n=512 L=10000 (rebuilding ground truth)...
+  built D in 1.0s; computing ||D||...
+  ||D||_2 = 3975   ||D||_F = 4062   ||D||_inf = 10.78  (0.0s)
+  p=1: linf=7.765, rel_spec=0.001953, rel_frob=0.002704  (0.0s)
+  p=0.9: linf=8.627, rel_spec=0.1109, rel_frob=0.1289  (0.0s)
+  p=0.5: linf=15.53, rel_spec=0.9983, rel_frob=1  (0.0s)
+  p=0.1: linf=94.64, rel_spec=8.983, rel_frob=8.823  (0.0s)
+  p=0.05: linf=198.9, rel_spec=18.98, rel_frob=18.62  (0.0s)
+  p=0.01: linf=1008, rel_spec=98.84, rel_frob=96.86  (0.0s)
+  p=0.005: linf=1977, rel_spec=199, rel_frob=195  (0.0s)
+  p=0.001: linf=9671, rel_spec=1004, rel_frob=983.2  (0.0s)
+  p=0.0005: linf=1.914e+04, rel_spec=1997, rel_frob=1957  (0.0s)
+  p=0.0001: linf=9.121e+04, rel_spec=9791, rel_frob=9593  (0.0s)
+  wrote /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n512_L10000/nj_meta_extra.json
+[recompute] n=1024 L=10000 (rebuilding ground truth)...
+  built D in 2.2s; computing ||D||...
+  ||D||_2 = 1.014e+04   ||D||_F = 1.035e+04   ||D||_inf = 20.93  (0.1s)
+  p=1: linf=9.904, rel_spec=0.0009769, rel_frob=0.001914  (0.0s)
+  p=0.9: linf=11, rel_spec=0.1111, rel_frob=0.128  (0.1s)
+  p=0.5: linf=20.71, rel_spec=0.9993, rel_frob=0.9999  (0.1s)
+  p=0.1: linf=164.2, rel_spec=8.999, rel_frob=8.84  (0.1s)
+  p=0.05: linf=343.7, rel_spec=18.99, rel_frob=18.63  (0.1s)
+  p=0.01: linf=1571, rel_spec=98.77, rel_frob=96.83  (0.1s)
+  p=0.005: linf=2980, rel_spec=198.5, rel_frob=194.5  (0.1s)
+  p=0.001: linf=1.437e+04, rel_spec=1004, rel_frob=984.5  (0.0s)
+  p=0.0005: linf=2.813e+04, rel_spec=1997, rel_frob=1957  (0.0s)
+  p=0.0001: linf=1.293e+05, rel_spec=9899, rel_frob=9703  (0.0s)
+  wrote /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n1024_L10000/nj_meta_extra.json
+[recompute] n=2048 L=10000 (rebuilding ground truth)...
+  built D in 7.5s; computing ||D||...
+  ||D||_2 = 1.926e+04   ||D||_F = 1.949e+04   ||D||_inf = 20.18  (0.7s)
+  p=1: linf=9.384, rel_spec=0.0004872, rel_frob=0.0006807  (0.1s)
+  p=0.9: linf=10.43, rel_spec=0.1108, rel_frob=0.1232  (0.4s)
+  p=0.5: linf=19.33, rel_spec=0.9972, rel_frob=1  (0.4s)
+  p=0.1: linf=141.3, rel_spec=8.975, rel_frob=8.884  (0.3s)
+  p=0.05: linf=294.5, rel_spec=18.95, rel_frob=18.74  (0.3s)
+  p=0.01: linf=1428, rel_spec=98.7, rel_frob=97.56  (0.2s)
+  p=0.005: linf=2932, rel_spec=198.4, rel_frob=196.1  (0.2s)
+  p=0.001: linf=1.317e+04, rel_spec=996.2, rel_frob=984.5  (0.2s)
+  p=0.0005: linf=2.654e+04, rel_spec=1994, rel_frob=1971  (0.1s)
+  p=0.0001: linf=1.277e+05, rel_spec=1.008e+04, rel_frob=9959  (0.1s)
+  wrote /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n2048_L10000/nj_meta_extra.json
+
+Done. Wrote:
+  /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n128_L10000/nj_meta_extra.json
+  /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n256_L10000/nj_meta_extra.json
+  /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n512_L10000/nj_meta_extra.json
+  /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n1024_L10000/nj_meta_extra.json
+  /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/20260519-224641-nj_sweep_birth_death_L10000/n2048_L10000/nj_meta_extra.json

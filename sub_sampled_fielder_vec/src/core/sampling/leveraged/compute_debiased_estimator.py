@@ -50,7 +50,8 @@ from typing import Tuple
 def compute_debiased_estimator(
     matrix: np.ndarray,
     Omega: np.ndarray,
-    p_matrix: np.ndarray
+    p_matrix: np.ndarray,
+    self_value: float = 1.0,
 ) -> csr_matrix:
     """
     Compute debiased estimator X̂ from sampled entries.
@@ -157,10 +158,9 @@ def compute_debiased_estimator(
     # This ensures numerical symmetry despite floating-point errors
     X_hat_sym = (X_hat_csr + X_hat_csr.T) / 2
 
-    # Explicitly set diagonal to 1.0 (self-similarity)
+    # Explicitly set diagonal to self_value (1.0 for similarity, 0.0 for distance)
     # The diagonal was never sampled (excluded from Omega), so it starts at 0
-    # For phylogenetic similarity matrices, S_ii = 1.0 by definition
-    X_hat_sym.setdiag(1.0)
+    X_hat_sym.setdiag(self_value)
 
     return X_hat_sym
 

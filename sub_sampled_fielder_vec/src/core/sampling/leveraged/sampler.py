@@ -45,7 +45,9 @@ class LeveragedSampler(BaseSampler):
         ialm_tol: float = 1e-6,
         ialm_bypass_threshold: float = 0.1,
         force_leveraged: bool = False,
-        allow_uniform_fallback: bool = True
+        allow_uniform_fallback: bool = True,
+        self_value: float = 1.0,
+        **kwargs
     ):
         """
         Initialize leveraged sampler.
@@ -61,6 +63,7 @@ class LeveragedSampler(BaseSampler):
             allow_uniform_fallback: If True, fall back to uniform sampling when p is too
                                    small for leveraged sampling. If False, raise an error.
         """
+        super().__init__(self_value=self_value)
         self.theta = theta
         self.target_rank = target_rank
         self.ialm_max_iter = ialm_max_iter
@@ -158,7 +161,7 @@ class LeveragedSampler(BaseSampler):
                 L = np.zeros_like(matrix)
                 L[Omega] = matrix[Omega]
                 L = (L + L.T) / 2
-                np.fill_diagonal(L, 1.0)
+                np.fill_diagonal(L, self.self_value)
 
                 # Set minimal metrics for uniform fallback case
                 self.last_sample_metrics = {
@@ -291,7 +294,7 @@ class LeveragedSampler(BaseSampler):
             L = np.zeros_like(matrix)
             L[Omega] = matrix[Omega]
             L = (L + L.T) / 2  # Ensure symmetry
-            np.fill_diagonal(L, 1.0)
+            np.fill_diagonal(L, self.self_value)
 
             # Log bypass decision
             total_sampled = np.sum(Omega) // 2
@@ -340,8 +343,8 @@ class LeveragedSampler(BaseSampler):
         self.last_sample_metrics['ialm_iterations'] = result_info.iterations if result_info else self.ialm_max_iter
         self.last_sample_metrics['ialm_converged'] = result_info.converged if result_info else False
 
-        # Ensure diagonal is 1.0 (self-similarity)
-        np.fill_diagonal(L, 1.0)
+        # Ensure diagonal matches matrix kind (1.0 similarity / 0.0 distance)
+        np.fill_diagonal(L, self.self_value)
         
         # Ensure symmetry (IALM might introduce small asymmetry due to numerical errors)
         L = (L + L.T) / 2

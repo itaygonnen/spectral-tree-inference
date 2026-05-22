@@ -1,0 +1,28 @@
+[19:49:07] resuming pool: n4000_L10000_mu0p1000_kingman_pop1p0000_JC69
+[19:49:07] params: n=4000 mu=0.1 pop_size=1.0 L=10000 model=kingman; targets=[1, 5, 10, 15] tol=±1.0; samples/bin=10; seed_start=70100; max_attempts=4000; num_workers=4
+[19:49:07] current bin counts: eta01=20/10  eta05=20/10  eta10=15/10  eta15=6/10
+[19:51:56] saved seed=70107 eta=14.748 -> eta15 idx=7 (n1=254.0, n2=3746.0, margin=-6.4007); counts: eta01=20/10  eta05=20/10  eta10=15/10  eta15=7/10 [attempts=16, saves=1, elapsed=168.5s]
+[21:41:33] seed=70131 eta=1.572 -> eta01 already full; attempts=32 saves=1 elapsed=6745.4s
+[00:14:44] saved seed=70135 eta=15.807 -> eta15 idx=8 (n1=3762.0, n2=238.0, margin=-6.4417); counts: eta01=20/10  eta05=20/10  eta10=15/10  eta15=8/10 [attempts=36, saves=2, elapsed=15936.8s]
+[00:14:46] seed=70139 eta=1.051 -> eta01 already full; attempts=48 saves=2 elapsed=15939.0s
+[01:20:04] seed=70163 eta=1.169 -> eta01 already full; attempts=64 saves=2 elapsed=19856.7s
+[02:28:43] seed=70179 eta=1.312 -> eta01 already full; attempts=80 saves=2 elapsed=23975.6s
+[03:30:41] seed=70187 eta=1.930 -> eta01 already full; attempts=96 saves=2 elapsed=27693.4s
+[04:23:12] seed=70207 eta=2.040 no match; attempts=112 saves=2 elapsed=30844.4s
+[05:27:47] seed=70227 eta=1.055 -> eta01 already full; attempts=128 saves=2 elapsed=34719.6s
+[06:22:01] seed=70239 eta=1.339 -> eta01 already full; attempts=144 saves=2 elapsed=37973.9s
+[07:15:28] seed=70255 eta=5.339 -> eta05 already full; attempts=160 saves=2 elapsed=41180.7s
+[08:16:35] seed=70271 eta=1.372 -> eta01 already full; attempts=176 saves=2 elapsed=44847.8s
+[09:16:59] seed=70291 eta=5.745 -> eta05 already full; attempts=192 saves=2 elapsed=48471.9s
+[09:19:48] seed=70307 eta=1.307 -> eta01 already full; attempts=208 saves=2 elapsed=48640.5s
+[09:22:30] saved seed=70320 eta=15.807 -> eta15 idx=9 (n1=3762.0, n2=238.0, margin=-3.6469); counts: eta01=20/10  eta05=20/10  eta10=15/10  eta15=9/10 [attempts=217, saves=3, elapsed=48802.5s]
+[09:22:30] seed=70315 eta=1.742 -> eta01 already full; attempts=224 saves=3 elapsed=48803.1s
+[09:25:16] seed=70335 eta=1.330 -> eta01 already full; attempts=240 saves=3 elapsed=48968.7s
+[09:28:06] seed=70351 eta=10.696 -> eta10 already full; attempts=256 saves=3 elapsed=49138.9s
+[09:30:52] seed=70363 eta=1.132 -> eta01 already full; attempts=272 saves=3 elapsed=49304.4s
+[09:33:35] seed=70379 eta=5.849 -> eta05 already full; attempts=288 saves=3 elapsed=49468.3s
+[09:36:24] seed=70399 eta=1.324 -> eta01 already full; attempts=304 saves=3 elapsed=49636.8s
+[09:39:07] saved seed=70412 eta=15.598 -> eta15 idx=10 (n1=241.0, n2=3759.0, margin=-5.9104); counts: eta01=20/10  eta05=20/10  eta10=15/10  eta15=10/10 [attempts=309, saves=4, elapsed=49800.1s]
+[09:39:07] all bins full; terminating workers
+[09:39:08] done. attempts=309 saves=4 elapsed=49800.7s
+[09:39:08] final counts: eta01=20/10  eta05=20/10  eta10=15/10  eta15=10/10

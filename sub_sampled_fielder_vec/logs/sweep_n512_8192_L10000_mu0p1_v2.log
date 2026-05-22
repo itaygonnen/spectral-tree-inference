@@ -1,0 +1,349 @@
+================================================================================
+Starting full sweep: taxa=[512, 1024, 2048, 4096, 8192], L=10000, mu=0.1, reps=10
+p values: [0.005, 0.01, 0.02, 0.05, 0.07, 0.085, 0.1, 0.12, 0.15, 0.2, 0.3, 0.5, 0.75, 1.0]
+with_similarity: False
+================================================================================
+Saved sweep config to /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/sweep_config.json
+
+================================================================================
+Grid Sweep Base Directory: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000
+================================================================================
+
+
+>>> DISTANCE sweep: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000
+
+
+--------------------------------------------------------------------------------
+Launching experiment for balanced_binary tree: n=512, L=10000
+Sampling method: uniform
+
+================================================================================
+SPECTRAL TREE INFERENCE - Sub-sampled STDR Experiment
+================================================================================
+Experiment Type:    Single Configuration
+Configurations:     n=512, L=10000
+Tree Model:         balanced_binary
+Sequence Model:     JC69
+Mutation Rate:      μ = 0.1
+P-values:           14 values from 5.00e-03 to 1.00e+00
+Bootstrap Reps:     10
+Display Mode:       progress
+Run Name:           distance_a1_n512_4096_L10000
+================================================================================
+
+EXPERIMENT_RUNNER | INFO | Log file created: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n512_L10000/experiment.log
+EXPERIMENT_RUNNER | INFO | All progress will be logged to this file
+BOOTSTRAP_SWEEP | INFO | Generating tree and sequences...
+BOOTSTRAP_SWEEP | INFO | Computing full paralinear distance matrix (α=1.0)...
+BOOTSTRAP_SWEEP | INFO | Computing reference Fiedler vector...
+BOOTSTRAP_SWEEP | INFO | Processing p-value 1/14: p=0.005
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.005
+BOOTSTRAP_SWEEP | INFO | p=0.005 results: sign=2.54%, part_M=51.17%, part_S=51.17%, dot=0.1099, σ2_M=0.5365, σ2_S=0.0000, split_M=6-506, split_S=6-506, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 2/14: p=0.01
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.01
+BOOTSTRAP_SWEEP | INFO | p=0.01 results: sign=47.85%, part_M=52.15%, part_S=52.15%, dot=0.1519, σ2_M=1.2498, σ2_S=0.0000, split_M=255-257, split_S=255-257, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 3/14: p=0.02
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.02
+BOOTSTRAP_SWEEP | INFO | p=0.02 results: sign=50.98%, part_M=50.98%, part_S=50.98%, dot=0.1974, σ2_M=1.2178, σ2_S=0.0000, split_M=255-257, split_S=255-257, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 4/14: p=0.05
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.05
+BOOTSTRAP_SWEEP | INFO | p=0.05 results: sign=51.95%, part_M=51.95%, part_S=51.95%, dot=0.1935, σ2_M=1.2081, σ2_S=0.0000, split_M=252-260, split_S=252-260, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 5/14: p=0.07
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.07
+BOOTSTRAP_SWEEP | INFO | p=0.07 results: sign=57.81%, part_M=57.81%, part_S=57.81%, dot=0.1882, σ2_M=1.1482, σ2_S=0.0000, split_M=246-266, split_S=246-266, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 6/14: p=0.085
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.085
+BOOTSTRAP_SWEEP | INFO | p=0.085 results: sign=65.82%, part_M=65.82%, part_S=65.82%, dot=0.2949, σ2_M=1.0781, σ2_S=0.0000, split_M=233-279, split_S=233-279, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 7/14: p=0.1
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.1
+BOOTSTRAP_SWEEP | INFO | p=0.1 results: sign=85.16%, part_M=85.16%, part_S=85.16%, dot=0.2519, σ2_M=0.9748, σ2_S=0.0001, split_M=244-268, split_S=244-268, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 8/14: p=0.12
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.12
+BOOTSTRAP_SWEEP | INFO | p=0.12 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.7798, σ2_M=0.0093, σ2_S=0.0000, split_M=256-256, split_S=256-256, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 9/14: p=0.15
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.15
+BOOTSTRAP_SWEEP | INFO | p=0.15 results: sign=75.00%, part_M=75.00%, part_S=75.00%, dot=0.6023, σ2_M=0.0120, σ2_S=0.0000, split_M=128-384, split_S=128-384, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 10/14: p=0.2
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.2
+BOOTSTRAP_SWEEP | INFO | p=0.2 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9976, σ2_M=0.0093, σ2_S=0.0000, split_M=256-256, split_S=256-256, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 11/14: p=0.3
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.3
+BOOTSTRAP_SWEEP | INFO | p=0.3 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9984, σ2_M=0.0093, σ2_S=0.0000, split_M=256-256, split_S=256-256, source=computed
+Fiedler vectors plot saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n512_L10000/fiedler_vectors.png
+EXPERIMENT_RUNNER | INFO | Generating tree partition visualizations...
+✓ Tree partition saved: tree_partition_n512 (tree.pdf/svg, fiedler.pdf/png, .nwk, .partition.txt)
+✓ Combined plot saved: tree_partition_n512.combined.pdf/png
+EXPERIMENT_RUNNER | INFO | Tree partition visualizations saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n512_L10000/tree_plots/tree_partition_n512
+EXPERIMENT_RUNNER | INFO | Completed! Results saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n512_L10000
+  [distance] n=512 L=10000 done in 0.5 min  -> /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n512_L10000
+
+--------------------------------------------------------------------------------
+Launching experiment for balanced_binary tree: n=1024, L=10000
+Sampling method: uniform
+
+================================================================================
+SPECTRAL TREE INFERENCE - Sub-sampled STDR Experiment
+================================================================================
+Experiment Type:    Single Configuration
+Configurations:     n=1024, L=10000
+Tree Model:         balanced_binary
+Sequence Model:     JC69
+Mutation Rate:      μ = 0.1
+P-values:           14 values from 5.00e-03 to 1.00e+00
+Bootstrap Reps:     10
+Display Mode:       progress
+Run Name:           distance_a1_n512_4096_L10000
+================================================================================
+
+EXPERIMENT_RUNNER | INFO | Log file created: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n1024_L10000/experiment.log
+EXPERIMENT_RUNNER | INFO | All progress will be logged to this file
+BOOTSTRAP_SWEEP | INFO | Generating tree and sequences...
+BOOTSTRAP_SWEEP | INFO | Computing full paralinear distance matrix (α=1.0)...
+BOOTSTRAP_SWEEP | INFO | Computing reference Fiedler vector...
+BOOTSTRAP_SWEEP | INFO | Processing p-value 1/14: p=0.005
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.005
+BOOTSTRAP_SWEEP | INFO | p=0.005 results: sign=52.93%, part_M=52.93%, part_S=52.93%, dot=0.0530, σ2_M=1.3303, σ2_S=0.0000, split_M=498-526, split_S=498-526, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 2/14: p=0.01
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.01
+BOOTSTRAP_SWEEP | INFO | p=0.01 results: sign=51.86%, part_M=51.86%, part_S=51.86%, dot=0.0652, σ2_M=1.3592, σ2_S=0.0000, split_M=495-529, split_S=495-529, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 3/14: p=0.02
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.02
+BOOTSTRAP_SWEEP | INFO | p=0.02 results: sign=51.37%, part_M=51.37%, part_S=51.37%, dot=0.1295, σ2_M=1.3327, σ2_S=0.0000, split_M=506-518, split_S=506-518, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 4/14: p=0.05
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.05
+BOOTSTRAP_SWEEP | INFO | p=0.05 results: sign=51.27%, part_M=51.27%, part_S=51.27%, dot=0.0042, σ2_M=1.3634, σ2_S=0.0000, split_M=503-521, split_S=503-521, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 5/14: p=0.07
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.07
+BOOTSTRAP_SWEEP | INFO | p=0.07 results: sign=50.98%, part_M=50.98%, part_S=50.98%, dot=0.0060, σ2_M=1.3415, σ2_S=0.0000, split_M=498-526, split_S=498-526, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 6/14: p=0.085
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.085
+BOOTSTRAP_SWEEP | INFO | p=0.085 results: sign=53.03%, part_M=53.03%, part_S=53.03%, dot=0.1203, σ2_M=1.3242, σ2_S=0.0000, split_M=485-539, split_S=485-539, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 7/14: p=0.1
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.1
+BOOTSTRAP_SWEEP | INFO | p=0.1 results: sign=74.80%, part_M=74.80%, part_S=74.80%, dot=0.1695, σ2_M=1.0922, σ2_S=0.0001, split_M=418-606, split_S=418-606, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 8/14: p=0.12
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.12
+BOOTSTRAP_SWEEP | INFO | p=0.12 results: sign=80.86%, part_M=80.86%, part_S=80.86%, dot=0.5158, σ2_M=0.6246, σ2_S=0.0001, split_M=444-580, split_S=444-580, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 9/14: p=0.15
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.15
+BOOTSTRAP_SWEEP | INFO | p=0.15 results: sign=75.00%, part_M=75.00%, part_S=75.00%, dot=0.6041, σ2_M=0.0116, σ2_S=0.0000, split_M=256-768, split_S=256-768, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 10/14: p=0.2
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.2
+BOOTSTRAP_SWEEP | INFO | p=0.2 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9729, σ2_M=0.0099, σ2_S=0.0000, split_M=512-512, split_S=512-512, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 11/14: p=0.3
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.3
+BOOTSTRAP_SWEEP | INFO | p=0.3 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9994, σ2_M=0.0099, σ2_S=0.0000, split_M=512-512, split_S=512-512, source=computed
+Fiedler vectors plot saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n1024_L10000/fiedler_vectors.png
+EXPERIMENT_RUNNER | INFO | Generating tree partition visualizations...
+✓ Tree partition saved: tree_partition_n1024 (tree.pdf/svg, fiedler.pdf/png, .nwk, .partition.txt)
+✓ Combined plot saved: tree_partition_n1024.combined.pdf/png
+EXPERIMENT_RUNNER | INFO | Tree partition visualizations saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n1024_L10000/tree_plots/tree_partition_n1024
+EXPERIMENT_RUNNER | INFO | Completed! Results saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n1024_L10000
+  [distance] n=1024 L=10000 done in 3.1 min  -> /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n1024_L10000
+
+--------------------------------------------------------------------------------
+Launching experiment for balanced_binary tree: n=2048, L=10000
+Sampling method: uniform
+
+================================================================================
+SPECTRAL TREE INFERENCE - Sub-sampled STDR Experiment
+================================================================================
+Experiment Type:    Single Configuration
+Configurations:     n=2048, L=10000
+Tree Model:         balanced_binary
+Sequence Model:     JC69
+Mutation Rate:      μ = 0.1
+P-values:           14 values from 5.00e-03 to 1.00e+00
+Bootstrap Reps:     10
+Display Mode:       progress
+Run Name:           distance_a1_n512_4096_L10000
+================================================================================
+
+EXPERIMENT_RUNNER | INFO | Log file created: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n2048_L10000/experiment.log
+EXPERIMENT_RUNNER | INFO | All progress will be logged to this file
+BOOTSTRAP_SWEEP | INFO | Generating tree and sequences...
+BOOTSTRAP_SWEEP | INFO | Computing full paralinear distance matrix (α=1.0)...
+BOOTSTRAP_SWEEP | INFO | Computing reference Fiedler vector...
+BOOTSTRAP_SWEEP | INFO | Processing p-value 1/14: p=0.005
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.005
+BOOTSTRAP_SWEEP | INFO | p=0.005 results: sign=52.39%, part_M=52.39%, part_S=52.39%, dot=0.0505, σ2_M=1.4357, σ2_S=0.0000, split_M=1021-1027, split_S=1021-1027, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 2/14: p=0.01
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.01
+BOOTSTRAP_SWEEP | INFO | p=0.01 results: sign=51.27%, part_M=51.27%, part_S=51.27%, dot=0.0298, σ2_M=1.4547, σ2_S=0.0000, split_M=982-1066, split_S=982-1066, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 3/14: p=0.02
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.02
+BOOTSTRAP_SWEEP | INFO | p=0.02 results: sign=49.46%, part_M=50.54%, part_S=50.54%, dot=0.0942, σ2_M=1.4310, σ2_S=0.0000, split_M=985-1063, split_S=985-1063, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 4/14: p=0.05
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.05
+BOOTSTRAP_SWEEP | INFO | p=0.05 results: sign=50.00%, part_M=50.00%, part_S=50.00%, dot=0.0020, σ2_M=1.4688, σ2_S=0.0000, split_M=1004-1044, split_S=1004-1044, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 5/14: p=0.07
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.07
+BOOTSTRAP_SWEEP | INFO | p=0.07 results: sign=51.86%, part_M=51.86%, part_S=51.86%, dot=0.0068, σ2_M=1.4525, σ2_S=0.0000, split_M=1020-1028, split_S=1020-1028, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 6/14: p=0.085
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.085
+BOOTSTRAP_SWEEP | INFO | p=0.085 results: sign=49.22%, part_M=50.78%, part_S=50.78%, dot=0.0035, σ2_M=1.4503, σ2_S=0.0000, split_M=1016-1032, split_S=1016-1032, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 7/14: p=0.1
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.1
+BOOTSTRAP_SWEEP | INFO | p=0.1 results: sign=58.20%, part_M=58.20%, part_S=58.20%, dot=0.1111, σ2_M=1.2086, σ2_S=0.0001, split_M=916-1132, split_S=916-1132, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 8/14: p=0.12
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.12
+BOOTSTRAP_SWEEP | INFO | p=0.12 results: sign=62.99%, part_M=62.99%, part_S=62.99%, dot=0.4691, σ2_M=0.7250, σ2_S=0.0003, split_M=776-1272, split_S=776-1272, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 9/14: p=0.15
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.15
+BOOTSTRAP_SWEEP | INFO | p=0.15 results: sign=81.25%, part_M=81.25%, part_S=81.25%, dot=0.6092, σ2_M=0.2522, σ2_S=0.0000, split_M=896-1152, split_S=896-1152, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 10/14: p=0.2
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.2
+BOOTSTRAP_SWEEP | INFO | p=0.2 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9747, σ2_M=0.0106, σ2_S=0.0000, split_M=1024-1024, split_S=1024-1024, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 11/14: p=0.3
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.3
+BOOTSTRAP_SWEEP | INFO | p=0.3 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9993, σ2_M=0.0106, σ2_S=0.0000, split_M=1024-1024, split_S=1024-1024, source=computed
+Fiedler vectors plot saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n2048_L10000/fiedler_vectors.png
+EXPERIMENT_RUNNER | INFO | Generating tree partition visualizations...
+✓ Tree partition saved: tree_partition_n2048 (tree.pdf/svg, fiedler.pdf/png, .nwk, .partition.txt)
+✓ Combined plot saved: tree_partition_n2048.combined.pdf/png
+EXPERIMENT_RUNNER | INFO | Tree partition visualizations saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n2048_L10000/tree_plots/tree_partition_n2048
+EXPERIMENT_RUNNER | INFO | Completed! Results saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n2048_L10000
+  [distance] n=2048 L=10000 done in 16.8 min  -> /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n2048_L10000
+
+--------------------------------------------------------------------------------
+Launching experiment for balanced_binary tree: n=4096, L=10000
+Sampling method: uniform
+
+================================================================================
+SPECTRAL TREE INFERENCE - Sub-sampled STDR Experiment
+================================================================================
+Experiment Type:    Single Configuration
+Configurations:     n=4096, L=10000
+Tree Model:         balanced_binary
+Sequence Model:     JC69
+Mutation Rate:      μ = 0.1
+P-values:           14 values from 5.00e-03 to 1.00e+00
+Bootstrap Reps:     10
+Display Mode:       progress
+Run Name:           distance_a1_n512_4096_L10000
+================================================================================
+
+EXPERIMENT_RUNNER | INFO | Log file created: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n4096_L10000/experiment.log
+EXPERIMENT_RUNNER | INFO | All progress will be logged to this file
+BOOTSTRAP_SWEEP | INFO | Generating tree and sequences...
+BOOTSTRAP_SWEEP | INFO | Computing full paralinear distance matrix (α=1.0)...
+BOOTSTRAP_SWEEP | INFO | Computing reference Fiedler vector...
+BOOTSTRAP_SWEEP | INFO | Processing p-value 1/14: p=0.005
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.005
+BOOTSTRAP_SWEEP | INFO | p=0.005 results: sign=51.54%, part_M=51.54%, part_S=51.54%, dot=0.0348, σ2_M=1.5123, σ2_S=0.0000, split_M=2007-2089, split_S=2007-2089, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 2/14: p=0.01
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.01
+BOOTSTRAP_SWEEP | INFO | p=0.01 results: sign=53.59%, part_M=53.59%, part_S=53.59%, dot=0.0593, σ2_M=1.5182, σ2_S=0.0000, split_M=2047-2049, split_S=2047-2049, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 3/14: p=0.02
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.02
+BOOTSTRAP_SWEEP | INFO | p=0.02 results: sign=50.76%, part_M=50.76%, part_S=50.76%, dot=0.0527, σ2_M=1.5110, σ2_S=0.0000, split_M=2039-2057, split_S=2039-2057, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 4/14: p=0.05
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.05
+BOOTSTRAP_SWEEP | INFO | p=0.05 results: sign=50.15%, part_M=50.15%, part_S=50.15%, dot=0.0022, σ2_M=1.5394, σ2_S=0.0000, split_M=2036-2060, split_S=2036-2060, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 5/14: p=0.07
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.07
+BOOTSTRAP_SWEEP | INFO | p=0.07 results: sign=50.12%, part_M=50.12%, part_S=50.12%, dot=0.0079, σ2_M=1.5083, σ2_S=0.0000, split_M=2023-2073, split_S=2023-2073, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 6/14: p=0.085
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.085
+BOOTSTRAP_SWEEP | INFO | p=0.085 results: sign=50.32%, part_M=50.32%, part_S=50.32%, dot=0.0040, σ2_M=1.5180, σ2_S=0.0000, split_M=2035-2061, split_S=2035-2061, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 7/14: p=0.1
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.1
+BOOTSTRAP_SWEEP | INFO | p=0.1 results: sign=53.96%, part_M=53.96%, part_S=53.96%, dot=0.0860, σ2_M=1.4590, σ2_S=0.0002, split_M=1992-2104, split_S=1992-2104, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 8/14: p=0.12
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.12
+BOOTSTRAP_SWEEP | INFO | p=0.12 results: sign=58.45%, part_M=58.45%, part_S=58.45%, dot=0.2839, σ2_M=0.8872, σ2_S=0.0003, split_M=2010-2086, split_S=2010-2086, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 9/14: p=0.15
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.15
+BOOTSTRAP_SWEEP | INFO | p=0.15 results: sign=84.38%, part_M=84.38%, part_S=84.38%, dot=0.4891, σ2_M=0.2253, σ2_S=0.0000, split_M=1920-2176, split_S=1920-2176, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 10/14: p=0.2
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.2
+BOOTSTRAP_SWEEP | INFO | p=0.2 results: sign=75.00%, part_M=75.00%, part_S=75.00%, dot=0.6764, σ2_M=0.0129, σ2_S=0.0000, split_M=1024-3072, split_S=1024-3072, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 11/14: p=0.3
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.3
+BOOTSTRAP_SWEEP | INFO | p=0.3 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9993, σ2_M=0.0104, σ2_S=0.0000, split_M=2048-2048, split_S=2048-2048, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 12/14: p=0.5
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.5
+BOOTSTRAP_SWEEP | INFO | p=0.5 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9996, σ2_M=0.0104, σ2_S=0.0000, split_M=2048-2048, split_S=2048-2048, source=computed
+Fiedler vectors plot saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n4096_L10000/fiedler_vectors.png
+EXPERIMENT_RUNNER | INFO | Generating tree partition visualizations...
+✓ Tree partition saved: tree_partition_n4096 (tree.pdf/svg, fiedler.pdf/png, .nwk, .partition.txt)
+✓ Combined plot saved: tree_partition_n4096.combined.pdf/png
+EXPERIMENT_RUNNER | INFO | Tree partition visualizations saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n4096_L10000/tree_plots/tree_partition_n4096
+EXPERIMENT_RUNNER | INFO | Completed! Results saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n4096_L10000
+  [distance] n=4096 L=10000 done in 230.4 min  -> /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n4096_L10000
+
+--------------------------------------------------------------------------------
+Launching experiment for balanced_binary tree: n=8192, L=10000
+Sampling method: uniform
+
+================================================================================
+SPECTRAL TREE INFERENCE - Sub-sampled STDR Experiment
+================================================================================
+Experiment Type:    Single Configuration
+Configurations:     n=8192, L=10000
+Tree Model:         balanced_binary
+Sequence Model:     JC69
+Mutation Rate:      μ = 0.1
+P-values:           14 values from 5.00e-03 to 1.00e+00
+Bootstrap Reps:     10
+Display Mode:       progress
+Run Name:           distance_a1_n512_4096_L10000
+================================================================================
+
+EXPERIMENT_RUNNER | INFO | Log file created: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n8192_L10000/experiment.log
+EXPERIMENT_RUNNER | INFO | All progress will be logged to this file
+BOOTSTRAP_SWEEP | INFO | Generating tree and sequences...
+BOOTSTRAP_SWEEP | INFO | Computing full paralinear distance matrix (α=1.0)...
+BOOTSTRAP_SWEEP | INFO | Computing reference Fiedler vector...
+BOOTSTRAP_SWEEP | INFO | Processing p-value 1/14: p=0.005
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.005
+BOOTSTRAP_SWEEP | INFO | p=0.005 results: sign=51.07%, part_M=51.07%, part_S=51.07%, dot=0.0389, σ2_M=1.5967, σ2_S=0.0000, split_M=4024-4168, split_S=4024-4168, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 2/14: p=0.01
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.01
+BOOTSTRAP_SWEEP | INFO | p=0.01 results: sign=49.84%, part_M=50.16%, part_S=50.16%, dot=0.0264, σ2_M=1.5922, σ2_S=0.0000, split_M=4095-4097, split_S=4095-4097, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 3/14: p=0.02
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.02
+BOOTSTRAP_SWEEP | INFO | p=0.02 results: sign=49.82%, part_M=50.18%, part_S=50.18%, dot=0.0475, σ2_M=1.5908, σ2_S=0.0000, split_M=4055-4137, split_S=4055-4137, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 4/14: p=0.05
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.05
+BOOTSTRAP_SWEEP | INFO | p=0.05 results: sign=50.65%, part_M=50.65%, part_S=50.65%, dot=0.0020, σ2_M=1.6203, σ2_S=0.0000, split_M=4095-4097, split_S=4095-4097, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 5/14: p=0.07
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.07
+BOOTSTRAP_SWEEP | INFO | p=0.07 results: sign=49.90%, part_M=50.10%, part_S=50.10%, dot=0.0059, σ2_M=1.5969, σ2_S=0.0000, split_M=4074-4118, split_S=4074-4118, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 6/14: p=0.085
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.085
+BOOTSTRAP_SWEEP | INFO | p=0.085 results: sign=50.48%, part_M=50.48%, part_S=50.48%, dot=0.0036, σ2_M=1.5920, σ2_S=0.0001, split_M=4067-4125, split_S=4067-4125, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 7/14: p=0.1
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.1
+BOOTSTRAP_SWEEP | INFO | p=0.1 results: sign=50.87%, part_M=50.87%, part_S=50.87%, dot=0.0723, σ2_M=1.3208, σ2_S=0.0001, split_M=4049-4143, split_S=4049-4143, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 8/14: p=0.12
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.12
+BOOTSTRAP_SWEEP | INFO | p=0.12 results: sign=56.32%, part_M=56.32%, part_S=56.32%, dot=0.2246, σ2_M=0.8996, σ2_S=0.0005, split_M=2946-5246, split_S=2946-5246, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 9/14: p=0.15
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.15
+BOOTSTRAP_SWEEP | INFO | p=0.15 results: sign=67.97%, part_M=67.97%, part_S=67.97%, dot=0.4568, σ2_M=0.3570, σ2_S=0.0000, split_M=3264-4928, split_S=3264-4928, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 10/14: p=0.2
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.2
+BOOTSTRAP_SWEEP | INFO | p=0.2 results: sign=75.00%, part_M=75.00%, part_S=75.00%, dot=0.5251, σ2_M=0.0131, σ2_S=0.0000, split_M=2048-6144, split_S=2048-6144, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 11/14: p=0.3
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.3
+BOOTSTRAP_SWEEP | INFO | p=0.3 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9994, σ2_M=0.0104, σ2_S=0.0000, split_M=4096-4096, split_S=4096-4096, source=computed
+BOOTSTRAP_SWEEP | INFO | Processing p-value 12/14: p=0.5
+BOOTSTRAP_SWEEP | INFO | Completed 10 bootstrap iterations for p=0.5
+BOOTSTRAP_SWEEP | INFO | p=0.5 results: sign=100.00%, part_M=100.00%, part_S=100.00%, dot=0.9997, σ2_M=0.0104, σ2_S=0.0000, split_M=4096-4096, split_S=4096-4096, source=computed
+Fiedler vectors plot saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n8192_L10000/fiedler_vectors.png
+EXPERIMENT_RUNNER | INFO | Generating tree partition visualizations...
+✓ Tree partition saved: tree_partition_n8192 (tree.pdf/svg, fiedler.pdf/png, .nwk, .partition.txt)
+✓ Combined plot saved: tree_partition_n8192.combined.pdf/png
+EXPERIMENT_RUNNER | INFO | Tree partition visualizations saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n8192_L10000/tree_plots/tree_partition_n8192
+EXPERIMENT_RUNNER | INFO | Completed! Results saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n8192_L10000
+  [distance] n=8192 L=10000 done in 1410.3 min  -> /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/n8192_L10000
+
+Wrote merged grid with 70 rows to /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/results_grid_merged.json
+Taxa sweep plot saved to: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/partition_agreement.png
+Generated combined plot: /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000/partition_agreement.png
+
+================================================================================
+SWEEPS DONE in 1661.1 min
+  distance    -> /Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/results/balanced_binary/distance_a1p000/uniform/20260512-163359-distance_a1_n512_4096_L10000
+================================================================================

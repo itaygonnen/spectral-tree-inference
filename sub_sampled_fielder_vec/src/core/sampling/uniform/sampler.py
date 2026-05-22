@@ -7,19 +7,21 @@ from ..base import BaseSampler
 class UniformSampler(BaseSampler):
     """
     Uniform random subsampling of matrix entries.
-    
-    Preserves diagonal (self-similarity = 1.0) and maintains symmetry.
-    Uses optimized sparse/dense strategies based on sampling probability.
+
+    Preserves diagonal (self.self_value, default 1.0 for similarity / 0.0 for distance)
+    and maintains symmetry. Uses optimized sparse/dense strategies based on p.
     """
-    
-    def __init__(self, **kwargs):
+
+    def __init__(self, self_value: float = 1.0, **kwargs):
         """
         Initialize uniform sampler.
-        
+
         Args:
+            self_value: Value enforced on the diagonal after sampling (1.0 for
+                similarity matrices, 0.0 for distance matrices).
             **kwargs: Ignored (for API compatibility with other samplers)
         """
-        pass  # Uniform sampler has no configuration options
+        super().__init__(self_value=self_value)
     
     def sample(self, matrix: np.ndarray, p: float, seed: int = None, **kwargs) -> np.ndarray:
         """
@@ -72,8 +74,8 @@ class UniformSampler(BaseSampler):
         n = matrix.shape[0]
         subsampled = np.zeros_like(matrix)
         
-        # Preserve diagonal (self-similarity = 1.0)
-        np.fill_diagonal(subsampled, 1.0)
+        # Preserve diagonal (self.self_value: 1.0 for similarity, 0.0 for distance)
+        np.fill_diagonal(subsampled, self.self_value)
         
         # Process upper triangle row-by-row
         for i in range(n):
@@ -134,8 +136,8 @@ class UniformSampler(BaseSampler):
         n = matrix.shape[0]
         subsampled = np.zeros_like(matrix)
         
-        # Preserve diagonal (self-similarity = 1.0)
-        np.fill_diagonal(subsampled, 1.0)
+        # Preserve diagonal (self.self_value: 1.0 for similarity, 0.0 for distance)
+        np.fill_diagonal(subsampled, self.self_value)
         
         # Generate random values for entire matrix
         if hasattr(rng, 'random'):

@@ -186,6 +186,15 @@ class SamplingConfig(BaseModel):
         log_sampling_diagnostics: Save detailed sampling diagnostics for analysis
         truncation_threshold: Minimum similarity threshold - values below this are set to 0.0
                             (0.0 = no truncation, 1e-4 = remove noise, higher = more aggressive)
+        matrix_kind: Which matrix to sub-sample. "similarity" (default) uses the JC similarity
+                    matrix; "distance" uses paralinear distance D and post-transforms the
+                    sub-sampled D̂ back to S = exp(-α·D̂) before Fiedler/σ₂ computation. The
+                    σ₂ rank-1 criterion (Jaffe & Kluger, SNJ paper, docs/papers/SNJ_Jaffe_Kluger.pdf)
+                    is defined on similarity; the distance path tests whether sub-sampling
+                    commutes with the exponential kernel under IPW debiasing.
+        distance_alpha: Distance scaling α from the SNJ paper. M^α = exp(-α D). Only used
+                       when matrix_kind == "distance". α=1 reproduces the canonical pipeline
+                       (modulo the JC vs paralinear difference); α≠1 reweights eigengaps.
     """
     method: Literal["uniform", "leveraged", "lds"] = "uniform"
     theta: float = Field(default=0.3, gt=0.0, lt=1.0, description="Phase 1 budget ratio")
@@ -204,6 +213,14 @@ class SamplingConfig(BaseModel):
                     "'additive': μ_i+μ_j (HLDT paper default), "
                     "'multiplicative': μ_i×μ_j (concentrates on high-leverage pairs), "
                     "'max': max(μ_i,μ_j)"
+    )
+    matrix_kind: Literal["similarity", "distance"] = Field(
+        default="similarity",
+        description="Sub-sample similarity (JC) or distance (paralinear). See SNJ paper."
+    )
+    distance_alpha: float = Field(
+        default=1.0, gt=0.0,
+        description="SNJ α: post-transform S = exp(-α·D̂). Only used when matrix_kind='distance'."
     )
 
     class Config:
@@ -229,6 +246,14 @@ class MetricsConfig(BaseModel):
     validate_partition_in_tree: bool = Field(
         default=True,
         description="Validate that Fiedler partition corresponds to a real tree edge before running experiment"
+    )
+    compute_final_partition_agreement: bool = Field(
+        default=False,
+        description="Run recursive Fiedler splitting on M and S_avg (STDR partition phase, no merge); report ARI on leaf clusters."
+    )
+    final_partition_threshold: int = Field(
+        ge=2, default=8,
+        description="Stop recursive Fiedler splitting when subset size <= threshold. Mirrors STDR's deep_spectral_tree_reconstruction stop."
     )
 
     class Config:

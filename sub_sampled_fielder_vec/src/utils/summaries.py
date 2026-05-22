@@ -151,6 +151,9 @@ def save_single_results(
             # LDS budget diagnostics (Part A)
             'phase1_actual', 'phase2_actual', 'fallback_to_uniform', 'tau_floor',
             'phase1_budget_fraction',
+            # Final-partition (recursive Fiedler split, STDR partition phase only)
+            'final_partition_ari', 'final_partition_jaccard',
+            'final_n_clusters_M', 'final_n_clusters_S',
         ]
         for metric_name in metric_names:
             if metric_name in metrics_dict and len(metrics_dict[metric_name]) == len(p_values):
@@ -307,7 +310,10 @@ def save_taxa_results(
             'min_separation_M', 'min_separation_S', 'min_separation_L_M', 'min_separation_L_S',
             # New spectral metrics
             'lambda2_L_M', 'lambda3_L_M', 'lambda2_L_S', 'lambda3_L_S',
-            'ipr_S', 'dk_ratio_S'
+            'ipr_S', 'dk_ratio_S',
+            # Final-partition (recursive Fiedler split, STDR partition phase only)
+            'final_partition_ari', 'final_partition_jaccard',
+            'final_n_clusters_M', 'final_n_clusters_S',
         ]
         for metric_name in metric_names:
             columns.extend([f"mean_{metric_name}", f"median_{metric_name}", f"std_{metric_name}"])
@@ -459,7 +465,10 @@ def save_grid_results(
             'min_separation_M', 'min_separation_S', 'min_separation_L_M', 'min_separation_L_S',
             # New spectral metrics
             'lambda2_L_M', 'lambda3_L_M', 'lambda2_L_S', 'lambda3_L_S',
-            'ipr_S', 'dk_ratio_S'
+            'ipr_S', 'dk_ratio_S',
+            # Final-partition (recursive Fiedler split, STDR partition phase only)
+            'final_partition_ari', 'final_partition_jaccard',
+            'final_n_clusters_M', 'final_n_clusters_S',
         ]
         for metric_name in metric_names:
             columns.extend([f"mean_{metric_name}", f"median_{metric_name}", f"std_{metric_name}"])

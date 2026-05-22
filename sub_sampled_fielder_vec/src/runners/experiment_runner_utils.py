@@ -27,6 +27,8 @@ def extract_config_values(config: Dict[str, Any], wide_sweep_p_values: List[floa
         "guardrails_enabled": config.get("guardrails_enabled"),
         "run_name_prefix": config.get("run_name_prefix"),
         "sampling_method": config.get("sampling_method", "uniform"),
+        "matrix_kind": config.get("matrix_kind", "similarity"),
+        "distance_alpha": config.get("distance_alpha", 1.0),
     }
 
 
@@ -65,10 +67,22 @@ def setup_experiment_directory(
             # Fallback: assume we're in src/runners, go up to project root then to results
             base_dir_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "results"))
 
-    # Organize by tree_model/sampling_method for better organization
+    # Organize by tree_model/[matrix_kind/]sampling_method. Distance runs get an
+    # extra level so they don't collide with the established similarity results
+    # tree (which has no matrix_kind segment).
     tree_model = config.get("tree_model", "unknown")
     sampling_method = config.get("sampling_method", "uniform")
-    base_dir = os.path.abspath(os.path.join(base_dir_root, tree_model, sampling_method, f"{ts}-{prefix}"))
+    matrix_kind = config.get("matrix_kind", "similarity")
+    if matrix_kind == "distance":
+        alpha = float(config.get("distance_alpha", 1.0))
+        kind_segment = f"distance_a{alpha:.3f}".replace(".", "p")
+        base_dir = os.path.abspath(os.path.join(
+            base_dir_root, tree_model, kind_segment, sampling_method, f"{ts}-{prefix}"
+        ))
+    else:
+        base_dir = os.path.abspath(os.path.join(
+            base_dir_root, tree_model, sampling_method, f"{ts}-{prefix}"
+        ))
     os.makedirs(base_dir, exist_ok=True)
 
     # Save SWEEP_CONFIG to experiment directory
@@ -97,6 +111,8 @@ def get_sampling_config(config: Dict[str, Any]) -> Dict[str, Any]:
         "sampling_allow_uniform_fallback": config.get("sampling_allow_uniform_fallback", True),
         "log_sampling_diagnostics": config.get("log_sampling_diagnostics", False),
         "truncation_threshold": config.get("truncation_threshold", 0.0),
+        "matrix_kind": config.get("matrix_kind", "similarity"),
+        "distance_alpha": config.get("distance_alpha", 1.0),
     }
 
 
@@ -137,6 +153,8 @@ def create_experiment_config(
         sampling_allow_uniform_fallback=sampling_config["sampling_allow_uniform_fallback"],
         log_sampling_diagnostics=sampling_config["log_sampling_diagnostics"],
         truncation_threshold=sampling_config["truncation_threshold"],
+        matrix_kind=sampling_config["matrix_kind"],
+        distance_alpha=sampling_config["distance_alpha"],
         use_persistent_cache=config.get("use_persistent_cache", False),
         **tree_kwargs,
     )
@@ -146,9 +164,15 @@ def create_experiment_config(
         cfg.metrics.coherence_k = config["coherence_k"]
     if "num_gaps" in config:
         cfg.metrics.num_gaps = config["num_gaps"]
+    if "min_split" in config:
+        cfg.metrics.min_split = config["min_split"]
+    if "compute_final_partition_agreement" in config:
+        cfg.metrics.compute_final_partition_agreement = config["compute_final_partition_agreement"]
+    if "final_partition_threshold" in config:
+        cfg.metrics.final_partition_threshold = config["final_partition_threshold"]
     if "guardrails_enabled" in config:
         cfg.guardrails.enabled = config["guardrails_enabled"]
-    
+
     return cfg
 
 

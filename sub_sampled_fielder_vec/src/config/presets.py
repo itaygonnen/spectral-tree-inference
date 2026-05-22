@@ -159,6 +159,8 @@ def custom_config(
     sampling_allow_uniform_fallback: bool = True,
     log_sampling_diagnostics: bool = False,
     truncation_threshold: float = 0.0,
+    matrix_kind: str = "similarity",
+    distance_alpha: float = 1.0,
     use_persistent_cache: bool = False,
     **kwargs
 ) -> StructuredConfig:
@@ -253,7 +255,9 @@ def custom_config(
         force_leveraged=sampling_force_leveraged,
         allow_uniform_fallback=sampling_allow_uniform_fallback,
         log_sampling_diagnostics=log_sampling_diagnostics,
-        truncation_threshold=truncation_threshold
+        truncation_threshold=truncation_threshold,
+        matrix_kind=matrix_kind,
+        distance_alpha=distance_alpha
     )
 
     # Build cache config

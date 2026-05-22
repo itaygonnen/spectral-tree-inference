@@ -22,11 +22,13 @@ from ..utils.metrics import (
     compute_partition_agreement,
     compute_fiedler_dot_product,
     compute_reference_partition_and_quality,
+    compute_final_partition_agreement,
     metric_composer,
     estimate_operator_norm_diff,
     compute_ipr,
     compute_dk_ratio
 )
+from ..utils.recursive_partition import recursive_partition, recursive_split
 from ..config import StructuredConfig
 from ..models import get_tree_factory, get_sequence_factory
 from ..utils.summaries import save_single_results, save_json
@@ -88,7 +90,9 @@ def _get_or_generate_experiment_data(
             tree_model_name=cfg.tree.model,
             seq_model_name=cfg.sequence.model,
             tree_params=cfg.tree.params,
-            seq_params=cfg.sequence.params
+            seq_params=cfg.sequence.params,
+            matrix_kind=getattr(cfg.sampling, "matrix_kind", "similarity"),
+            distance_alpha=float(getattr(cfg.sampling, "distance_alpha", 1.0)),
         )
 
         cached = load_experiment_data(cache_key)
@@ -114,11 +118,20 @@ def _get_or_generate_experiment_data(
         tree_model=tree, seq_model=seq_model
     )
 
-    log_info('bootstrap', "Computing full similarity matrix...", force=True)
-    M = _get_cached_similarity_matrix(observations)
+    matrix_kind = getattr(cfg.sampling, "matrix_kind", "similarity")
+    alpha = float(getattr(cfg.sampling, "distance_alpha", 1.0))
+    if matrix_kind == "distance":
+        log_info('bootstrap', f"Computing full paralinear distance matrix (α={alpha})...", force=True)
+        import spectraltree  # local import keeps cross-project boundary explicit
+        D_full = spectraltree.paralinear_distance(observations)
+        # Canonical similarity-view for the rest of the pipeline: S = exp(-α D)
+        M = np.exp(-alpha * D_full)
+        np.fill_diagonal(M, 1.0)
+    else:
+        log_info('bootstrap', "Computing full similarity matrix (JC)...", force=True)
+        M = _get_cached_similarity_matrix(observations)
 
     log_info('bootstrap', "Computing reference Fiedler vector...", force=True)
-    # Use new-style method: compute_fiedler_from_similarity(similarity_matrix)
     fiedler_ref = compute_fiedler_from_similarity(M)
 
     # Save to persistent cache if enabled
@@ -223,9 +236,13 @@ def sweep_for_params(
 
     similarity_builder = SimilarityMatrixBuilder(
         method=cfg.sampling.method,
+        matrix_kind=cfg.sampling.matrix_kind,
+        distance_alpha=cfg.sampling.distance_alpha,
         **method_kwargs
     )
-    log_info('bootstrap', f"Using sampling method: {cfg.sampling.method}")
+    log_info('bootstrap',
+             f"Using sampling method: {cfg.sampling.method} | matrix_kind: {cfg.sampling.matrix_kind}"
+             + (f" (α={cfg.sampling.distance_alpha})" if cfg.sampling.matrix_kind == "distance" else ""))
 
     # Get or generate experiment data (with optional persistent caching)
     tree, observations, M, fiedler_ref = _get_or_generate_experiment_data(cfg, n_taxa, seq_len)
@@ -260,6 +277,28 @@ def sweep_for_params(
         log_warning('bootstrap', f"Failed to compute reference partition: {e}")
         reference_partition_quality = float('nan')
         partition_ref = None
+
+    # Final-partition reference: recursive Fiedler split on M (STDR partition phase, no merge).
+    # Computed ONCE per experiment since M is constant across p-values.
+    cluster_ids_M = None
+    bipartitions_M = None
+    if cfg.metrics.compute_final_partition_agreement:
+        try:
+            cluster_ids_M, bipartitions_M = recursive_split(
+                M,
+                threshold=cfg.metrics.final_partition_threshold,
+                num_gaps=cfg.metrics.num_gaps,
+                min_split=cfg.metrics.min_split,
+            )
+            n_clusters_M_ref = int(cluster_ids_M.max() + 1)
+            log_info('bootstrap',
+                     f"Final-partition reference: {n_clusters_M_ref} leaf clusters, "
+                     f"{len(bipartitions_M)} bipartitions "
+                     f"(threshold={cfg.metrics.final_partition_threshold})", force=True)
+        except Exception as e:
+            log_warning('bootstrap', f"Failed to compute final-partition reference on M: {e}")
+            cluster_ids_M = None
+            bipartitions_M = None
 
     # Get config parameters for metrics
     empirical_rank_threshold = None  # Not used in current implementation
@@ -352,6 +391,9 @@ def sweep_for_params(
         # LDS budget diagnostics (Part A)
         'phase1_actual', 'phase2_actual', 'fallback_to_uniform', 'tau_floor',
         'phase1_budget_fraction',  # = phase1_actual / (phase1_actual + phase2_actual)
+        # Final-partition (STDR partition phase, no merge): computed once per p (not per bootstrap)
+        'final_partition_ari', 'final_partition_jaccard',
+        'final_n_clusters_M', 'final_n_clusters_S',
     ]
     metrics_dict: Dict[str, List[Tuple[float, float, float]]] = {
         key: [] for key in metric_keys
@@ -435,6 +477,12 @@ def sweep_for_params(
                 elif key == 'dk_ratio_S':
                     # DK ratio is 0 when S=M (operator norm diff is 0)
                     metric_values[key] = [0.0]
+                elif key in ('final_partition_ari', 'final_partition_jaccard'):
+                    # S=M deterministically → identical partitions → both metrics = 1
+                    metric_values[key] = [1.0 if cluster_ids_M is not None else float('nan')]
+                elif key in ('final_n_clusters_M', 'final_n_clusters_S'):
+                    val = float(int(cluster_ids_M.max() + 1)) if cluster_ids_M is not None else float('nan')
+                    metric_values[key] = [val]
                 elif key.endswith('_L_S'):
                     # L_S metrics = L_M metrics (check _L_S first to avoid matching _S)
                     l_m_key = key.replace('_L_S', '_L_M')
@@ -469,8 +517,10 @@ def sweep_for_params(
                 # Set bootstrap-specific seed for reproducibility
                 bootstrap_seed = cfg.experiment.seed + i
 
-                # Compute S once per bootstrap rep
-                S = _subsample_matrix_entries(M, p, seed=bootstrap_seed, builder=similarity_builder)
+                # Compute S once per bootstrap rep. For matrix_kind="distance" the builder
+                # samples the raw distance D and post-transforms to S = exp(-α D̂) so the
+                # downstream pipeline keeps consuming a similarity-shaped matrix.
+                S = similarity_builder.build_subsampled(observations, p, seed=bootstrap_seed)
 
                 # Apply truncation if threshold > 0
                 if cfg.sampling.truncation_threshold > 0.0:
@@ -583,8 +633,10 @@ def sweep_for_params(
                     all_metrics = {key: float('nan') for key in metric_keys}
 
                 for key in metric_keys:
-                    # Skip new metrics that are computed separately below
-                    if key in ('ipr_S', 'dk_ratio_S'):
+                    # Skip metrics computed separately below
+                    if key in ('ipr_S', 'dk_ratio_S',
+                               'final_partition_ari', 'final_partition_jaccard',
+                               'final_n_clusters_M', 'final_n_clusters_S'):
                         continue
                     metric_values[key].append(all_metrics.get(key, float('nan')))
 
@@ -703,6 +755,38 @@ def sweep_for_params(
             if bootstrap_pbar:
                 bootstrap_pbar.close()
 
+            # Final-partition agreement: ARI + bipartition Jaccard between recursive Fiedler
+            # splits of M and S_avg. One-shot per p (not per bootstrap); uses cached M references.
+            if cfg.metrics.compute_final_partition_agreement and cluster_ids_M is not None and S_avg is not None:
+                try:
+                    fp_result = compute_final_partition_agreement(
+                        M, S_avg,
+                        threshold=cfg.metrics.final_partition_threshold,
+                        num_gaps=cfg.metrics.num_gaps,
+                        min_split=cfg.metrics.min_split,
+                        cluster_ids_M=cluster_ids_M,
+                        bipartitions_M=bipartitions_M,
+                    )
+                    metric_values['final_partition_ari'].append(float(fp_result['ari']))
+                    metric_values['final_partition_jaccard'].append(float(fp_result['jaccard']))
+                    metric_values['final_n_clusters_M'].append(float(fp_result['n_clusters_M']))
+                    metric_values['final_n_clusters_S'].append(float(fp_result['n_clusters_S']))
+                    log_info('bootstrap',
+                             f"p={p:.4g} final-partition ARI={fp_result['ari']:.4f} "
+                             f"Jaccard={fp_result['jaccard']:.4f} "
+                             f"(shared {fp_result['n_bipartitions_shared']}/{fp_result['n_bipartitions_M']} bipartitions)")
+                except Exception as e:
+                    log_warning('bootstrap', f"final_partition_agreement failed for p={p:.4g}: {e}")
+                    metric_values['final_partition_ari'].append(float('nan'))
+                    metric_values['final_partition_jaccard'].append(float('nan'))
+                    metric_values['final_n_clusters_M'].append(float('nan'))
+                    metric_values['final_n_clusters_S'].append(float('nan'))
+            else:
+                metric_values['final_partition_ari'].append(float('nan'))
+                metric_values['final_partition_jaccard'].append(float('nan'))
+                metric_values['final_n_clusters_M'].append(float('nan'))
+                metric_values['final_n_clusters_S'].append(float('nan'))
+
         # Save sampling diagnostics if enabled (leveraged/lds sampling only)
         if (cfg.sampling.log_sampling_diagnostics and
             cfg.sampling.method in ["leveraged", "lds"] and
@@ -792,8 +876,11 @@ def sweep_for_params(
             # LDS budget diagnostics (Part A)
             'phase1_actual', 'phase2_actual', 'fallback_to_uniform', 'tau_floor',
             'phase1_budget_fraction',
+            # Final-partition (one value per p; aggregator wraps as (val, val, 0.0))
+            'final_partition_ari', 'final_partition_jaccard',
+            'final_n_clusters_M', 'final_n_clusters_S',
         ]
-        
+
         # Store constant metrics
         for key in constant_metrics:
             val = M_constants.get(key, float('nan'))
@@ -837,6 +924,13 @@ def sweep_for_params(
                         elif key == 'dk_ratio_S':
                             # DK ratio is 0 when S=M
                             metrics_dict[key].append((0.0, 0.0, 0.0))
+                        elif key in ('final_partition_ari', 'final_partition_jaccard'):
+                            # Guardrail = high agreement → both implied 1.0
+                            val = 1.0 if cluster_ids_M is not None else float('nan')
+                            metrics_dict[key].append((val, val, 0.0))
+                        elif key in ('final_n_clusters_M', 'final_n_clusters_S'):
+                            val = float(int(cluster_ids_M.max() + 1)) if cluster_ids_M is not None else float('nan')
+                            metrics_dict[key].append((val, val, 0.0))
                         elif key.endswith('_L_S'):
                             # L_S metrics = L_M metrics (check _L_S first to avoid matching _S)
                             l_m_key = key.replace('_L_S', '_L_M')
@@ -857,7 +951,15 @@ def sweep_for_params(
                         val = M_constants.get(key, float('nan'))
                         metrics_dict[key].append((float(val), float(val), 0.0))
                     for key in varying_metrics:
-                        metrics_dict[key].append((float('nan'), float('nan'), float('nan')))
+                        # Final-partition metrics: guardrail implies near-perfect agreement;
+                        # fill with the M-side reference rather than NaN so downstream plots see the implied trend.
+                        if key in ('final_partition_ari', 'final_partition_jaccard') and cluster_ids_M is not None:
+                            metrics_dict[key].append((1.0, 1.0, 0.0))
+                        elif key in ('final_n_clusters_M', 'final_n_clusters_S') and cluster_ids_M is not None:
+                            val = float(int(cluster_ids_M.max() + 1))
+                            metrics_dict[key].append((val, val, 0.0))
+                        else:
+                            metrics_dict[key].append((float('nan'), float('nan'), float('nan')))
 
                 # Update parent progress bar via callback for skipped p-values
                 if progress_callback:

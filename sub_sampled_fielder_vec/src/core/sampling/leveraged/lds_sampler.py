@@ -83,7 +83,9 @@ class LDSSampler(BaseSampler):
         tau_floor_multiplier: float = 1.0,
         force_lds: bool = False,
         allow_uniform_fallback: bool = True,
-        prob_formula: str = "additive"
+        prob_formula: str = "additive",
+        self_value: float = 1.0,
+        **kwargs,
     ):
         """
         Initialize LDS sampler.
@@ -102,6 +104,7 @@ class LDSSampler(BaseSampler):
                          'multiplicative': μ_i×μ_j (concentrates on high-leverage pairs)
                          'max': max(μ_i,μ_j)
         """
+        super().__init__(self_value=self_value)
         self.theta = theta
         self.target_rank = target_rank
         self.tau_floor_multiplier = tau_floor_multiplier
@@ -157,8 +160,10 @@ class LDSSampler(BaseSampler):
         total_budget = int(p * n_upper)
 
         if total_budget == 0:
-            # Return identity matrix if no budget
-            result = np.eye(n, dtype=matrix.dtype)
+            # No budget: return a matrix with only the self_value on the diagonal
+            # (identity for similarity, zero matrix for distance).
+            result = np.zeros((n, n), dtype=matrix.dtype)
+            np.fill_diagonal(result, self.self_value)
             return result
 
         # Initialize random generator
@@ -285,7 +290,7 @@ class LDSSampler(BaseSampler):
         # - LDSSampler: Single-shot debiasing (O(n²))
 
         start_time = time.time()
-        X_hat_sparse = compute_debiased_estimator(matrix, Omega, pi_matrix)
+        X_hat_sparse = compute_debiased_estimator(matrix, Omega, pi_matrix, self_value=self.self_value)
         debiasing_time = time.time() - start_time
 
         # Compute matrix sparsity for diagnostics
