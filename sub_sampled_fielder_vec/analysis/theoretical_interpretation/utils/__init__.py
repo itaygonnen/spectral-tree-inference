@@ -10,7 +10,10 @@ from .tree_features import (
     imbalance_eta, n_min, structural_margin_rho, estimate_features_from_M,
     hbm_d_max, hbm_s_in_min,
 )
-from .linalg_features import coherence_mu, compute_top_eigenpairs, spectral_gap, compute_lemma04_row
+from .linalg_features import (
+    coherence_mu, cross_clan_variance,
+    compute_top_eigenpairs, spectral_gap, compute_lemma04_row,
+)
 from .spectral import (
     compute_fiedler_of_S, subsample_S,
     uniform_mask, ipw_from_mask, nnm_from_mask,
@@ -43,6 +46,7 @@ __all__ = [
     "hbm_d_max",
     "hbm_s_in_min",
     "coherence_mu",
+    "cross_clan_variance",
     "compute_top_eigenpairs",
     "spectral_gap",
     "compute_lemma04_row",

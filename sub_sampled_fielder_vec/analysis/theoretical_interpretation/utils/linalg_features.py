@@ -16,6 +16,17 @@ def coherence_mu(U: np.ndarray) -> float:
     return float((n / r) * row_norm_sq.max())
 
 
+def cross_clan_variance(eta: float, S_out: float) -> float:
+    """ρ̃(η) = (1+η)/2 · S_out² — coherence-weighted cross-clan variance load.
+
+    Population-level statistical-threat scalar: the (1+η)/2 factor is the same
+    subspace-coherence multiplier that appears in μ₀, applied to the squared
+    cross-clan similarity S_out². At fixed sampling rate p, this controls the
+    noise injected into the smaller clan's Fiedler coordinates.
+    """
+    return (1.0 + float(eta)) / 2.0 * float(S_out) ** 2
+
+
 def compute_top_eigenpairs(L: np.ndarray, k: int = 3) -> Tuple[np.ndarray, np.ndarray]:
     """Return the k smallest eigenvalues and eigenvectors of symmetric L, ascending."""
     eigvals, eigvecs = np.linalg.eigh(L)

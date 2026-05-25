@@ -22,11 +22,16 @@ from ..utils.logging import log_warning
 from ..utils.metrics import (
     _normalize_vector,
     compute_fiedler_dot_product,
-    compute_partition_agreement,
     compute_reference_partition_and_quality,
     compute_sign_agreement,
 )
 from ..utils.random_entries import _subsample_matrix_entries, compute_fiedler_from_laplacian
+
+
+def _bipartition_agreement(partition_ref: np.ndarray, partition_avg: np.ndarray) -> float:
+    matches_direct = int(np.sum(partition_ref == partition_avg))
+    matches_flipped = int(np.sum(partition_ref != partition_avg))
+    return 100.0 * max(matches_direct, matches_flipped) / len(partition_ref)
 
 
 def align_fiedler_by_dot_product(
@@ -86,9 +91,15 @@ def bootstrap_p_sweep_simple(
     Returns
     -------
     dict with keys: ``p_values``, ``partition_agreement_M``,
-    ``sign_agreement``, ``dot_product``, ``partition_split_ref``,
-    ``reference_partition_quality``.
+    ``partition_ari_M``, ``partition_nmi_M``, ``sign_agreement``,
+    ``dot_product``, ``partition_split_ref``, ``reference_partition_quality``.
+    ``partition_ari_M`` is the Adjusted Rand Index and ``partition_nmi_M``
+    is the Normalized Mutual Information between the reference bipartition
+    and the bootstrap-averaged bipartition (both label-permutation invariant).
     """
+    from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
+    from spectraltree.spectral_tree_reconstruction import partition_taxa
+
     if partition_method not in ("sigma2", "sign"):
         raise ValueError(f"partition_method must be 'sigma2' or 'sign', got {partition_method!r}")
 
@@ -109,7 +120,11 @@ def bootstrap_p_sweep_simple(
         n_false = len(partition_ref) - n_true
         ref_split = (min(n_true, n_false), max(n_true, n_false))
 
+    partition_ref_int = partition_ref.astype(int)
+
     partition_agreement_M: List[float] = []
+    partition_ari_M: List[float] = []
+    partition_nmi_M: List[float] = []
     sign_agreement: List[float] = []
     dot_product: List[float] = []
     consecutive_100 = 0
@@ -118,12 +133,16 @@ def bootstrap_p_sweep_simple(
         if early_stop_consecutive_100 > 0 and consecutive_100 >= early_stop_consecutive_100:
             remaining = len(p_values) - idx
             partition_agreement_M.extend([100.0] * remaining)
+            partition_ari_M.extend([1.0] * remaining)
+            partition_nmi_M.extend([1.0] * remaining)
             sign_agreement.extend([100.0] * remaining)
             dot_product.extend([1.0] * remaining)
             break
 
         if p >= 0.9999:
             partition_agreement_M.append(100.0)
+            partition_ari_M.append(1.0)
+            partition_nmi_M.append(1.0)
             sign_agreement.append(100.0)
             dot_product.append(1.0)
             consecutive_100 += 1
@@ -142,6 +161,8 @@ def bootstrap_p_sweep_simple(
 
         if not aligned:
             partition_agreement_M.append(float('nan'))
+            partition_ari_M.append(float('nan'))
+            partition_nmi_M.append(float('nan'))
             sign_agreement.append(float('nan'))
             dot_product.append(float('nan'))
             continue
@@ -153,18 +174,20 @@ def bootstrap_p_sweep_simple(
 
         try:
             if partition_method == "sigma2":
-                agr_M, _, _ = compute_partition_agreement(
-                    partition_ref, v_avg, M, num_gaps=num_gaps, min_split=min_split
-                )
+                partition_avg = partition_taxa(v_avg, M, num_gaps, min_split)
             else:
                 partition_avg = v_avg > 0
-                matches_direct = int(np.sum(partition_ref == partition_avg))
-                matches_flipped = int(np.sum(partition_ref != partition_avg))
-                agr_M = 100.0 * max(matches_direct, matches_flipped) / len(partition_ref)
+            agr_M = _bipartition_agreement(partition_ref, partition_avg)
+            ari_M = float(adjusted_rand_score(partition_ref_int, partition_avg.astype(int)))
+            nmi_M = float(normalized_mutual_info_score(partition_ref_int, partition_avg.astype(int)))
         except Exception as e:
             log_warning('p_sweep_inner', f"partition_agreement failed at p={p:.4g}: {e}")
             agr_M = float('nan')
+            ari_M = float('nan')
+            nmi_M = float('nan')
         partition_agreement_M.append(float(agr_M))
+        partition_ari_M.append(ari_M)
+        partition_nmi_M.append(nmi_M)
         sign_agreement.append(float(compute_sign_agreement(fiedler_ref, v_avg)))
         try:
             dot_product.append(float(compute_fiedler_dot_product(fiedler_ref, v_avg)))
@@ -176,6 +199,8 @@ def bootstrap_p_sweep_simple(
     return {
         "p_values": list(p_values),
         "partition_agreement_M": partition_agreement_M,
+        "partition_ari_M": partition_ari_M,
+        "partition_nmi_M": partition_nmi_M,
         "sign_agreement": sign_agreement,
         "dot_product": dot_product,
         "partition_split_ref": ref_split,

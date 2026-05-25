@@ -21,7 +21,7 @@ from ..cache_io import bootstrap_sweep as _scope, SENTINEL
 from .eta_pool_cache import bin_name
 
 
-SCHEMA_VERSION = "v1"
+SCHEMA_VERSION = "v3"
 
 
 def _flat_key(param_key: str, eta_target: int, idx: int, sweep_key: str) -> str:

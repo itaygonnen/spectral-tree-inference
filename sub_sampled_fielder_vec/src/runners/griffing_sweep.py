@@ -32,6 +32,20 @@ from ..utils.summaries import save_json
 from .nj_sweep import _build_truth, _impute_mean
 
 
+def _binary_ari(v_ref: np.ndarray, v_hat: np.ndarray) -> float:
+    """Adjusted Rand Index of the two sign-based bipartitions.
+
+    Robust to global sign flips (ARI is invariant under cluster-label
+    permutation). Returns 0 for random / unrelated labellings, 1 for
+    perfect agreement; can be negative if v_hat is anti-correlated with
+    a balanced partition of v_ref's clusters.
+    """
+    from sklearn.metrics import adjusted_rand_score
+    ref_labels = (np.asarray(v_ref) > 0).astype(np.int8)
+    hat_labels = (np.asarray(v_hat) > 0).astype(np.int8)
+    return float(adjusted_rand_score(ref_labels, hat_labels))
+
+
 def griffing_sweep_for_params(cfg: StructuredConfig, n_taxa: int, seq_len: int,
                               run_dir: str, *, imputation: str = "zero",
                               save_eigvecs: bool = False) -> Dict:
@@ -77,6 +91,7 @@ def griffing_sweep_for_params(cfg: StructuredConfig, n_taxa: int, seq_len: int,
         log_info("griffing", f"  p = {p:.4g} ({bootstrap_reps} reps)", force=True)
         spec_norms: List[float] = []
         recoveries: List[float] = []
+        aris: List[float] = []
         v_hat_reps: List[np.ndarray] = [] if save_eigvecs else []
 
         for rep in range(bootstrap_reps):
@@ -93,6 +108,7 @@ def griffing_sweep_for_params(cfg: StructuredConfig, n_taxa: int, seq_len: int,
             s = compute_sign_agreement(v_ref, v_hat) / 100.0
             recovery = float(max(s, 1.0 - s))
             recoveries.append(recovery)
+            aris.append(_binary_ari(v_ref, v_hat))
 
             if save_eigvecs:
                 v_hat_reps.append(v_hat)
@@ -105,6 +121,9 @@ def griffing_sweep_for_params(cfg: StructuredConfig, n_taxa: int, seq_len: int,
             "recovery_mean": float(np.mean(recoveries)),
             "recovery_std": float(np.std(recoveries)),
             "recovery_per_rep": [float(x) for x in recoveries],
+            "ari_mean": float(np.mean(aris)),
+            "ari_std": float(np.std(aris)),
+            "ari_per_rep": [float(x) for x in aris],
         })
         if save_eigvecs:
             v_hat_stack.append(np.stack(v_hat_reps, axis=0))
