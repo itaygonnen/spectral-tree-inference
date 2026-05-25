@@ -1,10 +1,13 @@
-"""Build a pool of (M, v_pop) pairs binned by realized eta.
+"""Build a pool of (M, v_pop, partition) triples binned by realized eta.
 
 Generate Kingman trees, simulate JC69 sequences, build the similarity matrix
 M and its reference Fiedler vector v_pop, estimate eta = max(n1, n2) /
 min(n1, n2), and persist only those samples whose eta lands within
-``--eta-tol`` of one of the ``--eta-targets``. Each qualifying sample lands
-in ``cache_root/eta_pool/<param_key>/eta<TT>/sample_NNNN/``.
+``--eta-tol`` of one of the ``--eta-targets`` AND whose sign(v_pop) partition
+is a single-edge bipartition of the underlying tree. Each qualifying sample
+lands in ``cache_root/pool_sample/<param_key>/eta<TT>/sample_NNNN/`` and
+contains ``M.npz``, ``fiedler_ref.npz``, ``partition.npz`` (bool, len n),
+``metadata.json``, and a ``.complete`` sentinel.
 
 The pool is resumable: re-running the script with the same parameters reads
 ``manifest.json`` and continues seeding from ``last_seed + 1``, skipping
@@ -45,6 +48,7 @@ from src.utils.eta_pool_cache import (
     save_manifest,
     save_pool_entry,
 )
+from src.utils.partition_validity import check_partition_valid_in_tree
 from analysis.theoretical_interpretation.utils.tree_features import (
     estimate_features_from_M,
 )
@@ -59,7 +63,8 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--mu", type=float, default=0.1, help="JC69 mutation rate")
     p.add_argument("--pop-size", type=float, default=1.0, help="Kingman pop_size")
     p.add_argument("--seq-len", type=int, default=10_000, help="simulated sequence length")
-    p.add_argument("--tree-model", default="kingman", choices=["kingman", "kingman_mean"])
+    p.add_argument("--tree-model", default="kingman",
+                   choices=["kingman", "kingman_mean", "lopsided", "birth_death", "balanced_binary"])
     p.add_argument("--seq-model", default="JC69")
     p.add_argument(
         "--eta-targets",
@@ -177,6 +182,7 @@ def main() -> None:
     t0 = time.time()
     attempts_this_run = 0
     saves_this_run = 0
+    invalid_skips = 0
     try:
         for _ in range(args.max_attempts):
             if all_bins_full(manifest):
@@ -186,7 +192,7 @@ def main() -> None:
             manifest["last_seed"] = seed
 
             try:
-                M, v_pop = attempt_one(
+                M, v_pop, tree = attempt_one(
                     seed=seed,
                     n=args.n,
                     mu=args.mu,
@@ -210,7 +216,21 @@ def main() -> None:
                         f"seed={seed} eta={feats['eta']:.3f} -> "
                         f"{'no match' if target is None else f'eta{target:02d} full'};"
                         f" attempts={attempts_this_run} saves={saves_this_run} "
-                        f"elapsed={elapsed:.1f}s"
+                        f"invalid={invalid_skips} elapsed={elapsed:.1f}s"
+                    )
+                seed += 1
+                continue
+
+            partition = (v_pop > 0).astype(bool)
+            if not check_partition_valid_in_tree(tree, partition):
+                invalid_skips += 1
+                if attempts_this_run % args.report_every == 0:
+                    elapsed = time.time() - t0
+                    _log(
+                        f"seed={seed} eta={feats['eta']:.3f} -> "
+                        f"eta{target:02d} invalid bipartition;"
+                        f" attempts={attempts_this_run} saves={saves_this_run} "
+                        f"invalid={invalid_skips} elapsed={elapsed:.1f}s"
                     )
                 seed += 1
                 continue
@@ -229,7 +249,14 @@ def main() -> None:
                 "margin": float(feats["margin"]),
                 **params,
             }
-            save_pool_entry(cache_root, key, target, idx, M, v_pop, metadata)
+            tree_newick = tree.as_string(
+                schema="newick", suppress_internal_node_labels=True,
+            ).strip()
+            save_pool_entry(
+                cache_root, key, target, idx,
+                M, v_pop, metadata,
+                partition=partition, tree_newick=tree_newick,
+            )
             saves_this_run += 1
 
             manifest["bin_counts"][str(int(target))] = (
@@ -254,6 +281,7 @@ def main() -> None:
     elapsed = time.time() - t0
     _log(
         f"done. attempts_this_run={attempts_this_run} saves_this_run={saves_this_run} "
+        f"invalid_bipartitions={invalid_skips} "
         f"total_attempts={manifest['attempts_used']} elapsed={elapsed:.1f}s"
     )
     _log(f"final counts: {_format_counts(manifest['bin_counts'], manifest['samples_per_bin'])}")

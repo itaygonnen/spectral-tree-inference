@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import Tuple
 
+import dendropy
 import numpy as np
 
 from ..models.tree_models import get_tree_factory
@@ -31,8 +32,8 @@ def attempt_one(
     seq_len: int,
     tree_model: str = "kingman",
     seq_model: str = "JC69",
-) -> Tuple[np.ndarray, np.ndarray]:
-    """Generate one tree, simulate sequences, return (M, v_pop).
+) -> Tuple[np.ndarray, np.ndarray, dendropy.Tree]:
+    """Generate one tree, simulate sequences, return (M, v_pop, tree).
 
     Args:
         seed: RNG seed; sets ``np.random.seed`` for reproducibility.
@@ -44,7 +45,9 @@ def attempt_one(
         seq_model: registered sequence-model name (default ``"JC69"``).
 
     Returns:
-        (M, v_pop): n x n similarity matrix and its reference Fiedler vector.
+        (M, v_pop, tree): n x n similarity matrix, its reference Fiedler vector,
+        and the dendropy tree used to simulate the sequences (needed downstream
+        for bipartition validity checks).
     """
     np.random.seed(int(seed))
 
@@ -59,4 +62,4 @@ def attempt_one(
 
     M = _get_cached_similarity_matrix(observations)
     v_pop = compute_fiedler_from_similarity(M)
-    return M, v_pop
+    return M, v_pop, tree

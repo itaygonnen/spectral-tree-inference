@@ -119,11 +119,30 @@ def save_pool_entry(
     M: np.ndarray,
     v_pop: np.ndarray,
     metadata: Dict[str, Any],
+    partition: Optional[np.ndarray] = None,
+    tree_newick: Optional[str] = None,
 ) -> Path:
-    """Atomically persist (M, v_pop, metadata) under sample_dir; return that dir."""
+    """Atomically persist (M, v_pop, partition, tree, metadata) under sample_dir.
+
+    ``partition`` is a boolean array of length n representing the Fiedler-sign
+    partition (``v_pop > 0``). Stored so downstream readers don't have to
+    recompute the sign convention.
+
+    ``tree_newick`` is the actual tree used at sample time, serialized as
+    Newick. Stored because ``np.random.seed`` does NOT make dendropy's Kingman
+    tree generation deterministic (dendropy uses its own ``GLOBAL_RNG``), so
+    the seed alone is insufficient to reproduce the tree downstream.
+
+    Both args optional for backwards compat; new callers should pass them.
+    """
+    artifacts: Dict[str, Any] = {"M": M, "fiedler_ref": v_pop, "metadata": metadata}
+    if partition is not None:
+        artifacts["partition"] = np.asarray(partition, dtype=bool)
+    if tree_newick is not None:
+        artifacts["tree"] = str(tree_newick)
     return _scope.save(
         key, bin_name(eta_target), f"sample_{int(idx):04d}",
-        M=M, fiedler_ref=v_pop, metadata=metadata,
+        **artifacts,
     )
 
 
@@ -132,14 +151,29 @@ def load_pool_entry(
     key: str,
     eta_target: int,
     idx: int,
-) -> Optional[Tuple[np.ndarray, np.ndarray, Dict[str, Any]]]:
+) -> Optional[Tuple[np.ndarray, np.ndarray, Optional[np.ndarray], Optional[str], Dict[str, Any]]]:
+    """Return ``(M, v_pop, partition, tree_newick, metadata)`` or ``None`` on cache miss.
+
+    ``partition`` and ``tree_newick`` are ``None`` for legacy samples that
+    pre-date the partition + tree persistence changes. Callers that need them
+    strictly should assert.
+    """
     data = _scope.try_load(key, bin_name(eta_target), f"sample_{int(idx):04d}")
     if data is None:
         return None
     try:
-        return data["M"], data["fiedler_ref"], data["metadata"]
+        M = data["M"]
+        v_pop = data["fiedler_ref"]
+        metadata = data["metadata"]
     except KeyError:
         return None
+    partition = data.get("partition")
+    if partition is not None:
+        partition = np.asarray(partition, dtype=bool)
+    tree_newick = data.get("tree")
+    if tree_newick is not None:
+        tree_newick = str(tree_newick)
+    return M, v_pop, partition, tree_newick, metadata
 
 
 def list_completed_samples(

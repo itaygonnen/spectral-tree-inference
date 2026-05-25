@@ -45,6 +45,7 @@ from src.utils.eta_pool_cache import (  # noqa: E402
     init_manifest, load_manifest, next_sample_idx, param_key,
     pool_root, sample_dir, save_manifest,
 )
+from src.utils.partition_validity import check_partition_valid_in_tree  # noqa: E402
 from analysis.theoretical_interpretation.utils.tree_features import (  # noqa: E402
     estimate_features_from_M,
 )
@@ -77,9 +78,10 @@ def _worker_init(params: Dict[str, Any], staging_root: str,
 
 
 def _worker(seed: int) -> Dict[str, Any]:
-    """Generate one (M, v_pop); stage to disk only if eta qualifies."""
+    """Generate one (M, v_pop, tree); stage to disk only if eta qualifies AND
+    the Fiedler-sign partition is a single-edge bipartition of the tree."""
     try:
-        M, v_pop = attempt_one(seed=int(seed), **_PARAMS)
+        M, v_pop, tree = attempt_one(seed=int(seed), **_PARAMS)
     except Exception as exc:  # noqa: BLE001
         return {"seed": int(seed), "error": f"{type(exc).__name__}: {exc}"}
     feats = estimate_features_from_M(M, v_pop)
@@ -87,10 +89,24 @@ def _worker(seed: int) -> Dict[str, Any]:
     if target is None:
         return {"seed": int(seed), "eta": float(feats["eta"]), "target": None}
 
+    partition = (v_pop > 0).astype(bool)
+    if not check_partition_valid_in_tree(tree, partition):
+        return {
+            "seed": int(seed),
+            "eta": float(feats["eta"]),
+            "target": int(target),
+            "invalid_bipartition": True,
+        }
+
     stage = _STAGING_ROOT / f"pid{os.getpid()}_seed{int(seed)}"
     stage.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(stage / "M.npz", M=M)
     np.savez_compressed(stage / "fiedler_ref.npz", fiedler_ref=v_pop)
+    np.savez_compressed(stage / "partition.npz", partition=partition)
+    tree_newick = tree.as_string(
+        schema="newick", suppress_internal_node_labels=True,
+    ).strip()
+    (stage / "tree.txt").write_text(tree_newick)
     return {
         "seed": int(seed),
         "eta": float(feats["eta"]),
@@ -114,6 +130,9 @@ def _consume(res: Dict[str, Any], cache_root: Path, key: str,
     if target is None:
         return False, f"seed={res['seed']} eta={res['eta']:.3f} no match"
     target = int(target)
+    if res.get("invalid_bipartition"):
+        return False, (f"seed={res['seed']} eta={res['eta']:.3f} "
+                       f"-> {bin_name(target)} invalid bipartition")
     if bin_counts.get(target, 0) >= samples_per_bin:
         shutil.rmtree(res["staging"], ignore_errors=True)
         return False, (f"seed={res['seed']} eta={res['eta']:.3f} "
@@ -124,7 +143,7 @@ def _consume(res: Dict[str, Any], cache_root: Path, key: str,
     dst.mkdir(parents=True, exist_ok=True)
     src = Path(res["staging"])
     # rename within the same filesystem; falls back to copy if cross-device.
-    for fname in ("M.npz", "fiedler_ref.npz"):
+    for fname in ("M.npz", "fiedler_ref.npz", "partition.npz", "tree.txt"):
         os.replace(src / fname, dst / fname)
     metadata = {
         "seed": int(res["seed"]),
@@ -240,6 +259,7 @@ def main() -> None:
     t0 = time.time()
     attempts = 0
     saves = 0
+    invalid_skips = 0
     last_seen_seed = seed - 1
 
     ctx = mp.get_context("spawn")
@@ -254,16 +274,21 @@ def main() -> None:
                 manifest["attempts_used"] = int(manifest.get("attempts_used", 0)) + 1
                 manifest["last_seed"] = last_seen_seed
 
+                if res.get("invalid_bipartition"):
+                    invalid_skips += 1
+
                 saved, label = _consume(res, cache_root, key, bin_counts,
                                         args.samples_per_bin, params, manifest)
                 if saved:
                     saves += 1
                     elapsed = time.time() - t0
                     _log(f"{label}; counts: {_format_counts(bin_counts, args.samples_per_bin)} "
-                         f"[attempts={attempts}, saves={saves}, elapsed={elapsed:.1f}s]")
+                         f"[attempts={attempts}, saves={saves}, "
+                         f"invalid={invalid_skips}, elapsed={elapsed:.1f}s]")
                 elif attempts % args.report_every == 0:
                     elapsed = time.time() - t0
-                    _log(f"{label}; attempts={attempts} saves={saves} elapsed={elapsed:.1f}s")
+                    _log(f"{label}; attempts={attempts} saves={saves} "
+                         f"invalid={invalid_skips} elapsed={elapsed:.1f}s")
 
                 if all(c >= args.samples_per_bin for c in bin_counts.values()):
                     _log("all bins full; terminating workers")
@@ -285,7 +310,8 @@ def main() -> None:
             shutil.rmtree(child, ignore_errors=True)
 
     elapsed = time.time() - t0
-    _log(f"done. attempts={attempts} saves={saves} elapsed={elapsed:.1f}s")
+    _log(f"done. attempts={attempts} saves={saves} "
+         f"invalid_bipartitions={invalid_skips} elapsed={elapsed:.1f}s")
     _log(f"final counts: {_format_counts(bin_counts, args.samples_per_bin)}")
 
 
