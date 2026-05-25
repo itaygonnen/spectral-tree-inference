@@ -1,0 +1,16 @@
+[10:00:05] new pool: n8000_L10000_mu0p1000_kingman_pop1p0000_JC69
+[10:00:05] params: n=8000 mu=0.1 pop_size=1.0 L=10000 model=kingman; targets=[1, 5, 10, 15] tol=±1.0; samples/bin=1; seed_start=0; max_attempts=2000; num_workers=4
+[10:00:05] current bin counts: eta01=0/1  eta05=0/1  eta10=0/1  eta15=0/1
+[10:36:37] saved seed=8 eta=1.136 -> eta01 idx=1 (n1=3745.0, n2=4255.0, margin=0.6456); counts: eta01=1/1  eta05=0/1  eta10=0/1  eta15=0/1 [attempts=5, saves=1, invalid=0, elapsed=2192.1s]
+[10:36:39] saved seed=4 eta=4.102 -> eta05 idx=1 (n1=6432.0, n2=1568.0, margin=0.6102); counts: eta01=1/1  eta05=1/1  eta10=0/1  eta15=0/1 [attempts=9, saves=2, invalid=0, elapsed=2193.9s]
+[10:36:39] seed=5 eta=13.898 no match; attempts=10 saves=2 invalid=0 elapsed=2193.9s
+[10:36:45] seed=14 eta=2.331 no match; attempts=15 saves=2 invalid=0 elapsed=2199.7s
+===== RESUME 2026-05-25 21:21:25 =====
+[21:21:27] resuming pool: n8000_L10000_mu0p1000_kingman_pop1p0000_JC69
+[21:21:27] params: n=8000 mu=0.1 pop_size=1.0 L=10000 model=kingman; targets=[1, 5, 10, 15] tol=±1.0; samples/bin=1; seed_start=12; max_attempts=2000; num_workers=4
+[21:21:27] current bin counts: eta01=1/1  eta05=1/1  eta10=0/1  eta15=0/1
+
+===== RESUME 2026-05-26 00:55:58 (launched from Claude) =====
+[00:56:00] resuming pool: n8000_L10000_mu0p1000_kingman_pop1p0000_JC69
+[00:56:00] params: n=8000 mu=0.1 pop_size=1.0 L=10000 model=kingman; targets=[1, 5, 10, 15] tol=±1.0; samples/bin=1; seed_start=12; max_attempts=8000; num_workers=4
+[00:56:00] current bin counts: eta01=1/1  eta05=1/1  eta10=0/1  eta15=0/1
