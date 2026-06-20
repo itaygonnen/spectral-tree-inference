@@ -14,3 +14,13 @@
 [00:56:00] resuming pool: n8000_L10000_mu0p1000_kingman_pop1p0000_JC69
 [00:56:00] params: n=8000 mu=0.1 pop_size=1.0 L=10000 model=kingman; targets=[1, 5, 10, 15] tol=±1.0; samples/bin=1; seed_start=12; max_attempts=8000; num_workers=4
 [00:56:00] current bin counts: eta01=1/1  eta05=1/1  eta10=0/1  eta15=0/1
+[01:25:55] seed=31 eta=2.714 no match; attempts=20 saves=0 invalid=0 elapsed=1794.9s
+[05:42:38] saved seed=44 eta=10.817 -> eta10 idx=1 (n1=7323.0, n2=677.0, margin=-3.4683); counts: eta01=1/1  eta05=1/1  eta10=1/1  eta15=0/1 [attempts=33, saves=1, invalid=0, elapsed=17197.8s]
+[05:42:38] seed=59 eta=4.739 -> eta05 already full; attempts=40 saves=1 invalid=0 elapsed=17198.0s
+[08:51:16] seed=75 eta=5.920 -> eta05 already full; attempts=60 saves=1 invalid=0 elapsed=28516.3s
+[09:41:53] seed=83 eta=1.600 -> eta01 already full; attempts=80 saves=1 invalid=0 elapsed=31553.7s
+[10:10:46] seed=111 eta=3.762 no match; attempts=100 saves=1 invalid=0 elapsed=33286.0s
+[10:25:08] saved seed=129 eta=14.180 -> eta15 idx=1 (n1=527.0, n2=7473.0, margin=-3.8066); counts: eta01=1/1  eta05=1/1  eta10=1/1  eta15=1/1 [attempts=114, saves=2, invalid=0, elapsed=34147.8s]
+[10:25:08] all bins full; terminating workers
+[10:25:08] done. attempts=114 saves=2 invalid_bipartitions=0 elapsed=34148.7s
+[10:25:08] final counts: eta01=1/1  eta05=1/1  eta10=1/1  eta15=1/1

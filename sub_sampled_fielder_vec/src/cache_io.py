@@ -226,6 +226,7 @@ experiment_data = CacheScope("experiment_data")
 pool_sample     = CacheScope("pool_sample")
 sweep_trial     = CacheScope("sweep_trial")
 bootstrap_sweep = CacheScope("bootstrap_sweep")
+bpart_sweep     = CacheScope("bpart_sweep")
 
 
 def run_dir(
@@ -263,7 +264,7 @@ __all__ = [
     "PROJECT_ROOT", "CACHE_ROOT", "RESULTS_ROOT", "SENTINEL",
     "make_key", "CacheScope",
     "full_matrix", "experiment_data", "pool_sample",
-    "sweep_trial", "bootstrap_sweep",
+    "sweep_trial", "bootstrap_sweep", "bpart_sweep",
     "run_dir", "notebook_dir",
 ]
 

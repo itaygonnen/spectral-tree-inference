@@ -35,6 +35,7 @@ from dendropy.calculate import treecompare
 import spectraltree
 from spectraltree import utils as st_utils
 
+from ..cache_io import CacheScope, make_key
 from ..config import StructuredConfig
 from ..core.similarity_builder import SimilarityMatrixBuilder
 from ..models import get_tree_factory, get_sequence_factory
@@ -45,6 +46,34 @@ from ..utils.summaries import save_json
 
 
 _SIM_FLOOR = 1e-12  # protects -log(0) when computing D = -log(R)
+
+_distance_cache = CacheScope("distance_matrix")
+
+
+def cached_distance_matrix(cfg: StructuredConfig, n_taxa: int, seq_len: int) -> np.ndarray:
+    """Return the full JC distance matrix ``D``, loading from / saving to the
+    project disk cache when ``cfg.cache.use_persistent_cache`` is set.
+
+    Keyed by ``(tree_model, n, L, mu, seq_model, *tree_params)`` — the same
+    "reuse across runs" convention as the other matrix caches (see CLAUDE.md).
+    The seed is intentionally excluded, and ``tree_params`` is folded in so
+    e.g. kingman (``pop_size``) and birth_death (``birth_rate``/``death_rate``)
+    never collide on a key.
+    """
+    if not cfg.cache.use_persistent_cache:
+        return _build_truth(cfg, n_taxa, seq_len)[2]
+    key = make_key(
+        cfg.tree.model,
+        n=n_taxa, L=seq_len,
+        mu=float(cfg.sequence.params["mutation_rate"]),
+        seq=cfg.sequence.model,
+        **{k: cfg.tree.params[k] for k in sorted(cfg.tree.params)},
+    )
+    data, hit = _distance_cache.get_or_compute(
+        key, build_fn=lambda: {"D": _build_truth(cfg, n_taxa, seq_len)[2]},
+    )
+    log_info("cache", f"distance_matrix {'HIT' if hit else 'MISS'}: {key}", force=True)
+    return np.asarray(data["D"], dtype=np.float64)
 
 
 def _impute_mean(D_hat: np.ndarray) -> np.ndarray:

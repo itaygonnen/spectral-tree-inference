@@ -18,6 +18,10 @@ from .spectral import (
     compute_fiedler_of_S, subsample_S,
     uniform_mask, ipw_from_mask, nnm_from_mask,
 )
+from .perturbation import (
+    rank2_subspace, laplacian_perturbation_norm,
+    subspace_sin_theta, davis_kahan_bound, two_mode_decomposition,
+)
 from .recovery import compute_recovery, compute_ari, find_threshold_p_star
 from .cache import (
     make_full_key,
@@ -50,6 +54,11 @@ __all__ = [
     "compute_top_eigenpairs",
     "spectral_gap",
     "compute_lemma04_row",
+    "rank2_subspace",
+    "laplacian_perturbation_norm",
+    "subspace_sin_theta",
+    "davis_kahan_bound",
+    "two_mode_decomposition",
     "compute_fiedler_of_S",
     "subsample_S",
     "uniform_mask",
