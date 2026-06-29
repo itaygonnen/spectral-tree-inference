@@ -1,55 +1,82 @@
 # theoretical_interpretation
 
-Paper-figure notebooks for the Fiedler-sub-sampling thesis (V.04). Each notebook is
-self-contained: it builds (or loads from disk cache) a similarity / distance
-matrix, runs a bootstrap p-sweep, and emits one or two figures plus optional
-CSVs to `sub_sampled_fielder_vec/results/notebooks/<subdir>/<notebook>/`.
+Paper-figure notebooks for the Fiedler-sub-sampling thesis. **Notebooks are organized by
+data source**, because the source is the thing that was confusing when they were named by
+topic. Three sources:
 
-Re-running any cell is cheap — heavy computation is cached under
-`sub_sampled_fielder_vec/cache/{full_matrix,sweep_trial,pool_sample,experiment_data,bootstrap_sweep}/`
-through the unified `src.cache_io` API.
-
-## Notebooks
-
-| Subdir | Notebook | What it verifies |
+| Source | Meaning | Folder |
 |---|---|---|
-| `01_cbm_theory/` | `balanced_binary_threshold` | p\* = C·log(n)/n on symmetric binary tree (α=0.9) |
-| `01_cbm_theory/` | `decay_cbm_features` | HBM (decay-CBM) identities: μ(U), λ₂, Lemma 0.4 slack across η,m |
-| `01_cbm_theory/` | `nonbalanced_flat_cbm` | p\* ∝ η(1+η)³ log(m) / [m(ρ − η·S_out)²] |
-| `02_real_data_sweeps/` | `kingman_threshold_vs_theory` | Empirical p\* on JC69 + Kingman vs non-balanced CBM theory |
-| `02_real_data_sweeps/` | `eta_pool_sweep_per_n` | Bootstrap p-sweeps on η-pooled Kingman samples, η ∈ {1,5,10,15} |
-| `03_sampling_methods/` | `distance_vs_similarity` | Subsampling S directly vs subsampling D then S = exp(−α·D̂) |
-| `03_sampling_methods/` | `nnm_vs_ipw` | Soft-Impute (NNM) vs IPW: p\* scaling and runtime |
-| `04_tree_reconstruction/` | `snj_subsampling` | SNJ ‖R−R̂‖₂, σ₂ separation, RF distance vs p |
-| `04_tree_reconstruction/` | `stdr_partition_recovery` | STDR recursive partition: first-layer Fiedler, bipartition Jaccard, ARI |
-| `05_nj_distance/` | `nj_subsampling_balanced` | NJ ‖D−D̂‖₂, Q-criterion, RF distance vs p on balanced binary |
-| `05_nj_distance/` | `nj_subsampling_nonbalanced` | NJ on unbalanced birth-death trees |
-| `05_nj_distance/` | `griffing_distance_partition` | Griffing's $J D J$ leading-eigvec partition under sub-sampling (kingman: 50× lower p\* at large n) |
-| `05_nj_distance/` | `fiedler_first_layer_recovery` | First-layer Fiedler sign-agreement on JC-similarity under uniform IPW; production sweep via `src/runners/fiedler_sweep.py` |
+| **synthesized** | the similarity `S` / distance `D` is built **directly** from a closed-form block model (CBM/HBM, balanced binary) — no tree simulation | `synthesized/` |
+| **generated** | **dendropy** simulates a tree (Kingman / birth-death) and evolves sequences (JC69); `S`/`D` come from those sequences | `generated/` |
+| **real** | downloaded **FASTA + Newick** files (the 600-tree 1000-taxon benchmark) | `real/` |
 
-## Shared utilities
+Within each source, notebooks are grouped by topic. Because some topics (`sampling_methods`,
+`tree_reconstruction`, `distance_vs_similarity`) have one notebook per source, those topic
+folders appear under more than one source — that is intentional and honest.
 
-`utils/` is a sibling package imported by every notebook (and by
-`scripts/build_eta_pool.py` / `scripts/build_eta_pool_parallel.py`). Do **not** move it.
+```
+theoretical_interpretation/
+├── utils/        shared helper library (imported by every notebook — do NOT move)
+├── figures/      shared figure output
+│
+├── synthesized/
+│   ├── cbm_theory/            balanced_binary_threshold · decay_cbm_features ·
+│   │                          flat_cbm_variance_recovery · nonbalanced_flat_cbm
+│   ├── sampling_methods/      nnm_vs_ipw
+│   └── tree_reconstruction/   stdr_partition_recovery
+│
+├── generated/
+│   ├── eta_pool_sweeps/       eta_pool_sweep · fiedler_tree_partition_by_eta ·
+│   │                          kingman_threshold_vs_theory
+│   ├── sampling_methods/      distance_vs_similarity
+│   ├── tree_reconstruction/   snj_subsampling
+│   ├── nj_distance/           nj_subsampling_balanced · nj_subsampling_nonbalanced
+│   └── distance_vs_similarity/ simulation_distance_vs_similarity
+│
+└── real/
+    └── distance_vs_similarity/ real_data_distance_vs_similarity   ← the only real-data notebook
+```
 
-- `balanced_binary`, `block_model` — closed-form S matrices and population Fiedler vectors
+## Index
+
+### synthesized — `S`/`D` from a block model
+| Notebook | What it produces |
+|---|---|
+| `cbm_theory/balanced_binary_threshold` | p\* = C·log(n)/n on a symmetric binary tree (α=0.9) |
+| `cbm_theory/decay_cbm_features` | HBM (decay-CBM) identities: μ(U), λ₂, Lemma 0.4 slack across η, m |
+| `cbm_theory/flat_cbm_variance_recovery` | Flat-CBM cross-clan variance and sign recovery |
+| `cbm_theory/nonbalanced_flat_cbm` | p\* ∝ η(1+η)³ log(m) / [m(ρ − η·S_out)²] |
+| `sampling_methods/nnm_vs_ipw` | Soft-Impute (NNM) vs IPW: p\* scaling and runtime |
+| `tree_reconstruction/stdr_partition_recovery` | STDR recursive partition: first-layer Fiedler, bipartition Jaccard, ARI |
+
+### generated — dendropy tree + sequences
+| Notebook | What it produces |
+|---|---|
+| `eta_pool_sweeps/eta_pool_sweep` | 3 operators (sign / σ₂-gap / k-means L_sym) on the η-pooled Kingman samples. **Fig 1** p\* vs n; **Fig 2** recovery grid + p\* summary. `METRIC` (nmi/ari/agreement) and `AGG` (mean/median) toggles replace the former per_n / per_n_lsym / per_n_median notebooks |
+| `eta_pool_sweeps/fiedler_tree_partition_by_eta` | Fiedler vector & tree partition on cached Kingman samples by η; coherence vs imbalance; validates the two η lower bounds |
+| `eta_pool_sweeps/kingman_threshold_vs_theory` | Empirical p\* on JC69 + Kingman vs non-balanced CBM theory |
+| `sampling_methods/distance_vs_similarity` | Sub-sampling `S` directly vs sub-sampling `D` then `S = exp(−α·D̂)` |
+| `tree_reconstruction/snj_subsampling` | SNJ ‖R−R̂‖₂, σ₂ separation, RF distance vs p |
+| `nj_distance/nj_subsampling_balanced` | NJ ‖D−D̂‖₂, Q-criterion, RF distance vs p on balanced binary |
+| `nj_distance/nj_subsampling_nonbalanced` | NJ on unbalanced birth-death trees |
+| `distance_vs_similarity/simulation_distance_vs_similarity` | Generated 600-tree (Kingman + birth-death) recovery: Fiedler-on-S vs Griffing-on-D vs L_sym; screens, η histograms, recovery curves, p\* vs η / diameter |
+
+### real — FASTA + Newick
+| Notebook | What it produces |
+|---|---|
+| `distance_vs_similarity/real_data_distance_vs_similarity` | Real 600-tree benchmark: same operator comparison + validity gate + η histograms + recovery curves. The simulation twin above is the generated analogue |
+
+## Shared utilities (`utils/`, plus one in `src/utils/`)
+`utils/` is imported by every notebook via `from analysis.theoretical_interpretation.utils import …`
+(notebooks add the project root to `sys.path` with a walk-up to `setup.py`, so this resolves from
+any folder depth). **Do not move `utils/`.**
+
+- `block_model`, `balanced_binary` — closed-form `S` and population Fiedler vectors
 - `linalg_features` — μ(U), λ₂, spectral gap, Lemma 0.4 row
 - `tree_features` — imbalance η, structural margin ρ, n_min, HBM helpers
-- `spectral` — Fiedler of S, uniform mask, IPW, NNM (Soft-Impute)
-- `recovery` — sign-agreement, p\* threshold detector
-- `sweep` — bootstrap p-sweep loop with per-trial disk caching
-- `cache` — two-level disk cache (full S + sub-sample) with `.complete` sentinels
-- `plotting` — C-constant fit and two-panel recovery+scaling figure
-
-## Outputs
-
-Per-notebook CSV/PNG outputs land in `results/notebooks/<subdir>/<notebook>/`, e.g.
-`results/notebooks/04_tree_reconstruction/stdr_partition_recovery/agg.csv`.
-Each output dir also stores a `config.json` sidecar — re-running the notebook
-with the same config loads the cached CSVs instead of recomputing.
-
-The `05_nj_distance/` notebooks (and any production sweep launched via
-`scripts/run_*_sweep.py`) write under `results/runs/<timestamp>-<run_name>/`
-or `results/runs/<tree_model>/<sampling_method>/<timestamp>-<run_name>/` for the
-`ExperimentRunner` pipeline. All run paths go through
-`src.cache_io.run_dir(...)`.
+- `distance_features` — Griffing operators, tree diameter
+- `spectral`, `recovery`, `sweep`, `cache`, `plotting` — Fiedler/IPW/NNM, sign-agreement, p\* detector, disk cache, recovery figures
+- `generated_data` — `make_generated`, `build_ids` (Kingman + birth-death loader for the generated notebooks)
+- **`sweep_plots`** *(new)* — `plot_pstar_vs_n`, `plot_nmi_grid`, `plot_curves_per_n/per_eta`, `compute_pstar` for the eta-pool figures
+- **`distance_similarity`** *(new)* — the shared screen/recovery/plot functions behind the two `distance_vs_similarity` notebooks (inject a loader + cache prefix)
+- **`src/utils/eta_pool_sweep`** *(new)* — `discover_ns_and_samples`, `run_and_collect_sweeps`: the single source of truth for the "discover pool samples → bootstrap p-sweep → collect" loop (also used by `scripts/build_sweeps.py`)
