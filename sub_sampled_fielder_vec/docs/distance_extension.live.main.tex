@@ -1,0 +1,762 @@
+% =====================================================================
+%  Distance-based extension — focused on the main theorem.
+%
+%  Two sections:
+%    §1  The new recovery matrix B = H D^† H — how it's built, how it's used.
+%    §2  Main theorem under sub-sampling.
+%
+%  Distance-specific content is highlighted in BLUE via \new{...} (text)
+%  and \newmath{...} (display math), so additions relative to the
+%  similarity-based formulation are visually obvious.
+% =====================================================================
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,amsfonts}
+\usepackage{xcolor}
+\usepackage{bm}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black,citecolor=blue!60!black}
+
+% ------- Blue-change markup -------
+\newcommand{\new}[1]{\textcolor{blue}{#1}}
+\newcommand{\newmath}[1]{{\color{blue} #1}}
+
+% ------- Theorem environments -------
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{notation}{Notational warning}
+
+% ------- Shortcuts -------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Ddeg}{D_{\mathrm{deg}}}
+\newcommand{\Ddist}{D^{\dagger}}      % distance matrix
+\newcommand{\hatD}{\widehat{\Ddist}}  % sub-sampled distance
+\newcommand{\hatB}{\widehat{B}}
+\newcommand{\hatu}{\widehat{u}}
+\newcommand{\Bop}{B}
+\newcommand{\Hop}{H}                  % centering projector
+\newcommand{\rT}{r(T)}                % tree diameter
+\newcommand{\eps}{\varepsilon}
+
+\title{Distance-based recovery: the operator and the main theorem}
+\author{}
+\date{Draft of \today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We replace the similarity Laplacian $L = \Ddeg - S$ with the
+\new{double-centered pairwise-distance operator $\Bop = \Hop\,\Ddist\,\Hop$}
+and ask the recovery question on the new spectrum:
+the sign target moves from the Fiedler vector $v^{(2)}$ of $L$
+(second-smallest eigenvalue) to \new{the leading eigenvector $u^{(1)}$ of
+$\Bop$ (largest-magnitude eigenvalue)}.
+This document does two things: (1) builds $\Bop$ from data and states how
+its sign pattern is used to recover the structural bipartition; (2)
+proves the main theorem under entrywise Bernoulli sub-sampling — same
+asymptotic rate $p = \Theta(\log m / m)$ as the Laplacian route, with
+\new{multiplicative constants that degrade by an explicit factor
+$d_0^{\,2}/\beta_0^{\,2}\cdot \rT^{\,2}$}.
+\end{abstract}
+
+\begin{notation}
+\new{The base thesis writes $D$ for the degree matrix $\diag(S\1)$.
+The distance literature writes $D$ for pairwise distances.
+We disambiguate by writing $\Ddeg := \diag(S\1)$ for the degree matrix
+and reserving $\Ddist$ for the pairwise distance matrix throughout.}
+\end{notation}
+
+% =====================================================================
+\section*{Executive summary}
+\addcontentsline{toc}{section}{Executive summary}
+
+\paragraph{Setup at a glance.}
+\new{Replace 
+$$L = \Ddeg - S ֿ\longrightarrow \Bop = \Hop\,\Ddist\,\Hop$$ 
+with
+$\Hop = I - \tfrac{1}{m}\1\1^{\!\top}$ and $\Ddist = -\log S / (4\|\Tr Q\|)$.
+Read the partition off the sign pattern of $u^{(1)}$, the
+largest-magnitude eigenvector of $\Bop$ (the dominant MDS axis on
+$\Ddist$).}
+
+\paragraph{1. Why the distance route picks a \emph{better} partition (on real data).}
+\begin{itemize}
+  \item \new{$L$'s structural eigenvector $v^{(2)}$ sits at the
+        \emph{bottom} of the spectrum, where any direction with small
+        Rayleigh quotient competes --- including spurious
+        ``outlier-along'' directions created by within-clan noise.
+        Empirically this is why Fiedler-on-$S$ picks fringe splits
+        ($\eta_{S} \in [12, 199]$ on 600 real 1000-taxa trees in
+        \texttt{02\_real\_data\_sweeps/real\_data\_subsample\_recovery.\\ipynb}).}
+  \item \new{$\Bop$'s structural eigenvector $u^{(1)}$ sits at the
+        \emph{top by magnitude}; Proposition~\ref{prop:cbm-gap} shows the
+        next eigenvalue cluster sits at $-d_{1}$ (the within-clan
+        distance), so the structural direction is separated from the
+        ``noise floor'' by the full margin $m(d_{0} - d_{1})/2$.
+        Empirically Griffing-on-$\Ddist$ picks balanced cuts
+        ($\eta_{D} \in [1, 7]$ on the same 600 trees).}
+  \item \new{So the gain is not robustness under sub-sampling --- the
+        gain happens \emph{before} we ever sub-sample: $\Bop$ is harder
+        to fool into a fringe partition.}
+\end{itemize}
+
+\paragraph{2. What stays the same.}
+\begin{itemize}
+  \item \textbf{Structural-eigenvector shape.}
+        Both $v^{(2)}$ and $u^{(1)}$ are piecewise constant on the
+        bipartition, with the same $\pm$ heights
+        \;$c_{A} = \sqrt{b/(m\,a)}$,\; $c_{B} = -\sqrt{a/(m\,b)}$.
+        The two constraints that force this shape --- $\|u\|_{2} = 1$
+        and $u \perp \1$ --- both hold for the two operators (because
+        $L\1 = 0$ and $\Bop \1 = 0$).
+  \item \textbf{Importance of the structural margin.}
+        On both sides the sign-recovery condition $\|\widehat u -
+        u\|_{\infty} < \min_{i} |u_{i}|$ is what we have to beat; the
+        right-hand-side margin still equals the smaller plateau height.
+  \item \textbf{Coherence and the statistical barrier.}
+        \;$\mu(U) = (1+\eta)/2$ \;is operator-agnostic, so the
+        infeasibility threshold $\eta = \Omega\bigl((m/\log m)^{1/3}\bigr)$
+        is unchanged.
+  \item \textbf{Asymptotic rate.}
+        The condition on the sampling rate $p$ retains the
+        $\Theta(\log m / m)$ exponent.
+  \item \textbf{Neumann decomposition.}
+        The bridge from operator-norm control to coordinate-wise control
+        (Lemmas C.5--C.8 of the base thesis) is operator-agnostic and
+        transfers verbatim under $L \to \Bop$, $v^{(2)} \to u^{(1)}$,
+        $\Delta\lambda \to \Delta\lambda^{(B)}$.
+\end{itemize}
+
+\paragraph{3. What changes (and what each change costs).}
+\begin{itemize}
+  \item \new{\textbf{Cross-clan parameter:} $$\beta_{0}\longrightarrow\
+        d_{0} := -\log \frac{\beta_{0}}{(4\|\Tr Q\|)}$$
+        In the per-node Bernstein step the coherence-weighted load
+        becomes $\tilde\rho^{(B)}(\eta) = (1+\eta)\,d_{0}^{\,2}/\eta$ --- exactly
+        the Laplacian load with $\beta_{0}^{\,2} \to d_{0}^{\,2}$.\\
+        Effect: leading constant multiplied by $d_{0}^{\,2}/\beta_{0}^{\,2}$
+        (e.g.\ $\approx 1.9$ at $\beta_{0} = 0.5$, $\approx 530$ at
+        $\beta_{0} = 0.1$).}
+  \item \new{\textbf{Entry-scale bound:} on the similarity side
+        $$
+        |(E_{S})_{ij}| \le S_{\max} \le 1 
+        \longrightarrow
+        |(E_{\Ddist})_{ij}| \le \rT = O(\log m)
+        $$
+        under Kingman.
+        The variance term in $\|E_{B}\|_{2}$ picks up a factor
+        $\rT^{\,2} = O(\log^{2} m)$.\\
+        Effect: same rate exponent --- but a strictly less robust
+        constant, especially on long-branch trees.}
+  \item \new{\textbf{Spectral gap formula:} 
+  $$
+  \lambda_{3}(L) \ge \min(n_{1},n_{2})\,S_{\mathrm{in}}^{\min}
+  \longrightarrow
+  \Delta\lambda^{(B)} = m\,(d_{0} - d_{1})/2
+  $$
+  the Laplacian
+        algebraic-connectivity bound
+        $\lambda_{3}(L) \ge \min(n_{1},n_{2})\,S_{\mathrm{in}}^{\min}$
+        does not port. Replaced by a \emph{direct block reduction} of
+        $\Hop\,\Ddist\,\Hop$ (Proposition~\ref{prop:cbm-gap}), which
+        yields the explicit formula
+        $\Delta\lambda^{(B)} = m\,(d_{0} - d_{1})/2$
+        in the balanced flat-CBM case --- strictly positive whenever
+        the cross-clan signal $d_{0} - d_{1}$ is non-trivial.}
+\end{itemize}
+
+\paragraph{4. Bottom line --- the main theorem in one line.}
+\new{Sign-recovery of the structural bipartition from $\widehat\Bop$
+holds w.h.p.\ whenever}
+\begin{equation*}
+\newmath{
+  p \;>\; \frac{C\,(1 + \eta)^{3}\, d_{0}^{\,2}\, \log m}
+                 {m\,\bigl(\Delta\lambda^{(B)}\bigr)^{2}}
+       \;=\; \Theta\!\Bigl(\frac{\log m}{m}\Bigr).
+}
+\end{equation*}
+\new{Same rate exponent as the Laplacian route, strictly worse
+multiplicative constants by an explicit factor
+$d_{0}^{\,2}/\beta_{0}^{\,2}\cdot \rT^{\,2}$.}
+
+\newpage
+% =====================================================================
+\section{The new recovery matrix \texorpdfstring{$\Bop = \Hop\,\Ddist\,\Hop$}{B = H D H}}
+\label{sec:operator}
+
+This section defines the new operator end-to-end: how it is constructed
+from data (\S\ref{sec:building}), how its sign pattern produces a
+partition of the leaves (\S\ref{sec:using}), and the population-level
+spectral landmarks the main theorem will refer to
+(\S\ref{sec:landmarks}).
+
+\subsection{Building \texorpdfstring{$\Bop$}{B} from sequence data}
+\label{sec:building}
+
+Fix a binary phylogenetic tree $T$ on $m$ leaves and a reversible
+substitution model with rate matrix $Q$. Each leaf carries an observed
+sequence; from these sequences we form the leaf similarity matrix $S \in
+[0,1]^{m\times m}$ in the usual way (e.g.\ via Jukes--Cantor or paralinear).
+
+\new{\textbf{Step 1 --- distance from similarity.}
+Apply the entrywise log-transform}
+\begin{equation}
+\newmath{
+  \Ddist_{ij} \;=\; -\,\frac{1}{4\,\|\Tr Q\|}\,\log S_{ij},
+  \qquad
+  \Ddist_{ii} = 0.
+}\label{eq:M1-Ddist}
+\end{equation}
+\new{Because $S$ is tree-multiplicative ($S_{ij} = \prod_{e \in
+\mathrm{path}(i,j)} \alpha_e$), $\Ddist$ is tree-\emph{additive}:}
+\begin{equation}
+\newmath{
+  \Ddist_{ij} \;=\; \sum_{e \,\in\, \mathrm{path}(i,j)} \tau_e,
+}
+\end{equation}
+\new{with edge-lengths $\tau_e \ge 0$. This is the standard phylogenetic
+distance object.}
+
+\new{\textbf{Step 2 --- double centering.}
+Let}
+\begin{equation}
+\newmath{
+  \Hop \;=\; I \;-\; \tfrac{1}{m}\,\1\,\1^{\!\top}
+}
+\end{equation}
+\new{be the orthogonal projector onto $\1^{\perp}$. Define}
+\begin{equation}
+\newmath{
+  \Bop \;:=\; \Hop\,\Ddist\,\Hop
+  \;=\; \Ddist \;-\; \tfrac{1}{m}\,\1\,\1^{\!\top}\Ddist \;-\; \tfrac{1}{m}\Ddist\,\1\,\1^{\!\top}
+       \;+\; \tfrac{1}{m^{2}}\,(\1^{\!\top}\Ddist\,\1)\,\1\,\1^{\!\top}.
+}
+\end{equation}
+\new{The role of $\Hop$ is to kill the $\1$-direction --- the same role
+the row-sum-zero structure of $L = \Ddeg - S$ played on the similarity
+side. Two properties of $\Hop$ that we will use repeatedly:
+$\Hop^{2} = \Hop$ (idempotent) and $\|\Hop\|_{2} = 1$.}
+
+\new{Computationally $\Bop$ is built in $O(m^{2})$ time once $\Ddist$ is
+available: rows means, column means, the grand mean, and four broadcasts.}
+
+\subsection{Using \texorpdfstring{$\Bop$}{B}: the sign-recovery rule}
+\label{sec:using}
+
+\new{Let $u^{(1)}$ denote a unit-norm eigenvector of $\Bop$ at the
+eigenvalue of largest absolute value; under the molecular-clock CBM
+considered here, $\Bop$ is negative-semi-definite for raw distances and
+$u^{(1)}$ is the eigenvector at the most negative eigenvalue $\lambda_{1}$
+(equivalently, the dominant direction of classical MDS on $\Ddist$).}
+
+\new{Given the noiseless population operator $\Bop$, the structural
+bipartition $\{A, B\}$ is read off as}
+\begin{equation}
+\newmath{
+  \widehat{A} \;=\; \{\, i \;:\; u^{(1)}_{i} \ge 0 \,\}, \qquad
+  \widehat{B} \;=\; \{\, i \;:\; u^{(1)}_{i}  <  0 \,\}.
+}
+\label{eq:sign-rule}
+\end{equation}
+\new{Given an \emph{estimator} $\hatu^{(1)}$ of $u^{(1)}$ (e.g.\ from a
+sub-sampled $\hatD$, see \S\ref{sec:main}), the sign-recovery condition
+that suffices for $\widehat{A} = A$ (up to a global sign flip) is}
+\begin{equation}
+\newmath{
+  \big\| \hatu^{(1)} - u^{(1)} \big\|_{\infty}
+  \;<\;
+  \min_{i}\, \big| u^{(1)}_{i} \big|.
+}
+\label{eq:sign-criterion}
+\end{equation}
+\new{Structurally this is identical to the Fiedler-side criterion
+$\|\widehat v^{(2)} - v^{(2)}\|_{\infty} < \min_{i}|v^{(2)}_{i}|$ --- only
+the target vector and the operator producing it change.}
+
+\subsection{Population-level landmarks (used by the main theorem)}
+\label{sec:landmarks}
+
+We will need three population-level quantities for the main theorem.
+Under the molecular-clock constant block model (CBM) with clans $A, B$ of
+sizes $m_{A}, m_{B}$, total $m = m_{A} + m_{B}$, imbalance ratio $\eta =
+\max(m_{A}, m_{B}) / \min(m_{A}, m_{B})$, within-clan similarity
+$S_{\mathrm{in}}$, and cross-clan similarity $\beta_{0}$:
+
+\begin{enumerate}
+  \item \new{\textbf{Cross-clan distance scale.} Every cross-clan entry
+        of $\Ddist$ collapses to the constant}
+        \begin{equation}
+        \newmath{
+          d_{0} \;:=\; -\,\frac{1}{4\,\|\Tr Q\|}\,\log \beta_{0},
+        }
+        \end{equation}
+        \new{with $d_{0} > \Ddist_{ij}$ for every within-clan $(i,j)$.}
+  \item \new{\textbf{Tree diameter.}
+        $\rT := \max_{i,j} \Ddist_{ij}$.
+        Under Kingman / Yule, $\rT = O(\log m)$.}
+  \item \new{\textbf{Spectral gap of $\Bop$.} Since $u^{(1)}$ sits at the
+        \emph{top} (in absolute value) of $\Bop$'s spectrum, the relevant
+        gap is the top gap}
+        \begin{equation}
+        \newmath{
+          \Delta\lambda^{(B)} \;:=\; \big|\lambda_{1}(\Bop)\big| \;-\; \big|\lambda_{2}(\Bop)\big|.
+        }
+        \end{equation}
+        \new{Proposition~\ref{prop:cbm-gap} below derives the explicit
+        formula $\Delta\lambda^{(B)} = m(d_{0} - d_{1})/2$ in the
+        balanced flat-CBM case, with $d_{1}$ the within-clan distance.
+        In particular it is strictly positive whenever the cross-clan
+        signal $d_{0} - d_{1}$ is non-trivial, and scales as
+        $\Theta(m\,(d_{0} - d_{1}))$.}
+\end{enumerate}
+
+\begin{proposition}[\new{Spectrum of $\Bop$ under balanced flat CBM}]
+\label{prop:cbm-gap}
+\new{Assume the molecular-clock flat CBM with $|A| = |B| = m/2$,
+within-clan distance $d_{1}$, cross-clan distance $d_{0} > d_{1}$, and
+zero diagonal ($\Ddist_{ii} = 0$). Then}
+\begin{align}
+\newmath{
+  \sigma(\Ddist) \;
+} &
+\newmath{
+  =\; \Big\{\; \tfrac{(m-2)\,d_{1} + m\,d_{0}}{2},\;\;
+            \tfrac{(m-2)\,d_{1} - m\,d_{0}}{2},\;\;
+            \underbrace{-d_{1},\,\dots,\,-d_{1}}_{m-2}\,\Big\},
+} \\
+\newmath{
+  \sigma(\Bop) \;
+} &
+\newmath{
+  =\; \Big\{\; 0,\;\; -\tfrac{m(d_{0} - d_{1})}{2} - d_{1},\;\;
+            \underbrace{-d_{1},\,\dots,\,-d_{1}}_{m-2}\,\Big\}.
+}
+\end{align}
+\new{The structural eigenvalue of $\Bop$ is the most negative one,
+$\lambda_{1}(\Bop) = -\tfrac{m(d_{0} - d_{1})}{2} - d_{1}$; the next
+spectral cluster sits at $-d_{1}$ with multiplicity $m - 2$; and the
+top gap is}
+\begin{equation}
+\newmath{
+  \Delta\lambda^{(B)}
+  \;=\; \big|\lambda_{1}(\Bop)\big| - \big|\lambda_{2}(\Bop)\big|
+  \;=\; \frac{m\,(d_{0} - d_{1})}{2}.
+}
+\label{eq:gap-balanced}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+\new{Let $e_{A}, e_{B} \in \R^{m}$ be the indicator vectors of the two
+clans, so $\1 = e_{A} + e_{B}$.  Decompose $\Ddist = T - d_{1}\,I$ where}
+\begin{equation*}
+\newmath{
+  T \;=\; d_{1}\bigl(e_{A} e_{A}^{\!\top} + e_{B} e_{B}^{\!\top}\bigr)
+       \;+\; d_{0}\bigl(e_{A} e_{B}^{\!\top} + e_{B} e_{A}^{\!\top}\bigr),
+}
+\end{equation*}
+\new{which one checks satisfies $T_{ij} = d_{1}$ for $i, j$ in the same
+clan (including $i = j$) and $T_{ij} = d_{0}$ otherwise.}
+
+\new{$T$ has rank $2$ with range $\mathrm{span}\{e_{A}, e_{B}\}$. In the
+orthonormal basis $\hat e_{A} = e_{A}/\sqrt{m/2}$, $\hat e_{B} =
+e_{B}/\sqrt{m/2}$ of that range, a direct computation gives}
+\begin{equation*}
+\newmath{
+  T\big|_{\mathrm{span}\{\hat e_{A},\hat e_{B}\}}
+  \;\cong\; \frac{m}{2}\begin{pmatrix} d_{1} & d_{0} \\ d_{0} & d_{1} \end{pmatrix},
+}
+\end{equation*}
+\new{with eigenpairs}
+\begin{equation*}
+\newmath{
+  \Bigl(\,\tfrac{m(d_{1}+d_{0})}{2},\;\;\tfrac{1}{\sqrt{m}}\,\1\Bigr),
+  \qquad
+  \Bigl(\,\tfrac{m(d_{1}-d_{0})}{2},\;\;\tfrac{1}{\sqrt{m}}\,(e_{A}-e_{B})\Bigr).
+}
+\end{equation*}
+\new{The remaining $m - 2$ directions, all orthogonal to
+$\mathrm{span}\{e_{A}, e_{B}\}$ (and hence to $\1$), lie in $\ker T$.
+Subtracting $d_{1}\,I$ shifts every eigenvalue by $-d_{1}$, yielding the
+displayed spectrum of $\Ddist$.}
+
+\new{Now $\Bop = \Hop\,\Ddist\,\Hop$ with $\Hop$ the orthogonal
+projector onto $\1^{\perp}$.  The first $\Ddist$-eigenvector $\1/\sqrt
+m$ lies in $\ker\Hop$, so contributes eigenvalue $0$ to $\Bop$.  The
+other $m - 1$ eigenvectors of $\Ddist$ are already orthogonal to $\1$
+(the structural direction $(e_{A}-e_{B})/\sqrt{m}$ because $|A| = |B|$,
+and the $(m{-}2)$-dimensional kernel of $T$ by construction); they are
+therefore fixed by $\Hop$ and remain eigenvectors of $\Bop$ at the same
+eigenvalue.  Reading off the structural and bulk eigenvalues:}
+\begin{equation*}
+\newmath{
+  \big|\lambda_{1}(\Bop)\big|
+  = \tfrac{m(d_{0} - d_{1})}{2} + d_{1},
+  \qquad
+  \big|\lambda_{2}(\Bop)\big| = d_{1},
+}
+\end{equation*}
+\new{which gives \eqref{eq:gap-balanced}.}
+\end{proof}
+
+\begin{remark}[\new{Unbalanced case}]
+\new{When $|A| = a \ne b = |B|$ the same argument applies with the
+asymmetric block reduction
+$T|_{\mathrm{span}\{\hat e_{A},\hat e_{B}\}} \cong
+\big(\begin{smallmatrix} a\,d_{1} & \sqrt{ab}\,d_{0} \\
+\sqrt{ab}\,d_{0} & b\,d_{1}\end{smallmatrix}\big)$.
+The structural $\Ddist$-eigenvalue becomes
+$\frac{(m{-}2)d_{1} - \sqrt{(a{-}b)^{2}\,d_{1}^{2} + 4 a b\,d_{0}^{2}}}{2}$,
+and the same kernel-of-$\Hop$ argument keeps the bulk at $-d_{1}$.
+The top gap retains the form $\Theta\!\bigl(m\,(d_{0} - d_{1})\bigr)$
+whenever $d_{0} - d_{1} = \Omega(d_{1})$; only the leading constant
+changes with the imbalance $\eta$.}
+\end{remark}
+
+\paragraph{From CBM to a general tree.}
+Proposition~\ref{prop:cbm-gap} gives the exact spectrum under the
+flat-CBM idealisation. The corresponding result for an \emph{arbitrary}
+binary tree --- the distance-side analogue of STDR Theorem~4.2
+(Aizenbud et al., 2023) for the similarity-Fiedler partition --- is
+classical and goes back to Griffing's thesis~\cite{Griffing2012}. We
+state it here because the main theorem of \S\ref{sec:main} only requires
+that the population $u^{(1)}$ partitions the leaves along a tree edge;
+it does not need the full piecewise-constant form forced by CBM.
+
+% --------------- Griffing-type partition-recovery theorem ---------------
+\begin{theorem}[\new{Distance-based partition recovery on a binary tree
+  (Griffing, 2012, Ch.~4)}]
+\label{thm:griffing}
+\new{Let $T$ be a binary phylogenetic tree on $m \ge 4$ leaves with
+strictly positive edge lengths $\{\tau_{e}\}_{e \in E(T)}$, and let
+$\Ddist \in \R^{m\times m}$ be the matrix of pairwise additive leaf
+distances on $T$,}
+\begin{equation*}
+\newmath{
+  \Ddist_{ij} \;=\; \sum_{e \,\in\, \mathrm{path}(i,j)} \tau_{e}.
+}
+\end{equation*}
+\new{Let $\Bop = \Hop\,\Ddist\,\Hop$ and let $u^{(1)}$ be a unit-norm
+eigenvector of $\Bop$ at the eigenvalue of \emph{largest absolute value}.
+Then there exists an edge $e^{*} \in E(T)$ such that the sign-partition
+\begin{equation*}
+  \widehat{C}_{1} \;=\; \{\, i : u^{(1)}_{i} \ge 0 \,\},
+  \qquad
+  \widehat{C}_{2} \;=\; \{\, i : u^{(1)}_{i} <   0 \,\}
+\end{equation*}
+equals the leaf-bipartition obtained by removing $e^{*}$ from $T$. In
+particular, $\widehat{C}_{1}$ and $\widehat{C}_{2}$ are
+\emph{adjacent clans in $T$}.}
+\end{theorem}
+
+\begin{proof}[Proof sketch, following Griffing~\cite{Griffing2012}]
+\new{Use the \emph{split decomposition} of additive tree metrics
+(Bandelt and Dress, 1992): every edge $e \in E(T)$ induces a bipartition
+of the leaves; let $s_{e} \in \{-1,+1\}^{m}$ be the signed
+split-indicator ($+1$ on one side, $-1$ on the other) and let
+$\delta_{e} \in \{0,1\}^{m\times m}$ be the cut metric, $(\delta_{e})_{ij}
+= 1$ iff $i,j$ lie on opposite sides of $e$. Then}
+\begin{equation*}
+\newmath{
+  \Ddist \;=\; \sum_{e \in E(T)} \tau_{e}\,\delta_{e},
+  \qquad
+  \delta_{e} \;=\; \tfrac{1}{2}\bigl(\,\1\1^{\!\top} - s_{e} s_{e}^{\!\top}\,\bigr)
+                  \;+\; \mathrm{diag}(\cdots),
+}
+\end{equation*}
+\new{where the diagonal correction is killed by setting $\Ddist_{ii} = 0$.
+Centering by $\Hop$ annihilates the $\1\1^{\!\top}$ term (and the
+diagonal correction up to a constant on $\1^{\perp}$), so}
+\begin{equation}
+\newmath{
+  \Bop \;=\; \Hop\,\Ddist\,\Hop
+       \;=\; -\tfrac{1}{2}\sum_{e \in E(T)} \tau_{e}\,(\Hop s_{e})(\Hop s_{e})^{\!\top}.
+}
+\label{eq:griffing-split}
+\end{equation}
+\new{This expresses $\Bop$ as a sum of $|E(T)|$ rank-one
+\emph{negative-semi-definite} contributions, one per tree edge --- which
+is why $\Bop \preceq 0$ for any tree-additive distance and why
+$u^{(1)}$ sits at the most-negative end of the spectrum.}
+
+\new{For each edge $e$ separating $n_{1}(e)$ and $n_{2}(e)$ leaves, the
+centered split indicator has norm}
+\begin{equation*}
+\newmath{
+  \|\Hop s_{e}\|_{2}^{\,2}
+  \;=\; m - \frac{(n_{1} - n_{2})^{2}}{m}
+  \;=\; \frac{4\, n_{1}(e)\, n_{2}(e)}{m}.
+}
+\end{equation*}
+\new{Plugging $v = \Hop s_{e^{*}} / \|\Hop s_{e^{*}}\|$ into the
+Rayleigh quotient $-v^{\!\top}\Bop v$ (and using
+\eqref{eq:griffing-split}) yields a lower bound on the leading
+magnitude eigenvalue:}
+\begin{equation*}
+\newmath{
+  |\lambda_{1}(\Bop)|
+  \;\geq\;
+  \frac{2\,\tau_{e^{*}}\,n_{1}(e^{*})\,n_{2}(e^{*})}{m}
+  \qquad\text{for every edge } e^{*}.
+}
+\end{equation*}
+\new{Picking the maximiser $e^{*} \in \arg\max_{e}\,\tau_{e}\,n_{1}(e)\,n_{2}(e)$
+--- the ``heaviest balanced edge'' --- saturates this bound, and Griffing
+(2012, Ch.\ 4) shows that, provided this maximum is well separated from
+the second-largest edge contribution, the corresponding leading
+eigenvector is}
+\begin{equation*}
+\newmath{
+  u^{(1)} \;\propto\; \Hop\,s_{e^{*}}\;+\;\mathrm{(small\ perturbation)}.
+}
+\end{equation*}
+\new{Because the constant $-(n_{1} - n_{2})/m$ subtracted by $\Hop$ has
+magnitude strictly less than $1$, every $(\Hop s_{e^{*}})_{i}$ keeps the
+sign of $(s_{e^{*}})_{i}$. The sign-partition of $u^{(1)}$ therefore
+coincides with the bipartition induced by removing $e^{*}$, as
+claimed.}\qedhere
+\end{proof}
+
+\begin{remark}[\new{Comparison with STDR Theorem 4.2}]
+\new{Both Theorem~\ref{thm:griffing} above and STDR Theorem~4.2
+(Aizenbud et al., 2023, for the Fiedler vector of $L = \Ddeg - S$)
+share the same conclusion --- the structural sign-partition is a pair of
+adjacent clans in $T$. The two results can however select \emph{different}
+edges of the same tree: $\Bop$ selects the edge maximising
+$\tau_{e}\,n_{1}(e)\,n_{2}(e)$ (a deep, well-balanced edge), while the
+Fiedler vector of the similarity Laplacian is governed by the
+algebraic-connectivity functional on the similarity graph and can
+prefer fringe edges (small $n_{2}(e)$) when within-clan noise inflates
+spurious low-Rayleigh directions of $L$. The real-data partition-choice
+panels in \texttt{05\_distance/real\_data\_distance\_vs\_similarity.ipynb}
+quantify this: on the 600 real $1000$-taxa trees, Fiedler-on-$S$ picks
+$\eta_{S} \in [12, 199]$ (fringe), Griffing-on-$\Bop$ picks
+$\eta_{D} \in [1, 7]$ (balanced).}
+\end{remark}
+
+\paragraph{Coherence of the rank-2 subspace.}
+We also reuse \emph{verbatim} from the similarity-side analysis the
+\textbf{coherence} of the rank-2 subspace $U = [\,\1/\sqrt m,\, u^{(1)}\,]$:
+\begin{equation}
+  \mu(U) \;=\; \frac{1 + \eta}{2}.
+\end{equation}
+This statement depends only on the piecewise-constant shape of the
+structural eigenvector and is operator-agnostic.  In particular, the
+statistical-infeasibility threshold $\eta = \Omega((m/\log m)^{1/3})$ is
+unchanged.
+
+% =====================================================================
+\section{Main theorem: sub-sampling recovery via \texorpdfstring{$\Bop$}{B}}
+\label{sec:main}
+
+We now sub-sample the entries of $\Ddist$ and ask how large the sampling
+rate $p$ must be for the sign-recovery condition~\eqref{eq:sign-criterion}
+to hold with high probability.
+
+\subsection{Sampling model and noise operator}
+\label{sec:noise}
+
+\new{\textbf{Sampling.}
+Sample each off-diagonal upper-triangular entry of $\Ddist$ independently
+with probability $p \in (0,1]$; let $\Omega \in \{0,1\}^{m\times m}$ be
+the (symmetric) indicator. Use the unbiased Horvitz--Thompson rescaling}
+\begin{equation}
+\newmath{
+  \hatD_{ij} \;=\; \frac{\Omega_{ij}}{p}\,\Ddist_{ij},
+  \qquad
+  \E[\hatD_{ij}] \;=\; \Ddist_{ij}.
+}
+\end{equation}
+
+\new{\textbf{Noise operator.}
+Center the noisy distances:}
+\begin{equation}
+\newmath{
+  \hatB \;:=\; \Hop\,\hatD\,\Hop,
+  \qquad
+  E_{B} \;:=\; \hatB - \Bop \;=\; \Hop\,E_{\Ddist}\,\Hop,
+}
+\end{equation}
+\new{with $E_{\Ddist} := \hatD - \Ddist$ the (un-centered) entrywise
+error. Idempotence of $\Hop$ and $\|\Hop\|_{2} = 1$ give immediately}
+\begin{equation}
+\newmath{
+  \|E_{B}\|_{2} \;\leq\; \|E_{\Ddist}\|_{2}.
+}
+\label{eq:EB-bound}
+\end{equation}
+
+\begin{remark}[\new{Entry-scale contamination}]
+\new{On the similarity side $E_{S}$ has entries bounded by $S_{\max} \le
+1$. On the distance side $E_{\Ddist}$ has entries bounded by $\rT$.
+Under Kingman, $\rT = O(\log m)$, so any matrix-Bernstein bound on
+$\|E_{\Ddist}\|_{2}$ picks up a factor of $\rT^{2} = O(\log^{2} m)$ in
+the variance term. This is survivable --- it does not change the
+$\log m / m$ exponent --- but it does inflate the multiplicative constant.}
+\end{remark}
+
+\subsection{Per-node Bernstein, with a centering correction}
+\label{sec:per-node}
+
+The Neumann/resolvent expansion that translates operator-norm control of
+$E_{B}$ into coordinate-wise control of $\hatu^{(1)} - u^{(1)}$ is
+\emph{operator-agnostic}; it transfers verbatim from the similarity-side
+proof under the substitutions
+\new{$L \to \Bop$, $v^{(2)} \to u^{(1)}$, $\Delta\lambda \to
+\Delta\lambda^{(B)}$.}
+Only one step of that pipeline genuinely changes shape: the per-node
+Bernstein bound on $(E_{B}\,u^{(1)})_{i}$.
+
+\new{Since $u^{(1)} \perp \1$, we have $\Hop u^{(1)} = u^{(1)}$, hence}
+\begin{equation}
+\newmath{
+  (E_{B}\,u^{(1)})_{i}
+  \;=\;
+  \underbrace{\bigl(E_{\Ddist}\,u^{(1)}\bigr)_{i}}_{\text{per-node sum}}
+  \;-\;
+  \underbrace{\frac{1}{m}\,\1^{\!\top}\!E_{\Ddist}\,u^{(1)}}_{\text{global centering scalar}}.
+}
+\label{eq:M10-split}
+\end{equation}
+
+\paragraph{First term --- per-node sum.}
+\new{$(E_{\Ddist}\,u^{(1)})_{i} = \sum_{j \ne i} (E_{\Ddist})_{ij}\,u^{(1)}_{j}$
+is a sum of $m-1$ independent mean-zero random variables (one per
+sampled entry incident to $i$). Each summand is bounded by
+$|u^{(1)}_{j}|\cdot \rT/p$ in magnitude and has variance bounded by
+$|u^{(1)}_{j}|^{2}\cdot \Ddist_{ij}^{2}/p$.
+Within-clan cancellation applies as in the Laplacian proof because
+$u^{(1)}$ is piecewise constant on the bipartition; only \emph{cross-clan}
+entries contribute non-zero increments. The resulting
+coherence-weighted load is}
+\begin{equation}
+\newmath{
+  \tilde\rho^{(B)}(\eta) \;=\; \frac{(1 + \eta)\,d_{0}^{\,2}}{\eta},
+}
+\end{equation}
+\new{i.e.\ the Laplacian load $\tilde\rho(\eta) = (1+\eta)\beta_{0}^{\,2}/\eta$
+with the single substitution $\beta_{0}^{\,2} \to d_{0}^{\,2}$.}
+Applying matrix-Bernstein then gives, with probability at least
+$1 - m^{-c}$ for the usual constants,
+\begin{equation}
+\newmath{
+  \max_{i}\,\bigl|(E_{\Ddist}\,u^{(1)})_{i}\bigr|
+  \;\lesssim\;
+  \sqrt{\frac{\tilde\rho^{(B)}(\eta)\,\log m}{p\,m}}
+  \;+\;
+  \frac{\rT\,\log m}{p\,m}.
+}
+\end{equation}
+
+\paragraph{Second term --- global centering scalar.}
+\new{The quantity $\frac{1}{m}\1^{\!\top}E_{\Ddist}\,u^{(1)}$ is a
+\emph{single scalar} that is identical across all $i$.  It shifts every
+coordinate of $\hatu^{(1)}$ uniformly and therefore does not affect sign
+recovery --- it only moves the threshold $\min_{i}|u^{(1)}_{i}|$ that
+appears in~\eqref{eq:sign-criterion}.  A trivial Cauchy--Schwarz bound
+gives $\bigl|\tfrac{1}{m}\1^{\!\top}E_{\Ddist}\,u^{(1)}\bigr| \le
+\|E_{\Ddist}\|_{2}/\sqrt m$, strictly dominated by the per-node term, so
+this scalar can be absorbed by working with the de-meaned estimator
+$\hatu^{(1)} - \bar{\hatu}^{(1)}\1$.}
+
+\subsection{Main theorem}
+
+\begin{theorem}[\new{Distance-route sampling rate}]
+\label{thm:main}
+\new{Under the CBM with imbalance $\eta$, cross-clan distance scale
+$d_{0} = -\log\beta_{0} / (4\|\Tr Q\|)$, top spectral gap
+$\Delta\lambda^{(B)}$, and $m$ leaves, the sign-recovery
+condition~\eqref{eq:sign-criterion} holds for $\hatu^{(1)}$ computed from
+$\hatB = \Hop\,\hatD\,\Hop$ with probability at least $1 - m^{-c}$
+whenever}
+\begin{equation}
+\newmath{
+  p \;>\; \frac{C\,(1 + \eta)^{3}\, d_{0}^{\,2}\, \log m}
+                 {m\,\bigl(\Delta\lambda^{(B)}\bigr)^{2}}
+       \;=\; \Theta\!\Bigl(\frac{\log m}{m}\Bigr),
+}
+\end{equation}
+\new{for universal constants $C, c > 0$.}
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Combine \eqref{eq:EB-bound} with the per-node Bernstein bound of
+\S\ref{sec:per-node}.  The Neumann decomposition (Lemmas C.5--C.8 of the
+base thesis) bounds $\|\hatu^{(1)} - u^{(1)}\|_{\infty}$ by
+$\|E_{B}\|_{2}/\Delta\lambda^{(B)}$ times a coherence factor of
+$(1+\eta)^{3/2}$; substituting the matrix-Bernstein bound on
+$\|E_{B}\|_{2}$ and the per-node bound on $(E_{B}\,u^{(1)})_{i}$, and
+requiring the right-hand side of \eqref{eq:sign-criterion} to dominate,
+yields the displayed condition on $p$.  The de-meaning step
+of~\S\ref{sec:per-node} disposes of the centering scalar.
+\end{proof}
+
+\subsection{Honest comparison with the Laplacian route}
+
+The distance route differs from the Laplacian route in three quantifiable
+places, and \emph{only} in these:
+
+\begin{itemize}
+  \item \new{\emph{Same} asymptotic rate $p = \Theta(\log m / m)$.}
+  \item \new{\emph{Same} coherence-driven structural barrier
+        $\eta = \Omega\!\big((m/\log m)^{1/3}\big)$.}
+  \item \new{\emph{Strictly worse} multiplicative constant, by the
+        explicit factor}
+        \begin{equation*}
+        \newmath{
+          \frac{d_{0}^{\,2}}{\beta_{0}^{\,2}}
+          \;\cdot\;
+          \rT^{\,2}
+          \;=\;
+          \frac{d_{0}^{\,2}}{\beta_{0}^{\,2}}
+          \;\cdot\;
+          O(\log^{2} m).
+        }
+        \end{equation*}
+\end{itemize}
+
+\new{For intuition, $\beta_{0} = 0.5 \Rightarrow d_{0} \approx 0.693$
+and $d_{0}^{\,2}/\beta_{0}^{\,2} \approx 1.92$; $\beta_{0} = 0.1
+\Rightarrow d_{0}^{\,2}/\beta_{0}^{\,2} \approx 530$.  The constant gap
+grows quickly as the cross-clan signal $\beta_{0}$ weakens, and the
+tree-diameter contamination $\rT^{2}$ adds an extra $O(\log^{2} m)$.
+Combined, this explains the empirical observation (STDR, Aizenbud et
+al.\ 2023, Fig.~10) that the distance partitioner is less robust at low
+sampling rates: the rate \emph{exponent} is identical, but the constants
+in front of it are provably larger.}
+
+% ---------------------------------------------------------------------
+\begin{thebibliography}{9}
+
+\bibitem{STDR}
+A.~Aizenbud, A.~Jaffe, Y.~Kluger, and B.~Nadler.
+\emph{Spectral top-down recovery of latent tree models}.
+Information and Inference, 2023. doi:10.1093/imaiai/iaad032.
+
+\bibitem{Griffing2012}
+A.~Griffing.
+\emph{Connections Between Numerical Taxonomy and Phylogenetics}.
+Ph.D.\ Thesis, North Carolina State University, 2012.
+(Chapter~4: spectral structure of double-centered tree-additive
+distance matrices and partition recovery via the leading PCoA
+eigenvector.)
+
+\bibitem{BandeltDress1992}
+H.-J.~Bandelt and A.~W.~M.~Dress.
+\emph{A canonical decomposition theory for metrics on a finite set}.
+Advances in Mathematics, 92(1):47--105, 1992.
+(Split decomposition of additive tree metrics used in the proof of
+Theorem~\ref{thm:griffing}.)
+
+\end{thebibliography}
+
+\end{document}

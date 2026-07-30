@@ -25,7 +25,7 @@ from spectral_analysis.target_quality_anlysis.output.tables import (
 from spectral_analysis.target_quality_anlysis.visualization.scree_plots import generate_all_scree_plots
 from spectral_analysis.target_quality_anlysis.visualization.coherence_plots import plot_coherence_comparison
 from spectral_analysis.target_quality_anlysis.visualization.heatmaps import plot_metric_heatmaps
-from spectral_analysis.target_quality_anlysis.visualization.tree_plots import (
+from src.utils.tree_plots import (
     plot_tree_with_partition,
     plot_combined_tree_and_fiedler
 )

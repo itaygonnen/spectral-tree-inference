@@ -7,15 +7,8 @@ from typing import Tuple, List, Dict
 import numpy as np
 import spectraltree
 
-# Add spectral_analysis to path for partition validation
-# parents[2] = sub_sampled_fielder_vec (contains analysis folder)
-PACKAGE_ROOT = Path(__file__).resolve().parents[2]
-SPECTRAL_ANALYSIS_PATH = PACKAGE_ROOT / "analysis" / "spectral_analysis" / "target_quality_anlysis" / "output"
-if str(SPECTRAL_ANALYSIS_PATH) not in sys.path:
-    sys.path.insert(0, str(SPECTRAL_ANALYSIS_PATH))
-from partition_validity import check_partition_valid_in_tree
-
 from ..core.utils import generate_sequences, align_fiedler_vector, compute_laplacian
+from ..utils.partition_validity import check_partition_valid_in_tree
 from .p_sweep_inner import align_fiedler_by_dot_product
 from ..utils.metrics import (
     compute_sign_agreement,
