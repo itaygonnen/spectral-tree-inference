@@ -1,5 +1,12 @@
 """Phase-transition-next-to-scale figure for the eta-pool sweep, one file per eta.
 
+Serves the paper's MAIN empirical figures: Fig 2 (fig:pstar_synth, via
+``sec5_empirical/synthesized/nonbalanced_flat_cbm.ipynb``) and Fig 3
+(fig:pstar_gen, via ``sec5_empirical/generated/eta_pool_sweep.ipynb``). The
+appendix figures 8 and 9 come from :mod:`sweep_plots`, which fits ``C`` by least
+squares rather than by median-of-ratios -- constants from the two modules are not
+comparable. See that module's header.
+
 :func:`plot_pstar_pair` emits ONE figure for ONE eta -- left panel the
 recovery-vs-p phase transition (curves by n, dashed recovery-threshold line),
 right panel the p*(n) scale panel. Nothing in the image names the eta: the

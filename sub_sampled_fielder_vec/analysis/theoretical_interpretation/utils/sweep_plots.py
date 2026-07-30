@@ -1,10 +1,30 @@
 """Reusable matplotlib for the eta-pool sweep figures.
 
+Serves the APPENDIX figures of ``sec5_empirical/generated/eta_pool_sweep.ipynb``:
+``plot_nmi_grid`` -> Fig 8 (fig:recovery_grid) and ``plot_pstar_vs_n`` -> Fig 9
+(fig:operator_sensitivity). The paper's MAIN per-eta panels (Fig 3) come from
+:mod:`sweep_plots_two_panel` instead -- see the note on constants below.
+
 Extracted from the finalized scratchpad scripts (cmp_fig1 / cmp_fig2 / lsym_fig2)
 and the matching cells in the eta_pool_sweep_comparison / eta_pool_sweep_per_n_lsym
 notebooks. Behavior is preserved exactly: log axes, free power-law least-squares
 fits (label ``n^{b:.2f}``), the red dashed 0.95 threshold line, and the shared ETA
 color map.
+
+Two estimators of ``C`` coexist in this package -- deliberately, but they are NOT
+interchangeable:
+
+- :func:`_theory_ref` here fits ``C`` in ``p* = C log n / n`` by least squares.
+- :func:`sweep_plots_two_panel.median_ratio_C` uses the median of the per-point
+  ratios, which is the estimator the paper's constants are quoted from: an LS fit
+  on a linear scale is set almost entirely by the largest ``p*``, i.e. by the
+  smallest trees.
+
+So a ``C`` printed by this module is NOT comparable with one from the two-panel
+module, and the free exponent ``b`` in the ``n^{b:.2f}`` labels is scaffolding for
+the operator comparison, not one of the paper's metrics. Neither curve has been
+changed here -- a plotted curve is a paper claim -- but the discrepancy is on record
+for the author in ``docs/overleafs/v9/open-items/19-cleanup.md``.
 
 Data shapes
 -----------

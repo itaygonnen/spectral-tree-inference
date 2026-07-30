@@ -3,6 +3,18 @@
 Topology-specific code lives in the ``balanced_binary`` and ``block_model``
 modules (and future siblings). Everything else is generic over the similarity
 matrix.
+
+The figure modules ``sweep_plots``, ``sweep_plots_two_panel`` and the loader
+``generated_data`` are NOT re-exported here on purpose: notebooks import them by
+module path so it stays visible at the call site which figure family a plot belongs
+to (``sweep_plots`` -> appendix Figs 8-9, ``sweep_plots_two_panel`` -> main Figs
+2-3). Those two modules estimate the constant ``C`` differently and their values are
+not comparable, so collapsing them into one flat namespace would invite mixing them.
+
+``distance_similarity`` and ``distance_features`` used to live here and were
+documented as the shared engine behind the two distance_vs_similarity notebooks. They
+had zero importers -- the notebooks inline their own logic -- and were removed;
+recover them from git history if that extraction is ever revived.
 """
 from .balanced_binary import build_balanced_binary_S, balanced_binary_population_fiedler
 from .block_model import build_flat_cbm_S, build_decay_cbm_S, flat_cbm_population_fiedler
