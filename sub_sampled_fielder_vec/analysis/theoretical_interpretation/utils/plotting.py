@@ -38,13 +38,18 @@ def plot_recovery_figure(
     C: Optional[float] = None,
     threshold: float = 0.95,
     savepath: Optional[Path] = None,
+    metric_col: str = "agreement",
+    metric_label: str = "Agreement (%)",
+    metric_scale: float = 100.0,
 ) -> Figure:
     """Two-panel figure matching the thesis Fig. 1 layout.
 
     Left: recovery vs p, one curve per n (viridis). Right: empirical p_star vs
     n with optional ``C * ln(n) / n`` overlay. ``df_agg`` columns: ``n, p,
-    agreement`` (agreement in [0, 1]). ``df_thresholds`` columns: ``n,
-    p_star``.
+    <metric_col>`` (metric in [0, 1]). ``df_thresholds`` columns: ``n,
+    p_star``. ``metric_col``/``metric_label``/``metric_scale`` let callers
+    plot a different per-trial metric (e.g. ``nmi``, already in [0, 1], with
+    ``metric_scale=1.0``) without touching the recovery computation itself.
     """
     fig, (ax_l, ax_r) = plt.subplots(1, 2, figsize=(14, 5))
     fig.suptitle(title)
@@ -59,14 +64,14 @@ def plot_recovery_figure(
         p_star = p_star_lookup.get(n, float("nan"))
         label_p = f"{p_star:.4f}" if p_star is not None and not np.isnan(p_star) else "n/a"
         ax_l.plot(
-            sub["p"], 100.0 * sub["agreement"],
+            sub["p"], metric_scale * sub[metric_col],
             "-o", color=color, ms=4, lw=1,
             label=f"n={n}, p̂*={label_p}",
         )
-    ax_l.axhline(100.0 * threshold, color="red", ls="--", lw=1, label=f"{int(threshold*100)}% threshold")
+    ax_l.axhline(metric_scale * threshold, color="red", ls="--", lw=1, label=f"{int(threshold*100)}% threshold")
     ax_l.set_xscale("log")
     ax_l.set_xlabel("Sampling probability p")
-    ax_l.set_ylabel("Agreement (%)")
+    ax_l.set_ylabel(metric_label)
     ax_l.set_title("Recovery curves by n")
     ax_l.legend(fontsize=8, loc="lower right")
     ax_l.grid(True, which="both", alpha=0.3)

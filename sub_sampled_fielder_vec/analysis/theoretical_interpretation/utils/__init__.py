@@ -22,7 +22,7 @@ from .perturbation import (
     rank2_subspace, laplacian_perturbation_norm,
     subspace_sin_theta, davis_kahan_bound, two_mode_decomposition,
 )
-from .recovery import compute_recovery, compute_ari, find_threshold_p_star
+from .recovery import compute_recovery, compute_ari, compute_nmi, find_threshold_p_star
 from .cache import (
     make_full_key,
     make_subsample_key,
@@ -66,6 +66,7 @@ __all__ = [
     "nnm_from_mask",
     "compute_recovery",
     "compute_ari",
+    "compute_nmi",
     "find_threshold_p_star",
     "make_full_key",
     "make_subsample_key",

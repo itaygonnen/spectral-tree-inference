@@ -14,19 +14,54 @@ Data shapes
 ``eta_targets``    : list of eta values (panel / curve identity)
 ``ns``             : list of taxa counts n
 
-Each public plotting function builds its own figure and calls ``plt.show()``
-(matching the notebook cells).
+Each public plotting function builds its own figure and ends in :func:`_finish`,
+which saves when ``savepath`` is given and always calls ``plt.show()`` (so the
+``savepath=None`` behaviour is exactly what the notebook cells produced before).
 """
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Optional
+
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
+from matplotlib.ticker import NullFormatter, ScalarFormatter
 
 from analysis.comparison.phase_transition_utils import find_discrete_threshold
 
 # eta -> color (shared across all sweep figures)
 ETA_COLORS = {1: "#4b5563", 5: "#1d4ed8", 10: "#ea580c", 15: "#b91c1c"}
+
+
+def _finish(fig: Figure, savepath: Optional[Path] = None) -> None:
+    """Shared figure tail: save if asked, then always show.
+
+    ``savepath=None`` reduces to the historical ``plt.show()`` tail, so existing
+    outputs (figs_lsym/, figs_compare/) are unaffected.
+    """
+    if savepath is not None:
+        savepath = Path(savepath)
+        savepath.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(savepath, dpi=200, bbox_inches="tight")
+        print(f"saved {savepath}")
+    plt.show()
+
+
+def _label_n_axis(ax, ng):
+    """Force integer n labels at the actual sampled n on a log x-axis.
+
+    The default LogLocator only labels decade ticks (e.g. just ``10^3`` for a
+    500-8000 span), so set explicit ticks at ng with a plain integer formatter.
+    """
+    ax.set_xticks(ng)
+    ax.xaxis.set_major_formatter(ScalarFormatter())
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.ticklabel_format(axis="x", style="plain")
+    for lbl in ax.get_xticklabels():
+        lbl.set_rotation(45)
+        lbl.set_fontsize(7)
 
 
 def _agg(arr: np.ndarray, agg: str) -> np.ndarray:
@@ -73,8 +108,20 @@ def _pstar_all(results, p_values, eta_targets, ns, methods, agg, threshold):
             for name, *_ in methods}
 
 
+def _theory_ref(xs, ys, ng):
+    """1-parameter LS fit of the theoretical rate ``p* = C * log(n)/n``.
+
+    Returns (C, ng, C*log(ng)/ng) for overlaying as a reference curve. The single
+    free constant C is chosen to minimize squared error against the measured p*
+    points, so the curve tests the *shape* log n / n rather than a free exponent.
+    """
+    g = np.log(xs) / xs
+    C = float(np.sum(ys * g) / np.sum(g * g))
+    return C, ng, C * np.log(ng) / ng
+
+
 def plot_pstar_vs_n(results, p_values, eta_targets, ns, methods,
-                    agg="mean", threshold=0.95):
+                    agg="mean", threshold=0.95, savepath: Optional[Path] = None):
     """Figure 1 -- p* vs n, one panel per eta, one line per operator.
 
     Dashed = free power-law least-squares fit ``log p* = a + b*log n`` (=>
@@ -98,7 +145,11 @@ def plot_pstar_vs_n(results, p_values, eta_targets, ns, methods,
                 b, a = np.polyfit(np.log(xs), np.log(ys), 1)
                 ax.plot(ng, np.exp(a) * ng ** b, ls="--", lw=1.3, color=col,
                         alpha=0.8, label=fr"  fit $n^{{{b:.2f}}}$")
+                C, xr, yr = _theory_ref(xs, ys, ng)  # theoretical C log n / n
+                ax.plot(xr, yr, ls=":", lw=1.3, color=col, alpha=0.8,
+                        label=fr"  ref ${C:.2f}\log n/n$")
         ax.set_xscale("log"); ax.set_yscale("log")
+        _label_n_axis(ax, ng)
         ax.set_title(fr"$\eta \approx {eta}$")
         ax.set_xlabel(r"$n$ (taxa)")
         ax.grid(True, which="both", alpha=0.3); ax.legend(fontsize=7)
@@ -106,25 +157,30 @@ def plot_pstar_vs_n(results, p_values, eta_targets, ns, methods,
         row[0].set_ylabel(r"$p^\star$ (NMI $\geq$ 0.95)")
     fig.suptitle("Figure 1 — $p^\\star$ vs $n$ by operator, per $\\eta$  "
                  "(dashed = free power-law fit $p^\\star\\propto n^{b}$)")
-    fig.tight_layout(rect=(0, 0, 1, 0.96)); plt.show()
+    fig.tight_layout(rect=(0, 0, 1, 0.96)); _finish(fig, savepath)
     return fig
 
 
 def plot_nmi_grid(results, p_values, eta_targets, ns, methods,
-                  agg="mean", threshold=0.95, metric_label="NMI"):
-    """Figure 2 -- metric vs p grid (rows: n, cols: eta) + p* summary bottom row.
+                  agg="mean", threshold=0.95, metric_label="NMI", summary=True,
+                  savepath: Optional[Path] = None):
+    """Figure 2 -- metric vs p grid (rows: n, cols: eta), optional p* summary row.
 
-    Top block: one row per n, metric-vs-p for each operator. Bottom row: each eta
-    column collapsed over all n into the scaling panel (markers = p* per operator;
-    dashed = free power-law fit p* ~ n^b). Figure-level operator legend is placed
-    below the suptitle; bottom-row panels carry per-panel slope-only legends.
+    Top block: one row per n, metric-vs-p for each operator. When ``summary`` is
+    True, a bottom row adds the p* vs n scaling panel per eta (markers = p* per
+    operator; dashed = free power-law fit p* ~ n^b). Set ``summary=False`` when a
+    standalone p* vs n figure (``plot_pstar_vs_n``) is already shown -- the summary
+    row is identical to it. Figure-level operator legend sits below the suptitle.
     Ports cmp_fig2.py.
     """
-    ps = _pstar_all(results, p_values, eta_targets, ns, methods, agg, threshold)
+    ps = _pstar_all(results, p_values, eta_targets, ns, methods, agg, threshold) if summary else {}
     ng = np.array(sorted(ns), float)
     nr, nc = len(ns), len(eta_targets)
-    fig, axes = plt.subplots(nr + 1, nc, figsize=(3.6 * nc, 3.0 * (nr + 1)),
-                             squeeze=False)
+    SUMMARY_H = 2.6  # summary row height relative to a metric-vs-p row
+    hr = [1.0] * nr + ([SUMMARY_H] if summary else [])
+    fig, axes = plt.subplots(nr + (1 if summary else 0), nc,
+                             figsize=(3.6 * nc, 3.0 * (nr + (SUMMARY_H if summary else 0))),
+                             gridspec_kw={"height_ratios": hr}, squeeze=False)
     # --- top block: metric vs p, one row per n ---
     for i, n in enumerate(ns):
         for j, eta in enumerate(eta_targets):
@@ -144,41 +200,48 @@ def plot_nmi_grid(results, p_values, eta_targets, ns, methods,
                 ax.set_ylabel(f"n={n}\n{metric_label}")
             if i == nr - 1:
                 ax.set_xlabel(r"$p$")
-    # --- summary bottom row: p* vs n, one panel per eta ---
-    for j, eta in enumerate(eta_targets):
-        ax = axes[nr][j]
-        for name, col, ls, mk in methods:
-            rows = ps[name].get(eta, [])
-            if not rows:
-                continue
-            xs = np.array([r[0] for r in rows], float)
-            ys = np.array([r[1] for r in rows], float)
-            ax.plot(xs, ys, marker=mk, ls="none", ms=6, color=col)
-            if len(rows) >= 2:
-                b, a = np.polyfit(np.log(xs), np.log(ys), 1)
-                ax.plot(ng, np.exp(a) * ng ** b, ls="--", lw=1.3, color=col,
-                        alpha=0.8, label=fr"$n^{{{b:.2f}}}$")
-        ax.set_xscale("log"); ax.set_yscale("log")
-        ax.grid(True, which="both", alpha=0.3)
-        ax.set_xlabel(r"$n$ (taxa)")
-        ax.legend(fontsize=6, loc="lower left", title="fit slope")
-        if j == 0:
-            ax.set_ylabel("SUMMARY\n" + r"$p^\star$ (NMI $\geq$ 0.95)")
+    # --- summary bottom row: p* vs n, one panel per eta (optional) ---
+    if summary:
+        for j, eta in enumerate(eta_targets):
+            ax = axes[nr][j]
+            for name, col, ls, mk in methods:
+                rows = ps[name].get(eta, [])
+                if not rows:
+                    continue
+                xs = np.array([r[0] for r in rows], float)
+                ys = np.array([r[1] for r in rows], float)
+                ax.plot(xs, ys, marker=mk, ls="none", ms=6, color=col)
+                if len(rows) >= 2:
+                    b, a = np.polyfit(np.log(xs), np.log(ys), 1)
+                    ax.plot(ng, np.exp(a) * ng ** b, ls="--", lw=1.3, color=col,
+                            alpha=0.8, label=fr"$n^{{{b:.2f}}}$")
+                    C, xr, yr = _theory_ref(xs, ys, ng)  # theoretical C log n / n
+                    ax.plot(xr, yr, ls=":", lw=1.3, color=col, alpha=0.8,
+                            label=fr"${C:.2f}\log n/n$")
+            ax.set_xscale("log"); ax.set_yscale("log")
+            _label_n_axis(ax, ng)
+            ax.grid(True, which="both", alpha=0.3)
+            ax.set_xlabel(r"$n$ (taxa)")
+            ax.legend(fontsize=6, loc="lower left", title="fit slope")
+            if j == 0:
+                ax.set_ylabel("SUMMARY\n" + r"$p^\star$ (NMI $\geq$ 0.95)")
     # --- single operator legend, centered below the title, above the plots ---
     legend_handles = [Line2D([0], [0], color=col, ls=ls, marker=mk, ms=6, lw=1.6,
                              label=name)
                       for name, col, ls, mk in methods]
-    fig.suptitle("Figure 2 — NMI vs $p$ (rows: $n$, cols: $\\eta$);  "
-                 "bottom row = $p^\\star$ vs $n$ summary per $\\eta$", y=0.995)
+    _sub = ("; bottom row = $p^\\star$ vs $n$ summary per $\\eta$" if summary else "")
+    fig.suptitle(f"Figure 2 — {metric_label} vs $p$ (rows: $n$, cols: $\\eta$)" + _sub,
+                 y=0.995)
     fig.legend(handles=legend_handles, loc="upper center",
                bbox_to_anchor=(0.5, 0.965), ncol=len(methods), fontsize=9,
                frameon=False)
-    fig.tight_layout(rect=(0, 0, 1, 0.95)); plt.show()
+    fig.tight_layout(rect=(0, 0, 1, 0.95)); _finish(fig, savepath)
     return fig
 
 
 def plot_curves_per_n(results, p_values, eta_targets, ns, methods,
-                      agg="mean", metric_label="NMI", threshold=0.95):
+                      agg="mean", metric_label="NMI", threshold=0.95,
+                      savepath: Optional[Path] = None):
     """metric vs p, one panel per n, curves by eta (per_n / lsym Figure-3 style).
 
     Curve identity is the eta color (ETA_COLORS); operators are distinguished by
@@ -213,12 +276,13 @@ def plot_curves_per_n(results, p_values, eta_targets, ns, methods,
         ax.set_visible(False)
     for row in axes:
         row[0].set_ylabel(metric_label)
-    fig.tight_layout(rect=(0, 0, 1, 0.96)); plt.show()
+    fig.tight_layout(rect=(0, 0, 1, 0.96)); _finish(fig, savepath)
     return fig
 
 
 def plot_curves_per_eta(results, p_values, eta_targets, ns, methods,
-                        agg="mean", metric_label="NMI", threshold=0.95):
+                        agg="mean", metric_label="NMI", threshold=0.95,
+                        savepath: Optional[Path] = None):
     """metric vs p, one panel per eta, curves by n (lsym Figure-1 style).
 
     Curve identity is the n color (viridis ramp); operators are distinguished by
@@ -253,5 +317,5 @@ def plot_curves_per_eta(results, p_values, eta_targets, ns, methods,
         ax.set_visible(False)
     for row in axes:
         row[0].set_ylabel(metric_label)
-    fig.tight_layout(rect=(0, 0, 1, 0.96)); plt.show()
+    fig.tight_layout(rect=(0, 0, 1, 0.96)); _finish(fig, savepath)
     return fig

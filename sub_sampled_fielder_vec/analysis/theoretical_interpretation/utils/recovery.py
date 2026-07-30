@@ -43,6 +43,23 @@ def compute_ari(v_full: np.ndarray, v_hat: np.ndarray) -> float:
     return float(adjusted_rand_score(a, b))
 
 
+def compute_nmi(v_full: np.ndarray, v_hat: np.ndarray) -> float:
+    """Normalized mutual information between the sign-bipartitions of ``v_full`` and ``v_hat``.
+
+    Same contract as :func:`compute_ari` / :func:`compute_recovery` — same
+    inputs, scalar output — so it slots straight into the ``metrics`` dict
+    consumed by :func:`utils.sweep.run_sweep`. NMI is label-permutation
+    invariant (robust to a global sign flip): a perfect match scores 1,
+    independent partitions score ~0. Zero-sign entries (which can appear in
+    noisy sub-sampled Fiedlers) get assigned to a third label, matching
+    :func:`compute_ari`.
+    """
+    from sklearn.metrics import normalized_mutual_info_score
+    a = np.sign(v_full).astype(int)
+    b = np.sign(v_hat).astype(int)
+    return float(normalized_mutual_info_score(a, b))
+
+
 def find_threshold_p_star(
     p_vals: np.ndarray,
     agreements: np.ndarray,
