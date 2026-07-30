@@ -1,0 +1,142 @@
+%==============================================================================
+%  Spectral top-down split recovery on imbalanced phylogenetic trees  --  V.09
+%
+%  Thin master. All prose lives in sections/*.tex; this file carries only the
+%  preamble, \maketitle, the \input list and the bibliography/appendix switches.
+%
+%     §1  Introduction                     sections/intro.tex          [A3]
+%     §2  Problem Definition               sections/problem.tex        [A1]
+%           (also declares the distance operator B = H D H, moved here
+%            from the old §4.2 in the v9 refine pass)
+%     §3  Topological Scaling and Spectral Gap  sections/bridging.tex  [A1]
+%     §4  Main Result                      sections/main-result.tex    [A2]
+%           thm:main-sim, then, back-to-back, thm:main-dist + the coda
+%           (cor:infeasible, rem:infeasible-mech, rem:gap-scope)
+%                                          sections/main-result-dist.tex [B1]
+%     §5  Proof Outline                    sections/proof-outline.tex  [A2]
+%     §6  Empirical Results                sections/empirical.tex      [C1]
+%     App A  Spectral geometry             sections/appendix-A.tex     [A1]
+%     App B  Laplacian sampling error      sections/appendix-B.tex     [A1]
+%     App C  Entry-wise perturbation       sections/appendix-C.tex     [A2]
+%     App D  Hierarchical Block Model      sections/appendix-D.tex     [A1]
+%     App E  Neumann vs. standard bounds   sections/appendix-E.tex     [A2]
+%     App F  Distance route                sections/appendix-G.tex     [B1]
+%     App G  Supplementary empirical figs  sections/appendix-emp.tex   [C1]
+%
+%  Related Work is DEFERRED (author's instruction, 2026-07-27): the section is
+%  parked at v9/deferred/related.tex, not \input, and therefore not part of the
+%  compiled document. All in-text section numbers above shift down by one
+%  accordingly; every cross-reference in the paper is \label{}/\Cref{}-based, so
+%  this costs nothing to reinstate later -- \input it back and the numbering
+%  self-corrects.
+%
+%  Notation is introduced inline in sections/problem.tex; there is no separate
+%  notation table/section (v9 polish pass, 2026-07-27 -- matches the convention
+%  in all six reference papers surveyed in docs/papers/). Open items are
+%  registered in open-items/ and collated into OPEN_ITEMS.md by
+%  scripts/collate_open_items.py.
+%==============================================================================
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning, shapes.geometric, arrows.meta, calc, fit, backgrounds}
+\usepackage{hyperref,cleveref}
+\crefname{assumption}{Assumption}{Assumptions}
+\Crefname{assumption}{Assumption}{Assumptions}
+
+% Self-contained: every \includegraphics resolves inside v9/figures/.
+% The `{../}` entry was removed deliberately -- it let Figure 5 resolve to
+% overleafs/Fiedler_Bipartitions/, OUTSIDE this tree, so uploading v9/ alone to
+% Overleaf failed on that figure. Those four panels now live in
+% figures/Fiedler_Bipartitions/. Do not re-add `{../}`.
+\graphicspath{{figures/}{./}}
+\bibliographystyle{plain}
+
+%------------------------------ theorem environments --------------------------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\renewcommand{\theassumption}{A\arabic{assumption}}   % => A1, A2, ...
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+%------------------------------ notation shortcuts ----------------------------
+\newcommand{\Sin}{S_{\mathrm{in}}}
+\newcommand{\Sout}{S_{\mathrm{out}}}
+\newcommand{\Smin}{S_{\min}}
+\newcommand{\Smax}{S_{\max}}
+\newcommand{\bze}{\beta_0}
+\newcommand{\Dlam}{\Delta\lambda}
+\newcommand{\vv}{v^{(2)}}
+\newcommand{\vvh}{\hat v^{(2)}}
+\newcommand{\EL}{E_{L}}
+\newcommand{\ES}{E_{S}}
+\newcommand{\ED}{E_{D}}
+\newcommand{\coh}{\mu(U)}
+\newcommand{\rhotil}{\tilde\rho(\eta)}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\opnorm}[1]{\norm{#1}_{2}}
+\newcommand{\hp}{with high probability}
+\newcommand{\R}{\mathbb{R}}
+% distance route -- promoted from sections/main-result-dist.tex when the B
+% construction moved into §2 (v9 refine pass); still \providecommand'd there.
+\newcommand{\Dmat}{\mathcal{D}}      % pairwise distance matrix
+\newcommand{\Bop}{\mathcal{B}}       % centered distance operator H*Dmat*H
+\newcommand{\uone}{u^{(1)}}          % leading-magnitude eigenvector of Bop
+\newcommand{\huone}{\hat u^{(1)}}
+\newcommand{\DlamB}{\Delta\lambda^{(\Bop)}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\title{Spectral Tree Inference from Incomplete Matrices: Fiedler Vector Bounds under Sub-sampling}
+\author{Itay Gonnen}
+\date{}
+
+\begin{document}
+\maketitle
+
+\input{sections/abstract}
+
+%==============================================================================
+%  Main text
+%==============================================================================
+% \input{sections/intro}
+% \input{sections/related}          % 
+\input{sections/problem}            % §2
+\input{sections/bridging}           % §4
+\input{sections/main-result}        % §5
+\input{sections/main-result-dist}   % §5.2
+\input{sections/proof-outline}      % §6
+\input{sections/empirical}          % §7
+
+\newpage
+\bibliography{references}
+
+\newpage
+%==============================================================================
+%  Appendices
+%==============================================================================
+\appendix
+\input{sections/appendix-A}         % spectral geometry
+\input{sections/appendix-B}         % Laplacian sampling error
+\input{sections/appendix-C}         % entry-wise perturbation
+\input{sections/appendix-D}         % Hierarchical Block Model
+\input{sections/appendix-E}         % Neumann trick vs. standard bounds
+\input{sections/appendix-G}         % distance route
+\input{sections/appendix-emp}       % supplementary empirical figures
+
+\end{document}

@@ -1,0 +1,165 @@
+%==============================================================================
+%  Section 4, continued --- the distance-route theorem and the coda [agent B1]
+%  Ported at theorem level only; construction, proofs and the quoted partition
+%  result live in appendix-G.tex/app:dist.
+%
+%  [Referee passes 2026-07-29/30 -- see DISTANCE_REVIEW.md and open-items/13-B1.md:
+%   * eq:main-rate-dist was mis-normalized: it carried the (1+eta)^3 that only
+%     appears AFTER substituting the gap bound, while still dividing by the
+%     unsubstituted DlamB^2 and by m.  The theorem is now stated in the
+%     abstract-gap normalization (m in the numerator); cor:dist-balanced does the
+%     substitution in the one case where the gap is known.
+%   * pass 2 DELETED the intermediate asm:dist-cancel: it asserted a load that
+%     the direct computation contradicts by a factor 4 in the balanced case.  No
+%     such assumption is needed (lem:dist-var bounds the variance by d0^2/p from
+%     ||u||_2 = 1 alone), so the rate is now stronger and unconditional in that
+%     respect.  The two hypotheses that remain -- DlamB > 0 and piecewise
+%     constancy of u^(1) -- are stated in the theorem.
+%   * c is bound to the failure probability; the estimator u-hat is defined in
+%     the statement; rem:gap-scope carries one label.]
+%==============================================================================
+\providecommand{\Dmat}{\mathcal{D}}      % pairwise distance matrix
+\providecommand{\Bop}{\mathcal{B}}       % centered distance operator H*Dmat*H
+\providecommand{\uone}{u^{(1)}}          % leading-magnitude eigenvector of Bop
+\providecommand{\huone}{\hat u^{(1)}}
+\providecommand{\DlamB}{\Delta\lambda^{(\Bop)}}
+
+Two of the population facts that the Laplacian route \emph{has} --- a
+piecewise-constant structural vector (\Cref{lem:A-decomp}) and a gap bound
+(\Cref{lem:gap}) --- are unavailable for $\Bop$ at general imbalance
+(\Cref{rem:G-unbalanced}), so they are hypotheses below rather than consequences.
+A third hypothesis, control of the second-order term of the Neumann expansion, is
+stated explicitly here; it is needed on both routes and is discharged on neither
+(\Cref{rem:dist-remainder}). What is \emph{not} needed is any assumption about
+within-clan cancellation: the per-node variance is bounded by $d_0^2/p$ using only
+$\norm{\uone}_2=1$ and $\Dmat_{ij}\le d_0$ (\Cref{lem:dist-var}).
+
+\begin{theorem}[Distance-route sampling rate]\label{thm:main-dist}
+Let $\Dmat\in\R^{m\times m}$ be the tree-additive pairwise distance matrix
+built from $S$ by $\Dmat_{ij}=-\log S_{ij}$ (\Cref{app:dist-build}), let
+$\Bop=H\Dmat H$, and let $\uone$ be a unit-norm eigenvector of $\Bop$ at the
+eigenvalue of largest absolute value. Let $\hat\Dmat$ be the inverse-probability
+weighted sub-sample of $\Dmat$ obtained by applying \Cref{asm:sampling} to
+$\Dmat$ (\Cref{app:dist-noise}), and let $\huone$ be a unit-norm eigenvector of
+$\hat\Bop=H\hat\Dmat H$ at its eigenvalue of largest absolute value, signed so
+that $\langle\huone,\uone\rangle\ge0$. Assume
+\Cref{asm:gtr,asm:clock,asm:cbm,asm:bounded,asm:sampling}, and suppose
+\begin{enumerate}[label=(\roman*), leftmargin=2em, itemsep=1pt, topsep=2pt]
+  \item the top spectral gap $\DlamB=|\lambda_1(\Bop)|-|\lambda_2(\Bop)|$ is
+        strictly positive;
+  \item $\uone$ is piecewise constant on the split $(A,B)$, with the two values
+        it then takes given by \Cref{lem:dist-var};
+  \item \emph{(remainder control)} $\opnorm{E_{\Bop}}\le\varepsilon_m\DlamB$ with
+        $\varepsilon_m\le c_0(m\eta)^{-1/4}$ for an absolute constant $c_0$.
+\end{enumerate}
+There are universal constants $C,c>0$ such that the sign-recovery condition
+\eqref{eq:dist-entrywise} holds for $\huone$ --- and hence
+$\{\widehat A,\widehat B\}=\{A,B\}$ whenever the population sign rule
+\eqref{eq:dist-sign-rule} returns $(A,B)$ --- with probability at least
+$1-O(m^{-c})$ whenever
+\begin{equation}\label{eq:main-rate-dist}
+   p \;>\; \frac{C\,d_0^{2}\,\eta\,m\,\log m}{\bigl(\DlamB\bigr)^{2}},
+   \qquad d_0=-\log\bze .
+\end{equation}
+\end{theorem}
+
+\begin{remark}[What remainder control costs, on either route]\label{rem:dist-remainder}
+Hypothesis (iii) is the step at which both routes are currently incomplete, and it
+is stated rather than derived for that reason. The recovery event
+\eqref{eq:dist-entrywise} compares an $\ell_\infty$ error against a margin of
+order $(m\eta)^{-1/2}$, while the only available bound on the second-order
+Neumann term is through the operator norm,
+$\norm{w^{(2)}}_\infty=O(\opnorm{E_{\Bop}}^2/(\DlamB)^2)$
+(\Cref{lem:C-remainder}), which is $O(\varepsilon_m^2)$ and therefore
+$o\bigl((m\eta)^{-1/2}\bigr)$ precisely under (iii). Combining (iii) with the
+operator-norm bound of \Cref{lem:dist-opnorm} requires
+$p\gtrsim d_0^2m^{3/2}\eta^{1/2}\log m/(\DlamB)^2$, which in the balanced flat CBM
+is $\Theta(\log m/\sqrt m)$ --- a factor $\sqrt m$ above
+\eqref{eq:main-rate-dist-balanced}. Removing the gap between the two requires an
+entry-wise, rather than $\ell_2$-derived, bound on $w^{(2)}$, of the
+leave-one-out type used by \cite{abbe2020entrywise}. The same gap is present in
+\Cref{thm:main-sim}: at $p=\Theta(\log m/m)$ the ratio
+$\opnorm{\EL}/\Dlam$ implied by \Cref{lem:B-bernstein,lem:gap} is bounded but does
+not vanish with $m$, so the remainder is not $o(\min_i|\vv_i|)$ there either.
+Neither theorem's stated rate is therefore self-contained without (iii) or its
+Laplacian analogue.
+\end{remark}
+
+\noindent Both theorems are proved by the same three stages and synthesis ---
+population geometry, a Neumann reduction, per-node concentration, and the
+comparison against the entry-wise criterion --- assembled in \Cref{sec:outline},
+the distance case
+substituting $L\to\Bop$, $\vv\to\uone$, $\EL\to E_{\Bop}$ and running in full in
+\Cref{app:dist-noise,app:dist-pernode}. The two statements differ in how far
+their parameters can be resolved. \Cref{eq:main_rate} is closed-form in the
+model, because the gap bound $\Dlam\ge m_{\min}(\rho-\eta\Sout^{\max})$ of
+\Cref{lem:gap} can be substituted. No lower bound on $\DlamB$ valid at general
+imbalance is available (\Cref{rem:G-unbalanced}), so \eqref{eq:main-rate-dist}
+is left in terms of the abstract gap. Where the gap is known, the two rates
+coincide in shape.
+
+\begin{corollary}[Distance rate in the balanced flat CBM]\label{cor:dist-balanced}
+Under the hypotheses of \Cref{thm:main-dist} in the balanced flat CBM of
+\Cref{prop:G-spectrum} --- $|A|=|B|=m/2$, within-clan distance $d_1$, cross-clan
+distance $d_0>d_1$, a configuration realized by two stars joined by an edge
+rather than by a binary tree (\Cref{rem:flat-realization}) --- hypotheses (i) and
+(ii) hold with $\DlamB=m(d_0-d_1)/2$ and $\eta=1$, so \eqref{eq:main-rate-dist}
+reads
+\begin{equation}\label{eq:main-rate-dist-balanced}
+   p \;>\; \frac{4C\,d_0^{2}\,\log m}{m\,(d_0-d_1)^{2}}
+     \;=\; \Theta\!\left(\frac{\log m}{m}\right),
+\end{equation}
+the same exponent as \eqref{eq:main_rate}, with the similarity-side ratio
+$\bze^{2}/(\rho-\eta\Sout^{\max})^{2}$ replaced by $d_0^{2}/(d_0-d_1)^{2}$, and
+subject to hypothesis (iii) (\Cref{rem:dist-remainder}). This is the only
+configuration in which hypotheses (i) and (ii) are verified; at general imbalance,
+and on binary trees, they remain open.
+\end{corollary}
+
+\noindent What remains is to record where these sufficient conditions can be met
+at all.
+
+\begin{corollary}[Vacuity of the certificate under imbalance]\label{cor:infeasible}
+Under the hypotheses of \Cref{thm:main-sim}, with $\bze$ and the margin
+$\rho-\eta\Sout^{\max}$ held bounded away from $0$ independently of $\eta$, the
+right-hand side of \eqref{eq:main_rate} exceeds $1$ once
+$\eta=\Omega\!\bigl(\sqrt[3]{m/\log m}\bigr)$; in general the threshold is
+reached when $\eta^3\bze^2/(\rho-\eta\Sout^{\max})^2=\Omega(m/\log m)$. No admissible sampling rate
+$p\in(0,1]$ then satisfies the sufficient condition, so \Cref{thm:main-sim}
+certifies nothing about the split in that regime.
+\end{corollary}
+
+\begin{remark}[Coherence-limited sampling]\label{rem:infeasible-mech}
+\Cref{cor:infeasible} is the statistical failure mode previewed in
+\Cref{sec:bridging}: holding the structural margin away from collapse
+($\rho-\eta\Sout^{\max}>0$) and isolating $\eta$ in \eqref{eq:main_rate} yields
+the stated threshold. The mechanism is localisation of the signal. As $\eta$
+grows the split concentrates onto a vanishing subset of nodes, and the inflated
+coherence $\coh=(1+\eta)/2$ (\Cref{prop:coherence}) prevents uniform sampling
+from capturing the critical entries without observing nearly all of $S$ --- the
+coherence-limited barrier familiar from matrix completion, where recovery becomes
+infeasible once the leading subspace concentrates on too few coordinates
+\cite{candes2009power, recht2011simpler, chen2014completing}. This is a statement
+about the reach of a sufficient condition and not about recovery itself: \emph{we
+prove no converse}, and nothing here rules out that the Fiedler sign rule, or
+some other estimator, still recovers $(A,B)$ beyond the threshold. Read together with the structural bound of \Cref{cor:tolerance},
+\eqref{eq:main_rate} delimits the region of $(m,\eta)$ in which top-down spectral
+recovery is \emph{certified} to succeed, not the region in which it is possible.
+(\Cref{app:dist-landmarks} shows that under \Cref{asm:clock} the diameter entering
+\Cref{cor:tolerance} coincides with the cross-clan distance, which weakens that
+corollary considerably; the two statements should be reconciled.)
+\end{remark}
+
+\begin{remark}[Scope of the distance rate, and the price it pays]\label{rem:gap-scope}
+Hypotheses (i) and (ii) are verified only in the balanced flat CBM
+(\Cref{prop:G-spectrum,rem:G-unbalanced}), and hypothesis (iii) nowhere
+(\Cref{rem:dist-remainder}). Where they do hold, the two routes share the
+exponent $\Theta(\log m/m)$ and differ in one parameter group: the similarity-side
+ratio $\bze^{2}/(\rho-\eta\Sout^{\max})^{2}$ becomes $d_0^{2}/(d_0-d_1)^{2}$,
+larger by a factor $275$ at $\eta=1$ and the synthesized-regime values
+$\bze=0.05$, $\Sin=0.9$ of \Cref{sec:empirical}. The two rates' unspecified
+constants are not compared. This comparison fixes the target split and asks which
+operator tolerates more noise; which split each rule targets is the separate
+question of \Cref{rem:dist-compare-empirical}, and \Cref{app:dist-main} carries
+the details of both.
+\end{remark}

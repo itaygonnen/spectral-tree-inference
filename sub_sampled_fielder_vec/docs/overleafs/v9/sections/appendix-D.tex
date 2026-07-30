@@ -1,0 +1,89 @@
+%==============================================================================
+%  Appendix D  Extension: the Hierarchical Block Model              [owner: A1]
+%  Source: v8 app:hbm (v8:1005-1117).
+%  Moved out: asm:hbm and tab:assumption_chain now live in sec:problem.
+%  This appendix must NOT reopen the assumption environment -- a second
+%  \label{asm:hbm} would silently double-number every later assumption.
+%  Retargeted: \Cref{lem:A-gap} -> \Cref{lem:gap} (twice).
+%==============================================================================
+\section{Extension: the Hierarchical Block Model}\label{app:hbm}
+Here \Cref{asm:cbm} is replaced by \Cref{asm:hbm}; \Cref{asm:gtr,asm:clock,asm:bounded}
+are retained. The CBM holds exactly under the strict clock with \emph{symmetric}
+clans; for asymmetric (caterpillar-like) clans, within-clan MRCA depths vary even
+under the clock, so intra-clan entries are no longer constant. The HBM of
+\Cref{asm:hbm} retains the constant cross-clan boundary but lets intra-clan
+similarities decay geometrically with path depth; its place in the chain of
+generative assumptions is recorded in \Cref{tab:assumption_chain}. This appendix
+draws the two consequences: a geometric floor on the weakest intra-clan
+similarity, and the spectral-gap bound that floor induces.
+
+\begin{proposition}[Geometric floor]\label{prop:D-floor}
+Under \Cref{asm:hbm}, $\Sin^{\min}\ge\Sin\,\alpha^{D_{\max}}$ with
+$D_{\max}=\lceil\log_2\max(a,b)\rceil$.
+\end{proposition}
+\begin{proof}
+GTR multiplicativity along paths gives
+$S_{ij}=\prod_{e\in\mathrm{path}(i,j)}\alpha_e$, so a same-clan pair at depth
+$\le D_{\max}$ satisfies $S_{ij}\ge\Sin\,\alpha^{D_{\max}}$; minimising over
+same-clan pairs gives the floor, with $D_{\max}$ the height of the deeper clan
+subtree.
+\end{proof}
+
+\begin{proposition}[HBM spectral-gap bound]\label{prop:D-gap}
+Substituting \Cref{prop:D-floor} into \Cref{lem:gap} gives
+\[
+   \Dlam\ge m_{\min}\bigl(\Sin\alpha^{D_{\max}}-\Sout^{\max}\bigr)-\eta\,m_{\min}\Sout^{\max}
+        =m_{\min}\Sin\alpha^{D_{\max}}-(1+\eta)m_{\min}\Sout^{\max},
+\]
+positive iff $\alpha^{D_{\max}}>(1+\eta)\Sout^{\max}/\Sin$. As $\alpha\to1$ (or
+$D_{\max}=0$) this reduces to \Cref{lem:gap} and the CBM margin condition of
+\Cref{asm:margin}.
+\end{proposition}
+
+\Cref{fig:hbm_spectral_verification} verifies the bound on simulated HBM matrices,
+and \Cref{fig:fiedler_partitions} illustrates the imbalance-driven degradation of
+the recovered partition.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}[b]{0.49\textwidth}
+        \centering\includegraphics[width=\textwidth]{S_by_alpha.png}
+    \end{minipage}\hfill
+    \begin{minipage}[b]{0.49\textwidth}
+        \centering\includegraphics[width=\textwidth]{spectral_gap_bound.png}
+    \end{minipage}
+    \caption{Empirical verification of \Cref{prop:D-gap} over a sweep of
+    $(\eta,m)$ across decay rates $\alpha\in\{1.0,0.99,0.95,0.90\}$.
+    \textbf{(Left)} HBM similarity matrices $S$ degrading as $\alpha$ decreases.
+    \textbf{(Right)} slack of the gap lower bound versus $\eta$, resolving
+    $\Sin^{\min}=\Sin\alpha^{D_{\max}}$ at
+    $D_{\max}=\lceil\log_2\max(n_1,n_2)\rceil$; the bound stays valid
+    ($\text{slack}\ge0$) across all configurations.}
+    \label{fig:hbm_spectral_verification}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering\includegraphics[width=\textwidth]{Fiedler_Bipartitions/fiedler_tree_partition_eta01.png}
+        \caption{$\eta=1$}\label{fig:eta01}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering\includegraphics[width=\textwidth]{Fiedler_Bipartitions/fiedler_tree_partition_eta05.png}
+        \caption{$\eta=5$}\label{fig:eta05}
+    \end{subfigure}
+
+    \vspace{0.4cm}
+
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering\includegraphics[width=\textwidth]{Fiedler_Bipartitions/fiedler_tree_partition_eta10.png}
+        \caption{$\eta=10$}\label{fig:eta10}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering\includegraphics[width=\textwidth]{Fiedler_Bipartitions/fiedler_tree_partition_eta15.png}
+        \caption{$\eta=15$}\label{fig:eta15}
+    \end{subfigure}
+    \caption{Fiedler bipartitions of a Kingman-model tree with $500$ terminal
+    nodes ($n=10{,}000$, $d=4$, JC69), across increasing imbalance $\eta$.}
+    \label{fig:fiedler_partitions}
+\end{figure}

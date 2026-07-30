@@ -1,0 +1,491 @@
+%==============================================================================
+%  Appendix --- The Distance Route                                    [agent B1]
+%
+%  Source: "distance approach/distance_version.tex" (donor, standalone article).
+%  Ported, renotated, relabelled.  Divergences from the source and everything
+%  this appendix does not establish are recorded in open-items/13-B1.md and are
+%  NOT argued in the body text.
+%
+%  Referee pass 1 (2026-07-29, DISTANCE_REVIEW.md): rate renormalized, Theta(log
+%  m/m^3) passage withdrawn, lem:C-first applied as stated, Griffing demoted,
+%  E_D entry bound corrected, split lemma moved before the sign rule.
+%
+%  Referee pass 2 (2026-07-30, independent review; DISTANCE_REVIEW.md §6):
+%    * asm:dist-cancel DELETED.  It asserted rho~ = (1+eta)d0^2/eta as the
+%      cross-clan load; the direct computation gives eta*d0^2/(1+eta), so in the
+%      balanced flat CBM -- where u^(1) is known piecewise constant -- the
+%      assumption was false by a factor 4 and made the theorem vacuous.  No
+%      assumption is needed: since ||u||_2 = 1 and D_ij <= d0, the TOTAL per-node
+%      variance (within-clan terms included) is at most d0^2/p (lem:dist-var).
+%      The resulting rate is stronger by a constant.
+%    * lem:dist-opnorm added: the route had no bound on ||E_D||_2 at all, though
+%      four steps need one (lem:C-series/-first/-remainder all require
+%      ||E||_2 < gap).
+%    * the centering scalar is now bounded, not "removed": B-hat 1 = 0 already
+%      forces mean-zero eigenvectors, so the de-meaning remedy was vacuous, and
+%      a uniform shift is precisely what flips signs.
+%    * Bernstein's linear term used c_B where the summands weight u_j (c_A).
+%    * piecewise constancy of u^(1) is now an explicit hypothesis of thm:main-dist.
+%    * lem:split-decomp stated for arbitrary trees: the flat CBM's constant
+%      within-clan distance is realized by two stars, not by a binary tree.
+%    * unsourced real-data figures (34.1 / 1.51) removed -- no such cohort
+%      appears in this paper.
+%
+%  Label map (donor -> here):
+%    sec:operator -> app:dist            sec:building  -> app:dist-build
+%    sec:using     -> app:dist-signrule  sec:landmarks -> app:dist-landmarks
+%    prop:cbm-gap  -> prop:G-spectrum    thm:griffing  -> (prose citation)
+%    eq:griffing-split -> eq:split-decomp   sec:main   -> app:dist-main
+%    sec:noise     -> app:dist-noise     sec:per-node  -> app:dist-pernode
+%    eq:sign-criterion -> eq:dist-entrywise   eq:M1-Ddist -> eq:dist-def
+%    eq:M10-split  -> eq:dist-split      eq:EB-bound   -> eq:dist-EB
+%    eq:sign-rule  -> eq:dist-sign-rule  eq:gap-balanced -> eq:dist-gap
+%==============================================================================
+\providecommand{\Dmat}{\mathcal{D}}
+\providecommand{\Bop}{\mathcal{B}}
+\providecommand{\uone}{u^{(1)}}
+\providecommand{\huone}{\hat u^{(1)}}
+\providecommand{\DlamB}{\Delta\lambda^{(\Bop)}}
+
+\section{The Distance Route}\label{app:dist}
+
+This appendix develops the distance route in full. Its structural basis is a
+single identity: for any tree-additive $\Dmat$, the centred operator
+$\Bop=H\Dmat H$ is a nonnegatively weighted sum of rank-one
+negative-semi-definite terms, one per edge (\Cref{lem:split-decomp}). Hence
+$\Bop\preceq0$, its structural eigenvector belongs to the most negative
+eigenvalue, and each edge contributes at least $2\tau_e n_1(e)n_2(e)/m$ to the
+magnitude of that eigenvalue (\Cref{lem:dist-edge}) --- so the operator is by
+construction tuned to deep, balanced splits. \Cref{app:dist-build} builds
+$\Dmat$ and $\Bop$ from data; \Cref{app:dist-split} proves the identity;
+\Cref{app:dist-signrule} states the sign rule; \Cref{app:dist-landmarks}
+computes the population spectrum exactly in the balanced flat CBM;
+\Cref{app:dist-partition} records what is known about which edge the rule selects
+on a general tree; \Cref{app:dist-noise,app:dist-pernode,app:dist-main} carry the
+sub-sampling analysis through to \Cref{thm:main-dist}. Two population inputs
+remain unresolved at general imbalance: a lower bound on $\DlamB$, and the
+piecewise-constant shape of $\uone$. Both are carried as explicit hypotheses of
+\Cref{thm:main-dist} rather than absorbed silently.
+
+\subsection{Building \texorpdfstring{$\Dmat$}{D} and \texorpdfstring{$\Bop$}{B} from sequence data}\label{app:dist-build}
+
+Fix the tree $\mathcal T$ on $m$ leaves, the GTR rate matrix $Q$ of
+\Cref{asm:gtr}, and the population similarity matrix $S$ of \Cref{sec:problem}.
+Throughout this appendix \Cref{asm:clock} is in force: it is what makes the
+transform below path-additive, since \eqref{eq:similarity_gtr} expresses $S_{ij}$
+through the MRCA depth $\tau_{ij}$, and $2\tau_{ij}$ is the path length between
+$i$ and $j$ only when the tree is ultrametric.
+
+\paragraph{Step 1 --- distance from similarity.}
+Apply the entrywise log-transform
+\begin{equation}\label{eq:dist-def}
+   \Dmat_{ij} \;=\; -\log S_{ij}, \qquad \Dmat_{ii}=0.
+\end{equation}
+Because $S$ is tree-multiplicative, $\Dmat$ is then literally the tree-additive
+distance used elsewhere in this paper,
+$\Dmat_{ij}=\sum_{e\in\mathrm{path}(i,j)}\tau_e$ with nonnegative edge lengths
+$\tau_e$.
+
+\paragraph{Step 2 --- double centering.}
+Let $H=I-\tfrac1m\1\1^\top$ be the orthogonal projector onto $\1^\perp$
+($H^2=H$, $\opnorm{H}=1$), and define
+\begin{equation}
+   \Bop \;:=\; H\,\Dmat\,H
+   \;=\; \Dmat - \tfrac1m\1\1^\top\Dmat - \tfrac1m\Dmat\1\1^\top
+        + \tfrac1{m^2}(\1^\top\Dmat\1)\,\1\1^\top.
+\end{equation}
+$H$ plays for $\Bop$ the role that the row-sum-zero structure of $L=D-S$ plays
+for the Laplacian: both operators annihilate $\1$, $L\1=0$ and $\Bop\1=0$.
+Computationally, $\Bop$ is formed from $\Dmat$ in $O(m^2)$ time (row means,
+column means, grand mean, four broadcasts).
+
+\subsection{The split-decomposition identity}\label{app:dist-split}
+
+The following identity makes $\Bop\preceq0$ rigorous. It is used twice: for the
+sign convention of \Cref{app:dist-signrule} and in \Cref{app:dist-partition}.
+Binarity plays no role in it, so it is stated for an arbitrary tree.
+
+\begin{lemma}[Split decomposition of $\Bop$, after Bandelt--Dress~\cite{BandeltDress1992}]\label{lem:split-decomp}
+Let $\mathcal T$ be a tree with leaf set of size $m$, nonnegative edge lengths
+$\{\tau_e\}_{e\in E(\mathcal T)}$, and tree-additive leaf distance
+$\Dmat_{ij}=\sum_{e\in\mathrm{path}(i,j)}\tau_e$. For each edge $e$ let
+$s_e\in\{-1,+1\}^m$ be the signed split indicator of the leaf bipartition $e$
+induces, and $\delta_e:=\tfrac12(\1\1^\top - s_es_e^\top)$. Since
+$(s_e)_i^2=1$ for every $i$, $\delta_e$ automatically has zero diagonal;
+moreover $(\delta_e)_{ij}=1$ iff $i,j$ lie on opposite sides of $e$. Then
+\begin{equation}\label{eq:split-decomp}
+   \Dmat \;=\; \sum_{e\in E(\mathcal T)}\tau_e\,\delta_e,
+   \qquad
+   \Bop \;=\; H\Dmat H
+        \;=\; -\tfrac12\sum_{e\in E(\mathcal T)}\tau_e\,(Hs_e)(Hs_e)^\top,
+\end{equation}
+so $\Bop$ is a nonnegatively weighted sum of rank-one negative-semi-definite
+terms, hence $\Bop\preceq0$. For an edge separating $n_1(e)$ leaves from
+$n_2(e)=m-n_1(e)$,
+\begin{equation}\label{eq:split-norm}
+   \norm{Hs_e}_2^2 \;=\; m - \frac{(n_1-n_2)^2}{m} \;=\; \frac{4\,n_1(e)\,n_2(e)}{m}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+$(\delta_e)_{ij}=\tfrac12(1-(s_e)_i(s_e)_j)$ equals $1$ when $(s_e)_i\ne(s_e)_j$
+and $0$ when they agree, giving the cut-metric claim; summing $\tau_e\delta_e$
+over edges and matching path membership against split membership gives the
+first identity in \eqref{eq:split-decomp} termwise. Centering,
+$H\1\1^\top H=0$ since $H\1=0$, so $H\delta_e H=-\tfrac12(Hs_e)(Hs_e)^\top$,
+which summed over $e$ gives the second identity. Each summand is
+negative-semi-definite (rank-one with a nonpositive coefficient), and a
+nonnegative combination of NSD matrices is NSD. The norm identity is the
+standard centered-indicator computation, $\1^\top s_e=n_1-n_2$ and
+$\norm{s_e}_2^2=m$.
+\end{proof}
+
+\begin{lemma}[Edge lower bound on the structural eigenvalue]\label{lem:dist-edge}
+For every edge $e$ of $\mathcal T$,
+\begin{equation}\label{eq:dist-edge}
+   \bigl|\lambda_1(\Bop)\bigr| \;\ge\; \frac{2\,\tau_e\,n_1(e)\,n_2(e)}{m}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Put $v=Hs_e/\norm{Hs_e}_2$ in the Rayleigh quotient of $-\Bop\succeq0$. By
+\eqref{eq:split-decomp} every term of $v^\top(-\Bop)v$ is nonnegative, so
+retaining only the $e$-term gives
+$v^\top(-\Bop)v\ge\tfrac12\tau_e\norm{Hs_e}_2^2$, and \eqref{eq:split-norm}
+evaluates the norm.
+\end{proof}
+
+\subsection{Using \texorpdfstring{$\Bop$}{B}: the sign-recovery rule}\label{app:dist-signrule}
+
+By \Cref{lem:split-decomp}, $\Bop\preceq0$ for any tree-additive $\Dmat$, so the
+eigenvalue of largest magnitude, $\lambda_1(\Bop)$, is the most negative one; let
+$\uone$ denote a corresponding unit eigenvector. The sign pattern of $\uone$
+defines a bipartition,
+\begin{equation}\label{eq:dist-sign-rule}
+   \widehat A = \{\,i : \uone_i \ge 0\,\}, \qquad
+   \widehat B = \{\,i : \uone_i < 0\,\}.
+\end{equation}
+That this bipartition is the structural split $\{A,B\}$ is a property of the
+population operator, not a consequence of \Cref{lem:split-decomp}: it holds in
+the balanced flat CBM, where \Cref{prop:G-spectrum} exhibits
+$\uone=(e_A-e_B)/\sqrt m$, and on general trees it is the content of the result
+reported in \Cref{app:dist-partition}. Where it holds, and given an estimator
+$\huone$ built from a sub-sampled $\Dmat$ (\Cref{app:dist-noise}), a sufficient
+condition for $\{\widehat A,\widehat B\}=\{A,B\}$ --- as an unordered pair, since
+$\uone$ is determined only up to a global sign --- is the exact counterpart of
+\eqref{eq:entrywise},
+\begin{equation}\label{eq:dist-entrywise}
+   \norm{\huone - \uone}_\infty \;<\; \min_i\,\bigl|\uone_i\bigr|,
+\end{equation}
+the sign of $\huone$ being fixed by $\langle\huone,\uone\rangle\ge0$.
+Structurally \eqref{eq:dist-entrywise} is identical to \eqref{eq:entrywise}; only
+the operator producing the target vector changes. This is the criterion
+\Cref{thm:main-dist} certifies.
+
+\subsection{Population-level landmarks}\label{app:dist-landmarks}
+
+Under \Cref{asm:cbm} with clans $A,B$, sizes $a=|A|\le b=|B|$, imbalance
+$\eta=b/a$, and molecular-clock baseline $\bze$ (\Cref{asm:clock}), three
+population quantities feed \Cref{thm:main-dist}:
+
+\begin{enumerate}
+\item \textbf{Cross-clan distance scale.} Every cross-clan entry of $\Dmat$
+collapses to $d_0:=-\log\bze$, and $d_0>\Dmat_{ij}$ for every within-clan pair;
+hence $\max_{ij}\Dmat_{ij}=d_0$.
+\item \textbf{Tree diameter.} By the previous item the diameter
+$r(\mathcal T)=\max_{i,j}\Dmat_{ij}$ equals $d_0$ exactly under
+\Cref{asm:clock}, so the diameter contributes no penalty separate from $d_0$ and
+must not be charged twice (\Cref{app:dist-main}).
+\item \textbf{Top spectral gap of $\Bop$.} Since $\uone$ belongs to the most
+negative eigenvalue and $\Bop\preceq0$, the eigenvalue nearest $\lambda_1(\Bop)$
+is the one of second-largest magnitude, so the separation relevant to
+\Cref{lem:C-first} is $\DlamB:=|\lambda_1(\Bop)|-|\lambda_2(\Bop)|$.
+\end{enumerate}
+
+\begin{proposition}[Spectrum of $\Bop$ under balanced flat CBM]\label{prop:G-spectrum}
+Assume the molecular-clock \emph{flat} CBM with $|A|=|B|=m/2$, constant
+within-clan distance $d_1$, and constant cross-clan distance $d_0>d_1$. Then
+\begin{align}
+   \sigma(\Dmat) &= \Bigl\{\,\tfrac{(m-2)d_1+md_0}{2},\;\; \tfrac{(m-2)d_1-md_0}{2},\;\;
+                  \underbrace{-d_1,\dots,-d_1}_{m-2}\,\Bigr\}, \\
+   \sigma(\Bop) &= \Bigl\{\,0,\;\; -\tfrac{m(d_0-d_1)}{2}-d_1,\;\;
+                 \underbrace{-d_1,\dots,-d_1}_{m-2}\,\Bigr\}.
+\end{align}
+The structural eigenvalue is $\lambda_1(\Bop)=-\tfrac{m(d_0-d_1)}2-d_1$, with
+eigenvector $(e_A-e_B)/\sqrt m$; the next spectral cluster sits at $-d_1$ with
+multiplicity $m-2$; and
+\begin{equation}\label{eq:dist-gap}
+   \DlamB \;=\; \bigl|\lambda_1(\Bop)\bigr|-\bigl|\lambda_2(\Bop)\bigr|
+             \;=\; \frac{m(d_0-d_1)}{2}.
+\end{equation}
+\end{proposition}
+\begin{proof}
+Let $e_A,e_B$ be the clan indicator vectors, $\1=e_A+e_B$, and write
+$\Dmat=T-d_1 I$ with $T=d_1(e_Ae_A^\top+e_Be_B^\top)+d_0(e_Ae_B^\top+e_Be_A^\top)$,
+which has $T_{ij}=d_1$ within a clan (including $i=j$) and $T_{ij}=d_0$
+across clans. $T$ has rank $2$ on $\mathrm{span}\{e_A,e_B\}$; in the
+orthonormal basis $\hat e_A=e_A/\sqrt{m/2}$, $\hat e_B=e_B/\sqrt{m/2}$,
+$T|_{\mathrm{span}\{\hat e_A,\hat e_B\}}\cong\tfrac m2\bigl(\begin{smallmatrix}d_1&d_0\\d_0&d_1\end{smallmatrix}\bigr)$,
+with eigenpairs $\bigl(\tfrac{m(d_1+d_0)}2,\tfrac1{\sqrt m}\1\bigr)$ and
+$\bigl(\tfrac{m(d_1-d_0)}2,\tfrac1{\sqrt m}(e_A-e_B)\bigr)$; the remaining
+$m-2$ directions lie in $\ker T$. Subtracting $d_1 I$ shifts every eigenvalue
+by $-d_1$, giving $\sigma(\Dmat)$. For $\Bop=H\Dmat H$: the eigenvector
+$\1/\sqrt m$ lies in $\ker H$ and contributes eigenvalue $0$; the remaining
+$m-1$ eigenvectors of $\Dmat$ are already orthogonal to $\1$ (the structural
+direction because $|A|=|B|$, the bulk by construction), so $H$ fixes them and
+they remain eigenvectors of $\Bop$ at the same eigenvalue. Reading off the
+extremes gives $|\lambda_1(\Bop)|=\tfrac{m(d_0-d_1)}2+d_1$ and
+$|\lambda_2(\Bop)|=d_1$, hence \eqref{eq:dist-gap}.
+\end{proof}
+
+\begin{remark}[Realization of the flat CBM]\label{rem:flat-realization}
+Constant within-clan distance forces every within-clan pair to have the same
+MRCA, so the flat CBM is realized by two stars joined by an edge rather than by a
+binary tree. It is used here only as the one configuration in which the spectrum
+of $\Bop$ can be computed in closed form; \Cref{lem:split-decomp,lem:dist-edge}
+hold for arbitrary trees and are what the general-tree statements rest on.
+\end{remark}
+
+\begin{remark}[Unbalanced case: open]\label{rem:G-unbalanced}
+\Cref{prop:G-spectrum} does not extend to $a\ne b$ by the same argument. The
+proof uses that the structural eigenvector of $\Dmat$ is orthogonal to $\1$, so
+that $H$ acts on it as the identity; that orthogonality is exactly what fails
+when $a\ne b$. Consequently neither a closed form for $\DlamB$ nor the
+piecewise-constant shape of $\uone$ is available at general $\eta$, which is why
+both are hypotheses of \Cref{thm:main-dist}. \Cref{lem:dist-edge} does bound
+$|\lambda_1(\Bop)|$ from below at any imbalance, but bounding
+$|\lambda_2(\Bop)|$ from above --- and hence the gap from below --- remains open.
+\end{remark}
+
+\subsection{Which edge the sign rule selects}\label{app:dist-partition}
+
+\Cref{prop:G-spectrum} is exact under the flat-CBM idealisation. On an arbitrary
+tree, Griffing~\cite[Ch.~4]{Griffing2012} shows that, under a separation
+hypothesis on the maximiser of $\tau_e\,n_1(e)\,n_2(e)$, the sign partition of
+$\uone$ is the leaf bipartition obtained by deleting that edge, so
+$\widehat A,\widehat B$ are adjacent clans of $\mathcal T$. We state this as a
+citation rather than as a numbered result: the separation hypothesis is
+quantitative in the source and we do not reproduce it, and nothing in
+\Cref{thm:main-dist} depends on it --- its only population inputs are
+$\DlamB>0$ and the shape of $\uone$.
+
+What this paper proves in the same direction is \Cref{lem:dist-edge}: every edge
+lower-bounds $|\lambda_1(\Bop)|$ by $2\tau_e n_1(e)n_2(e)/m$, so
+$\tau_e\,n_1(e)\,n_2(e)$ is the correct objective to associate with the leading
+eigenvalue, independently of whether its maximiser's eigenvector converges to
+$Hs_{e^*}$.
+
+\begin{remark}[Which edge each route targets]\label{rem:dist-compare-empirical}
+The two routes can select different edges of the same tree. By
+\Cref{lem:dist-edge} the weight an edge contributes to $|\lambda_1(\Bop)|$ is
+proportional to $\tau_e\,n_1(e)\,n_2(e)$, which is maximised by deep and
+\emph{balanced} edges; the Fiedler vector of $L$, by contrast, is governed by
+algebraic connectivity and can prefer a fringe edge when within-clan variation
+inflates spurious low-Rayleigh directions
+\cite[Thm.~4.2]{aizenbud2023spectral}. This is a statement about which split each
+rule targets at $p=1$, and it is independent of the noise-tolerance comparison of
+\Cref{app:dist-main}: the two answer different questions, and only the latter is
+settled by the rates.
+\end{remark}
+
+\subsection{Sampling model and noise operator}\label{app:dist-noise}
+
+Sample each off-diagonal upper-triangular entry of $\Dmat$ independently with
+probability $p\in(0,1]$, exactly as in \Cref{asm:sampling}, and rescale by
+inverse probability,
+\begin{equation}\label{eq:dist-ipw}
+   \hat\Dmat_{ij} = \frac{\Omega_{ij}}{p}\Dmat_{ij}, \qquad \E[\hat\Dmat_{ij}]=\Dmat_{ij}.
+\end{equation}
+Center the noisy distances, $\hat\Bop:=H\hat\Dmat H$, and write
+$E_{\Bop}:=\hat\Bop-\Bop=H\,E_{\Dmat}\,H$ with $E_{\Dmat}:=\hat\Dmat-\Dmat$
+the uncentered entrywise error. Idempotence of $H$ and $\opnorm H=1$ immediately
+give
+\begin{equation}\label{eq:dist-EB}
+   \opnorm{E_{\Bop}} \;\le\; \opnorm{E_{\Dmat}}.
+\end{equation}
+The entries of $E_{\Dmat}$ are bounded by $\max_{ij}\Dmat_{ij}/p=d_0/p$
+(\Cref{app:dist-landmarks}); the diameter therefore enters only through $d_0$.
+The Neumann machinery of \Cref{app:comp3a} requires an operator-norm bound, which
+the following supplies; it is the distance analogue of \Cref{lem:B-bernstein} and
+is proved the same way.
+
+\begin{lemma}[Distance spectral error via matrix Bernstein]\label{lem:dist-opnorm}
+Under \Cref{asm:clock,asm:cbm,asm:sampling} there are constants $C_1,C_0>0$ such
+that if $p\ge C_0\log m/m$ then, \hp,
+\begin{equation}\label{eq:dist-opnorm}
+   \opnorm{E_{\Bop}}\;\le\;\opnorm{E_{\Dmat}}\;\le\;C_1\,d_0\sqrt{\frac{m\log m}{p}}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Write $E_{\Dmat}=\sum_{i<j}Z^{(ij)}$ with $Z^{(ij)}$ supported on the symmetric
+pair $(i,j)$ and value $(\tfrac1p\Omega_{ij}-1)\Dmat_{ij}$; the summands are
+independent and mean zero, with scale
+$\opnorm{Z^{(ij)}}\le\Dmat_{ij}/p\le d_0/p=:R$ and
+$\E[(Z^{(ij)}_{ij})^2]\le\Dmat_{ij}^2/p$. Hence the variance proxy satisfies
+$\sigma^2\le\tfrac1p\max_i\norm{\Dmat_{i,\cdot}}_2^2\le m\,d_0^2/p$. Matrix
+Bernstein gives $\opnorm{E_{\Dmat}}\lesssim\sqrt{\sigma^2\log m}+R\log m
+= d_0\sqrt{m\log m/p}+d_0\log m/p$, and the first term dominates once
+$p\ge C_0\log m/m$. \Cref{eq:dist-EB} transfers the bound to $E_{\Bop}$.
+\end{proof}
+
+\subsection{Per-node concentration}\label{app:dist-pernode}
+
+The Neumann/resolvent machinery that turns control of $E_{\Bop}$ into
+coordinate-wise control of $\huone-\uone$
+(\Cref{lem:C-series,lem:C-first,lem:C-remainder}) is a statement about an
+arbitrary symmetric perturbation of an arbitrary symmetric matrix, so it
+transfers unchanged under $L\to\Bop$, $\vv\to\uone$, $\Dlam\to\DlamB$, given the
+operator-norm bound of \Cref{lem:dist-opnorm}. The concentration step of
+\Cref{app:comp3b} does not transfer: \Cref{lem:C-inc} writes
+$(\EL\vv)_i=\sum_{j\ne i}X_{ij}$ with
+$X_{ij}=(\omega_{ij}/p-1)S_{ij}(\vv_i-\vv_j)$, a Laplacian row-sum identity, and
+that is what lets \Cref{prop:C-within} kill every within-clan increment. Since
+$\Bop$ has no row-sum-zero structure on individual rows --- only $\Bop\1=0$
+globally, through $H$ --- no such cancellation is available here. None is needed:
+the increments weight $\uone_j$ rather than a difference, and $\uone$ is a unit
+vector, which bounds the whole sum at once.
+
+Since $\uone\perp\1$ we have $H\uone=\uone$, hence
+\begin{equation}\label{eq:dist-split}
+   (E_{\Bop}\uone)_i
+   \;=\; \underbrace{(E_{\Dmat}\uone)_i}_{\text{per-node sum}}
+   \;-\; \underbrace{\tfrac1m\1^\top E_{\Dmat}\uone}_{\text{global centering scalar}}.
+\end{equation}
+
+\begin{lemma}[Per-node variance and scale, no cancellation required]\label{lem:dist-var}
+Under \Cref{asm:clock,asm:cbm,asm:sampling}, for every node $i$,
+\begin{equation}\label{eq:dist-var}
+   \operatorname{Var}\bigl((E_{\Dmat}\uone)_i\bigr)
+   \;=\;\frac{1-p}{p}\sum_{j\ne i}\Dmat_{ij}^2\,\bigl|\uone_j\bigr|^{2}
+   \;\le\;\frac{d_0^{2}}{p},
+\end{equation}
+and each summand of $(E_{\Dmat}\uone)_i$ is bounded in magnitude by
+$R:=d_0\max_j|\uone_j|/p$. If in addition $\uone$ is piecewise constant on
+$(A,B)$ with $\norm{\uone}_2=1$, then $\max_j|\uone_j|=\sqrt{\eta/m}$ and
+$\min_j|\uone_j|=1/\sqrt{m\eta}$.
+\end{lemma}
+\begin{proof}
+The summands $(E_{\Dmat})_{ij}\uone_j$ are independent and mean zero with
+variance $\tfrac{1-p}{p}\Dmat_{ij}^2\bigl|\uone_j\bigr|^2$, giving the first equality.
+Bounding $\Dmat_{ij}\le d_0$ (\Cref{app:dist-landmarks}) and using
+$\sum_j|\uone_j|^2=1$ gives $\le d_0^2/p$; no within-clan cancellation is invoked.
+The scale bound is immediate from $|(E_{\Dmat})_{ij}|\le d_0/p$. For the last
+claim, $\uone\perp\1$, because $\Bop\1=0$ and $\lambda_1(\Bop)\ne0$, so the two
+constants have opposite signs and satisfy $a\,c_A=b\,c_B$; with
+$a\,c_A^2+b\,c_B^2=1$ and $b/a=\eta$ this forces $c_A=\sqrt{\eta/m}$ on $A$ and
+$-c_B=-1/\sqrt{m\eta}$ on $B$.
+\end{proof}
+
+\begin{lemma}[Per-node concentration for $\Bop$]\label{lem:dist-pernode}
+Assume \Cref{asm:clock,asm:cbm,asm:sampling} and let $\uone$ be piecewise constant
+on $(A,B)$. Then, \hp\ uniformly in $i$,
+\begin{equation}\label{eq:dist-pernode-bound}
+   \bigl|(E_{\Dmat}\uone)_i\bigr|
+   \;\lesssim\; d_0\sqrt{\frac{\log m}{p}}
+              \;+\; \frac{d_0\,\log m}{p}\sqrt{\frac{\eta}{m}} ,
+\end{equation}
+and the second term is dominated by the first as soon as $p\ge\eta\log m/m$.
+\end{lemma}
+\begin{proof}
+Apply Bernstein's inequality to the independent mean-zero summands of
+$(E_{\Dmat}\uone)_i$ with variance proxy $d_0^2/p$ and scale
+$R=d_0\max_j|\uone_j|/p=d_0\sqrt{\eta/m}/p$ (\Cref{lem:dist-var}), at confidence
+$1-\delta_0/m$, and take a union bound over the $m$ nodes. Comparing the two terms
+gives the stated crossover.
+\end{proof}
+
+\begin{remark}[The centering scalar]\label{rem:dist-centering}
+The second term of \eqref{eq:dist-split} is a scalar, identical at every node, and
+it is carried in the budget rather than discarded. Cauchy--Schwarz and
+\Cref{lem:dist-opnorm} give
+$|\tfrac1m\1^\top E_{\Dmat}\uone|\le\opnorm{E_{\Dmat}}/\sqrt m\lesssim
+d_0\sqrt{\log m/p}$, the same order as the per-node term of
+\Cref{lem:dist-pernode}, so
+\begin{equation}\label{eq:dist-EBu}
+   \bigl|(E_{\Bop}\uone)_i\bigr|\;\le\;\bigl|(E_{\Dmat}\uone)_i\bigr|
+        +\frac{\opnorm{E_{\Dmat}}}{\sqrt m}\;\lesssim\;d_0\sqrt{\frac{\log m}{p}} :
+\end{equation}
+it costs a constant factor, not a factor of $m$. Note that it cannot be removed by
+de-meaning, since $\hat\Bop\1=0$ already forces $\huone$ to have mean zero.
+\end{remark}
+
+\subsection{Proof of \texorpdfstring{\Cref{thm:main-dist}}{Theorem 2} and comparison}\label{app:dist-main}
+
+\begin{proof}[Proof of \Cref{thm:main-dist}]
+The argument is the synthesis of \Cref{sec:outline} with $L\to\Bop$,
+$\vv\to\uone$, $\Dlam\to\DlamB$.
+
+\emph{Step 1 (population geometry).} By hypothesis (ii) and \Cref{lem:dist-var}
+the entry-wise margin is $\min_i|\uone_i|=1/\sqrt{m\eta}$, attained on $B$, and
+$\DlamB>0$ by (i). Hypothesis (iii) supplies
+$\opnorm{E_{\Bop}}\le\varepsilon_m\DlamB$ with $\varepsilon_m\le c_0(m\eta)^{-1/4}$,
+which in particular puts the perturbation in the strong-signal regime
+$\opnorm{E_{\Bop}}<\DlamB$ required by \Cref{lem:C-series}. Since
+$\DlamB\le|\lambda_1(\Bop)|\le m\,d_0$, \eqref{eq:main-rate-dist} implies
+$p>C\eta\log m/m$, which discharges both the crossover condition of
+\Cref{lem:dist-pernode} and the hypothesis of \Cref{lem:dist-opnorm} for
+$C\ge\max(1,C_0)$.
+
+\emph{Step 2 (entry-wise reduction).} Write $\huone=\uone+w$ and
+$w=w^{(1)}+w^{(2)}$ as in \Cref{lem:C-series}. By \Cref{lem:C-first},
+$|w^{(1)}_i|\le\bigl(|(E_{\Bop}\uone)_i|+\opnorm{E_{\Bop}}|\uone_i|\bigr)/
+(\DlamB-\opnorm{E_{\Bop}})$, and by \Cref{lem:C-remainder}
+$\norm{w^{(2)}}_\infty=O(\opnorm{E_{\Bop}}^2/(\DlamB)^2)=O(\varepsilon_m^2)$.
+Hypothesis (iii) is what makes both corrections lower order against the margin:
+$\varepsilon_m^2\le c_0^2(m\eta)^{-1/2}=o\bigl(\min_i|\uone_i|\bigr)$ and
+$\opnorm{E_{\Bop}}|\uone_i|/(\DlamB-\opnorm{E_{\Bop}})\le
+\tfrac{\varepsilon_m}{1-\varepsilon_m}|\uone_i|$, a vanishing fraction of the
+margin. Discarding them reduces \eqref{eq:dist-entrywise} to the per-node
+condition $|(E_{\Bop}\uone)_i|<\tfrac12\DlamB\,|\uone_i|$ for every $i$, and
+\eqref{eq:dist-EBu} bounds its left-hand side by a constant multiple of
+$d_0\sqrt{\log m/p}$.
+
+\emph{Step 3 (concentration).} \Cref{lem:dist-pernode} with
+\eqref{eq:dist-EBu} bounds that left-hand side by $C_2d_0\sqrt{\log m/p}$
+uniformly over the $m$ nodes, \hp.
+
+\emph{Step 4 (synthesis).} The per-node condition is tightest on clan $B$, where
+the margin $1/\sqrt{m\eta}$ is smallest. Imposing
+$C_2d_0\sqrt{\log m/p}<\tfrac12\DlamB/\sqrt{m\eta}$ and solving for $p$ gives
+\eqref{eq:main-rate-dist} with $C=4C_2^2$. The failure probability is the union
+bound of Step 3 together with \Cref{lem:dist-opnorm}, i.e.\ $O(m^{-c})$ for some
+$c>0$.
+\end{proof}
+
+\begin{remark}[Two normalizations, not to be mixed]\label{rem:dist-normalization}
+\Cref{eq:main-rate-dist} carries $m$ in the numerator and the unsubstituted
+$(\DlamB)^2$ in the denominator. The similarity-side rate \eqref{eq:main_rate}
+looks different only because one further substitution has been made there:
+$\Dlam\ge m_{\min}(\rho-\eta\Sout^{\max})$ with $m_{\min}=m/(1+\eta)$
+(\Cref{lem:gap}) turns $m\log m/\Dlam^{2}$ into
+$(1+\eta)^{2}\log m/[m(\rho-\eta\Sout^{\max})^{2}]$, which is where the
+$(1+\eta)^{3}$ and the $m$ in the denominator come from. Applying that conversion
+while retaining $(\DlamB)^2$ would count it twice. The distance route stops
+before it because no lower bound on $\DlamB$ is available at general $\eta$
+(\Cref{rem:G-unbalanced}); \Cref{cor:dist-balanced} performs the substitution in
+the one case where the gap is known.
+\end{remark}
+
+\paragraph{Comparison with the Laplacian route.}
+Substituting the balanced-case gap of \Cref{prop:G-spectrum} gives
+\Cref{cor:dist-balanced}, and with it the only regime in which the two rates are
+directly comparable. There they share the exponent $\Theta(\log m/m)$ and differ
+in one quantity: the cross-clan noise scale $\bze$ is replaced by
+$d_0=-\log\bze$, so for the same target split the distance route pays
+\begin{equation}\label{eq:dist-price}
+   \frac{d_0^{2}\,(\rho-\eta\Sout^{\max})^{2}}{\bze^{2}\,(d_0-d_1)^{2}},
+\end{equation}
+evaluated at $\eta=1$, the only imbalance for which
+\Cref{cor:dist-balanced} applies. At the synthesized-regime values of
+\Cref{sec:empirical} ($\bze=0.05$, $\Sin=0.9$, hence $d_0=2.996$, $d_1=0.105$)
+the factor is $275$. This compares the two parameter groups, not the two stated
+right-hand sides: \eqref{eq:main_rate} carries the explicit $8(1+\eta)^3$ while
+\eqref{eq:main-rate-dist-balanced} carries an unspecified $4C$, and by
+\Cref{rem:dist-remainder} neither constant is currently pinned down.
+Two caveats attach to it. First, the feasibility threshold
+$\eta=\Omega((m/\log m)^{1/3})$ of \Cref{cor:infeasible} does \emph{not} transfer
+to the distance route: it is extracted from \eqref{eq:main_rate} after the gap
+substitution, and no such substitution is available for $\DlamB$ at general
+$\eta$. (The coherence identity of \Cref{prop:coherence} does transfer wherever
+$\uone$ is piecewise constant, but no quantity in \eqref{eq:main-rate-dist}
+depends on it.) Second, \eqref{eq:dist-price} compares noise tolerance for a
+\emph{fixed} split; which split each rule targets is the separate question of
+\Cref{rem:dist-compare-empirical}.

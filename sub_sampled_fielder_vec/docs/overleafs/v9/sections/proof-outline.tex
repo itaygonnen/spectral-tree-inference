@@ -1,0 +1,137 @@
+%==============================================================================
+%  Section 6 --- Proof Outline (NEW)                                [agent A2]
+%
+%  Sources: v8 thesis_v8.tex:482-560 (Neumann motivation, thm:neumann, sketch),
+%           v8:969-978 (lem:C-bern, promoted here as lem:pernode),
+%           v7 thesis_v7.tex:755-849 (proof flowchart, reconciled to v8 values).
+%  Renames: thm:neumann -> lem:neumann (demoted: not a result of this paper)
+%           lem:C-bern  -> lem:pernode (statement promoted; proof stays in app:comp3b)
+%  [POLISH-A]: flowchart removed, essays cut to one paragraph/stage -- see 17-polish-a.md
+%
+%  [Reviewer Note (v9 refine pass): subsections 5.1-5.5 removed.  A proof sketch
+%  is the one place in a paper where momentum matters most -- the reader is
+%  being carried through an argument, not consulting a manual -- and five
+%  headings across two pages announced each step twice, once in the roadmap
+%  sentence and once as a title.  The stages now run as continuous prose;
+%  lem:neumann, lem:pernode and the proof environment are untouched.  Internal
+%  \Cref{sec:outline-*} self-references became prose ("above", "below"), and
+%  appendix-C's two references to sec:outline-synth now point at sec:outline.]
+%==============================================================================
+\section{Proof Outline}\label{sec:outline}
+The proof of \Cref{thm:main-sim} compares two quantities evaluated at the same
+node: the entry-wise error $|\vvh_i-\vv_i|$ and the entry-wise margin $|\vv_i|$.
+It runs in three stages --- population geometry fixes the margin and noise
+budget, a resolvent expansion reduces the error at each node to a scalar, and a
+per-node Bernstein bound controls that scalar --- after which imposing
+\eqref{eq:entrywise} yields the rate \eqref{eq:main_rate}. Each stage is stated
+as a lemma; the proofs are in \Cref{app:comp1,app:comp2,app:comp3}.
+
+Two population quantities of $L$ fix the two sides of \eqref{eq:entrywise}.
+The spectral gap $\Dlam$ is bounded below in \Cref{lem:gap} by
+$m_{\min}(\rho-\eta\Sout^{\max})$, kept positive by \Cref{asm:margin}; the
+margin is read off the piecewise-constant Fiedler vector of
+\Cref{lem:A-decomp} as $\min_i|\vv_i|=c_B=1/\sqrt{m\eta}$, attained on the
+larger clan $B$. Under imbalance these two extremes sit at different nodes,
+which is what makes the final synthesis $\eta$-dependent. A third quantity is a
+standing hypothesis: the Neumann expansion introduced next converges, with
+negligible remainder against $c_B$, only in the strong-signal regime
+$\opnorm{\EL}<\Dlam$; \Cref{lem:B-bernstein} (\Cref{app:comp2}) supplies the
+noise side of it, $\opnorm{\EL}\le\tilde C\sqrt{m(1+\eta)\log m/p}$, to be
+compared against the gap bound above.
+
+Classical eigenvector perturbation bounds, foremost Davis--Kahan, control the
+error only in $\ell_2$; passing to the $\ell_\infty$ norm of
+\eqref{eq:entrywise} via $\norm{\cdot}_\infty\le\norm{\cdot}_2$ forfeits a
+factor $\sqrt m$, enough under imbalance to push the required rate past
+$p\le1$ (the rate $p_{\mathrm{naive}}$ of \Cref{rem:E-compare}). A
+coordinate-wise argument is needed instead: following Eldridge et al.\
+\cite{eldridge2017unperturbed}, Fan et al.\ \cite{fan2018eigenvector}, and
+Abbe et al.\ \cite{abbe2020entrywise}, we expand the perturbed Fiedler vector
+as a resolvent (Neumann) series in the noise operator $\EL$, isolating a
+single leading term $-(\EL\vv)_i/\Dlam$ per coordinate with a second-order
+remainder. That term is a sum of $O(m)$ independent, mean-zero increments
+rather than an extremal singular value, so a per-node Bernstein bound
+concentrates it a factor $\sqrt m$ tighter than a global operator-norm bound
+would pay --- the saving that turns \eqref{eq:entrywise} into the tight rate
+\eqref{eq:main_rate} (\Cref{app:compare}). It is not a result of this paper;
+we record it as a lemma.
+
+\begin{lemma}[Neumann decomposition of the Fiedler vector]\label{lem:neumann}
+Let $L$ be symmetric with eigenpairs $\{(\lambda_\ell,v^{(\ell)})\}$, let
+$\hat L=L+\EL$ be a symmetric perturbation, and write $\vvh=\vv+w$. If
+$\opnorm{\EL}<\Dlam$, then, with $\Pi$ the spectral projector onto the complement
+of $\vv$, $w$ admits the exact resolvent expansion
+$w=\sum_{k\ge1}(-1)^k(\Dlam^{-1}\Pi\EL)^k\vv$, whose first-order term is
+\begin{equation}\label{eq:neumann_first_order}
+   w^{(1)}=\sum_{\ell\ne2}\frac{-\langle v^{(\ell)},\EL\vv\rangle}
+        {\lambda_\ell-\hat\lambda_2}\,v^{(\ell)},
+\end{equation}
+so that entrywise $w_i=-(\EL\vv)_i/\Dlam+R_i$ with the remainder of second order,
+$\norm{R}_\infty=O\!\bigl(\opnorm{\EL}^2/\Dlam^2\bigr)$.
+\end{lemma}
+\noindent The decomposition and its first-order bound are proved in
+\Cref{app:comp3a} (\Cref{lem:C-series,lem:C-first}, \Cref{rem:C-asym}). The
+second-order remainder $R$ is bounded separately in \Cref{app:comp3c}
+(\Cref{lem:C-remainder}); its discard is what confines the argument to the
+strong-signal regime identified above.
+
+\Cref{lem:neumann} leaves a scalar, $(\EL\vv)_i$, and \Cref{app:comp3b} shows
+it is well-behaved: \Cref{lem:C-inc} rewrites it as a sum of independent,
+mean-zero increments $X_{ij}=(\omega_{ij}/p-1)S_{ij}(\vv_i-\vv_j)$,
+\Cref{prop:C-within} removes every within-clan pair since $\vv$ is constant
+on each clan, and \Cref{prop:C-var} evaluates the surviving variance on clan
+$B$ at $\sigma_B^2=(1-p)(1+\eta)\bze^2/(\eta p)=(1-p)\rhotil/p$ with
+$\rhotil=(1+\eta)\bze^2/\eta$. Bernstein's inequality then applies directly,
+and since this is the only place $p$ enters the final condition, we state it
+in the main text.
+
+\begin{lemma}[Per-node concentration]\label{lem:pernode}
+With scale $R_B=\bze(1+\eta)/(p\sqrt{m\eta})$, for each $i\in B$ and $\delta>0$,
+with probability $\ge1-\delta$,
+$|(\EL\vv)_i|\le2\sqrt{2\sigma_B^2\ln(2/\delta)}+\tfrac23R_B\ln(2/\delta)$. In the
+variance-dominated regime ($p=\Theta(\log m/m)$), a union bound over all $m$ nodes
+at $\delta=\delta_0/m$ gives, \hp\ uniformly over $i$,
+\begin{equation}\label{eq:concentration-bound}
+   |(\EL\vv)_i|\lesssim\sqrt{\frac{8(1+\eta)\bze^2\log(2m/\delta_0)}{\eta\,p}}.
+\end{equation}
+\end{lemma}
+\noindent The proof is in \Cref{app:comp3b}. This is the step that realises the
+$\sqrt m$ saving quantified in \Cref{rem:E-compare}: the variance $\sigma_B^2$ of
+the individual increment sum is smaller than $\opnorm{\EL}^2$ by a factor $m$.
+The three stages now combine.
+
+\begin{proof}[Proof of \Cref{thm:main-sim}]
+
+   
+\emph{Step 1 (population geometry).} \Cref{lem:gap} lower-bounds the spectral gap
+by $\Dlam\ge m_{\min}(\rho-\eta\Sout^{\max})$, positive under \Cref{asm:margin};
+\Cref{lem:A-decomp} gives the right-hand side of \eqref{eq:entrywise} as
+$\min_i|\vv_i|=c_B$ with $c_B^2=1/(m\eta)$.
+
+\emph{Step 2 (entry-wise reduction).} \Cref{lem:neumann}, applicable in the
+strong-signal regime of Step~1, writes $\vvh-\vv=w$ with
+$w_i=-(\EL\vv)_i/\Dlam+R_i$ and $\norm{R}_\infty=O(\opnorm{\EL}^2/\Dlam^2)$.
+Discarding the remainder as lower order against $c_B$ reduces
+\eqref{eq:entrywise} to the per-node condition $|(\EL\vv)_i|<\Dlam|\vv_i|$ holding
+for every node $i$.
+
+\emph{Step 3 (concentration).} \Cref{lem:pernode} bounds the left-hand side
+uniformly over the $m$ nodes: \hp,
+$|(\EL\vv)_i|\lesssim\sqrt{8\rhotil\log m/p}$ with $\rhotil=(1+\eta)\bze^2/\eta$.
+
+\emph{Step 4 (synthesis).} The per-node condition of Step 2 is tightest on clan
+$B$, since $\eta\ge1$. Squaring $\sqrt{8\sigma_B^2\log m}<\Dlam c_B$ and
+substituting $\sigma_B^2$, $c_B^2=1/(m\eta)$ and the gap bound of Step 1, the
+factor $\eta$ cancels and solving for $p$ gives exactly \eqref{eq:main_rate}
+(\Cref{prop:C-bind,cor:C-cond}). Under \eqref{eq:main_rate} every node satisfies
+$|w_i|<|\vv_i|$, hence $\vvh_i$ and $\vv_i$ share a sign; since $\vv$ is
+sign-constant on each clan (\Cref{lem:A-decomp}), the zero-threshold partition of
+$\vvh$ is $(A,B)$ exactly.
+\end{proof}
+
+\Cref{thm:main-dist} states the counterpart of \Cref{thm:main-sim} for the centered
+distance operator. Its proof follows the same four steps, with the population
+geometry of Step~1 and the variance load of Step~3 replaced by their distance
+analogues; \Cref{lem:neumann}
+is applied unchanged, being a statement about an arbitrary symmetric perturbation
+of an arbitrary symmetric matrix. \Cref{app:dist} carries the details.

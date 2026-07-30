@@ -30,7 +30,9 @@ tests/RAxML_result.dendropy_raxml
 sub_sampled_fielder_vec/results/
 sub_sampled_fielder_vec/**/*.png
 # ...except the paper's own figures, which are a tracked deliverable.
+# Both patterns are needed: the second covers figures/Fiedler_Bipartitions/.
 !sub_sampled_fielder_vec/docs/overleafs/v9/figures/*.png
+!sub_sampled_fielder_vec/docs/overleafs/v9/figures/**/*.png
 # Notebook scratch figure dir (v8-era leftovers; see analysis/theoretical_interpretation/README.md)
 sub_sampled_fielder_vec/analysis/theoretical_interpretation/figures/
 sub_sampled_fielder_vec/.claude/

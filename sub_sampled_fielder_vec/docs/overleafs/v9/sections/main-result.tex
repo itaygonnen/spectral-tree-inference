@@ -1,0 +1,48 @@
+%==============================================================================
+%  Section 4 --- Main Result                                        [agent A2]
+%
+%  Source: v8 sec:main (thesis_v8.tex:474-604), stripped to the main result.
+%  Kept here : thm:main-sim (was thm:main), cor:infeasible (reworded).
+%  Moved out : Neumann motivation + thm:neumann + proof sketch  -> sec:outline
+%              NMI paragraph + eq:nmi_def + cor:nmi              -> sec:empirical (C1)
+%              eq:entrywise                                      -> sec:problem (A1)
+%
+%  [Reviewer Note (v9 refine pass): this section is now laser-focused on the two
+%  sampling-rate theorems.  Previously it stated Theorem 1, then spent a
+%  corollary and a remark on the reach of that theorem, and only then -- in a
+%  subsection of its own -- introduced a second operator from scratch and stated
+%  Theorem 2.  The reader met the paper's second main result after the section
+%  had already begun winding down.  The B construction is now setup (§2), and
+%  the two theorems run back to back; the corollary and both remarks follow as a
+%  single coda about where the guarantees apply.]
+%==============================================================================
+\section{Main Result}\label{sec:main}
+The entry-wise recovery criterion \eqref{eq:entrywise} is what the sampling rate
+has to buy. This section converts it into a sufficient condition on $p$, first
+for the Laplacian $L=D-S$ and then for the centred distance operator $\Bop$,
+stated throughout in the structural quantities of \Cref{sec:bridging}: the
+margin $\rho$ of \eqref{eq:margin_definition} and the imbalance $\eta$ of
+\eqref{eq:imbalance_ratio}.
+
+\begin{theorem}[Exact top-down split recovery]\label{thm:main-sim}
+In a non-balanced CBM with $m$ terminal nodes and imbalance $\eta\ge1$, let $\rho$
+be the structural margin and let $\vvh$ be the empirical Fiedler vector --- the
+unit eigenvector belonging to the second-smallest eigenvalue of the sampled
+Laplacian $\hat L=\hat D-\hat S$, formed from entries observed with probability
+$p$ as in \Cref{asm:sampling}. Assume
+\Cref{asm:gtr,asm:clock,asm:cbm,asm:bounded,asm:margin,asm:sampling}. For the
+top-down partition to succeed (i.e.\ $\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$), it
+suffices that
+\begin{equation}\label{eq:main_rate}
+   p\;>\;\frac{8(1+\eta)^3\,\bze^2\,\log m}{m\,(\rho-\eta\,\Sout^{\max})^2}
+       \;=\;\Theta\!\left(\frac{\log m}{m}\right),
+\end{equation}
+in which case $\operatorname{sign}(\vvh)$ recovers $(A,B)$ exactly \hp.
+\end{theorem}
+
+\noindent The distance operator $\Bop=H\Dmat H$ of \Cref{sec:problem} admits a
+statement of the same shape --- entry-wise sign agreement of an empirical
+structural eigenvector against a piecewise-constant target, at a rate governed by
+a spectral gap. Since the hypotheses of the two operators are not nested, the
+following is a \emph{sibling} of \Cref{thm:main-sim} rather than a corollary of
+it.

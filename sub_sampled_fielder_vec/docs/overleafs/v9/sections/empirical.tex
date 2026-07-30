@@ -1,0 +1,117 @@
+%==============================================================================
+%  §7  Empirical Results
+%==============================================================================
+\section{Empirical Results}\label{sec:empirical}
+
+We test the recovery rate of \Cref{thm:main-sim} in two complementary regimes. In the \emph{synthesized} regime, the similarity matrix $S$ is built directly from the closed-form flat CBM (\Cref{asm:cbm}), isolating the linear algebra with no estimation noise. In the \emph{generated} regime, dendropy simulates Kingman coalescent trees and evolves JC69 sequences of length $\ell=10^4$, from which $S$ is the log-det similarity (\Cref{asm:gtr}); this probes whether the CBM idealization survives realistic tree shapes and finite-sequence noise. Throughout, the rule that rounds the sampled Fiedler vector into a partition is $k$-means on the normalized Laplacian $L_{\mathrm{sym}}$.
+
+Recovery is scored by the Normalized Mutual Information (NMI) of the recovered split $\hat C$ against the planted split $C^\ast$. NMI is the standard accuracy metric for evaluating spectral-clustering partitions against a known ground truth \cite{fortunato2010community, qinrohe2013regularized}:
+\begin{equation}\label{eq:nmi_def}
+   \mathrm{NMI}(Y,C)=\frac{2\,I(Y;C)}{H(Y)+H(C)},
+\end{equation}
+with $I(Y;C)$ the mutual information and $H(\cdot)$ the Shannon entropy. NMI attains its maximum value $1$ if and only if the two partitions are identical up to relabeling, and decays as they disagree \cite{strehlghosh2002cluster, fortunato2010community}. Composing this with the sign-recovery guarantee of \Cref{thm:main-sim} fixes the population endpoint of our sweeps.
+
+\begin{corollary}[Perfect partition recovery and $\mathrm{NMI}=1$]\label{cor:nmi}
+Under the hypotheses of \Cref{thm:main-sim}, the spectral partition $\hat C=\{\hat C_A,\hat C_B\}$ obtained by thresholding $\vvh$ at zero satisfies $\hat C=C^\ast$ \hp, and therefore $\mathrm{NMI}(\hat C,C^\ast)=1$.
+\end{corollary}
+\begin{proof}
+\Cref{thm:main-sim} guarantees $\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$, so for each node $i$, $|\vvh_i-\vv_i|<|\vv_i|$, which forces $\vvh_i$ and $\vv_i$ to share a sign. Under the CBM the population Fiedler vector is sign-constant on each clan \cite{aizenbud2023spectral} ($\vv_i>0$ on $A$, $\vv_i<0$ on $B$), so the zero-threshold partition of $\vvh$ recovers $C^\ast$ exactly. Exact recovery gives $I(\hat C;C^\ast)=H(\hat C)=H(C^\ast)$, whence by \eqref{eq:nmi_def} $\mathrm{NMI}(\hat C,C^\ast)=1$.
+\end{proof}
+
+For the synthesized regime, \Cref{fig:pstar_synth} sweeps the non-balanced flat CBM (\Cref{asm:cbm}) at the same four imbalances used in the generated regime, $\eta=1,5,10,15$ ($\Sin=0.9$, $\Sout^{\max}=0.05$), across two decades of $m$. Within each cell the left panel shows the measured-NMI phase transition: the recovery curves sharpen and shift left as $m$ grows, with the dashed $0.90$ level marking the empirical threshold $\hat p^\star(m)$. The right panel plots $\hat p^\star(m)$ against the $\log m/m$ shape of \Cref{thm:main-sim}'s rate \eqref{eq:main_rate} on log-log axes. With no estimation noise present, the empirical threshold tracks that decay closely at every $\eta$.
+
+% [Reviewer Note: the single wide eta=8 image is replaced by four per-eta files
+%  tiled 2x2, matching \Cref{fig:pstar_gen} exactly -- same plot_pstar_pair code
+%  path, same 0.90 threshold, same C log m/m reference with a median-of-ratios
+%  constant.  The eta labels live in the subcaptions, so the panels carry data
+%  only, and the appendix's former "mild imbalance" figure (the same PNGs at
+%  eta=1,2,4) is retired.]
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta=1$}\label{fig:pstar_synth_eta1}
+        \includegraphics[width=\textwidth]{pstar_synth_nmi_eta1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta=5$}\label{fig:pstar_synth_eta5}
+        \includegraphics[width=\textwidth]{pstar_synth_nmi_eta5.png}
+    \end{subfigure}
+
+    \vspace{3mm}
+
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta=10$}\label{fig:pstar_synth_eta10}
+        \includegraphics[width=\textwidth]{pstar_synth_nmi_eta10.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta=15$}\label{fig:pstar_synth_eta15}
+        \includegraphics[width=\textwidth]{pstar_synth_nmi_eta15.png}
+    \end{subfigure}
+    \caption{\textbf{Synthesized, non-balanced flat CBM} ($\Sin=0.9$,
+    $\Sout^{\max}=0.05$). One pair of panels per imbalance. Within each pair --- left: recovery (measured NMI) vs
+    sampling rate $p$, one curve per total size $m$, the curves running dark to
+    light (viridis) with increasing $m$ and the red dashed line at the $0.90$
+    level that defines $\hat p^\star$; right: $\hat p^\star$ vs $m$ on log-log
+    axes (markers) against the dotted $C\log m/m$ reference, the shape of
+    \eqref{eq:main_rate} at fixed $\eta$ with $C$ measured as the median of the
+    per-point ratios $\hat p^\star_i/(\log m_i/m_i)$, giving $C=[\text{TBD}]$ in
+    (a)--(d). Each point averages $20$ sub-sampling
+    trials. No estimation noise is present: $S$ is the closed-form block matrix.}
+    \label{fig:pstar_synth}
+\end{figure}
+
+Transitioning to the generated regime, we observe that on dendropy Kingman trees, the coherence and gap identities of \Cref{prop:coherence,lem:gap} continue to hold despite off-model tree shapes and JC69 noise (\Cref{asm:gtr}). Specifically, the measured coherence $\coh\approx(1+\eta)/2$, Fiedler eigenvalue $\lambda_2\approx n\Sout^{\max}$, and spectral gap $\Dlam$ remains bounded above the theoretical lower bound $m_{\min}(\rho-\eta\Sout^{\max})$ (see \Cref{app:emp-extra}, \Cref{fig:identity_gen}).
+
+For the scaling behavior, \Cref{fig:pstar_gen} sweeps an $\eta$-pooled set of Kingman samples at imbalances $\eta\approx1,5,10,15$. The left panel reports the measured NMI phase transition, and the right panel plots the empirical threshold $\hat p^\star$ (measured NMI $\ge0.95$) versus $n$. Within each row, $\hat p^\star(n)$ decays parallel to the dotted $C\log n/n$ reference. This confirms that the $\Theta(\log n/n)$ sample complexity predicted by \eqref{eq:main_rate} survives under realistic finite-sequence estimation noise.
+
+% [Reviewer Note: the single stacked four-row image is replaced by four per-eta
+%  files tiled 2x2 as subfigures.  The eta labels now live in the subcaptions
+%  rather than inside the images, so the panels carry data only, and each cell
+%  can be cited on its own (\Cref{fig:pstar_gen_eta10}).]
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta\approx1$}\label{fig:pstar_gen_eta1}
+        \includegraphics[width=\textwidth]{pstar_gen_kmeans_eta1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta\approx5$}\label{fig:pstar_gen_eta5}
+        \includegraphics[width=\textwidth]{pstar_gen_kmeans_eta5.png}
+    \end{subfigure}
+
+    \vspace{3mm}
+
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta\approx10$}\label{fig:pstar_gen_eta10}
+        \includegraphics[width=\textwidth]{pstar_gen_kmeans_eta10.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta\approx15$}\label{fig:pstar_gen_eta15}
+        \includegraphics[width=\textwidth]{pstar_gen_kmeans_eta15.png}
+    \end{subfigure}
+    \caption{\textbf{Generated (Kingman), $k$-means rounding.} One pair of panels
+    per imbalance. Within each pair --- left: recovery (measured NMI) vs sampling
+    rate $p$, one curve per $n$, the curves running dark to light (viridis) with
+    increasing $n=500,1000,2000,4000,6000,8000$ and the red dashed line at the
+    $0.90$ level that defines $\hat p^\star$; right: $\hat p^\star$ vs $n$ on
+    log-log axes (markers) against the dotted $C\log n/n$ reference, the shape of
+    \eqref{eq:main_rate} at fixed $\eta$ with $C$ measured as the median of the
+    per-point ratios $\hat p^\star_i/(\log n_i/n_i)$.
+    Each point averages the pool samples available at that $(n,\eta)$ --- ten for
+    $\eta\approx1,5$, three for $\eta\approx10,15$, and one at $n=8000$
+    throughout. Rounding is $k$-means on the normalized Laplacian
+    $L_{\mathrm{sym}}$ applied to the sampled Fiedler vector.}
+    \label{fig:pstar_gen}
+\end{figure}

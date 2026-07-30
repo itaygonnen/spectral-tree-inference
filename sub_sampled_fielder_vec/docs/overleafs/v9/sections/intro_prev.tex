@@ -1,0 +1,186 @@
+%==============================================================================
+%  v9 / sections/intro.tex                                        [owner: A3]
+%
+%  Source: v8 sec:intro, rendered to continuous prose. Structure (v9 refine
+%  pass): setting -> the compound obstacle (coherence under imbalance) ->
+%  contributions -> compressed roadmap. The (i)-(v) enumerate and the
+%  eight-item contributions itemize were dissolved into two paragraphs.
+%
+%  CLAIM DISCIPLINE (see v9/open-items/12-A3.md, [A3/03]-[A3/08]; register
+%  v9/open-items/00-R1.md R1/03-R1/04, R1/12):
+%   * "sufficient", never "tight" / "optimal" / "matching" -- no lower bound is
+%     proved anywhere in the paper.
+%   * cor:tolerance is a *necessary* condition; the regime where it bites is
+%     the HBM (asm:hbm), not the CBM.
+%   * cor:infeasible is "the sufficient condition becomes unsatisfiable" (the
+%     guarantee goes silent) -- not a converse, not an impossibility result.
+%   * the sqrt(m) / Theta(m) saving is stated relative to the l2 route
+%     computed in App. E (rem:E-compare), not against every possible l2 bound.
+%
+%  Related Work (v8 sec:related) was deferred out of the compiled document on
+%  2026-07-27 (see v9/deferred/related.tex); this section does not assume it
+%  exists and folds a one-clause placement note into the roadmap paragraph
+%  instead.
+%==============================================================================
+
+\section{Introduction}\label{sec:intro}
+
+A phylogenetic tree relates $m$ observed leaves through $m-1$ unobserved
+internal nodes and one distinguished root; the data are aligned sequences
+observed at the leaves, and the target is the topology
+\cite{aizenbud2023spectral, semple2003phylogenetics}. Reconstruction methods
+in the top-down, divide-and-conquer family recover this topology
+recursively: split the leaf set at the root edge into the pair of
+complementary \emph{clans} --- the unrooted analogue of a clade
+\cite{wilkinson2007clades} --- recurse independently on each side, and
+merge. Both the error and the cost of this recursion concentrate at the top
+split. On error: the root split is the only cut with no parent call to
+correct it, so a mistake there is inherited by every descendant call,
+whereas a mistake made deep in the tree stays local
+\cite{aizenbud2023spectral}. On cost: the root call is the one that sees all
+$m$ leaves, so its $\Theta(m^2)$ similarity computation dominates the total
+work of the recursion. A guarantee for recovering one bipartition on $m$
+leaves is therefore the load-bearing guarantee for the whole method, and it
+is the object this paper analyses; we do not separately analyse how
+per-call error propagates down the recursion.
+
+The bottleneck this creates is not a matter of storage but of computation:
+each of the $\binom{m}{2}$ pairwise entries of the similarity matrix $S$ is
+not a table lookup but a sequence-pair computation over a length-$\ell$
+alignment, so evaluating all of them costs $\Theta(m^2)$ estimator
+evaluations, and at the scale of modern datasets this is the step one would
+like to skip. The natural response is to evaluate only a random
+$p$-fraction of the pairs and reweight by $1/p$, treating the split as
+recoverable from an incomplete matrix \cite{candes2008exact,
+candes2009power, candes2009matrix}; the question this paper asks is how
+small $p$ can be while the split remains recoverable. There is a structural
+reason to expect an answer well below $p=1$: the population similarity
+matrix has exactly two blocks, the split lives in a rank-two invariant
+subspace of the Laplacian $L=D-S$, and the Fiedler vector is constant on
+each clan. A signal this concentrated should, in principle, be legible from
+far fewer than $m^2$ observations --- whether it actually is, and at what
+rate, is what the rest of the paper works out.
+
+% [Reviewer Note: The five numbered difficulties (i)-(v) and the eight-bullet
+%  contributions list are synthesised into the two paragraphs below.  Two lists
+%  totalling 160 lines stopped the argument dead at exactly the point where the
+%  reader has been promised a question ("how small can p be") and is ready to be
+%  told the answer; a list also flattens dependency, so (i)+(ii)+(iv) -- which
+%  are one compound obstacle, coherence under imbalance -- read as three
+%  unrelated items.  Paragraph one now carries that compound obstacle as a
+%  single escalating argument; paragraph two carries the contributions in the
+%  order the paper delivers them.  Difficulty (iii) is not an obstacle to the
+%  paper at all but the reason for its method, so it moves into the
+%  contributions paragraph; difficulty (v) is a scope limitation and is stated
+%  as one.  Every citation key from the deleted lists is preserved.]
+Two features of the phylogenetic setting keep this from being a routine
+low-rank completion problem, and they compound rather than add. The first is
+that coherence, not size, governs completion: a rank-two signal spread over
+$m^2$ entries is recoverable from $O(m\log m)$ of them only if the leading
+subspace is \emph{spread}, since a uniform mask misses informative
+coordinates that are few in number and no reweighting repairs the loss
+\cite{candes2009power, recht2011simpler, chen2014completing}. The sampling
+rate must therefore be quantified against a coherence-like quantity of the
+specific operator at hand --- and that operator is the Laplacian $L=D-S$
+rather than $S$ itself, since the two do not generally share eigenvectors.
+The second is that the relevant trees are not balanced. Spectral-clustering
+and community-detection guarantees are typically stated for clusters of
+comparable size, with balance entering only as an unnamed constant
+\cite{Balakrishnan2011clustering, qinrohe2013regularized}, whereas
+phylogenetic trees are systematically more imbalanced than standard null
+models predict \cite{blum2006which, aldous2001stochastic}, with root splits
+ranging from near-even to caterpillar-like and the imbalance ratio
+$\eta=|B|/|A|$ reaching $\mathcal O(m)$ --- precisely the regime in which a
+balanced-cluster constant stops behaving like a constant. The two features
+meet in the fact that $\eta$ drives both spectral quantities that govern
+recovery, and drives both the wrong way: it inflates the subspace coherence,
+concentrating the split signal onto the smaller clan, and it erodes the
+spectral gap $\Dlam$ that isolates the Fiedler vector by weighting the
+cross-clan boundary against the structural margin. These are not two
+symptoms of one problem. Gap collapse makes the eigenvector
+\emph{uninformative} --- there is nothing to sample, and no $p$ helps ---
+while coherence inflation leaves the eigenvector perfectly informative but
+\emph{unaffordable to sample}, the required rate exceeding one. The
+distinction is practical as well as structural: the first failure calls for
+re-rooting or re-modelling, the second for more sampling budget, and a
+scaling study that conflates them reports one curve where there are two
+mechanisms.
+
+This paper makes the two quantities explicit and prices the split against
+them. We isolate $\eta$ as the single macro-topological parameter through
+which tree shape reaches the linear algebra \eqref{eq:imbalance_ratio},
+replacing the unnamed balance constant of the spectral-clustering literature
+\cite{Balakrishnan2011clustering}, and index every subsequent result by it:
+the subspace coherence is then an exact identity rather than a bound,
+$\coh=(1+\eta)/2$ (\Cref{prop:coherence}), computed in closed form from the
+Fiedler coordinates with no constants and no asymptotics, and the
+Fiedler-isolating gap admits the matching lower bound
+$\Dlam\ge m_{\min}(\rho-\eta\Sout^{\max})$ (\Cref{lem:gap}) in terms of the
+same $\eta$ and the structural margin $\rho$ of \eqref{eq:margin_definition}.
+Together these yield the paper's main result (\Cref{thm:main-sim}): the
+explicit rate $p>8(1+\eta)^3\bze^2\log m/[m(\rho-\eta\Sout^{\max})^2]$
+suffices for exact recovery of the split from $\mathrm{sign}(\vvh)$ \hp,
+which is $O(\log m/m)$ in $m$ at fixed $\eta$ and carries the imbalance
+explicitly as $(1+\eta)^3$; we prove no lower bound anywhere, so the rate is
+sufficient and is not claimed to be tight or order-optimal. Reaching it
+requires an entry-wise argument, because sign recovery is an $\ell_\infty$
+event --- the empirical Fiedler vector must agree with the population one at
+\emph{every} coordinate, $\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$ --- while
+Davis--Kahan and its relatives bound $\norm{\vvh-\vv}_2$
+\cite{davis1970rotation}, and the only dimension-free transfer between them,
+$\norm{\cdot}_\infty\le\norm{\cdot}_2$, charges every node as if it were the
+worst one. We therefore state the coordinate-wise route as a reusable device
+(\Cref{lem:neumann}), decomposing the perturbed Fiedler vector as a
+Neumann/resolvent series, isolating the leading coordinate term
+$-(\EL\vv)_i/\Dlam$ and concentrating it by a per-node Bernstein inequality
+in the manner of \cite{eldridge2017unperturbed, fan2018eigenvector,
+abbe2020entrywise}; \Cref{app:compare} computes the two routes side by side
+and finds a $\Theta(m\eta/\bze^2)$ ratio in the required $p$, enough in some
+regimes to push the $\ell_2$ route past the feasibility ceiling $p\le1$ where
+the entry-wise route stays inside it. The rate in turn delimits where the
+guarantee lives: the \emph{structural} bound (\Cref{cor:tolerance}) states
+that a positive gap \emph{requires} $\eta<\Sin^{\min}/\Sout^{\max}$, which
+translated into tree distances caps sustainable imbalance at a value
+polynomial in $m$ under balanced generative models \cite{erdos1999logs,
+aldous2001stochastic} --- a necessary, not sufficient, condition, and one
+that bites under the geometric-decay relaxation of \Cref{app:hbm} rather than
+the plain block model --- while the \emph{statistical} bound
+(\Cref{cor:infeasible}) locates the threshold in $\eta$ past which the
+sufficient condition can no longer be met with $p\le1$ and the guarantee
+simply goes silent, which is a statement about the reach of the theorem and
+not a converse. The same programme run on the double-centred distance
+operator $\mathcal B=H\mathcal D H$ yields a sibling statement whose
+structural eigenvector is the same split (\Cref{thm:main-dist}), connecting
+the spectral route to the classical numerical-taxonomy and
+split-decomposition line \cite{Griffing2012, BandeltDress1992}. Empirically
+(\Cref{sec:empirical}) we stratify by $\eta$ rather than pooling: existing
+scaling studies of Fiedler-based recovery report a single
+threshold-versus-size curve, implicitly treating size as the only parameter,
+whereas holding $\eta$ fixed, varying $m$, and repeating across
+$\eta\in\{1,2,4,8,\dots\}$ is what makes an $\eta$-driven inflation appear as
+a shift between curves rather than as scatter within one. One limitation is
+worth stating at the outset: even a fully observed entry is only an estimate,
+since the log-det similarity concentrates at rate $O(1/\sqrt\ell)$ in the
+sequence length \cite{aizenbud2023spectral}, and the scope of the bound is
+mask noise alone --- the sequence-estimation term is not carried through it,
+and the generated-regime experiments are what test whether that omission
+matters in practice.
+
+% [Reviewer Note: Roadmap compressed from a sentence-per-section walkthrough to
+%  four sentences.  It retains the "prior work is woven in" placement note,
+%  which does real work now that Related Work is deferred out of the document.]
+Prior work is woven into the discussion above and below rather than
+collected into a separate section, matching how most of the papers closest
+to this one --- \cite{aizenbud2023spectral} in particular --- organise their
+own introductions. \Cref{sec:problem} fixes the generative model, the block
+structure of $S$, the recovery parameters, the sampling model and the two
+operators we analyse, and states the problem formally. \Cref{sec:bridging}
+routes tree topology into the linear algebra through $\eta$ --- coherence up,
+gap down --- and reads off the two failure modes, after which \Cref{sec:main}
+states the sampling rates for both operators and \Cref{sec:outline} assembles
+the proof from population geometry, the Neumann reduction, per-node
+concentration and synthesis. \Cref{sec:empirical} tests the rate in a
+noise-free closed-form regime and in a simulated-sequence regime; the
+appendices carry the full proofs (\Cref{app:comp1,app:comp2,app:comp3}), the
+Hierarchical Block Model relaxation (\Cref{app:hbm}), and the $\ell_2$
+comparison (\Cref{app:compare}) referenced above.

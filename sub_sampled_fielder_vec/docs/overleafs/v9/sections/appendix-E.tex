@@ -1,0 +1,47 @@
+%==============================================================================
+%  Appendix E --- The Neumann trick, comparison with standard bounds [agent A2]
+%
+%  Source: v8 thesis_v8.tex:1120-1154 (app:compare), ported verbatim.
+%  Edits: \Cref{thm:neumann} -> \Cref{lem:neumann} (renamed in sec:outline);
+%         \Cref{cor:C-cond} left unchanged -- it is still a standalone
+%         corollary in Appendix C (v9/sections/appendix-C.tex), not folded
+%         into a proof step, so the v8 target is still correct.
+%  Inbound: \Cref{app:compare} is cited from sec:outline (proof-outline.tex),
+%           and from intro.tex / related.tex; rem:E-compare is cited twice
+%           from sec:outline. Not orphaned -- see register item A2/01.
+%==============================================================================
+\section{The Neumann trick --- comparison with standard bounds}\label{app:compare}
+
+The recovery criterion \eqref{eq:entrywise} constrains $w=\vvh-\vv$ in the
+entry-wise sense, $\norm{w}_\infty<c_B$, where $c_B=\min_i|\vv_i|$ is the
+entry-wise margin, attained on the binding clan $B$ with $c_B^2=1/(m\eta)$, while
+the sampled-Laplacian noise satisfies $\opnorm{\EL}\le\tilde C\sqrt{m(1+\eta)\log
+m/p}$ (\Cref{lem:B-bernstein}). The two routes below bound the same $w$, differing
+only in how they relate the entry-wise constraint to $\EL$.
+
+\paragraph{The standard ($\ell_2$) route.} Davis--Kahan controls only the Euclidean
+norm, $\norm{w}_2\le\opnorm{\EL}/(\Dlam-\opnorm{\EL})$. Because the criterion is in
+the supremum norm, this must be transferred via $\norm{w}_\infty\le\norm{w}_2$;
+imposing $\norm{w}_2<c_B$ and substituting the noise bound in the regime
+$\opnorm{\EL}\ll\Dlam$ yields $p_{\mathrm{naive}}\gtrsim m^2\eta(1+\eta)\log m/\Dlam^2$.
+
+\paragraph{The entry-wise (Neumann) route.} \Cref{lem:neumann} bounds each
+coordinate directly, replacing $\opnorm{\EL}$ by the scalar $(\EL\vv)_i$ at the
+tightest coordinate $i\in B$. This scalar is a sum of $O(m)$ independent mean-zero
+contributions concentrating at $\sigma_B^2=(1-p)(1+\eta)\bze^2/(\eta p)$
+(\Cref{prop:C-var}), smaller than $\opnorm{\EL}^2$ by a factor $m$; imposing
+$|w_i|<c_B$ and the gap bound recovers the rate of \Cref{cor:C-cond}.
+
+\begin{remark}[$\ell_2$ vs.\ entry-wise]\label{rem:E-compare}
+Comparing the two rates gives
+$p_{\mathrm{naive}}/p_{\mathrm{Neumann}}=\Theta(m\eta/\bze^2)$, a $\Theta(m)$
+reduction for fixed $\eta$. The saving originates at the noise level: the operator
+norm $\opnorm{\EL}$ exceeds the individual increment $(\EL\vv)_i$ by
+$\Theta(\sqrt m)$, and since $p$ enters both rates as $p^{-1}$ under a square root
+this squares to $\Theta(m)$. Both rates share $(1+\eta)^3/(\rho-\eta\bze)^2$ and
+diverge as $\rho-\eta\bze\to0$ (the boundary of \Cref{asm:margin}), but the
+entry-wise rate stays within $p\le1$ over a region where $p_{\mathrm{naive}}$
+already exceeds it, and under the HBM decay of \Cref{prop:D-gap} remains feasible
+for larger $D_{\max}$, accommodating deeper and more imbalanced trees than the
+Euclidean route admits.
+\end{remark}

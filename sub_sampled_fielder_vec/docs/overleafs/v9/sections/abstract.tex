@@ -1,0 +1,27 @@
+%==============================================================================
+%  v9 / sections/abstract.tex                                    [owner: A3]
+%
+%  NOTE FOR THE ASSEMBLER (A1): this file already carries its own
+%  \begin{abstract}...\end{abstract}.  \input{sections/abstract} directly --
+%  do NOT wrap it in another abstract environment.
+%
+%  [Reviewer Note: Abstract rewritten as problem -> approach -> bound ->
+%  takeaway.  The v9 text spent five of its eleven sentences walking through
+%  the method (Neumann vs Davis--Kahan, the sqrt(m) recovery, the two failure
+%  modes, the coherence identity as a separate beat), which is the body of the
+%  paper, not its advertisement.  Those are compressed to a single subordinate
+%  clause each; the final no-lower-bound sentence is kept verbatim because it
+%  is a claim-discipline commitment (open-items/12-A3.md).]
+%==============================================================================
+
+%==============================================================================
+%  Abstract
+%==============================================================================
+\begin{abstract}
+Top-down reconstruction of latent binary phylogenetic trees is fundamentally bottlenecked by the $\Theta(m^2)$ cost of computing pairwise similarities across $m$ leaves. While observing only a sparse, Bernoulli-sampled subset of entries offers a computational workaround, real-world tree imbalance severely degrades the spectral signal, rendering standard balanced-cluster recovery guarantees inadequate. 
+In this work, we frame spectral tree inference as an eigenvector perturbation problem within the matrix-completion regime, demonstrating that the primary root split of an imbalanced latent tree can be exactly recovered from the sign pattern of the empirical Fiedler vector.
+
+Our primary contribution is a sharp finite-sample guarantee proving that a sampling rate of $p = \Theta(\log m / m)$ suffices for exact split recovery at a fixed imbalance. By utilizing a coordinate-wise Neumann-series expansion rather than a standard Davis-Kahan $\ell_2$ transfer, we eliminate a spurious $\sqrt{m}$ factor in the entry-wise error bound. 
+Furthermore, we identify the imbalance ratio $\eta$ as the governing topological parameter and prove it dictates recovery through two distinct failure mechanisms: artificially inflating subspace coherence (rendering recovery statistically unaffordable) and eroding the spectral gap (rendering recovery structurally impossible). 
+This yields an explicit sample complexity dependence of $(1+\eta)^3$. Finally, we establish a parallel spectral recovery principle for double-centered distance matrices. Simulations on closed-form block models and Kingman coalescent trees with JC69 sequence evolution validate the predicted $\Theta(\log m / m)$ scaling and the isolated degradation mechanics of topological imbalance.
+\end{abstract}

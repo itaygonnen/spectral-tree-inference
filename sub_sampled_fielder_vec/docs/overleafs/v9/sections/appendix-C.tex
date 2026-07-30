@@ -1,0 +1,152 @@
+%==============================================================================
+%  Appendix C --- Proof of the entry-wise perturbation               [agent A2]
+%
+%  Source: v8 thesis_v8.tex:863-1002.
+%  Restructure: C.1 keeps the decomposition (lem:C-series, lem:C-first, rem:C-asym);
+%               C.2 keeps the concentration chain and now carries the proof of
+%                   lem:pernode (v8's lem:C-bern, whose statement moved to sec:outline);
+%               C.3 is new and holds lem:C-remainder, moved out of C.1.
+%==============================================================================
+\section{Proof of the entry-wise perturbation}\label{app:comp3}
+
+\subsection{Neumann decomposition (proof of \Cref{lem:neumann})}\label{app:comp3a}
+
+Write $\hat L=L+\EL$ and $\vvh=\vv+w$, and expand $w$ into a resolvent power series
+in $\EL$ \cite{eldridge2017unperturbed}.
+
+\begin{lemma}[Exact Neumann decomposition]\label{lem:C-series}
+Define
+\[
+   w^{(1)}=\sum_{\ell\ne2}\frac{-\langle v^{(\ell)},\EL\vv\rangle}
+        {\lambda_\ell-\hat\lambda_2}v^{(\ell)},
+   \quad
+   w^{(2)}=\sum_{\ell\ne2}\frac{-\langle v^{(\ell)},\EL w\rangle}
+        {\lambda_\ell-\hat\lambda_2}v^{(\ell)}+\langle v^{(2)},w\rangle v^{(2)}.
+\]
+Then $w=w^{(1)}+w^{(2)}$ exactly, and under $\opnorm{\EL}<\Dlam$ this is the
+resolvent series $w=\sum_{k\ge1}(-1)^k(\Dlam^{-1}\Pi\EL)^k\vv$.
+\end{lemma}
+\begin{proof}
+From $\hat L\vvh=\hat\lambda_2\vvh$ and $L\vv=\lambda_2\vv$,
+$(L-\hat\lambda_2I)w=(\hat\lambda_2-\lambda_2)\vv-\EL\vv-\EL w$. Projecting onto
+$v^{(\ell)}$ ($\ell\ne2$), using $\langle v^{(\ell)},\vv\rangle=0$, gives
+$\langle v^{(\ell)},w\rangle=(-\langle v^{(\ell)},\EL\vv\rangle-\langle
+v^{(\ell)},\EL w\rangle)/(\lambda_\ell-\hat\lambda_2)$. Expanding
+$w=\sum_\ell\langle v^{(\ell)},w\rangle v^{(\ell)}$ and separating the $\ell=2$
+component recovers the decomposition; iterating on $\EL w$ under $\opnorm{\EL}<\Dlam$
+yields the convergent series.
+\end{proof}
+
+\begin{lemma}[Entry-level first-order bound]\label{lem:C-first}
+Provided $\opnorm{\EL}<\Dlam$, for every node $i$,
+\begin{equation}
+   |w^{(1)}_i|\le\frac{|(\EL\vv)_i|+\opnorm{\EL}\,|\vv_i|}{\Dlam-\opnorm{\EL}}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+By Weyl's inequality $|\lambda_\ell-\hat\lambda_2|\ge\Dlam-\opnorm{\EL}$ for
+$\ell\ne2$. Factoring the denominator,
+$|w^{(1)}_i|\le|(P_\perp\EL\vv)_i|/(\Dlam-\opnorm{\EL})$ with
+$P_\perp=I-\vv(\vv)^\top$. Since $P_\perp x=x-\langle\vv,x\rangle\vv$ and
+$|\langle\vv,\EL\vv\rangle|\le\opnorm{\EL}\norm{\vv}_2^2=\opnorm{\EL}$,
+$|(P_\perp\EL\vv)_i|\le|(\EL\vv)_i|+\opnorm{\EL}|\vv_i|$.
+\end{proof}
+
+\begin{remark}[Asymmetric correction in the non-balanced CBM]\label{rem:C-asym}
+The correction $\opnorm{\EL}|\vv_i|$ equals $\opnorm{\EL}c_A$ for $i\in A$ and
+$\opnorm{\EL}c_B$ for $i\in B$. For the binding clan $B$ this is
+$\opnorm{\EL}/\sqrt{m\eta}$, strictly sub-dominant to the recovery target $c_B$
+when $\opnorm{\EL}\ll\Dlam$. Throughout \Cref{app:comp3b} we therefore use the
+leading-order simplification $|w^{(1)}_i|\lesssim|(\EL\vv)_i|/\Dlam$ for $i\in B$.
+\end{remark}
+
+\subsection{Per-node Bernstein concentration}\label{app:comp3b}
+
+\begin{lemma}[Laplacian increment representation]\label{lem:C-inc}
+For every node $i$, $(\EL\vv)_i=\sum_{j\ne i}X_{ij}$ with
+$X_{ij}=(\tfrac{\omega_{ij}}{p}-1)S_{ij}(\vv_i-\vv_j)$ independent and mean zero.
+\end{lemma}
+\begin{proof}
+With $(\ES)_{ij}=(\omega_{ij}/p-1)S_{ij}$, $(\EL)_{ii}=\sum_{k\ne i}(\ES)_{ik}$ and
+$(\EL)_{ij}=-(\ES)_{ij}$, so
+$(\EL\vv)_i=\sum_{k\ne i}(\ES)_{ik}\vv_i-\sum_{j\ne i}(\ES)_{ij}\vv_j
+=\sum_{j\ne i}(\ES)_{ij}(\vv_i-\vv_j)$.
+\end{proof}
+
+\begin{proposition}[Within-clan terms vanish]\label{prop:C-within}
+Under \Cref{asm:cbm}, $\vv$ is constant on each clan (\Cref{lem:A-decomp}), so
+$X_{ij}=0$ for same-clan pairs; only cross-clan pairs survive:
+$(\EL\vv)_i=\sum_{j\in A}X_{ij}$ for $i\in B$, and
+$(\EL\vv)_i=\sum_{j\in B}X_{ij}$ for $i\in A$.
+\end{proposition}
+
+\begin{proposition}[Per-node variance]\label{prop:C-var}
+Under \Cref{asm:cbm,asm:bounded,asm:sampling} with $\bze=\Sout^{\max}$, using
+$(c_A+c_B)^2=m/(ab)=(1+\eta)^2/(m\eta)$,
+\begin{equation}
+   \sigma_B^2:=\operatorname{Var}\bigl((\EL\vv)_i\bigr)\big|_{i\in B}
+   =\frac{(1-p)(1+\eta)\bze^2}{\eta\,p},
+   \qquad
+   \sigma_A^2=\frac{(1-p)(1+\eta)\bze^2}{p}=\eta\,\sigma_B^2,
+\end{equation}
+so clan $B$ has strictly smaller per-node variance;
+$\sigma_B^2=(1-p)\rhotil/p$ with $\rhotil=(1+\eta)\bze^2/\eta$.
+\end{proposition}
+\begin{proof}
+For $i\in B$ each of the $a$ surviving terms has $S_{ij}=\bze$ and
+$|\vv_i-\vv_j|=c_A+c_B$, so $\sigma_B^2=\tfrac{1-p}{p}(c_A+c_B)^2a\bze^2$;
+substituting $a=m/(1+\eta)$ and $(c_A+c_B)^2=(1+\eta)^2/(m\eta)$ gives the stated
+value. Clan $A$ follows symmetrically with $b$ in place of $a$.
+\end{proof}
+
+\begin{proof}[Proof of \Cref{lem:pernode}]
+By \Cref{lem:C-inc,prop:C-within}, for $i\in B$ the quantity
+$(\EL\vv)_i=\sum_{j\in A}X_{ij}$ is a sum of independent, mean-zero summands with
+$|X_{ij}|\le\bze(c_A+c_B)/p=R_B$ and total variance $\sigma_B^2$
+(\Cref{prop:C-var}). Bernstein's inequality for bounded independent summands gives
+the stated two-term deviation bound at confidence $1-\delta$. In the
+variance-dominated regime $p=\Theta(\log m/m)$ the linear term is of lower order,
+and a union bound over the $m$ nodes at $\delta=\delta_0/m$ yields
+\eqref{eq:concentration-bound}.
+\end{proof}
+
+\begin{proposition}[Clan $B$ is binding]\label{prop:C-bind}
+Under \Cref{asm:cbm}, $\min_i|\vv_i|=|c_B|$, attained on the larger clan $B$. The
+per-node condition $|(\EL\vv)_i|<\Dlam|\vv_i|$ requires
+$p>8m(1+\eta)\bze^2\log m/\Dlam^2$ on $B$ (the clan-$A$ condition carries an extra
+$1/\eta$), so since $\eta\ge1$, clan $B$ binds.
+\end{proposition}
+\begin{proof}
+Squaring $\sqrt{8\sigma_B^2\log m}<\Dlam c_B$ and substituting $\sigma_B^2$ with
+$c_B^2=1/(m\eta)$: the $\eta$ cancels, giving
+$p>8m(1+\eta)\bze^2\log m/\Dlam^2$. Clan $A$ follows with $c_A^2=\eta/m$.
+\end{proof}
+
+\begin{corollary}[Per-node recovery condition]\label{cor:C-cond}
+If $|w_i|<\min_i|\vv_i|$ for all $i$ then
+$\operatorname{sign}(\vvh)=\operatorname{sign}(\vv)$. Combining
+\Cref{lem:pernode,prop:C-bind} with the gap bound
+$\Dlam\ge m(\rho-\eta\bze)/(1+\eta)$ (\Cref{lem:gap}) yields
+\begin{equation}\label{eq:per-node-p}
+   p>\frac{8(1+\eta)^3\bze^2\log m}{m(\rho-\eta\Sout^{\max})^2}
+    =\Theta\!\left(\frac{\log m}{m}\right),
+\end{equation}
+which is the rate \eqref{eq:main_rate} of \Cref{thm:main-sim}. This computation is
+Step~4 of the proof in \Cref{sec:outline}.
+\end{corollary}
+
+\subsection{The second-order remainder}\label{app:comp3c}
+
+The bound below is the term discarded at Step~2 of \Cref{sec:outline}; it is
+what restricts the argument to the strong-signal regime $\opnorm{\EL}\ll\Dlam$.
+
+\begin{lemma}[Second-order negligibility]\label{lem:C-remainder}
+$\norm{w^{(2)}}_\infty=O\!\bigl(\opnorm{\EL}^2/\Dlam^2\bigr)$.
+\end{lemma}
+\begin{proof}
+By Davis--Kahan $\norm{w}_2\le\opnorm{\EL}/(\Dlam-\opnorm{\EL})$. Each coefficient
+$b_\ell=-\langle v^{(\ell)},\EL w\rangle$ satisfies $|b_\ell|\le\opnorm{\EL}\norm{w}_2$,
+and since $|\lambda_\ell-\hat\lambda_2|\ge\Dlam-\opnorm{\EL}$ each summand of
+$w^{(2)}$ contributes $O(\opnorm{\EL}^2/\Dlam^2)$ in $\ell_\infty$; the $\vv$
+component obeys $|\langle\vv,w\rangle|=O(\norm{w}_2^2)=O(\opnorm{\EL}^2/\Dlam^2)$.
+\end{proof}

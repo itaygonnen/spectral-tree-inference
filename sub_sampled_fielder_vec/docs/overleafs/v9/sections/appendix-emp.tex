@@ -1,0 +1,108 @@
+%==============================================================================
+%  Appendix G  Supplementary empirical figures                     [owner: C1]
+%  Source: v8 sec:empirical (thesis_v8.tex:562-691), figures and passages
+%  referenced there but not shown in the main-text §7 (sections/empirical.tex).
+%
+%  fig:pstar_balanced       -- balanced-case sweep; v8 scored this by sign
+%                               agreement (C=32.7). Rescored to NMI by C3; see
+%                               open-items/14-C1.md [C1/04] for the handoff.
+%  fig:pstar_synth_mild     -- mild-imbalance (eta=1,2,4) synthesized sweeps,
+%                               referenced but not shown in v8 sec:emp-synth.
+%  fig:identity_gen         -- coherence/gap identity scatter, v8 sec:emp-gen.
+%  fig:recovery_grid        -- full operator x eta x n recovery grid.
+%  fig:operator_sensitivity -- the sigma2-gap / sign / k-means three-operator
+%                               comparison relocated from v8's main-text figure
+%                               (thesis_v8.tex:673-683); see sections/empirical.tex
+%                               sec:emp-gen for why it moved -- with one operator
+%                               the cross-operator invariance claim it supports
+%                               is unfalsifiable, so it cannot back thm:main-sim
+%                               in the main text, only serve as methodology here.
+%==============================================================================
+\section{Supplementary Empirical Figures}\label{app:emp-extra}
+
+\Cref{sec:empirical} restricts the main text to one figure per regime, both
+rounded by $k$-means on $L_{\mathrm{sym}}$. This appendix collects the sweeps
+that support claims made there but are not themselves plotted: the balanced
+baseline, the identity checks behind
+the generated-regime discussion in \Cref{sec:empirical}, the full recovery grid, and the
+cross-operator comparison whose absence from the main text is explained
+below.
+
+\subsection*{Balanced baseline}
+\Cref{fig:pstar_balanced} sweeps the balanced case ($\eta=1$) referenced in
+the synthesized regime of \Cref{sec:empirical}, scored by the measured NMI of \Cref{cor:nmi}, consistent
+with the main-text figures.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{pstar_balanced_nmi.png}
+    \caption{\textbf{Synthesized, balanced flat CBM ($\eta=1$).} $\hat p^\star$
+    (measured NMI $\ge0.95$) vs $n=32,\dots,16384$, following
+    $\hat p^\star=C\log n/n$ (dashed).
+    % VALUE FROM C3: fitted constant C under the NMI metric. v8's fit under the
+    % old sign-agreement metric was C=32.7 and does not carry over -- do not
+    % reuse that number here.
+    The fitted constant is $C=[\text{TBD, C3}]$, the $\Theta(\log n/n)$ baseline
+    of \eqref{eq:main_rate} at $\eta=1$.}
+    \label{fig:pstar_balanced}
+\end{figure}
+
+% [Reviewer Note: the "Mild imbalance, synthesized" subsection and its
+%  fig:pstar_synth_mild figure are deleted.  \Cref{fig:pstar_synth} now tiles
+%  all four synthesized imbalances itself, so that figure showed the same PNGs
+%  a second time.  Its only reference was inside its own subsection.]
+\subsection*{Identity checks, generated regime}
+\Cref{fig:identity_gen} is the scatter behind the generated-regime
+identity claims of \Cref{sec:empirical}: measured coherence, Fiedler eigenvalue, and spectral gap against
+their \Cref{prop:coherence,lem:gap} predictions, across the Kingman/JC69 sample.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{identity_scatter_kingman.png}
+    \caption{\textbf{Generated (Kingman), identity checks.} Measured coherence
+    $\coh$ against the \Cref{prop:coherence} prediction $(1+\eta)/2$, and
+    measured gap $\Dlam$ against the \Cref{lem:gap} lower bound
+    $m_{\min}(\rho-\eta\Sout^{\max})$, on the Kingman/JC69 sample of
+    \Cref{fig:pstar_gen}.}
+    \label{fig:identity_gen}
+\end{figure}
+
+\subsection*{Full recovery grid}
+\Cref{fig:recovery_grid} is the complete $\eta\times n$ grid underlying
+\Cref{fig:pstar_gen}: one measured-NMI-vs-$p$ panel per $(\eta,n)$ pair, rounded
+by $k$-means on $L_{\mathrm{sym}}$.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{recovery_grid_kmeans.png}
+    \caption{\textbf{Generated (Kingman), full recovery grid.} Measured NMI vs
+    $p$ for every $(\eta,n)$ pair swept in \Cref{fig:pstar_gen}, rounded by
+    $k$-means on $L_{\mathrm{sym}}$; the dashed line marks the $0.95$ threshold
+    defining $\hat p^\star$.}
+    \label{fig:recovery_grid}
+\end{figure}
+
+\subsection*{Rounding-rule sensitivity}
+\Cref{sec:empirical} restricts the main text to $k$-means, since a single rounding
+rule cannot support a claim about rounding rules in general. \Cref{fig:operator_sensitivity}
+reruns the same $\eta$-pooled sweep of \Cref{fig:pstar_gen} with two further
+rules applied to the same sampled Fiedler vector: the sign rule that
+\Cref{thm:main-sim} analyzes, and a $\sigma_2$-gap rule. The sign and $k$-means
+operators decay as $\approx n^{-1}$, parallel to the $\log n/n$ reference, while
+the $\sigma_2$-gap rule saturates --- so the $\log n/n$ scaling is a property of
+the spectral signal, not of the particular rounding rule. This is methodology
+supporting the choice of $k$-means as the main-text operator, not additional
+evidence for \Cref{thm:main-sim}, which concerns the sign rule alone.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{pstar_gen_3operators.png}
+    \caption{\textbf{Generated (Kingman), rounding-rule sensitivity.}
+    $\hat p^\star$ (measured NMI $\ge0.95$) vs $n$ on the $\eta$-pooled samples
+    of \Cref{fig:pstar_gen}, one panel per $\eta\in\{1,5,10,15\}$, for three
+    rounding rules. Dashed = free power-law fit $\hat p^\star\propto n^{b}$;
+    dotted = the $C\log n/n$ reference. The Fiedler-sign (grey) and $k$-means
+    (red) operators follow $b\approx-1$; the $\sigma_2$-gap operator (blue)
+    saturates.}
+    \label{fig:operator_sensitivity}
+\end{figure}

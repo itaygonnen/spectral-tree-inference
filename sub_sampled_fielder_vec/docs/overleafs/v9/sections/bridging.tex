@@ -1,0 +1,113 @@
+%==============================================================================
+%  §4  Bridging Tree Topology to Linear Algebra                    [owner: A1]
+%  Source: v8 §4 (sec:bridging, v8:344-471).
+%  Moved out:  def:imbalance + eq:imbalance_ratio  -> sec:problem (inline)
+%              asm:margin    + eq:margin_assumption -> sec:problem
+%
+%  [Reviewer Note (v9 refine pass): section retitled "Topological Scaling and
+%  Spectral Gap" -- the old title named the activity rather than the content,
+%  and "bridging X to Y" reads as a lecture heading.  The three \subsection*
+%  headings ("Imbalance raises...", "Imbalance erodes...", "Two failure modes")
+%  are removed: each announced in a sentence what the proposition or lemma
+%  immediately below it states formally, so the reader was told everything
+%  twice.  Proposition 1 and Lemma 1 are now stated directly, and the two
+%  failure modes run as continuous prose rather than under \paragraph headings.]
+%==============================================================================
+\section{Topological Scaling and Spectral Gap}\label{sec:bridging}
+
+The reader now has the population model and the recovery problem. What remains is
+to explain \emph{why} the topology of the primary split governs recovery. We
+answer this through the single structural parameter $\eta$ of
+\eqref{eq:imbalance_ratio} and trace its effect on the two spectral quantities
+the main theorem depends on. Working with the clean population Laplacian
+$L=D-S$, both the subspace coherence $\coh$ and the spectral gap
+$\Dlam=\lambda_3-\lambda_2$ are fixed by macro-topological features alone, and
+$\eta$ moves both against recovery: it first inflates $\coh$, then erodes
+$\Dlam$.
+
+\begin{proposition}[Topological scaling of coherence]\label{prop:coherence}
+Under \Cref{asm:cbm}, the tree imbalance $\eta$ maps deterministically to the
+subspace coherence,
+\begin{equation}\label{eq:coherence_linear_growth}
+   \coh=\frac{1+\eta}{2}.
+\end{equation}
+\end{proposition}
+\noindent The identity follows by substituting the Fiedler coordinates of
+\Cref{lem:A-decomp} into \eqref{eq:coherence_definition}; the short computation is given in
+\Cref{app:comp1}. Thus a balanced split attains the
+optimal coherence $\coh=1$, and the signal spreads more unevenly across nodes as
+$\eta$ grows; the generated regime of \Cref{sec:empirical} confirms the identity
+on data from the full generative pipeline.
+
+% [Reviewer Note: the coherence-vs-eta validation figure (former Figure 2,
+%  coherence_vs_eta_by_n.png) was removed at the author's instruction.  The
+%  sentence that carried it now points forward to the generated regime in §6,
+%  where the same identity is reported as a measurement.]
+
+The second spectral quantity is the gap $\Dlam=\lambda_3-\lambda_2$ that isolates
+the Fiedler vector, and the same imbalance that raises $\coh$ drives it toward
+zero.
+
+\begin{lemma}[Spectral-gap lower bound]\label{lem:gap}
+Let $L$ be the combinatorial Laplacian of a similarity matrix satisfying the
+molecular clock, with structural margin $\rho=\Sin^{\min}-\Sout^{\max}$. For
+$m_{\min}=\min(a,b)$ and imbalance $\eta$, the spectral gap isolating the Fiedler
+vector satisfies
+\begin{equation}\label{eq:spectral_gap_margin}
+   \Dlam \ge m_{\min}\rho-\eta\,m_{\min}\,\Sout^{\max}.
+\end{equation}
+\end{lemma}
+\noindent The full algebraic-connectivity derivation is given in \Cref{app:comp1},
+building on the eigenpairs of \Cref{lem:A-decomp}. The bound
+\eqref{eq:spectral_gap_margin} is purely a CBM statement, controlling the gap
+through the abstract minimum intra-clan similarity $\Sin^{\min}$. Under the
+relaxation of \Cref{asm:hbm} that minimum stops being a free parameter and becomes
+a function of tree shape: it is pinned to the geometric floor
+$\Sin\,\alpha^{D_{\max}}$, so depth erodes the gap in the same way imbalance does,
+and the gap survives only while the decay $\alpha^{D_{\max}}$ still clears the
+imbalance-weighted boundary --- quantified in \Cref{prop:D-gap}.
+
+\Cref{prop:coherence} and \Cref{lem:gap} show that the same parameter $\eta$ acts
+on both spectral quantities at once, which produces two distinct ways for
+top-down recovery to fail; together they bound the admissible region of
+$(m,\eta)$. The first is \emph{structural collapse},
+$\Dlam\to0$, which we state here as a corollary of the gap lemma; the second is
+\emph{statistical infeasibility}, $p>1$, which is a consequence of
+\Cref{thm:main-sim} below. A positive gap requires the structural margin to
+dominate the imbalance-weighted cross-clan boundary,
+$m_{\min}\rho>\eta\,m_{\min}\Sout^{\max}$, i.e.\
+$\eta<\Sin^{\min}/\Sout^{\max}$ --- precisely what \Cref{asm:margin} records.
+Translating this
+ratio into tree distances bounds the imbalance the topology can sustain.
+
+\begin{corollary}[Structural imbalance tolerance]\label{cor:tolerance}
+Write similarities as distances, $S_{ij}=e^{-d(x_i,x_j)}$, and let
+$r(\mathcal T)=\max_{i,j}(-\log S_{ij})$ be the diameter and $h(\mathcal T)$ the
+depth of $\mathcal T$ \cite{aizenbud2023spectral}, with $h(\mathcal T)<r(\mathcal T)$.
+Then a positive spectral gap is possible only if
+\begin{equation}\label{eq:eta_distance_bound}
+   \eta\le\mathcal O\!\bigl(e^{\mathcal O(h(\mathcal T))-r(\mathcal T)}\bigr).
+\end{equation}
+In particular, for an average Kingman coalescent tree, where
+$r(\mathcal T),h(\mathcal T)=\mathcal O(\log m)$
+\cite{erdos1999logs, aldous2001stochastic}, this gives $\eta\le\mathcal O(m^c)$ for
+a model-dependent constant $c$.
+\end{corollary}
+\noindent The proof sketch (substituting the diameter/depth bounds into
+$\eta<\Sin^{\min}/\Sout^{\max}$) is given in \Cref{app:comp1}.
+
+So under balanced generative models the gap survives polynomial imbalance. A
+positive gap is necessary but not sufficient, however: even when $\Dlam>0$,
+finite sampling may demand more entries than exist, which is the second failure
+mode. Inflated coherence $\coh=(1+\eta)/2$ concentrates the split signal on a vanishing
+fraction of nodes, so uniform sampling must observe an ever-larger share of $S$ to
+capture it. \Cref{thm:main-sim} makes this precise: the rate its sufficient
+condition demands grows with $\eta$, and once that demand exceeds $p=1$ the
+guarantee is vacuous --- \Cref{cor:infeasible} locates the threshold. This barrier is the
+coherence-limited sampling phenomenon familiar from matrix completion, where
+recovery becomes infeasible once the leading subspace concentrates on too few
+coordinates \cite{candes2009power, recht2011simpler, chen2014completing},
+mirroring the noise threshold for spectral clustering
+\cite{Balakrishnan2011clustering}. The two bounds frame the admissible region:
+$\eta$ must be small enough for the gap to open (structural) and small enough for
+sampling to remain feasible (statistical).
