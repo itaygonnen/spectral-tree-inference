@@ -10,7 +10,7 @@ structure is built directly as a flat constant-block-model distance matrix
 with clan sizes ``(n1, n2)`` chosen so the top-split imbalance
 ``η = max(n1, n2) / min(n1, n2)`` is set *exactly* by the caller. This is the
 distance-space analogue of the synthetic flat-CBM similarity used in
-``analysis/theoretical_interpretation/01_cbm_theory/nonbalanced_flat_cbm.ipynb``
+``analysis/theoretical_interpretation/sec5_empirical/synthesized/nonbalanced_flat_cbm.ipynb``
 (``D = -log S``, JC convention), so the reference split ``v_ref`` is exact (the
 two true clans) and any degradation in agreement is purely a sub-sampling
 artifact at controlled η — no topology-resolution confound.

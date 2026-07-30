@@ -38,8 +38,8 @@ ETA_COLORS = {1: "#4b5563", 5: "#1d4ed8", 10: "#ea580c", 15: "#b91c1c"}
 def _finish(fig: Figure, savepath: Optional[Path] = None) -> None:
     """Shared figure tail: save if asked, then always show.
 
-    ``savepath=None`` reduces to the historical ``plt.show()`` tail, so existing
-    outputs (figs_lsym/, figs_compare/) are unaffected.
+    ``savepath=None`` reduces to the historical ``plt.show()`` tail, so a caller
+    that passes nothing behaves exactly as the notebook cells did before.
     """
     if savepath is not None:
         savepath = Path(savepath)
