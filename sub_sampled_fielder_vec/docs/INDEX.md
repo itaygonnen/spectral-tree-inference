@@ -47,8 +47,10 @@ samplers themselves are live in `src/core/sampling/`. `deprecated/` also holds
 
 - `thesis_seminar.html` — 21-slide self-contained deck (inline CSS/JS/canvas, MathJax
   from CDN). Documented in the project `CLAUDE.md`.
-- `papers/` — third-party PDFs (STDR, matrix completion, spectral-clustering
-  thresholds). Untracked deliberately.
+- `papers/` — third-party reference PDFs. Only two are tracked: `README.md` and
+  `Spectral_top-down_recovery_of_latent_tree_models.pdf` (the STDR paper this work
+  builds on). The other five are gitignored — they were briefly tracked by mistake
+  when a `git add -A` swept 10.9 MB of them into commit `b53e2f5`.
 - `overleafs/v7/`, `v8/`, `distance approach/` — superseded manuscript versions,
   gitignored. **Only `v9/` is tracked.**
 

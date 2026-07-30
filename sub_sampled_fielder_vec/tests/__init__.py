@@ -1,8 +1,5 @@
-"""
-Test suite for sub-sampled STDR.
+"""Test package for sub-sampled STDR. There is no suite yet — see README.md.
 
-Organized into:
-- unit/: Unit tests for individual components
-- integration/: Integration tests for complete workflows
-- performance/: Performance validation and regression tests
+The previous docstring described `unit/`, `integration/` and `performance/`
+subdirectories that never existed.
 """

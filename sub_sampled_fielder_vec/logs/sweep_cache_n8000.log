@@ -1,6 +1,0 @@
-n=8000: 4 unique sweeps to ensure cached
-n=8000 eta= 1 idx= 1  computed   2892.4s  total= 2892.4s
-n=8000 eta= 5 idx= 1  computed  19339.8s  total=22232.2s
-n=8000 eta=10 idx= 1  computed  15803.4s  total=38035.6s
-n=8000 eta=15 idx= 1  computed   7688.5s  total=45724.0s
-done in 45724.0s

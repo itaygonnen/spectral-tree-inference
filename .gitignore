@@ -33,16 +33,38 @@ sub_sampled_fielder_vec/**/*.png
 # Both patterns are needed: the second covers figures/Fiedler_Bipartitions/.
 !sub_sampled_fielder_vec/docs/overleafs/v9/figures/*.png
 !sub_sampled_fielder_vec/docs/overleafs/v9/figures/**/*.png
-# Notebook scratch figure dir (v8-era leftovers; see analysis/theoretical_interpretation/README.md)
+# Notebook scratch figure dir (v8-era leftovers; see analysis/README.md).
+# Both paths listed while the theoretical_interpretation/ layer is being collapsed;
+# the second line goes away once the move lands.
+sub_sampled_fielder_vec/analysis/figures/
 sub_sampled_fielder_vec/analysis/theoretical_interpretation/figures/
 sub_sampled_fielder_vec/.claude/
-sub_sampled_fielder_vec/src/cache/
 
 # Superseded manuscript versions — only v9 is tracked.
 sub_sampled_fielder_vec/docs/overleafs/v7/
 sub_sampled_fielder_vec/docs/overleafs/v8/
 sub_sampled_fielder_vec/docs/overleafs/distance approach/
 sub_sampled_fielder_vec/docs/overleafs/Fiedler_Bipartitions/
+
+# Third-party reference PDFs and scratch assets under docs/.
+# A `git add -A` swept 10.9 MB of these into commit b53e2f5; they are reference
+# material, not project source. Two files predate that and stay tracked:
+# docs/papers/README.md and Spectral_top-down_recovery_of_latent_tree_models.pdf.
+sub_sampled_fielder_vec/docs/papers/*.pdf
+!sub_sampled_fielder_vec/docs/papers/Spectral_top-down_recovery_of_latent_tree_models.pdf
+sub_sampled_fielder_vec/docs/papers/Matrix Completion from a Few Entries copy
+sub_sampled_fielder_vec/docs/*.jpg
+# Byte-identical duplicate of the gitignored docs/overleafs/distance approach/distance_version.tex
+sub_sampled_fielder_vec/docs/distance_extension.live.main.tex
+# Superseded draft of the tracked thesis_seminar.html
+sub_sampled_fielder_vec/docs/thesis_seminar - paper order.html
+
+# Machine state and run artifacts — never source.
+# 35 logs were tracked, none referenced by anything, all containing absolute
+# /Users/... paths. last_run.json is mutable state written by interactive_run.py,
+# so tracking it dirtied the tree on every run.
+sub_sampled_fielder_vec/logs/
+sub_sampled_fielder_vec/last_run.json
 
 # Personal IDE configuration
 WARP.md

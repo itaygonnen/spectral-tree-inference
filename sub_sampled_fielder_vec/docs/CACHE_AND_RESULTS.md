@@ -67,10 +67,30 @@ If you ever make a shim honour that argument, audit all call sites first.
 
 ## `results/` — 4.4 GB
 
-Layout is **inconsistent**: 61 flat `results/runs/<ts>-<name>/` dirs coexist with 4
-nested `results/runs/<tree_model>/<sampling_method>/<ts>-<name>/` trees — both branches
-of `src/cache_io.py:249-252`. One run dir also sits loose at `results/` top level
-(`20260522-114045-fiedler_sweep_birth_death_L10000`), predating the `e0bb68f` move.
+Layout is **inconsistent — six conventions coexist**, measured:
+
+| Convention | Count | Example |
+|---|---|---|
+| flat `runs/<ts>-<name>/n<n>_L<L>/` | **60** | `runs/20260609-151136-bpart_kingman_L10000/n512_L10000/` |
+| nested `runs/<tree_model>/<sampling_method>/<ts>-<name>/` | 5 runs, 3 trees | `runs/kingman_mean/uniform/20260501-194101-…/` |
+| **4-level** `runs/<tree_model>/<matrix_kind_alpha>/<sampling_method>/<ts>-<name>/` | 7 runs | `runs/balanced_binary/distance_a1p000/uniform/20260512-163359-…/` |
+| named, **no timestamp** | 1 | `runs/real_data_benchmark/n1000/` |
+| `notebooks/<NN_topic>/<notebook>/` | 5 leaves | `notebooks/01_cbm_theory/balanced_binary_threshold/` |
+| stray run dir at `results/` top level | 1 | `20260522-114045-fiedler_sweep_birth_death_L10000` (partial; predates `e0bb68f`) |
+
+Nesting is chosen by `src/cache_io.py:238-262` `run_dir()` — which has **zero callers**.
+The convention is actually implemented three other places:
+`src/runners/experiment_runner.py:514-545` (duplicates the logic inline; always nests,
+since both kwargs are always truthy), `src/runners/experiment_runner_utils.py:52-99`
+(writes to `results/<tree_model>/…` with **no `runs/` segment**, and adds the
+`distance_a{alpha}` level), and the per-method sweep drivers plus three notebooks, which
+hand-roll the flat form.
+
+Nested paths **restate information the leaf name already carries** — e.g.
+`runs/kingman_mean/uniform/20260501-194101-kingman_mean_n500-8000_mu_0p1_uniform/` names
+the tree model and the sampling method twice each, because
+`experiment_runner_utils.py:35-49 generate_run_prefix` bakes them into the prefix that is
+then nested underneath them.
 
 ### Paper-backing
 
