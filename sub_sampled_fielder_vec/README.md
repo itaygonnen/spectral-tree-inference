@@ -16,9 +16,9 @@ entering as `(1+η)³` through coherence inflation and spectral-gap erosion.
 
 | I want to… | Read |
 |---|---|
-| know where a paper figure comes from | `analysis/theoretical_interpretation/PAPER_MAP.md` |
+| know where a paper figure comes from | `analysis/PAPER_MAP.md` |
 | rebuild a figure from scratch | `docs/RUNBOOK.md` |
-| understand the notebook layout | `analysis/theoretical_interpretation/README.md` |
+| understand the notebook layout | `analysis/README.md` |
 | know what a script does | `scripts/README.md` |
 | know what's in cache/ and results/ | `docs/CACHE_AND_RESULTS.md` |
 | see open questions on the paper | `docs/overleafs/v9/OPEN_ITEMS.md` |
@@ -35,13 +35,12 @@ python -m src.cache_io                           # cache key/sentinel smoke chec
 ```
 sub_sampled_fielder_vec/
 ├── docs/overleafs/v9/        THE PAPER — tex, figures, open-items register (tracked)
-├── analysis/
-│   ├── theoretical_interpretation/   the paper's notebooks, by section then source
-│   └── legacy/                       superseded, unmaintained (see its README)
+├── analysis/                the paper's notebooks, by section then data source
+│   └── legacy/              superseded, unmaintained (see its README)
 ├── src/                     the engine: config, sampling, models, runners, caching
 ├── scripts/                 entry points + the plot libraries notebooks import
 ├── cache/  results/  data/  gitignored, large, regenerable-but-expensive
-└── logs/                    committed run logs
+└── logs/                    run logs (gitignored)
 ```
 
 `src/` must never import from `analysis/`. The reverse is fine and normal.
@@ -74,7 +73,7 @@ of an existing cache.
 ## Method: one p-sweep
 
 1. Simulate a tree and evolve sequences (`src/models/`), or build `S` in closed form
-   from a block model (`analysis/theoretical_interpretation/utils/block_model.py`).
+   from a block model (`analysis/utils/block_model.py`).
 2. Build the full similarity matrix `M` and its reference Fiedler vector at `p = 1`.
 3. For each `p`: sub-sample `M → S_k` (`K` bootstrap reps), take the Fiedler vector of
    `L(S_k)`, sign-align it to the reference, and average.

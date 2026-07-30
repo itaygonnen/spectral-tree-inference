@@ -22,7 +22,7 @@ Source → Destination mapping
     src/cache/eta_pool/<pkey>/eta<TT>/sample_NNNN/sweeps/<skey>/
         → cache/bootstrap_sweep/<pkey>__<eta..>__<sample..>__<skey>/
 
-    analysis/theoretical_interpretation/<sub>/<nb>_outputs/
+    analysis/<sub>/<nb>_outputs/
         → results/notebooks/<sub>/<nb>/
 
 Idempotent: re-running skips already-complete destinations. Flags:

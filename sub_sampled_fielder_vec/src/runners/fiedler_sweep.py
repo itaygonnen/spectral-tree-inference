@@ -37,7 +37,7 @@ from ..core.fiedler_computer import FiedlerVectorComputer
 def compute_fiedler_of_S(S: np.ndarray, sampling_prob: float | None = None) -> np.ndarray:
     """Fiedler vector of ``L = D - S`` with the project's sign convention.
 
-    Inlined from ``analysis.theoretical_interpretation.utils.spectral``, which this
+    Inlined from ``analysis.utils.spectral``, which this
     module used to reach via a ``sys.path`` hack -- a src -> analysis dependency
     inversion. Both pieces it needs already live in ``src/core``, so the import is
     unnecessary as well as backwards.

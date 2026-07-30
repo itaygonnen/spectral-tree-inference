@@ -1,12 +1,12 @@
 # analysis/legacy — superseded, unmaintained, kept for reference
 
 Everything here predates the v9 manuscript and is **superseded by
-`analysis/theoretical_interpretation/`**, which holds the paper's notebooks. Nothing in
+`analysis/`**, which holds the paper's notebooks. Nothing in
 this directory is imported by `src/`, `scripts/`, or any paper notebook — that was
 verified before the move, and the one live dependency was extracted first (see below).
 
 Do not add to these. If you need something here, port it into
-`theoretical_interpretation/utils/` or `src/utils/` rather than reviving the import.
+`analysis/utils/` or `src/utils/` rather than reviving the import.
 
 Last substantive activity: **Dec 2025 – Apr 2025**, versus July 2026 for the paper
 notebooks.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate the v9 paper's figure provenance, and regenerate PAPER_MAP.md.
 
-The manifest lives in ``analysis/theoretical_interpretation/paper_figures.py``.
+The manifest lives in ``analysis/paper_figures.py``.
 This script only reads it, so mapping / docs / checker cannot drift.
 
     python scripts/sync_paper_figures.py --check      # read-only; non-zero on problems
@@ -43,7 +43,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ANALYSIS = ROOT / "analysis" / "theoretical_interpretation"
+ANALYSIS = ROOT / "analysis"
 V9 = ROOT / "docs" / "overleafs" / "v9"
 FIGURES_DIR = V9 / "figures"
 SECTIONS_DIR = V9 / "sections"

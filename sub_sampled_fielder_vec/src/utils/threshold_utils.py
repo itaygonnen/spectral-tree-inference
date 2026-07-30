@@ -2,7 +2,7 @@
 
 Also the home of the three p*-detection / power-law helpers the paper layer needs.
 They previously lived in ``analysis/comparison/phase_transition_utils.py``, which
-made the paper-figure code (``analysis/theoretical_interpretation/utils/``) depend
+made the paper-figure code (``analysis/utils/``) depend
 on a superseded analysis package. Nothing under ``src/`` may import from
 ``analysis/``, so they moved here and the dependency now points the right way.
 """

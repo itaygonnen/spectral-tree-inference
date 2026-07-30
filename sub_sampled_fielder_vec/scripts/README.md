@@ -24,7 +24,7 @@ expensive one — pass it only as cached-only so a new `n` cannot trigger a fres
 
 | Script | Invocation | Purpose |
 |---|---|---|
-| `sync_paper_figures.py` | `--check` / `--write-map` | Validates figure provenance against `analysis/theoretical_interpretation/paper_figures.py`; regenerates `PAPER_MAP.md`. `--check` is read-only and exits non-zero on problems. |
+| `sync_paper_figures.py` | `--check` / `--write-map` | Validates figure provenance against `analysis/paper_figures.py`; regenerates `PAPER_MAP.md`. `--check` is read-only and exits non-zero on problems. |
 | `collate_open_items.py` | `python scripts/collate_open_items.py` | Builds `docs/overleafs/v9/OPEN_ITEMS.md` from `open-items/*.md`. Edit the fragments, never the collated file. |
 
 ## Per-method sweeps (supporting notebooks, no paper figure)

@@ -46,7 +46,7 @@ from src.utils.eta_pool_cache import (  # noqa: E402
     pool_root, sample_dir, save_manifest,
 )
 from src.utils.partition_validity import check_partition_valid_in_tree  # noqa: E402
-from analysis.theoretical_interpretation.utils.tree_features import (  # noqa: E402
+from analysis.utils.tree_features import (  # noqa: E402
     estimate_features_from_M,
 )
 import numpy as np  # noqa: E402

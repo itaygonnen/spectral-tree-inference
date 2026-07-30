@@ -1,4 +1,4 @@
-# theoretical_interpretation
+# analysis
 
 Notebooks behind the v9 manuscript (`docs/overleafs/v9/`). **The paper is the deliverable**;
 these notebooks exist to produce and defend its figures.
@@ -24,7 +24,7 @@ built from mixed runs, or absent from the map.
 ## Layout
 
 ```
-theoretical_interpretation/
+analysis/
 ├── PAPER_MAP.md   figure ↔ notebook ↔ claim ↔ cache ↔ rebuild command
 ├── utils/         shared helper library — imported by every notebook, do NOT move
 ├── figures/       scratch figure output (gitignored; NOT where paper figures live)
@@ -80,7 +80,7 @@ Two things the layout cannot express, so they are stated instead:
 
 ## Shared utilities (`utils/`)
 
-Imported as `from analysis.theoretical_interpretation.utils import …`. Notebooks put the
+Imported as `from analysis.utils import …`. Notebooks put the
 package root on `sys.path` via a depth-invariant walk up to `setup.py`, so this resolves
 from any folder depth. **Do not move `utils/`.**
 

@@ -30,7 +30,7 @@ interruptible**.
 entries on disk) and `full_matrix` have no reader *or* writer left in `src/`; both were
 produced by the pre-`edb397b` layout and migrated by `scripts/legacy/migrate_caches.py`.
 They are the obvious pruning candidates, but confirm first that no notebook reaches them
-through `analysis/theoretical_interpretation/utils/cache.py`, which has its own key
+through `analysis/utils/cache.py`, which has its own key
 scheme (see below).
 
 ### Three coexisting key schemes
@@ -130,7 +130,7 @@ history is rewritten.
 ## If you do prune later
 
 1. Lowest risk: `cache/sweep_trial` + `cache/full_matrix` (**491 MB**, no reader or
-   writer in `src/`) — but grep `analysis/theoretical_interpretation/utils/cache.py`
+   writer in `src/`) — but grep `analysis/utils/cache.py`
    first, it addresses caches by its own scheme.
 2. Next: the four superseded `results/runs` dirs (**3.1 GB**) and the named smoke tests.
 3. Keep unconditionally: `cache/pool_sample`, `cache/bootstrap_sweep`,

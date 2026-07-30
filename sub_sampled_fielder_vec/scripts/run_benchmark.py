@@ -42,7 +42,9 @@ from src.utils.interactive_ui import (  # noqa: E402
 )
 
 DEFAULT_ROOTS = [REPO_ROOT / "data", PROJECT_ROOT / "data"]
-SYNTHESIZED_DIR = PROJECT_ROOT / "analysis" / "theoretical_interpretation" / "synthesized"
+# Informational only (printed as a hint). The former top-level synthesized/ dir was
+# dissolved into per-section subdirs, so point at the notebook tree itself.
+SYNTHESIZED_DIR = PROJECT_ROOT / "analysis"
 
 SOURCES = [
     "real         — downloaded FASTA (+ optional Newick) trees",
@@ -109,7 +111,7 @@ def choose_real_dataset() -> DatasetEntry | None:
 
 def prompt_generated():
     """Ask the simulation knobs; return (loader, tree_ids, source_meta)."""
-    from analysis.theoretical_interpretation.utils.generated_data import (
+    from analysis.utils.generated_data import (
         GENERATORS, build_ids,
     )
     from src.runners.benchmark_loaders import GeneratedLoader

@@ -32,7 +32,7 @@ class Figure:
     files: tuple[str, ...]   # paths relative to v9/figures/
     section: str         # the .tex that \includegraphics it
     label: str           # the float's \label
-    notebook: str        # producer, relative to analysis/theoretical_interpretation/
+    notebook: str        # producer, relative to analysis/
     claims: tuple[str, ...]  # theorem/prop/cor labels the figure speaks to
     cache: str           # cache scope / results dir it consumes
     rebuild: str         # command(s) to regenerate the inputs

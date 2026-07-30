@@ -89,7 +89,7 @@ class GeneratedLoader:
         return tree_id.rsplit("_", 1)[0]
 
     def __call__(self, tree_id: str) -> LoadResult:
-        from analysis.theoretical_interpretation.utils.generated_data import (
+        from analysis.utils.generated_data import (
             make_generated,
         )
         return make_generated(tree_id, self.n_taxa, self.seq_len)

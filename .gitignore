@@ -80,7 +80,10 @@ sub_sampled_fielder_vec/cache/
 
 # Test and demo files (local development)
 *.ipynb
-!sub_sampled_fielder_vec/analysis/theoretical_interpretation/**/*.ipynb
+# The paper's notebooks are tracked. This negation MUST stay in step with their
+# location: it is path-specific, so moving them anywhere it does not cover makes
+# all 16 silently vanish from git (they fall back to the bare `*.ipynb` above).
+!sub_sampled_fielder_vec/analysis/**/*.ipynb
 test*.py
 # ...but sub_sampled_fielder_vec/tests/ must be committable. The bare `test*.py` above is
 # why that directory has never held a single test.

@@ -10,8 +10,8 @@ question — and, honestly, which ones are stale.
 | [../README.md](../README.md) | What this is, what the three pipelines are, how to verify the repo |
 | [RUNBOOK.md](RUNBOOK.md) | How to rebuild Figure N from nothing, and what it costs |
 | [CACHE_AND_RESULTS.md](CACHE_AND_RESULTS.md) | What is in `cache/` and `results/`, what is orphaned, what is safe to prune |
-| [../analysis/theoretical_interpretation/PAPER_MAP.md](../analysis/theoretical_interpretation/PAPER_MAP.md) | Which notebook produces which figure, and which claim it supports |
-| [../analysis/theoretical_interpretation/README.md](../analysis/theoretical_interpretation/README.md) | Notebook layout (section → source) and its traps |
+| [../analysis/PAPER_MAP.md](../analysis/PAPER_MAP.md) | Which notebook produces which figure, and which claim it supports |
+| [../analysis/README.md](../analysis/README.md) | Notebook layout (section → source) and its traps |
 | [../scripts/README.md](../scripts/README.md) | What each script does; which `plot_*` files are libraries, not scripts |
 | [../analysis/legacy/README.md](../analysis/legacy/README.md) | What the superseded analysis packages were |
 | [../tests/README.md](../tests/README.md) | Why there is no test suite, and what verification does exist |

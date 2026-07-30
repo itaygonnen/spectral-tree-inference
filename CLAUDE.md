@@ -99,15 +99,16 @@ The November-2025 optimizations in `src/core/` are why experiments at `n=8192` a
 
 ### Analysis notebooks
 
-`analysis/` contains exactly two things:
+`analysis/` holds the paper's 16 notebooks directly, organized **by paper section, then
+by data source**: `sec5_empirical/`, `appD_hbm/`, `appG_supplementary/` (the 6 that
+produce paper figures) and `supporting/` (the 10 that do not). `utils/` is the shared
+library — **do not move it**. Imports are `analysis.utils`, not a deeper path: the
+former `theoretical_interpretation/` layer was collapsed away.
 
-- **`theoretical_interpretation/`** — the paper's 16 notebooks, organized **by paper
-  section, then by data source**: `sec5_empirical/`, `appD_hbm/`,
-  `appG_supplementary/` (the 6 that produce paper figures) and `supporting/` (the 10
-  that do not). `utils/` is the shared library — **do not move it**.
-- **`analysis/legacy/`** — six superseded packages (`comparison`, `generic_analysis`,
-  `leveraged_sampling_analysis`, `notebooks`, `scripts`, `spectral_analysis`).
-  Unmaintained; don't add to them, and don't revive an import from them.
+Its one sibling is **`analysis/legacy/`** — six superseded packages (`comparison`,
+`generic_analysis`, `leveraged_sampling_analysis`, `notebooks`, `scripts`,
+`spectral_analysis`). Unmaintained; don't add to them, and don't revive an import from
+them.
 
 **`PAPER_MAP.md` is the authority** for which notebook produces which figure, which
 claim it supports, which cache it consumes, and how to rebuild it. It is *generated*
@@ -253,7 +254,7 @@ Thin master `thesis_v9.tex` + `sections/*.tex`; figures in `figures/`; open ques
   diverted, then write the PNG back into the `.ipynb` as a base64 `display_data` output.
 - ALWAYS strip `%` magics before `exec`-ing notebook cells from a script.
 
-### Sweep economics (`analysis/theoretical_interpretation/`)
+### Sweep economics (`analysis/`)
 
 - Cost per `(η, m)` cell is `N_TRIALS × |P_GRID|` sub-sampled Fiedler solves, and each solve is
   `O(m³)` once `p > 0.1` (dense `scipy.linalg.eigh`; sparse `eigsh` below that). Measured: m=1536

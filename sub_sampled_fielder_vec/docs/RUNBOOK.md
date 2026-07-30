@@ -1,7 +1,7 @@
 # RUNBOOK — rebuilding the paper from nothing
 
 Per-figure recovery instructions. The authoritative figure→notebook→cache mapping is
-`analysis/theoretical_interpretation/PAPER_MAP.md`, generated from `paper_figures.py`;
+`analysis/PAPER_MAP.md`, generated from `paper_figures.py`;
 this file adds the *operational* detail: cost, prerequisites, and traps.
 
 ## Rule zero: never let a trial run overwrite a paper asset

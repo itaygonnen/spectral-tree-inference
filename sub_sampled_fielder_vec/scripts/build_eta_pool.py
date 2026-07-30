@@ -49,7 +49,7 @@ from src.utils.eta_pool_cache import (
     save_pool_entry,
 )
 from src.utils.partition_validity import check_partition_valid_in_tree
-from analysis.theoretical_interpretation.utils.tree_features import (
+from analysis.utils.tree_features import (
     estimate_features_from_M,
 )
 
