@@ -1,75 +1,57 @@
 # scripts/
 
-Entry points and the plotting libraries the notebooks import. Superseded one-shots live
-in `legacy/`.
+**Everything here is something you run.** Library code lives in `src/`.
 
-Not everything named `plot_*` is a script: seven of them are **libraries** that
-notebooks `import`, so moving or renaming them breaks a notebook. The "Imported by"
-column marks those.
+That was not true before: six `plot_*` modules and `merge_results.py` were imported by
+notebooks and by `src/runners/`, which meant `src/` depended on `scripts/` and this README
+had to open with a warning. They now live in `src/plots/` and `src/utils/merge_results.py`.
 
-## Paper pipeline — the eta-pool route (Figs 3, 5, 7, 8, 9)
+Each script's **invocation contract differs**, and the filename does not tell you which —
+so it is recorded here. Every file has a `__main__` guard, so "it has one" proves nothing.
 
-| Script | Invocation | Writes | Consumed by |
+| Script | How to invoke | Writes | Serves |
 |---|---|---|---|
-| `build_eta_pool.py` | `python scripts/build_eta_pool.py --n <n> …` | `cache/pool_sample` | Figs 3, 5, 8, 9 |
-| `build_eta_pool_parallel.py` | same + `mp.Pool` | `cache/pool_sample` | as above, faster |
-| `build_sweeps.py` | `python scripts/build_sweeps.py --ns 3000 6000 --methods kmeans` | `cache/bootstrap_sweep` | Figs 3, 8, 9 |
-| `run_experiment.py` | `python scripts/run_experiment.py` (edit `SWEEP_CONFIG` at the top; no CLI args) | `results/runs/…`, `cache/experiment_data` | **Fig 7** needs a `kingman_mean`+`uniform` run from this |
-| `interactive_run.py` | `python scripts/interactive_run.py` | as above | menu-driven wrapper over the same pipeline |
+| `build_eta_pool.py` | `--n <n> …` | `cache/pool_sample` | Figs 3, 5, 8, 9 |
+| `build_eta_pool_parallel.py` | `--n <n> …` (+ `mp.Pool`) | `cache/pool_sample` | as above, faster |
+| `build_sweeps.py` | `--ns 3000 6000 --methods kmeans` | `cache/bootstrap_sweep` | Figs 3, 8, 9 |
+| `sync_paper_figures.py` | `--check` / `--write-map` | `analysis/PAPER_MAP.md` | figure provenance |
+| `collate_open_items.py` | no args (argparse, all optional) | `docs/overleafs/v9/OPEN_ITEMS.md` | the register |
+| `run_real_data_benchmark.py` | `--out-dir …` etc. | `results/runs/real_data_benchmark/` | real-data notebook |
+| `plot_real_data_benchmark.py` | `--metric …` | figures beside the results | real-data notebook |
+| `nj_recompute_normalized_metrics.py` | **`<sweep_dir>`** positionally | rewrites NJ metrics in place | NJ notebooks |
+| `plot_bpart_eta_pool.py` | **`<run_dir>`** positionally | PNGs in the run dir | bpart notebook |
+| `plot_fiedler_overlay.py` | **`<run_dir>`** positionally | PNGs in the run dir | — (see note) |
+| `plot_griffing_overlay.py` | **`<run_dir>`** positionally | `results/notebooks/05_nj_distance/…` | griffing |
+| `plot_distance_vs_similarity_grid.py` | **no args** (paths hardcoded) | PNG under `results/runs/balanced_binary/` | exploratory |
+| `interactive_run.py` | **interactive menu** | `results/runs/…`, `cache/experiment_data` | pipeline A |
+| `run_benchmark.py` | **interactive menu** | `results/runs/…` + `screen_table.csv` | operator comparison |
+| `run_experiment.py` | **edit `SWEEP_CONFIG` at the top, then run** — no CLI | `results/runs/…` | **Fig 7's prerequisite** |
+| `run_nj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…`, `cache/distance_matrix` | NJ notebooks |
+| `run_snj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…` | SNJ notebook |
+| `run_griffing_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…` | griffing |
 
-`build_sweeps.py` defaults to `--methods kmeans`, the paper's operator. `sigma2` is the
-expensive one — pass it only as cached-only so a new `n` cannot trigger a fresh run.
-
-## Paper tooling
-
-| Script | Invocation | Purpose |
-|---|---|---|
-| `sync_paper_figures.py` | `--check` / `--write-map` | Validates figure provenance against `analysis/paper_figures.py`; regenerates `PAPER_MAP.md`. `--check` is read-only and exits non-zero on problems. |
-| `collate_open_items.py` | `python scripts/collate_open_items.py` | Builds `docs/overleafs/v9/OPEN_ITEMS.md` from `open-items/*.md`. Edit the fragments, never the collated file. |
-
-## Per-method sweeps (supporting notebooks, no paper figure)
-
-| Script | Invocation | Writes |
-|---|---|---|
-| `run_nj_sweep.py` | argparse | `results/runs/…`, `cache/distance_matrix` |
-| `run_snj_sweep.py` | argparse | `results/runs/…` |
-| `run_griffing_sweep.py` | argparse | `results/runs/…` |
-| `run_real_data_benchmark.py` | argparse | `results/runs/real_data_benchmark/` |
-| `run_benchmark.py` | interactive | `results/runs/…` + `screen_table.csv` |
-| `nj_recompute_normalized_metrics.py` | argparse | rewrites NJ metrics in place |
-
-## Plot libraries — imported, not run
-
-| Module | Imported by |
-|---|---|
-| `plot_nj_p_star_vs_n.py` | `supporting/generated/nj_distance/nj_subsampling_balanced.ipynb` |
-| `plot_nj_three_panel.py` | same |
-| `plot_snj_p_star_vs_n.py` | `supporting/generated/tree_reconstruction/snj_subsampling.ipynb` |
-| `plot_snj_three_panel.py` | same |
-| `plot_bpart_eta_grid.py` | `supporting/generated/nj_distance/nj_subsampling_nonbalanced.ipynb`, `src/runners/bpart_synthetic.py` |
-| `plot_bpart_overlay.py` | `nj_subsampling_nonbalanced.ipynb` |
-| `merge_results.py` | `src/runners/experiment_runner_utils.py` (auto-plot step) |
-
-Standalone plotters, run directly: `plot_bpart_eta_pool.py`,
-`plot_distance_vs_similarity_grid.py`, `plot_fiedler_overlay.py`,
-`plot_griffing_overlay.py`, `plot_real_data_benchmark.py`.
+The four "edit-the-dict" scripts take **no arguments at all**. An earlier version of this
+table wrongly listed three of them as `argparse`, and `nj_recompute_normalized_metrics.py`
+too — it uses `sys.argv` directly.
 
 `plot_fiedler_overlay.py` (with `src/utils/fiedler_io.py`) reads output from
-`src/runners/fiedler_sweep.py`. That runner has **no committed driver script** — the
-`results/runs/*-fiedler_sweep_*` dirs exist but nothing in the repo reproduces them.
-The runner was kept rather than deleted precisely because it is the only producer of
-data those two modules read.
+`src/runners/fiedler_sweep.py`, whose **driver script was never committed** — the
+`results/runs/*-fiedler_sweep_*` dirs exist but nothing in the repo reproduces them. The
+runner was kept rather than deleted precisely because it is the only producer of data
+those two modules read.
 
 ## `validation/`
 
-`fiedler_plateau_validator.py`, `mutation_rate_validation.py` — figure-generating
-sanity checks, not assertions. Not a test suite.
+`fiedler_plateau_validator.py`, `mutation_rate_validation.py` — figure-generating sanity
+checks, **not** assertions and not a test suite. Both take no arguments.
+`mutation_rate_validation.py` currently fails to import: it wants `utils.utils` and
+`utils.experiment_config`, a flat module layout that has never existed in this package
+(the same is true at the `pre-cleanup-2026-07-30` tag, so this predates the cleanup).
 
 ## `legacy/`
 
-One-shot maintenance and superseded drivers, kept for reference:
-`migrate_caches.py` (the cache migration that produced the current layout),
-`cleanup_cache.py`, `run_experiment_distance.py`, `check_partition_quality.py`,
-`run_n512_to_n4096_L10000.py`, `run_n8192_L10000.py` (hardcoded one-size sweeps
-superseded by `build_sweeps.py --ns`), and `run_perfox_experiment.py` (was loose at the
-package root).
+One-shot maintenance and superseded drivers: `migrate_caches.py` (produced the current
+cache layout), `cleanup_cache.py`, `run_experiment_distance.py`,
+`check_partition_quality.py` (also broken on the same `utils.utils` import),
+`run_n512_to_n4096_L10000.py` and `run_n8192_L10000.py` (hardcoded one-size sweeps
+superseded by `build_sweeps.py --ns`), and `run_perfox_experiment.py`.

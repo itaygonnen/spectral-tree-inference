@@ -8,6 +8,7 @@ import sys
 import numpy as np
 
 from ..config import StructuredConfig
+from ..cache_io import run_dir
 from ..models import get_tree_factory, get_sequence_factory
 import os
 import time
@@ -529,17 +530,13 @@ class ExperimentRunner:
             # Grid sweep mode: use provided base_dir/subdir_name
             path = os.path.join(base_dir, subdir_name)
         else:
-            # Single experiment mode: create timestamped directory with nested structure
+            # Single experiment mode. Delegate to cache_io.run_dir, which is where the
+            # results/ layout convention is documented -- this block used to duplicate
+            # its flat-vs-nested logic inline, leaving run_dir with zero callers while
+            # the convention drifted across three separate implementations.
             ts = time.strftime("%Y%m%d-%H%M%S")
-            # Get the directory of the parent of src (sub_sampled_fielder_vec)
-            repo_base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
-            # All production runs live under results/runs/. Optionally
-            # organized by tree_model/sampling_method when provided.
-            if tree_model and sampling_method:
-                path = os.path.join(repo_base, "results", "runs", tree_model, sampling_method, f"{ts}-{run_name}")
-            else:
-                path = os.path.join(repo_base, "results", "runs", f"{ts}-{run_name}")
+            path = str(run_dir(ts, run_name,
+                               tree_model=tree_model, sampling_method=sampling_method))
 
         os.makedirs(path, exist_ok=True)
         return os.path.abspath(path)

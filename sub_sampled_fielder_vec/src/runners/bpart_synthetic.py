@@ -18,7 +18,7 @@ artifact at controlled η — no topology-resolution confound.
 The sweep + its disk cache are the shared ``utils.bpart_sweep_cache`` mechanism
 (keyed per ``(n, η, s_in, s_out)`` matrix), so re-running is an instant cache
 hit. Writes ``bpart_eta_pool_n{n}.json`` in the SAME schema as ``bpart_eta_pool``
-so ``scripts.plot_bpart_eta_grid`` renders synthetic and Kingman sweeps identically.
+so ``src.plots.plot_bpart_eta_grid`` renders synthetic and Kingman sweeps identically.
 """
 from __future__ import annotations
 

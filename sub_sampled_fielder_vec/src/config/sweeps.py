@@ -257,81 +257,11 @@ class SweepType:
         return configs
 
 
-def get_default_config() -> StructuredConfig:
-    """
-    Get default experiment configuration.
-
-    This serves as a template for creating custom configurations or sweeps.
-
-    Returns:
-        StructuredConfig with reasonable defaults
-    """
-    return StructuredConfig(
-        tree=TreeConfig(
-            model="balanced_binary",
-            params={"num_taxa": 128, "edge_length": 1.0}
-        ),
-        sequence=SequenceConfig(
-            model="JC69",
-            len=1000,
-            params={"mutation_rate": 0.1}
-        ),
-        experiment=ExperimentConfig(
-            p_values=list(np.logspace(-4, 0, 15)),
-            bootstrap_reps=100,
-            seed=42,
-            run_name="default_experiment",
-            display_mode="progress"
-        ),
-        metrics=MetricsConfig(),
-        guardrails=GuardrailsConfig(),
-        cache=CacheConfig(),
-        output=OutputConfig()
-    )
-
-
-# Convenience functions for quick config creation
-
-def quick_test_config() -> StructuredConfig:
-    """Create a quick test configuration with small parameters."""
-    return StructuredConfig(
-        tree=TreeConfig(model="balanced_binary", params={"num_taxa": 32, "edge_length": 1.0}),
-        sequence=SequenceConfig(model="JC69", len=300, params={"mutation_rate": 0.1}),
-        experiment=ExperimentConfig(
-            p_values=[0.01, 0.1, 0.5, 1.0],
-            bootstrap_reps=5,
-            seed=42,
-            run_name="quick_test",
-            display_mode="debug"
-        )
-    )
-
-
-def standard_config() -> StructuredConfig:
-    """Create a standard configuration for typical experiments."""
-    return StructuredConfig(
-        tree=TreeConfig(model="balanced_binary", params={"num_taxa": 1024, "edge_length": 1.0}),
-        sequence=SequenceConfig(model="JC69", len=1000, params={"mutation_rate": 0.1}),
-        experiment=ExperimentConfig(
-            p_values=list(np.logspace(-4, 0, 15)),
-            bootstrap_reps=100,
-            seed=42,
-            run_name="standard_experiment"
-        )
-    )
-
-
-def large_scale_config() -> StructuredConfig:
-    """Create a large-scale configuration for high-taxa experiments."""
-    return StructuredConfig(
-        tree=TreeConfig(model="balanced_binary", params={"num_taxa": 8192, "edge_length": 1.0}),
-        sequence=SequenceConfig(model="JC69", len=5000, params={"mutation_rate": 0.1}),
-        experiment=ExperimentConfig(
-            p_values=list(np.logspace(-4, 0, 25)),
-            bootstrap_reps=10,
-            seed=42,
-            run_name="large_scale_8192",
-            num_workers=8,
-            use_middle_out=True
-        )
-    )
+# NOTE: get_default_config / quick_test_config / standard_config / large_scale_config
+# used to be defined here as well as in src/config/presets.py. The two sets had DIVERGED
+# -- three of the four produced different configs (e.g. get_default_config: bootstrap_reps
+# 100 vs 50, num_taxa 128 vs 256, 15 p_values vs 5) -- so they were two generations, not
+# copies. Neither set had a single caller anywhere in the repo, so the duplicates were
+# removed here rather than merged: picking a winner would have silently changed results for
+# whichever side a future caller happened to import. presets.py is the surviving home, and
+# is what every live importer already uses (`from src.config.presets import custom_config`).

@@ -223,7 +223,7 @@ def run_single_experiment(
 def auto_generate_plots(base_dir: Path) -> None:
     """Automatically merge results and generate combined plot."""
     try:
-        from scripts.merge_results import merge_run_directory
+        from src.utils.merge_results import merge_run_directory
         from src.utils.plotting import plot_taxa_sweep, _extract_model_name
         
         merged = merge_run_directory(base_dir)
