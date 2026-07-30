@@ -25,7 +25,7 @@ import numpy as np
 
 from ..cache_io import bpart_sweep as _scope
 from ..core.similarity_builder import SimilarityMatrixBuilder
-from ..utils.griffing import griffing_leading_eigvec
+from ..utils.griffing import DEFAULT_SOLVER, griffing_leading_eigvec
 from ..runners.nj_sweep import _impute_mean
 
 SCHEMA_VERSION = "v1"
@@ -68,8 +68,18 @@ def _binary_nmi(v_ref: np.ndarray, v_hat: np.ndarray) -> float:
 def _build_config(
     p_values: Sequence[float], reps: int, seed_base: int, imputation: str,
     method: str = "griffing_double_centering",
+    eigsolver: str = DEFAULT_SOLVER,
 ) -> Dict[str, Any]:
-    return {
+    """Config dict that IS the cache key (sha1'd by :func:`compute_sweep_key`).
+
+    ``eigsolver`` is emitted **only when it differs from the historical default**.
+    Adding it unconditionally would change every hash and orphan the sweeps
+    already on disk under ``cache/bpart_sweep/``; omitting it on ``"eigh_full"``
+    keeps those keys byte-identical while ``"lm_k1"`` runs get their own
+    namespace, so the two implementations can never be silently averaged
+    together.
+    """
+    config: Dict[str, Any] = {
         "p_values": [round(float(p), 9) for p in p_values],
         "reps": int(reps),
         "seed_base": int(seed_base),
@@ -77,12 +87,17 @@ def _build_config(
         "method": method,
         "schema_version": SCHEMA_VERSION,
     }
+    if eigsolver != DEFAULT_SOLVER:
+        config["eigsolver"] = str(eigsolver)
+    return config
 
 
 def compute_sweep_key(
     p_values: Sequence[float], reps: int, seed_base: int, imputation: str,
+    eigsolver: str = DEFAULT_SOLVER,
 ) -> Tuple[str, Dict[str, Any]]:
-    config = _build_config(p_values, reps, seed_base, imputation)
+    config = _build_config(p_values, reps, seed_base, imputation,
+                           eigsolver=eigsolver)
     blob = json.dumps(config, sort_keys=True).encode("utf-8")
     return hashlib.sha1(blob).hexdigest()[:12], config
 
@@ -90,6 +105,7 @@ def compute_sweep_key(
 def bpart_sweep_raw(
     D: np.ndarray, p_values: Sequence[float], reps: int,
     seed_base: int = 0, imputation: str = "mean",
+    eigsolver: str = DEFAULT_SOLVER,
 ) -> Dict[str, Any]:
     """Run one B-method subsampling sweep on a single distance matrix ``D``.
 
@@ -99,10 +115,13 @@ def bpart_sweep_raw(
 
         {"p_values":[...], "n1":int, "n2":int, "eta":float,
          "per_p":[{"p":p, "agreement":[…reps], "dot":[…], "ari":[…], "nmi":[…]}, …]}
+
+    ``eigsolver`` is used for the reference vector **and** every sub-sampled one,
+    so a sweep never compares across two implementations.
     """
     if imputation not in ("mean", "zero"):
         raise ValueError(f"imputation must be 'mean' or 'zero', got {imputation!r}")
-    v_ref = griffing_leading_eigvec(D)
+    v_ref = griffing_leading_eigvec(D, eigsolver)
     n1 = int(np.sum(v_ref >= 0))
     n2 = int(v_ref.size - n1)
     eta = float(max(n1, n2)) / float(max(min(n1, n2), 1))
@@ -115,7 +134,7 @@ def bpart_sweep_raw(
             D_hat = _SAMPLER.sample(D, float(p), seed=seed)
             if imputation == "mean":
                 D_hat = _impute_mean(D_hat)
-            v_hat = _align_sign(griffing_leading_eigvec(D_hat), v_ref)
+            v_hat = _align_sign(griffing_leading_eigvec(D_hat, eigsolver), v_ref)
             acc["agreement"].append(_partition_agreement(v_ref, v_hat))
             acc["dot"].append(float(np.abs(np.dot(v_hat, v_ref))))
             acc["ari"].append(_binary_ari(v_ref, v_hat))
@@ -135,18 +154,20 @@ def compute_or_load_bpart_sweep(
     reps: int,
     seed_base: int = 0,
     imputation: str = "mean",
+    eigsolver: str = DEFAULT_SOLVER,
     use_cache: bool = True,
 ) -> Optional[Tuple[Dict[str, Any], bool]]:
     """Return ``(result, was_cached)`` for one matrix's sweep, or ``None``.
 
     ``identity_parts`` name *which matrix* (e.g. a synthetic param key, or
     ``param_key, bin_name(eta), "sample_0001"`` for a pool sample); the sweep
-    key (p-grid / reps / seed / imputation) is appended automatically. The
-    distance matrix is built lazily via ``D_loader`` only on a cache miss;
-    ``None`` is returned when ``D_loader`` yields ``None`` (e.g. a missing pool
-    sample), so callers can skip cleanly.
+    key (p-grid / reps / seed / imputation / non-default eigsolver) is appended
+    automatically. The distance matrix is built lazily via ``D_loader`` only on a
+    cache miss; ``None`` is returned when ``D_loader`` yields ``None`` (e.g. a
+    missing pool sample), so callers can skip cleanly.
     """
-    sweep_key, config = compute_sweep_key(p_values, reps, seed_base, imputation)
+    sweep_key, config = compute_sweep_key(p_values, reps, seed_base, imputation,
+                                          eigsolver=eigsolver)
     parts = tuple(str(x) for x in identity_parts) + (sweep_key,)
 
     if use_cache and _scope.is_complete(*parts):
@@ -157,7 +178,7 @@ def compute_or_load_bpart_sweep(
     D = D_loader()
     if D is None:
         return None
-    raw = bpart_sweep_raw(D, p_values, reps, seed_base, imputation)
+    raw = bpart_sweep_raw(D, p_values, reps, seed_base, imputation, eigsolver)
     _scope.save(*parts, result=raw, config=config)
     return raw, False
 
