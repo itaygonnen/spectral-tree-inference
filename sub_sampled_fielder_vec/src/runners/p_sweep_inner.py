@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
-from ..core.utils import compute_laplacian
+from ..core.utils import compute_laplacian, compute_normalized_laplacian
 from ..utils.logging import log_warning
 from ..utils.metrics import (
     _normalize_vector,
@@ -32,6 +32,28 @@ def _bipartition_agreement(partition_ref: np.ndarray, partition_avg: np.ndarray)
     matches_direct = int(np.sum(partition_ref == partition_avg))
     matches_flipped = int(np.sum(partition_ref != partition_avg))
     return 100.0 * max(matches_direct, matches_flipped) / len(partition_ref)
+
+
+def _kmeans_bipartition(v: np.ndarray, min_split: int = 1) -> np.ndarray:
+    """Data-driven 2-way split of a Fiedler vector via k-means (k=2).
+
+    The Ng-Jordan-Weiss recipe: cluster the 1-D Fiedler entries into two
+    groups, splitting at the variance-minimizing natural break rather than a
+    fixed threshold (τ=0). Label assignment is arbitrary — downstream metrics
+    (ARI / NMI / flip-max agreement) are label-invariant. ``min_split`` is a
+    guard: if k-means peels off a cluster smaller than it, we log and keep the
+    split (rare with the normalized Laplacian, which is the hypothesis).
+    """
+    from sklearn.cluster import KMeans
+
+    vv = np.asarray(v, dtype=float).reshape(-1, 1)
+    labels = KMeans(n_clusters=2, n_init=10, random_state=0).fit_predict(vv)
+    partition = labels == 1
+    smaller = min(int(partition.sum()), int((~partition).sum()))
+    if smaller < min_split:
+        log_warning('p_sweep_inner',
+                    f"k-means split smaller side {smaller} < min_split {min_split}")
+    return partition
 
 
 def align_fiedler_by_dot_product(
@@ -64,6 +86,7 @@ def bootstrap_p_sweep_simple(
     partition_ref: Optional[np.ndarray] = None,
     early_stop_consecutive_100: int = 0,
     partition_method: str = "sigma2",
+    laplacian: str = "unnormalized",
 ) -> Dict[str, Any]:
     """Bootstrap p-sweep with precomputed (M, fiedler_ref). Uniform sampling.
 
@@ -87,6 +110,14 @@ def bootstrap_p_sweep_simple(
           when an outlier taxon dominates.
         - ``"sign"``: split by sign of the Fiedler vector (``v > 0`` vs
           ``v <= 0``). No σ₂ search; matches the eta-binning convention.
+        - ``"kmeans"``: data-driven τ via k-means(k=2) on the Fiedler
+          entries (Ng-Jordan-Weiss); splits at the variance-minimizing
+          natural break, ``min_split`` guards tiny clusters.
+    laplacian : which Laplacian the per-bootstrap Fiedler is taken from.
+        - ``"unnormalized"`` (default): ``L = Deg(S) - S``.
+        - ``"normalized"``: ``L_sym = I - D^{-1/2} S D^{-1/2}``.
+        The reference Fiedler is supplied by the caller (``fiedler_ref``),
+        so pass a reference computed from the matching Laplacian.
 
     Returns
     -------
@@ -100,8 +131,12 @@ def bootstrap_p_sweep_simple(
     from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
     from spectraltree.spectral_tree_reconstruction import partition_taxa
 
-    if partition_method not in ("sigma2", "sign"):
-        raise ValueError(f"partition_method must be 'sigma2' or 'sign', got {partition_method!r}")
+    if partition_method not in ("sigma2", "sign", "kmeans"):
+        raise ValueError(
+            f"partition_method must be 'sigma2', 'sign' or 'kmeans', got {partition_method!r}")
+    if laplacian not in ("unnormalized", "normalized"):
+        raise ValueError(
+            f"laplacian must be 'unnormalized' or 'normalized', got {laplacian!r}")
 
     if partition_ref is None:
         if partition_method == "sigma2":
@@ -109,7 +144,8 @@ def bootstrap_p_sweep_simple(
                 fiedler_ref, M, num_gaps=num_gaps, min_split=min_split
             )
         else:
-            partition_ref = fiedler_ref > 0
+            partition_ref = (_kmeans_bipartition(fiedler_ref, min_split)
+                             if partition_method == "kmeans" else fiedler_ref > 0)
             ref_quality = float('nan')
             n_true = int(np.sum(partition_ref))
             n_false = len(partition_ref) - n_true
@@ -152,7 +188,8 @@ def bootstrap_p_sweep_simple(
         for i in range(bootstrap_reps):
             S = _subsample_matrix_entries(M, p, seed=seed + i, builder=None)
             try:
-                L_S = compute_laplacian(S)
+                L_S = (compute_normalized_laplacian(S) if laplacian == "normalized"
+                       else compute_laplacian(S))
                 f_est = compute_fiedler_from_laplacian(L_S)
             except Exception as e:
                 log_warning('p_sweep_inner', f"Fiedler failed at p={p:.4g}, rep={i}: {e}")
@@ -175,6 +212,8 @@ def bootstrap_p_sweep_simple(
         try:
             if partition_method == "sigma2":
                 partition_avg = partition_taxa(v_avg, M, num_gaps, min_split)
+            elif partition_method == "kmeans":
+                partition_avg = _kmeans_bipartition(v_avg, min_split)
             else:
                 partition_avg = v_avg > 0
             agr_M = _bipartition_agreement(partition_ref, partition_avg)

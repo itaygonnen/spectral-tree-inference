@@ -50,8 +50,9 @@ def _build_config(
     partition_method: str,
     matrix_kind: str = "similarity",
     distance_alpha: float = 1.0,
+    laplacian: str = "unnormalized",
 ) -> Dict[str, Any]:
-    return {
+    config = {
         "p_values": [round(float(p), 9) for p in p_values],
         "bootstrap_reps": int(bootstrap_reps),
         "seed": int(seed),
@@ -63,6 +64,10 @@ def _build_config(
         "distance_alpha": round(float(distance_alpha), 9),
         "schema_version": SCHEMA_VERSION,
     }
+    # Only tag non-default Laplacians so existing unnormalized keys stay byte-identical.
+    if laplacian != "unnormalized":
+        config["laplacian"] = str(laplacian)
+    return config
 
 
 def compute_sweep_key(
@@ -75,11 +80,13 @@ def compute_sweep_key(
     partition_method: str,
     matrix_kind: str = "similarity",
     distance_alpha: float = 1.0,
+    laplacian: str = "unnormalized",
 ) -> Tuple[str, Dict[str, Any]]:
     config = _build_config(
         p_values, bootstrap_reps, seed, num_gaps, min_split,
         early_stop_consecutive_100, partition_method,
         matrix_kind=matrix_kind, distance_alpha=distance_alpha,
+        laplacian=laplacian,
     )
     blob = json.dumps(config, sort_keys=True).encode("utf-8")
     return hashlib.sha1(blob).hexdigest()[:12], config
@@ -145,6 +152,7 @@ def compute_or_load_sweep(
     partition_method: str = "sigma2",
     matrix_kind: str = "similarity",
     distance_alpha: float = 1.0,
+    laplacian: str = "unnormalized",
     use_cache: bool = True,
 ) -> Optional[Tuple[Dict[str, Any], bool]]:
     """Return ``(result, was_cached)`` for one sweep, or ``None`` if M_loader returns None."""
@@ -156,6 +164,7 @@ def compute_or_load_sweep(
         early_stop_consecutive_100=early_stop_consecutive_100,
         partition_method=partition_method,
         matrix_kind=matrix_kind, distance_alpha=distance_alpha,
+        laplacian=laplacian,
     )
 
     if use_cache:
@@ -174,6 +183,7 @@ def compute_or_load_sweep(
         min_split=min_split,
         early_stop_consecutive_100=early_stop_consecutive_100,
         partition_method=partition_method,
+        laplacian=laplacian,
     )
     save_sweep_result(
         cache_root, param_key, eta_target, idx, sweep_key, config, result,

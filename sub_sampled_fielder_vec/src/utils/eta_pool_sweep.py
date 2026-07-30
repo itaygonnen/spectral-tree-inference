@@ -7,16 +7,25 @@ of them moves the cache keys -- keep them byte-identical to the notebook.
 
 Canonical cache keys at the defaults below:
 ``sign=acb9d64195e6``, ``sigma2=6f5687277cea``, ``kmeans=234a0bd360f7``.
+
+Operator scope
+--------------
+:data:`METHOD_SPECS` keeps all three operators because the engine and the
+appendix figure both need them; the *paper's main figure* reports only
+:data:`PAPER_METHOD` (``kmeans``) -- see :func:`paper_methods`. ``sigma2`` stays
+reachable but should always be passed via ``cached_only_methods`` so a newly
+added ``n`` cannot trigger a fresh expensive run.
 """
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
 from .eta_pool_cache import (
-    param_key, list_completed_samples, load_pool_entry, pool_root,
+    param_key, list_completed_samples, load_pool_entry, load_pool_metadata,
+    pool_root,
 )
 from .sweep_cache import compute_or_load_sweep, compute_sweep_key, load_sweep_result
 from ..core.utils import compute_normalized_laplacian, compute_fiedler_from_laplacian
@@ -32,6 +41,16 @@ METHOD_SPECS: Dict[str, Tuple[str, str, int]] = {
     "sigma2": ("unnormalized", "sigma2", 5),
     "kmeans": ("normalized",   "kmeans", 5),
 }
+
+# The operator the paper reports in the main section. The other two entries of
+# METHOD_SPECS are retained deliberately: the engine supports all three and the
+# appendix operator-comparison figure plots all three.
+PAPER_METHOD: str = "kmeans"
+
+
+def paper_methods() -> List[str]:
+    """The single operator the main-section eta-pool figures report."""
+    return [PAPER_METHOD]
 
 # --- eta bins + per-eta sample caps (same caps the notebook reads with) ------
 ETA_TARGETS: List[int] = [1, 5, 10, 15]
@@ -104,6 +123,50 @@ def discover_ns_and_samples(
         if have_any:
             ns.append(n)
     return sorted(set(ns)), samples_by_n_eta
+
+
+_FEATURE_KEYS = ("eta", "n1", "n2", "S_in_max", "S_out_max", "S_out_min",
+                 "rho", "margin")
+
+
+def collect_pool_features(
+    ns: List[int],
+    eta_targets: List[int] = ETA_TARGETS,
+    pool_params: Optional[Dict[str, object]] = None,
+    max_per_eta: Optional[int] = None,
+    require_positive_margin: bool = True,
+) -> Dict[Tuple[int, int], Dict[str, Any]]:
+    """Per-``(n, eta)`` medians of the pool samples' theory parameters.
+
+    Reads only ``metadata.json`` (via
+    :func:`~src.utils.eta_pool_cache.load_pool_metadata`), never ``M.npz``, over
+    exactly the sample idxs :func:`run_and_collect_sweeps` uses -- so the medians
+    line up row-for-row with the recovery curves.
+
+    ``require_positive_margin`` drops samples with ``margin <= 0``, for which the
+    CBM rate is singular. Each entry carries ``k`` (samples aggregated) and
+    ``k_total`` (samples present) so the caller can see how many were dropped.
+    Missing ``(n, eta)`` combinations are simply absent from the result.
+    """
+    pp = pool_params if pool_params is not None else _default_pool_params()
+    out: Dict[Tuple[int, int], Dict[str, Any]] = {}
+    for n in ns:
+        key = param_key(n=n, **pp)
+        for eta in eta_targets:
+            cap = max_per_eta if max_per_eta is not None else ETA_SAMPLE_CAP.get(eta, 10)
+            metas = [m for m in (load_pool_metadata(_CACHE_ROOT, key, eta, i)
+                                 for i in list_completed_samples(_CACHE_ROOT, key, eta)[:cap])
+                     if m is not None]
+            kept = ([m for m in metas if float(m.get("margin", 0.0)) > 0.0]
+                    if require_positive_margin else metas)
+            if not kept:
+                continue
+            rec: Dict[str, Any] = {"k": len(kept), "k_total": len(metas)}
+            for f in _FEATURE_KEYS:
+                vals = [float(m[f]) for m in kept if m.get(f) is not None]
+                rec[f] = float(np.median(vals)) if vals else float("nan")
+            out[(n, eta)] = rec
+    return out
 
 
 def run_and_collect_sweeps(

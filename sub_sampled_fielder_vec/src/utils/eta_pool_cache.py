@@ -176,6 +176,31 @@ def load_pool_entry(
     return M, v_pop, partition, tree_newick, metadata
 
 
+def load_pool_metadata(
+    cache_root: Path,
+    key: str,
+    eta_target: int,
+    idx: int,
+) -> Optional[Dict[str, Any]]:
+    """Return one sample's ``metadata.json`` without touching ``M.npz``.
+
+    :func:`load_pool_entry` deserializes the full similarity matrix (the pool is
+    ~2 GB), which is wasteful for callers that only need the theory parameters
+    (``eta``, ``n1``, ``n2``, ``S_out_max``, ``S_out_min``, ``rho``, ``margin``).
+    ``None`` on a cache miss, an incomplete sample, or unparseable JSON.
+    """
+    d = sample_dir(cache_root, key, eta_target, idx)
+    if not (d / SENTINEL).exists():
+        return None
+    p = d / "metadata.json"
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text())
+    except Exception:
+        return None
+
+
 def list_completed_samples(
     cache_root: Path, key: str, eta_target: int
 ) -> List[int]:

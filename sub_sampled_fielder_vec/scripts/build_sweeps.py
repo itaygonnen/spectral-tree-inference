@@ -7,11 +7,15 @@ collect results" loop shared with the ``02_real_data_sweeps`` notebooks
 (same p_values / bootstrap_reps / seed / num_gaps / early-stop / per-eta
 caps), so results land on the same cache keys the notebook reads.
 
-Default methods are ``sign`` and ``kmeans`` only -- ``sigma2`` is omitted on purpose
-(it is the expensive operator; skip it for new tree sizes).
+Default method is ``kmeans`` only -- the paper's main-text operator
+(``PAPER_METHOD`` in ``src/utils/eta_pool_sweep.py``). ``sign`` and ``sigma2``
+are omitted by default (``sigma2`` is the expensive operator; skip it for new
+tree sizes) but remain available via ``--methods`` (``choices=METHOD_SPECS``)
+for rebuilding the appendix three-operator comparison.
 
 Usage:
-    python scripts/build_sweeps.py --ns 3000 6000 --methods sign kmeans
+    python scripts/build_sweeps.py --ns 3000 6000 --methods kmeans
+    python scripts/build_sweeps.py --ns 3000 6000 --methods sign sigma2 kmeans
 """
 from __future__ import annotations
 
@@ -60,7 +64,7 @@ def build_sweeps(ns, methods, etas=ETA_TARGETS, max_per_eta=None):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--ns", type=int, nargs="+", required=True)
-    p.add_argument("--methods", nargs="+", default=["sign", "kmeans"],
+    p.add_argument("--methods", nargs="+", default=["kmeans"],
                    choices=list(METHOD_SPECS))
     p.add_argument("--etas", type=int, nargs="+", default=ETA_TARGETS)
     p.add_argument("--max-per-eta", type=int, default=None,

@@ -63,6 +63,28 @@ def compute_laplacian(similarity_matrix: np.ndarray) -> np.ndarray:
         return L
 
 
+def compute_normalized_laplacian(similarity_matrix: np.ndarray) -> np.ndarray:
+    """
+    Compute the symmetric normalized Laplacian from a similarity matrix.
+
+    L_sym = I - D^{-1/2} S D^{-1/2}, where D = diag(row sums of S).
+
+    Dense only (matches the eigh-based Fiedler path). The result is
+    symmetrized for numerical stability before eigendecomposition.
+
+    Args:
+        similarity_matrix: (n, n) dense similarity matrix.
+
+    Returns:
+        (n, n) symmetric normalized Laplacian.
+    """
+    S = np.asarray(similarity_matrix)
+    deg = np.asarray(S.sum(axis=1)).ravel()
+    d_inv_sqrt = 1.0 / np.sqrt(np.maximum(deg, 1e-12))
+    L_sym = np.eye(len(deg)) - (S * d_inv_sqrt[:, None]) * d_inv_sqrt[None, :]
+    return 0.5 * (L_sym + L_sym.T)
+
+
 def compute_fielder_vector(similarity_matrix: np.ndarray) -> np.ndarray:
     """
     Compute the Fiedler vector with deterministic sign convention.
