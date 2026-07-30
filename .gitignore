@@ -11,7 +11,10 @@ __pycache__/
 *.DS_Store
 .vscode
 .ipynb_checkpoints
-figures
+# Root-level generated figures only. NOT a bare `figures` pattern: that also excluded
+# sub_sampled_fielder_vec/docs/overleafs/v9/figures/, which kept the whole paper out of
+# git, and a `!` negation underneath cannot re-include files inside an excluded directory.
+/figures/
 matlab_tests
 docs/_build
 data
@@ -26,8 +29,18 @@ tests/RAxML_result.dendropy_raxml
 # Sub-sampled STDR experimental results and generated data
 sub_sampled_fielder_vec/results/
 sub_sampled_fielder_vec/**/*.png
+# ...except the paper's own figures, which are a tracked deliverable.
+!sub_sampled_fielder_vec/docs/overleafs/v9/figures/*.png
+# Notebook scratch figure dir (v8-era leftovers; see analysis/theoretical_interpretation/README.md)
+sub_sampled_fielder_vec/analysis/theoretical_interpretation/figures/
 sub_sampled_fielder_vec/.claude/
 sub_sampled_fielder_vec/src/cache/
+
+# Superseded manuscript versions — only v9 is tracked.
+sub_sampled_fielder_vec/docs/overleafs/v7/
+sub_sampled_fielder_vec/docs/overleafs/v8/
+sub_sampled_fielder_vec/docs/overleafs/distance approach/
+sub_sampled_fielder_vec/docs/overleafs/Fiedler_Bipartitions/
 
 # Personal IDE configuration
 WARP.md
@@ -45,6 +58,9 @@ sub_sampled_fielder_vec/cache/
 *.ipynb
 !sub_sampled_fielder_vec/analysis/theoretical_interpretation/**/*.ipynb
 test*.py
+# ...but sub_sampled_fielder_vec/tests/ must be committable. The bare `test*.py` above is
+# why that directory has never held a single test.
+!sub_sampled_fielder_vec/tests/test_*.py
 comparing.py
 requirements.txt
 eigenvalue*.png
