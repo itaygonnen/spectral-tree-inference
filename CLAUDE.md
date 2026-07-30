@@ -86,6 +86,135 @@ The November-2025 optimizations in `src/core/` are why experiments at `n=8192` a
 ### Analysis notebooks
 `sub_sampled_fielder_vec/analysis/` holds Jupyter notebooks that consume `results/` JSON. The `theoretical_interpretation/` subdir is the current focus (see git status: figure 1/2/3 notebooks and `utils/{block_model,linalg_features,tree_features}.py`). These are research artifacts — treat them as scratch unless told otherwise.
 
+## Thesis presentation (`sub_sampled_fielder_vec/docs/thesis_seminar.html`)
+
+Single self-contained HTML file — all CSS, JS, and canvas drawing code inline. MathJax loaded from CDN (requires internet to render LaTeX). Open with `open sub_sampled_fielder_vec/docs/thesis_seminar.html`.
+
+### Slide structure (21 slides)
+| Part | Slides | Topic |
+|------|--------|-------|
+| I | 1–6 | Domain intro, STDR |
+| II | 7–9 | The sub-sampling problem |
+| III | 10–13 | Building S (CBM) |
+| IV | 14–16 | Bridging tree topology to linear algebra |
+| V | 17–21 | Empirical results |
+
+### FIG registry pattern
+All canvas figures live in `const FIG = { key: cv => drawFn(cv._x, cv._w, cv._h, opts) }`. To add a new figure: add an entry here, then reference it with `<canvas data-fig="key" width="W" height="H"></canvas>` in a slide. The deck engine calls `hidpi(cv)` and then `FIG[key](cv)` for every canvas on the current slide.
+
+**Currently defined but not yet placed on any slide:** `phase`, `bern`, `compare`.
+
+### `lineChart` options
+```js
+lineChart(ctx, W, H, {
+  xData,          // array of p values (log x-axis)
+  curves,         // [{label, color, y:[]}]
+  yRange,         // default [0,1] — e.g. [0.4,1] to zoom
+  threshold,      // red dashed horizontal line (e.g. 0.95)
+  title,          // top label
+  yLabel,         // rotated y-axis label, default 'NMI'
+  compact,        // true → tighter padding (for small multi-panel layouts)
+  noYAxis,        // true → hide y-axis ticks and label
+  noLegend,       // true → hide in-chart legend
+})
+```
+
+### CSS color semantics — don't cross these
+- `--blue` / `--orange` — **clan A / clan B** exclusively. Don't use for neutral UI chrome.
+- `--green` — recovery / success regions.
+- `--red` — thresholds, split edges, error.
+- `--line` / `--ink-dim` — neutral borders, secondary text.
+
+### Python editing trap — LaTeX backslash corruption
+When writing HTML content containing MathJax LaTeX from Python strings, `\r`, `\t`, `\n` are interpreted as control characters. `\rho` → CR + `ho`; `\text` → tab + `ext`. Always use **raw strings** (`r"..."`) or **double backslashes** (`\\rho`, `\\text`) when constructing HTML with Python.
+
+## The v9 manuscript (`sub_sampled_fielder_vec/docs/overleafs/v9/`)
+
+Thin master `thesis_v9.tex` + `sections/*.tex`; figures in `figures/`; open questions in
+`open-items/` (collated to `OPEN_ITEMS.md`). Related Work is deferred to `deferred/related.tex`.
+
+- **NEVER assume `docs/overleafs/` is recoverable — the whole tree is untracked by git.** Confirm
+  destructive edits with the author or snapshot first.
+- ALWAYS build with `latexmk -pdf -interaction=nonstopmode thesis_v9.tex` **from inside the v9
+  directory** (the shell cwd is not where you think after backgrounded commands), and verify with
+  `grep -c "undefined" thesis_v9.log` against a baseline taken *before* editing. Zero is the
+  expected value. A truncated `.aux`/`.out` from an interrupted run causes
+  `File ended while scanning use of \@newl@bel`; fix with `latexmk -C` then rebuild.
+- ALWAYS put restructure rationale in the `.tex` as `% [Reviewer Note: ...]` — invisible in the PDF.
+- **NEVER attach a bare `\label{}` to unnumbered material** (after `\subsection*`, `\paragraph`, or
+  mid-paragraph). It binds to the last stepped counter and `\Cref` then prints a figure or lemma
+  number. When a heading or `definition` environment is dissolved, either keep a numbered anchor or
+  retarget every reference — `\Cref{def:x}` → `\eqref{eq:x}`, `\Cref{sec:sub}` → the parent section.
+- ALWAYS re-grep for orphaned targets after removing structure; appendices reference main-text
+  labels heavily (`appendix-emp.tex` alone held 9 references to two dissolved subsections).
+- ALWAYS preserve every `\cite{}` key when collapsing bullet lists into prose, and keep the
+  claim discipline in `open-items/12-A3.md`: "sufficient", never "tight"/"optimal"; `cor:tolerance`
+  is *necessary*; `cor:infeasible` means the guarantee goes silent, not a converse.
+
+### Paper figure conventions (established in the v9 refine pass)
+
+- **NEVER leave matplotlib titles or `suptitle` in a paper figure** — the LaTeX caption carries that
+  text. Same for parameter labels: the η (or other sweep parameter) belongs in the `\subcaption`,
+  not inside the image.
+- ALWAYS emit **one image file per panel-group and tile in LaTeX**, not one giant multi-row PNG.
+  The 2×2 pattern: `subfigure[t]{0.49\textwidth}` with
+  `\captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}` and the `\subcaption`
+  *before* `\includegraphics` (that is what puts the "(a) η=1" in the upper-left corner). Keep the
+  outer `\label` so existing `\Cref`s resolve; add per-cell labels for individual citation.
+- ALWAYS size type for the **printed** scale, not the PNG: a 7in-wide figure in a
+  `0.49\textwidth` subfigure is scaled ~0.46×, so anything under ~13pt lands under 6pt on paper.
+- At subfigure size, NEVER put a multi-entry legend or explanatory text inside the axes — state the
+  colour order, marker roles and fitted constants once in the caption. Thin the ticks
+  (`NMI_TICKS`, `N_TICKS` in `sweep_plots_two_panel.py`).
+- ALWAYS reuse the same plotting function across figures that should look alike
+  (`plot_pstar_pair`) and parameterize the differences (`n_ticks`, `size_label`) rather than
+  copying the drawing code.
+- ALWAYS plot **one** reference curve. Two renderings of the same rate (a fitted `C log n/n` beside
+  the theorem's own constant) confuse rather than corroborate.
+- Estimating `C` in `p* = C log n / n`: ALWAYS use the **median of the per-point ratios**
+  (`median_ratio_C`), never a linear-scale least-squares fit — the latter is set almost entirely by
+  the largest `p*`, i.e. by the smallest trees. Report the max/min spread of those per-point ratios
+  when it is large; it is the honest statement of how well one constant fits.
+- The theorem's own constant `8(1+η)³β₀²log m/[m·margin²]` (`cbm_sufficient_p`) is **not plottable
+  on measured data**: rebuilt per size from pool medians it swings an order of magnitude between
+  neighbouring `n`, and it is `nan` wherever the measured margin `ρ − η·S_out^max` goes
+  non-positive (most sizes at η ≥ 10 in the Kingman pool). Keep it as a printed diagnostic.
+- `p̂*` = smallest grid `p` with mean metric ≥ threshold. **0.90, not 0.95** — at 0.95 the read-off
+  lands on the flat top of the transition where one noisy sample moves `p̂*` a whole grid step.
+- **NEVER report ad-hoc diagnostics (fit exponents, RMSE) as if they were the paper's metrics.**
+  The paper scores NMI; anything else is scaffolding and must be labelled as such.
+- ALWAYS re-read the prose when a figure gains panels: adding η rows falsified the "increasing η
+  shifts the curve upward" claim (the fitted constants are not monotone through η=15). Flag the
+  contradiction instead of letting stale text stand.
+- matplotlib mathtext: `\le`/`\ge` are **not** symbols — use `\leq`/`\geq` (this also bites in
+  titles and annotations, not just labels).
+
+### Notebook ↔ paper-figure workflow
+
+- **NEVER let a preview run overwrite `docs/overleafs/v9/figures/`.** The figure cells save to
+  `FIG_DIR`; when exploring, exec the cells headlessly with `FIG_DIR` redirected to scratch.
+- Editing a notebook cell **clears its stored outputs**, so the notebook shows stale figures until
+  it is re-run. To show a result without republishing the paper asset: exec the cell with `FIG_DIR`
+  diverted, then write the PNG back into the `.ipynb` as a base64 `display_data` output.
+- ALWAYS strip `%` magics before `exec`-ing notebook cells from a script.
+
+### Sweep economics (`analysis/theoretical_interpretation/`)
+
+- Cost per `(η, m)` cell is `N_TRIALS × |P_GRID|` sub-sampled Fiedler solves, and each solve is
+  `O(m³)` once `p > 0.1` (dense `scipy.linalg.eigh`; sparse `eigsh` below that). Measured: m=1536
+  → 39 s, m=2816 → 3 min, m≈11k → ~3 h. ALWAYS extrapolate before launching a full grid, and
+  prefer fewer sizes / fewer trials over an overnight tail — the largest point buys one dot on a
+  log axis.
+- Every trial is cached individually, so runs are **resumable and safely interruptible**; a smaller
+  `N_TRIALS` just reads the first seeds of an existing cache, keeping old and new η comparable.
+- ALWAYS check what is already cached (`cache/full_matrix`, `cache/sweep_trial`; a complete flat-CBM
+  cell has 480 trial dirs = 24 four-decimal `p` keys × 20 seeds) before recomputing.
+- Flat-CBM grids: `m` must be divisible by `1+η` for `n1 = m/(1+η)` to be exact, so **each η needs
+  its own m grid** (÷2, ÷6, ÷11, ÷16 for η = 1, 5, 10, 15). Reusing one grid silently shifts the
+  realised η (m=90 at η=15 gives 17.0).
+- Long runs go in the background with progress to a log, smallest sizes first, so the figure is
+  assemblable before the tail finishes.
+
 ## Conventions worth knowing
 
 - `gemini.md` (sister AI instructions) sets stylistic preferences: keep files ≲200 lines, one function = one logic, type-hint matrix inputs as `np.ndarray`, prefer `_v2`/`temp_` naming over overwriting working code during experiments. Apply these to new `sub_sampled_fielder_vec` code.
