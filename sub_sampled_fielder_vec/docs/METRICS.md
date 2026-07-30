@@ -2,9 +2,31 @@
 
 This document describes all metrics computed by the framework and the data formats used for storing results.
 
-## Overview
+## What the paper scores: NMI
 
-The framework computes **4 primary metrics** to evaluate Fiedler vector quality under subsampling:
+**The v9 manuscript reports NMI**, and everything else on this page is the earlier
+generation of metrics. Read this section first.
+
+| Metric | Meaning | Where |
+|---|---|---|
+| **`nmi`** | Normalized mutual information between the recovered bipartition and the truth. **This is the paper's score** (`cor:nmi`). Label-permutation invariant, so a global Fiedler sign flip cannot change it. | `src/runners/p_sweep_inner.py`, `analysis/utils/recovery.py:compute_nmi` |
+| `ari` | Adjusted Rand index. Computed alongside NMI, reported in the register rather than the paper. | same |
+
+**`p̂*` is read off at NMI ≥ 0.90**, not 0.95: it is the smallest `p` on the sampled grid
+whose mean NMI reaches the threshold, deliberately *not* interpolated, so a reported `p̂*`
+is always a `p` that was actually measured. 0.90 rather than 0.95 because at 0.95 the
+read-off lands on the flat top of the transition, where one noisy sample moves `p̂*` a whole
+grid step. The detector is `src/utils/threshold_utils.py:find_discrete_threshold`.
+
+The **rounding rule** that turns a Fiedler vector into a bipartition is a separate paper
+choice: `kmeans` (k=2 on the entries of the normalized Laplacian `L_sym`) is `PAPER_METHOD`.
+`sign` (split at τ=0) and `sigma2` (σ₂-gap search) remain available, and Figure 9 compares
+all three. See `src/utils/eta_pool_sweep.py:METHOD_SPECS`.
+
+## Earlier generation (pipeline A)
+
+These 4 metrics predate the switch to NMI. They are still computed and still written into
+`results.json` by pipeline A, but the paper does not report them.
 
 1. **Partition Agreement Metrics** (2 metrics)
    - `partition_agreement_M` - Ideal scenario comparison

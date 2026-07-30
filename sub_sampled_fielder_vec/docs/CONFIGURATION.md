@@ -409,4 +409,4 @@ The configuration system supports memory-efficient execution:
 ## See Also
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Codebase structure
-- [LEVERAGED_SAMPLING.md](LEVERAGED_SAMPLING.md) - Leveraged sampling configuration details
+- [LEVERAGED_SAMPLING.md](deprecated/LEVERAGED_SAMPLING.md) - Leveraged sampling configuration details

@@ -102,23 +102,24 @@ After using the interactive launcher:
 ```
 sub_sampled_fielder_vec/
 ├── scripts/
-│   ├── interactive_run.py     ← NEW: Interactive launcher (use this!)
-│   └── run_experiment.py      ← OLD: Legacy script (reference only)
+│   ├── interactive_run.py     ← Interactive launcher (menu-driven)
+│   └── run_experiment.py      ← Same pipeline, config-in-source. NOT deprecated:
+│                                 it is how Figure 7's prerequisite run is produced
+│                                 (see scripts/README.md and docs/RUNBOOK.md).
 │
-├── cache/                      ← Cached matrices
-│   ├── n2048_L10000_mu0.100_balanced_binary_JC69/
-│   │   ├── tree.npz
-│   │   ├── observations.npz
-│   │   ├── similarity_matrix.npz
-│   │   ├── fiedler_ref.npz
-│   │   └── metadata.json
-│   └── n4096_L5000_mu0.050_kingman_JC69/
-│       └── ...
+├── cache/                      ← Cached matrices, organized by SCOPE (7 of them)
+│   ├── experiment_data/        ← what this launcher reads and writes
+│   │   └── L10000_mu0p1000_n2048_..._treebalanced_binary/
+│   │       ├── tree.npz  observations.npz  similarity_matrix.npz
+│   │       ├── fiedler_ref.npz  metadata.json  .complete
+│   ├── pool_sample/  bootstrap_sweep/  sweep_trial/
+│   └── full_matrix/  distance_matrix/  bpart_sweep/
+│                                 (see docs/CACHE_AND_RESULTS.md)
 │
-├── last_run.json              ← Your last experiment config
+├── last_run.json              ← Your last experiment config (gitignored)
 │
 ├── results/                    ← Experiment outputs
-│   └── 20260124-HHMMSS-prefix/
+│   └── runs/<timestamp>-<prefix>/
 │       ├── sweep_config.json
 │       ├── n2048_L10000/
 │       └── partition_agreement.png

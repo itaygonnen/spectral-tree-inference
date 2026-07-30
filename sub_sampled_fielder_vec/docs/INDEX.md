@@ -27,7 +27,6 @@ July-2026 reorganization. Trust the mechanism, verify the paths.
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture. Covers pipeline A only. |
 | [CONFIGURATION.md](CONFIGURATION.md) | `StructuredConfig` / Pydantic reference. Still current. |
 | [METRICS.md](METRICS.md) | Metric definitions. Predates NMI becoming the paper's score. |
-| [ANALYSIS_GUIDES.md](ANALYSIS_GUIDES.md) | Refers to the analysis packages now under `analysis/legacy/`. |
 | [INTERACTIVE_GUIDE.md](INTERACTIVE_GUIDE.md) | `scripts/interactive_run.py` walkthrough. Still current. |
 | [../CHANGELOG.md](../CHANGELOG.md) | Notably the 2026-02-20 LDS debiasing fix (`π_ij`, not `p_ij`). |
 

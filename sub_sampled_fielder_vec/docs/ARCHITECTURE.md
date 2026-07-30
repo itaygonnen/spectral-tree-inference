@@ -1,16 +1,23 @@
 # Codebase Architecture
 
-This document provides a structural overview of the codebase optimized for AI agents and automated workflows.
+Structural overview of `src/` and **pipeline A** (the legacy bootstrap sweep). It does NOT
+cover pipeline B (the eta-pool route that produces the paper's main figures) or pipeline C
+(per-method sweeps) -- see the three-pipeline table in [../README.md](../README.md), and
+[../analysis/PAPER_MAP.md](../analysis/PAPER_MAP.md) for figure provenance.
+
+Coverage caveat: the module lists below predate later growth. `src/runners/` now holds 19
+modules and `src/utils/` 29; only a handful appear here, and `src/cache_io.py` -- the one
+self-verifying module (`python -m src.cache_io`) -- is absent. Treat this as a map of the
+pipeline-A core, not an inventory.
 
 ## Directory Map
 
 ```
 sub_sampled_fielder_vec/
 ├── README.md                    # Main entry point - concise overview
-├── scripts/                      # CLI entry points and utilities
+├── scripts/                      # things you RUN (libraries live in src/) -- see scripts/README.md
 │   ├── interactive_run.py       # ⭐ Interactive launcher with caching (recommended!)
 │   ├── run_experiment.py        # Script-based experiment launcher
-│   ├── check_partition_quality.py  # Inspect σ₂-based partition quality
 │   └── validation/              # Targeted validation utilities
 ├── src/                          # Core package code (importable)
 │   ├── config/                  # Configuration system (Pydantic models)
@@ -47,29 +54,23 @@ sub_sampled_fielder_vec/
 │   │   ├── persistent_cache.py  # 🆕 Disk-based caching for matrices
 │   │   ├── interactive_ui.py    # 🆕 Menu system for interactive launcher
 │   │   └── threshold_utils.py   # Partition thresholding helpers
-│   └── cache/                   # 🆕 Persistent cache storage (gitignored)
-│       ├── n1024_L10000_mu0.100_balanced_binary_JC69/
-│       │   ├── similarity_matrix.npz
-│       │   ├── observations.npz
-│       │   ├── tree.npz
-│       │   └── fiedler_ref.npz
-│       └── ...
-├── configs/                      # Saved JSON configurations
-│   ├── presets/                 # Checked-in preset configs
-│   └── custom/                  # User-provided configs (gitignored)
-├── last_run.json                # 🆕 Last run configuration (for re-runs)
+│   ├── cache_io.py              # cache scopes + run_dir/notebook_dir; `python -m src.cache_io`
+│   └── plots/                   # plot libraries the notebooks import
+├── cache/                        # persistent cache, 7 scopes (gitignored) -- NOT src/cache/
+│   ├── pool_sample/  bootstrap_sweep/  experiment_data/  sweep_trial/
+│   ├── full_matrix/  distance_matrix/  bpart_sweep/
+│   └── <scope>/<key>/            # key e.g. L10000_mu0p1000_n0500_..._treekingman
+├── last_run.json                # last interactive-run config (gitignored -- mutable state)
 ├── docs/                         # Documentation (this directory)
-├── examples/                     # Small runnable code samples
-├── tests/                        # Unit and integration tests
-├── analysis/                     # Analysis notebooks and tools
-│   ├── notebooks/               # 🆕 Interactive exploration notebooks
-│   │   └── leverage_sampling_explorer.ipynb  # Visualize leverage diagnostics
-│   ├── comparison/              # Method comparison (uniform vs leveraged)
-│   ├── leveraged_sampling_analysis/  # Leveraged sampling diagnostics
-│   ├── spectral_analysis/       # Spectral analysis frameworks
-│   └── generic_analysis/        # Generic analysis utilities
+├── logs/                         # run logs (gitignored)
+├── tests/                        # no suite yet -- see tests/README.md
+├── analysis/                     # the paper's notebooks, by section then data source
+│   ├── utils/                   # shared helpers (import: analysis.utils)
+│   ├── sec5_empirical/  appD_hbm/  appG_supplementary/   # the 6 figure-producing notebooks
+│   ├── supporting/              # the 10 that produce no paper figure
+│   └── legacy/                  # superseded analysis packages, unmaintained
 └── results/                      # Auto-generated experiment artifacts (gitignored)
-    └── <timestamp>-<run_name>/
+    └── runs/<timestamp>-<run_name>/
         └── n{taxa}_L{seq_len}/
             ├── results.json
             ├── config.json
@@ -103,8 +104,9 @@ sub_sampled_fielder_vec/
 - **`src/utils/metrics.py`** - `compute_partition_agreement()`, `compute_fiedler_dot_product()`, etc.
 
 ### For Analysis
-- **`analysis/comparison/compare_methods.py`** - Compare uniform vs leveraged sampling
-- **`analysis/leveraged_sampling_analysis/`** - Diagnostic framework for leveraged sampling
+- **`analysis/legacy/comparison/compare_methods.py`** - Compare uniform vs leveraged sampling (unmaintained)
+- **`analysis/legacy/leveraged_sampling_analysis/`** - Diagnostic framework for leveraged sampling (unmaintained)
+- For the paper's own analysis, start at **`analysis/PAPER_MAP.md`**
 
 ## Data Flow
 
@@ -138,7 +140,7 @@ flowchart TD
     
     VecMetrics --> Save[save_single_results / save_taxa_results]
     Save --> Plot[plot_from_json_simple / plot_faceted]
-    Plot --> End([results/<timestamp>-<run_name>])
+    Plot --> End([results/runs/<timestamp>-<run_name>])
     
     style Start fill:#e1f5ff
     style Runner fill:#fff4e1
@@ -150,8 +152,9 @@ flowchart TD
 
 ## File Naming Conventions
 
-- **Config files**: `*.json` in `configs/` directory
-- **Result files**: `results*.json`, `fiedler_ref*.npy` in `results/<timestamp>-<run_name>/`
+- **Config files**: written per run as `config.json` inside the run dir. There is no
+  `configs/` directory -- it existed, was never read by any code, and was removed.
+- **Result files**: `results*.json`, `fiedler_ref*.npy` in `results/runs/<timestamp>-<run_name>/`
 - **Plot files**: `plot_*.png` in results directory
 - **Test files**: `test_*.py` in `tests/` directory
 - **Analysis notebooks**: `*.ipynb` in `analysis/` subdirectories
@@ -259,7 +262,8 @@ from sub_sampled_fielder_vec.src.core.similarity_builder import SimilarityMatrix
 ## Memory and Performance Notes
 
 - **Streaming S average**: Uses Welford's algorithm to avoid storing K matrices (saves ~12.8 GB for n=4000, K=100)
-- **Persistent caching**: Matrices cached to disk in `src/cache/` for instant re-runs
+- **Persistent caching**: Matrices cached to disk under `cache/` (7 scopes; see
+  `docs/CACHE_AND_RESULTS.md`) for instant re-runs
 - **Sparse SVD**: Automatically used for large sparse matrices in Fiedler computation
 - **Parallel execution**: Controlled by `num_workers` in `ExperimentConfig`
 
@@ -316,9 +320,13 @@ phase2_probs = data['phase2_probs_sampled']  # shape: (n_taxa, n_taxa)
 
 **Theoretical minimum**: `p_min ≈ (4·n·r·log(n)) / (n(n-1)/2)` where r = target_rank
 
-### Analysis Notebook
+### Analysis Notebook (GONE)
 
-**Location**: `analysis/notebooks/leverage_sampling_explorer.ipynb`
+`analysis/notebooks/leverage_sampling_explorer.ipynb` no longer exists. It was
+gitignored as well as deleted, so it is not recoverable from history. The section
+below is kept only as a description of what it used to show.
+
+**Former location**: `analysis/notebooks/leverage_sampling_explorer.ipynb`
 
 **Purpose**: Visualize leverage score quality by comparing estimated vs ground truth
 
@@ -352,5 +360,4 @@ phase2_probs = data['phase2_probs_sampled']  # shape: (n_taxa, n_taxa)
 
 - [METRICS.md](METRICS.md) - Detailed metrics documentation
 - [CONFIGURATION.md](CONFIGURATION.md) - Configuration system details
-- [LEVERAGED_SAMPLING.md](LEVERAGED_SAMPLING.md) - Leveraged sampling implementation
-- [ANALYSIS_GUIDES.md](ANALYSIS_GUIDES.md) - Analysis notebooks and tools
+- [LEVERAGED_SAMPLING.md](deprecated/LEVERAGED_SAMPLING.md) - Leveraged sampling implementation

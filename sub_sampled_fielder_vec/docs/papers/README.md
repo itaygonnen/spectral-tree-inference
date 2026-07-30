@@ -2,9 +2,21 @@
 
 | File | Topic | Where it's used |
 |---|---|---|
-| `SNJ_Jaffe_Kluger.pdf` | Spectral Neighbor Joining (SNJ) for latent tree models | σ₂ rank-1 partition score (`spectraltree/snj.py:9-15`, used in `src/utils/metrics.py:326,430`); SNJ α parameter `M^α = exp(-α D)` exposed as `SamplingConfig.distance_alpha` in the distance-matrix sub-sampling path (`src/core/similarity_builder.py`). |
-| `Leveraged_Matrix_Completion_With_Noise.pdf` | Leveraged matrix completion + IALM recovery | Backs the leveraged sampling method (`src/core/sampling/leveraged/`). |
-| `Spectral_top-down_recovery_of_latent_tree_models.pdf` | STDR / top-down spectral recovery | Backs `spectraltree/spectral_tree_reconstruction.py:STDR`. |
+| `Spectral_top-down_recovery_of_latent_tree_models.pdf` | STDR / top-down spectral recovery | Backs `spectraltree/spectral_tree_reconstruction.py:STDR`. **The only PDF tracked in git.** |
+| `Matrix Completion from a Few Entries copy` | leveraged matrix completion | Backs `src/core/sampling/leveraged/`. |
+| `Universal Matrix Completion copy.pdf` | matrix completion bounds | ditto |
+| `Noise Thresholds for Spectral Clustering copy.pdf.pdf` | spectral-clustering noise thresholds | context for the recovery threshold `p*` |
+| `Unperturbed- spectral analysis beyond Davis-Kahan copy.pdf` | entry-wise eigenvector analysis | context for the Neumann route (App C) |
+| `The Neighbor-joining Method copy.pdf` | NJ | context for the `nj_distance` supporting notebooks |
+
+**Absent but previously listed here:** `SNJ_Jaffe_Kluger.pdf` and
+`Leveraged_Matrix_Completion_With_Noise.pdf` are not in this directory and never were under
+those names. The SNJ material the section below describes is real and load-bearing in the
+code -- only the PDF is missing.
+
+All PDFs except the STDR one are **gitignored** (third-party reference material; 10.9 MB of
+them were tracked by mistake in commit `b53e2f5` and untracked again). Several still carry
+Finder's `" copy"` suffix and one has a doubled `.pdf.pdf` extension.
 
 ## SNJ paper — what's load-bearing in this repo
 

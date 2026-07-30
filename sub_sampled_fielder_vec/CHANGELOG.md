@@ -4,6 +4,55 @@ All notable changes to the STDR framework are documented here.
 
 ---
 
+## [2026-07-30] Repository restructure around the v9 paper
+
+Two cleanup passes. **No mathematics, figure, or plotted curve changed** — all 23 paper
+figure md5s are unchanged and the PDF still builds to 29 pages / 2,586,870 bytes.
+
+### Fixed — the paper was not in version control
+
+- `.gitignore` had three over-broad patterns. A bare `figures` excluded
+  `docs/overleafs/v9/figures/`, and the `.tex` files were never added, so the manuscript
+  lived entirely outside git. A bare `test*.py` matched `tests/test_*.py`, which is why that
+  directory has never held a single test.
+- Committed modules that tracked notebooks already imported but that were never added:
+  `analysis/utils/sweep_plots_two_panel.py` (Figs 2, 3), `src/utils/screening.py`,
+  `src/utils/eta_pool_griffing.py`, and `hbm_spectral_gap_verification.ipynb` — the sole
+  producer of Figure 4. A fresh clone previously raised `ImportError` on five notebooks.
+- v9 is now self-contained: Figure 5 resolved through `\graphicspath{{../}}` to assets
+  outside the tree, so uploading `v9/` alone to Overleaf failed.
+- `src/` no longer imports from `analysis/`. Two modules (`partition_validity`, `tree_plots`)
+  were pulled in by bare name via `sys.path` hacks, so `import src` only ever worked by
+  accident; both now live under `src/`.
+- Untracked 10.9 MB of third-party PDFs, 35 machine-specific run logs, and `last_run.json`
+  (mutable state) — all committed by mistake or by habit.
+
+### Added
+
+- `analysis/PAPER_MAP.md` — figure ↔ notebook ↔ claim ↔ cache ↔ rebuild command, *generated*
+  from `analysis/paper_figures.py` and validated by
+  `scripts/sync_paper_figures.py --check`, which cross-checks the manifest against every
+  `\includegraphics` in the paper. The previous mapping was stale and misattributed Figure 7.
+- `docs/RUNBOOK.md`, `docs/CACHE_AND_RESULTS.md`, `scripts/README.md`,
+  `analysis/legacy/README.md`, `tests/README.md`.
+- `docs/overleafs/v9/open-items/19-cleanup.md` — 10 findings referred to the author.
+
+### Changed
+
+- Notebooks reorganized **by paper section, then data source** (`sec5_empirical/`,
+  `appD_hbm/`, `appG_supplementary/`, `supporting/`), and the
+  `analysis/theoretical_interpretation/` layer collapsed away — imports are `analysis.utils`.
+- `scripts/` now holds only things you run; the six imported `plot_*` libraries moved to
+  `src/plots/` and `merge_results.py` to `src/utils/`.
+- Six superseded analysis packages archived under `analysis/legacy/`.
+- Deleted as dead: `configs/` (zero code references), `examples/` (zero importers),
+  `analysis/utils/distance_similarity.py` (843 lines, documented as shared but never
+  imported), `docs/ANALYSIS_GUIDES.md` (documented notebooks that no longer exist).
+- `docs/METRICS.md` now documents **NMI** as the metric the paper reports; it previously
+  mentioned neither NMI nor ARI.
+
+---
+
 ## [2026-02-20] Critical Bug Fix: LDS Debiasing Probability
 
 ### Fixed

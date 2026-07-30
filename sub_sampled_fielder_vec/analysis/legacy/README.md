@@ -25,7 +25,7 @@ originals, retained only as history; the canonical versions are in `src/`.
 
 | Path | What it does | Condition |
 |---|---|---|
-| `comparison/` | uniform vs leveraged head-to-head runner, sigmoid/power-law phase-transition fits, notebook glue | `notebook_utils.py` loads plot modules **by file path**, which is brittle. Its 3 `.md` files are redirect stubs to `docs/ANALYSIS_GUIDES.md`. |
+| `comparison/` | uniform vs leveraged head-to-head runner, sigmoid/power-law phase-transition fits, notebook glue | `notebook_utils.py` loads plot modules **by file path**, which is brittle. Its 3 `.md` files are redirect stubs to `docs/ANALYSIS_GUIDES.md`, **which has been deleted** -- it documented notebooks that no longer exist. Same for the two `spectral_analysis/*/README.md` stubs. |
 | `generic_analysis/` | 15-module numerical-linear-algebra diagnostics library (Davis–Kahan, eigen spectrum, IPR, rank/coherence, operator norm) | **Never imported in this checkout** — no importer anywhere and no `__pycache__` was ever generated. 1,630 lines. |
 | `leveraged_sampling_analysis/` | IO + metrics + visualization stack for the LDS / leveraged-sampling experiments | Was in use (has `__pycache__` from May 2026). `metrics/diagnostics.py` and `metrics/leverage.py` both define `compute_leverage_concentration`. Its docstring example path `results/kingman_mean/lds/…` no longer exists; the live layout nests under `results/runs/`. |
 | `notebooks/` | `matrix_utils.py` only, 728 lines, "for target matrix analysis notebooks" | **Contains no notebooks.** The helper library has no consumer. |
