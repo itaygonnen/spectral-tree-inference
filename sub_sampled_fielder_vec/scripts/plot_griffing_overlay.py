@@ -1,6 +1,6 @@
 """Griffing first-partition recovery — paper-style overlay (3 panels).
 
-Matches `02_real_data_sweeps/kingman_threshold_vs_theory.ipynb` style.
+Matches `02_real_data_sweeps/paper/fig07_identity_checks.ipynb` style.
 
   * Left:   ``partition_agreement_M`` (%) vs $p$, **log-x**, one curve
             per $n$ (viridis), red dashed 95% threshold. Per-$n$ legend

@@ -105,6 +105,20 @@ def check() -> int:
     for name in sorted(on_disk - set(mapped) - set(PF.RETIRED)):
         errors.append(f"ORPHAN       {name}  in v9/figures/ but neither mapped nor RETIRED")
 
+    # Every notebook must be accounted for: either it produces a figure or it is listed as
+    # supporting. Without this, a new notebook is invisible to the map -- which is exactly
+    # how the two distance-route notebooks went unlisted.
+    listed = {f.notebook for f in PF.PAPER_FIGURES} | {s.notebook for s in PF.SUPPORTING}
+    present = {
+        str(p.relative_to(ANALYSIS))
+        for p in ANALYSIS.rglob("*.ipynb")
+        if "legacy" not in p.parts and ".ipynb_checkpoints" not in p.parts
+    }
+    for nb in sorted(present - listed):
+        errors.append(f"UNLISTED-NB  {nb}  exists but is in neither PAPER_FIGURES nor SUPPORTING")
+    for nb in sorted(listed - present):
+        errors.append(f"GHOST-NB     {nb}  listed in the manifest but not on disk")
+
     # --- mtime heuristics: advisory only ------------------------------------
     # Grouped by FLOAT (fig.label), not by notebook: panels of one figure must come
     # from one run, but one notebook may legitimately produce several figures across

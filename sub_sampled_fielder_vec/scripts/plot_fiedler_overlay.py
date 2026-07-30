@@ -1,7 +1,7 @@
 """First-layer Fiedler partition-agreement overlay.
 
 Matches the visual style of
-``02_real_data_sweeps/kingman_threshold_vs_theory.ipynb``:
+``02_real_data_sweeps/paper/fig07_identity_checks.ipynb``:
 
   * Left:  ``partition_agreement_M`` (%) vs $p$, **log-x**, one curve per
            $n$ (viridis), red dashed 95% threshold. Each $n$ is labelled

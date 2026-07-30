@@ -1,6 +1,6 @@
 """Reusable matplotlib for the eta-pool sweep figures.
 
-Serves the APPENDIX figures of ``sec5_empirical/generated/eta_pool_sweep.ipynb``:
+Serves the APPENDIX figures of ``paper/fig03_pstar_gen_kingman.ipynb``:
 ``plot_nmi_grid`` -> Fig 8 (fig:recovery_grid) and ``plot_pstar_vs_n`` -> Fig 9
 (fig:operator_sensitivity). The paper's MAIN per-eta panels (Fig 3) come from
 :mod:`sweep_plots_two_panel` instead -- see the note on constants below.

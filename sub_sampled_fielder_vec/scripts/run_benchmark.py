@@ -37,7 +37,7 @@ from src.utils.dataset_scan import (  # noqa: E402
     DatasetEntry, entry_from_paths, scan_roots,
 )
 from src.utils.interactive_ui import (  # noqa: E402
-    Colors, confirm, get_input, get_menu_choice, print_divider, print_error,
+    confirm, get_input, get_menu_choice, print_divider, print_error,
     print_header, print_logo, print_option, print_success, print_warning,
 )
 
@@ -48,7 +48,7 @@ SYNTHESIZED_DIR = PROJECT_ROOT / "analysis"
 
 SOURCES = [
     "real         — downloaded FASTA (+ optional Newick) trees",
-    "generated    — simulated trees (Kingman / birth-death), no download needed",
+    "generated    — simulated trees (choose model, sizes, eta bins)",
     "synthesized  — CBM-theory notebooks (not part of this tool)",
 ]
 
@@ -110,40 +110,69 @@ def choose_real_dataset() -> DatasetEntry | None:
 # ---------------------------------------------------------------------------
 
 def prompt_generated():
-    """Ask the simulation knobs; return (loader, tree_ids, source_meta)."""
-    from analysis.utils.generated_data import (
-        GENERATORS, build_ids,
-    )
+    """Ask the simulation knobs; return (loader, tree_ids, source_meta, plan).
+
+    ``plan`` is None unless the run draws from the eta pool, in which case the
+    ids are provisional: the pool is topped up after the confirm, and the real id
+    list is whatever ended up on disk.
+    """
+    from src.utils.generated_prompts import prompt_generated_plan
     from src.runners.benchmark_loaders import GeneratedLoader
 
-    print_header("Step 2 — simulation settings")
-    n_taxa = int(get_input("Number of taxa per tree", default="1000"))
-    seq_len = int(get_input("Sequence length", default="1000"))
-    n_per_gen = int(get_input(
-        f"Trees per generator ({', '.join(GENERATORS)})", default="300"))
-
-    tree_ids = build_ids(n_per_gen)
-    print(f"  → {len(tree_ids)} trees "
-          f"({n_per_gen} × {len(GENERATORS)} generators)")
-    print(f"  {Colors.CYAN}note{Colors.RESET}: trees are deterministic in their id "
-          "(seed = generator offset + index), so reruns rebuild the same data")
-    return (GeneratedLoader(n_taxa=n_taxa, seq_len=seq_len), tree_ids,
-            {"kind": "generated", "n_taxa": n_taxa, "seq_len": seq_len,
-             "n_per_gen": n_per_gen})
+    plan = prompt_generated_plan()
+    loader = GeneratedLoader(
+        seq_len=plan.seq_len,
+        n_taxa=plan.n_values[0] if len(plan.n_values) == 1 else None,
+        mutation_rate=plan.mutation_rate,
+        params=plan.params,
+    )
+    # second plan is returned unconditionally: the replacement-draw supplier needs
+    # it whether or not the eta pool is involved.
+    return (loader, plan.tree_ids, plan.meta(),
+            (plan if plan.pooled else None), plan)
 
 
 # ---------------------------------------------------------------------------
 # Step 3 — knobs
 # ---------------------------------------------------------------------------
 
-def prompt_knobs(n_available: int):
-    """Ask the few parameters that matter; every one is Enter-for-default."""
+def _ask_operators(keys, labels):
+    """Which operators to screen, sweep and plot — '1,3' style, all by default."""
+    valid = {str(i): k for i, k in enumerate(keys, 1)}
+    valid.update({k.lower(): k for k in keys})
+    while True:
+        raw = get_input("Operators — comma-separated numbers",
+                        default=",".join(str(i) for i in range(1, len(keys) + 1)))
+        picked = [valid.get(tok.strip().lower())
+                  for tok in raw.split(",") if tok.strip()]
+        if picked and all(picked):
+            chosen = list(dict.fromkeys(picked))
+            print(f"  → {', '.join(labels[k] for k in chosen)}")
+            return chosen
+        print_warning(f"unknown operator in {raw!r}")
+
+
+def prompt_knobs(n_available: int, *, allow_subset: bool = True,
+                 step: str = "3"):
+    """Ask the few parameters that matter; every one is Enter-for-default.
+
+    ``allow_subset`` is False for generated runs: there the tree count is derived
+    from the model/size/eta grid, and truncating the derived list would drop
+    whole cells rather than thin them.
+    """
     from src.runners.benchmark_pipeline import BenchmarkConfig
+    from src.utils.benchmark_cache import METHOD_KEYS, METHOD_LABELS
 
-    print_header("Step 3 — benchmark parameters")
+    print_header(f"Step {step} — benchmark parameters")
 
-    n_use = int(get_input(f"How many of the {n_available} trees to use",
-                          default=str(n_available)))
+    for i, k in enumerate(METHOD_KEYS, 1):
+        print_option(str(i), METHOD_LABELS[k])
+    ops = _ask_operators(METHOD_KEYS, METHOD_LABELS)
+
+    n_use = n_available
+    if allow_subset:
+        n_use = int(get_input(f"How many of the {n_available} trees to use",
+                              default=str(n_available)))
     raw_p = get_input("p-values — comma-separated, or Enter for 20 log-spaced "
                       "0.01→1.0", default="")
     p_values = ([float(x) for x in raw_p.split(",") if x.strip()] if raw_p
@@ -158,7 +187,7 @@ def prompt_knobs(n_available: int):
                     default=str(default_out))
 
     cfg = BenchmarkConfig(p_values=p_values, bootstrap_reps=reps,
-                          n_compare=n_compare)
+                          n_compare=n_compare, operators=ops)
     return cfg, Path(out).expanduser(), n_use
 
 
@@ -168,24 +197,53 @@ def show_synthesized() -> None:
     print_header("synthesized — CBM-theory notebooks")
     print(f"  {SYNTHESIZED_DIR}")
     print("\n  These verify the CBM/HBM spectral-gap theory directly "
-          "(hbm_spectral_gap_verification.ipynb,\n  nonbalanced_flat_cbm.ipynb, …). "
+          "(paper/fig04_hbm_spectral_gap.ipynb,\n  paper/fig02_pstar_synth_cbm.ipynb, …). "
           "They have no bootstrap p-sweep and no recovery\n  curve, so this "
           "benchmark tool does not apply to them — open them as notebooks.")
     print()
 
 
-def summarize_run(cfg, out_dir: Path, n_trees: int, source_meta: dict) -> None:
+def summarize_run(cfg, out_dir: Path, n_trees: int, source_meta: dict,
+                  *, provisional: bool = False) -> None:
     print_divider()
     print_header("Ready to run")
     print(f"  → Source     : {source_meta.get('kind')}  "
           f"{source_meta.get('label', '')}")
-    print(f"  → Trees      : {n_trees}")
+    print(f"  → Trees      : {n_trees}"
+          + ("  (planned — the eta pool is topped up first)" if provisional
+             else ""))
     print(f"  → p-values   : {len(cfg.p_values)} points "
           f"[{min(cfg.p_values):.1e}–{max(cfg.p_values):.1e}]")
     print(f"  → Bootstrap  : {cfg.bootstrap_reps} reps   "
           f"cohort cap {cfg.n_compare}")
     print(f"  → Workers    : {os.cpu_count()} (all cores)")
     print(f"  → Output     : {out_dir}")
+    print()
+
+
+def print_results(summary: dict, out_dir: Path) -> None:
+    """The numbers, then where everything landed."""
+    from src.utils.benchmark_cache import METHOD_LABELS
+
+    print_success("done")
+    print(f"\n  {'operator':26s} {'trees':>5s}  {'p*':>6s}  "
+          f"{'NMI at smallest p':>17s}")
+    for key, m in summary.get("methods", {}).items():
+        ps = m.get("p_star_median")
+        # METHOD_LABELS, not the figure label — the latter is LaTeX.
+        print(f"  {METHOD_LABELS.get(key, key):26s} {m.get('n_trees', '?'):>5}  "
+              f"{(f'{ps:.3f}' if ps else '  none'):>6s}  "
+              f"{m.get('median_nmi_at_min_p', float('nan')):>17.3f}")
+    print(f"\n  r(T) range   : {summary.get('rT_min', 0):.3f} – "
+          f"{summary.get('rT_max', 0):.3f}")
+    print(f"\n  results in   : {out_dir}")
+    for name, what in (("summary.json", "these numbers, machine-readable"),
+                       ("recovery_curve.png", "NMI vs p"),
+                       ("scale_plot.png", "p* vs r(T)"),
+                       ("compare_sweep.npz", "every per-tree curve"),
+                       ("screen_table.csv", "per-tree validity + eta"),
+                       ("sweeps/", "one npz per tree (the resume cache)")):
+        print(f"    {name:20s} {what}")
     print()
 
 
@@ -208,22 +266,47 @@ def main() -> None:
         tree_ids = entry.tree_ids
         source_meta = {"kind": "real", "label": entry.label,
                        "fasta_dir": str(entry.fasta_dir),
-                       "newick_dir": str(entry.newick_dir or "")}
+                       "newick_dir": str(entry.newick_dir or ""),
+                       "data_key": {"kind": "real", "label": entry.label}}
+        plan = plan_any = None
     else:
-        loader, tree_ids, source_meta = prompt_generated()
+        loader, tree_ids, source_meta, plan, plan_any = prompt_generated()
 
-    cfg, out_dir, n_use = prompt_knobs(len(tree_ids))
+    cfg, out_dir, n_use = prompt_knobs(
+        len(tree_ids), allow_subset=(kind == "real"),
+        step="3" if kind == "real" else "7")
     tree_ids = tree_ids[:n_use]
-    summarize_run(cfg, out_dir, len(tree_ids), source_meta)
+    summarize_run(cfg, out_dir, len(tree_ids), source_meta,
+                  provisional=plan is not None)
     if not confirm("Confirm and start?"):
         print_warning("cancelled")
         return
+
+    if plan is not None:
+        # The expensive part of eta pooling — rejection sampling for the bins the
+        # pool is short on — happens here, after the confirm. What comes back is
+        # the id list that actually exists on disk.
+        from src.utils.generated_prompts import resolve_pool_ids
+        tree_ids = resolve_pool_ids(plan)
+        if not tree_ids:
+            print_error("the eta pool is empty for these parameters and nothing "
+                        "could be built — nothing to run")
+            return
+        source_meta = {**source_meta, "n_trees": len(tree_ids)}
+        print_success(f"eta pool ready — {len(tree_ids)} trees")
+
+    target_per_cell = more_ids = None
+    if plan_any is not None:
+        from src.utils.generated_prompts import make_more_ids
+        target_per_cell, more_ids = plan_any.per_cell, make_more_ids(plan_any)
 
     from src.runners.benchmark_pipeline import run_benchmark_pipeline
     print_divider()
     try:
         summary = run_benchmark_pipeline(loader, tree_ids, out_dir, cfg,
-                                         source_meta=source_meta)
+                                         source_meta=source_meta,
+                                         target_per_cell=target_per_cell,
+                                         more_ids=more_ids)
     except (ValueError, RuntimeError) as exc:
         print_error(str(exc))
         return
@@ -233,10 +316,7 @@ def main() -> None:
         return
 
     print_divider()
-    print_success(f"done — {summary['n_trees']} trees aggregated")
-    for name in ("recovery_curve.png", "scale_plot.png"):
-        print(f"  {out_dir / name}")
-    print()
+    print_results(summary, out_dir)
 
 
 if __name__ == "__main__":

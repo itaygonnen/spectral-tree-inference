@@ -3,86 +3,75 @@
 Notebooks behind the v9 manuscript (`docs/overleafs/v9/`). **The paper is the deliverable**;
 these notebooks exist to produce and defend its figures.
 
-Organized **by paper section, then by data source**. The section tells you what claim the
-notebook serves; the source tells you where its numbers come from. Only 6 of the 16
-notebooks produce a paper figure — the rest are labelled `supporting/` so nobody mistakes
-scratch for a deliverable.
+Four things, nothing nested inside them:
 
-For the authoritative figure ↔ notebook ↔ claim ↔ cache ↔ command mapping, see
-**[PAPER_MAP.md](PAPER_MAP.md)**. It is machine-checked by
-`python scripts/sync_paper_figures.py --check`, which fails if a figure is missing, stale,
-built from mixed runs, or absent from the map.
-
-## Data sources
-
-| Source | Meaning |
+| | What |
 |---|---|
-| **synthesized** | `S`/`D` built **directly** from a closed-form block model (CBM/HBM, balanced binary) — no tree simulation |
-| **generated** | **dendropy** simulates a tree (Kingman / birth-death) and evolves sequences (JC69); `S`/`D` come from those sequences |
-| **real** | downloaded **FASTA + Newick** (the 600-tree, 1000-taxon benchmark) |
+| `paper/` | The 6 notebooks that produce a figure in the manuscript. Named `figNN_*` so `ls` answers "which notebook makes Figure 3?". |
+| `supporting/` | The 12 that produce **no** paper figure. Flat, one file each. |
+| `utils/` | Shared code, imported as `analysis.utils`. **Do not move.** |
+| `notebooks_cache/` | Every `.npz` a notebook computes. Tracked, so re-plotting works in a fresh clone without re-running an expensive screen. |
 
-## Layout
+Plus `legacy/` (superseded packages, unmaintained) and `figures/` (gitignored scratch —
+paper figures go to `docs/overleafs/v9/figures/`, never here).
 
+## paper/
+
+| Notebook | Produces | Section |
+|---|---|---|
+| `fig02_pstar_synth_cbm.ipynb` | **Fig 2** (a–d) | §5, `empirical.tex` |
+| `fig03_pstar_gen_kingman.ipynb` | **Fig 3** (a–d), **and Figs 8 + 9** | §5 + App G |
+| `fig04_hbm_spectral_gap.ipynb` | **Fig 4** | App D |
+| `fig05_fiedler_partitions.ipynb` | **Fig 5** (a–d) | App D |
+| `fig06_pstar_balanced.ipynb` | **Fig 6** | App G |
+| `fig07_identity_checks.ipynb` | **Fig 7** | App G |
+
+`fig03` is the one notebook spanning two sections — Fig 3 in the main text plus Figs 8 and
+9 in the appendix. The `figNN_` prefix names its primary figure only;
+**[PAPER_MAP.md](PAPER_MAP.md)** is the complete mapping.
+
+## supporting/
+
+12 notebooks, no paper figure. Which claim each backs — or "exploratory, not cited" — is in
+[PAPER_MAP.md](PAPER_MAP.md). Four of them (`distance_vs_similarity_*`, `pstar_*_distance`)
+are the empirical evidence for the **distance route**, App F / `thm:main-dist`, which
+carries no figure of its own.
+
+## The authority on provenance
+
+**[PAPER_MAP.md](PAPER_MAP.md)** maps every figure to its notebook, the claim it supports,
+the cache it consumes, and the command that rebuilds it. It is **generated** from
+`paper_figures.py`:
+
+```bash
+python scripts/sync_paper_figures.py --check      # validate; non-zero on problems
+python scripts/sync_paper_figures.py --write-map  # regenerate PAPER_MAP.md
 ```
-analysis/
-├── PAPER_MAP.md   figure ↔ notebook ↔ claim ↔ cache ↔ rebuild command
-├── utils/         shared helper library — imported by every notebook, do NOT move
-├── figures/       scratch figure output (gitignored; NOT where paper figures live)
-│
-├── sec5_empirical/           §5 Empirical Results  (sections/empirical.tex)
-│   ├── synthesized/  nonbalanced_flat_cbm            → Fig 2 (a–d)
-│   └── generated/    eta_pool_sweep                  → Fig 3 (a–d), and Figs 8, 9
-│
-├── appD_hbm/                 App D: HBM extension  (sections/appendix-D.tex)
-│   ├── synthesized/  hbm_spectral_gap_verification   → Fig 4
-│   └── generated/    fiedler_tree_partition_by_eta   → Fig 5 (a–d)
-│
-├── appG_supplementary/       App G: Supplementary Figures  (sections/appendix-emp.tex)
-│   ├── synthesized/  balanced_binary_threshold       → Fig 6
-│   └── generated/    kingman_threshold_vs_theory     → Fig 7
-│
-└── supporting/               no paper figure — see PAPER_MAP.md for what each backs
-    ├── synthesized/  cbm_theory/{flat_cbm_variance_recovery, decay_cbm_features}
-    │                 sampling_methods/nnm_vs_ipw
-    │                 tree_reconstruction/stdr_partition_recovery
-    ├── generated/    distance_vs_similarity/simulation_distance_vs_similarity
-    │                 nj_distance/{nj_subsampling_balanced, nj_subsampling_nonbalanced}
-    │                 tree_reconstruction/snj_subsampling
-    │                 sampling_methods/distance_vs_similarity
-    └── real/         distance_vs_similarity/real_data_distance_vs_similarity
-```
 
-Two things the layout cannot express, so they are stated instead:
-
-- **`eta_pool_sweep` spans two sections.** It produces Fig 3 (§5) *and* Figs 8 and 9
-  (App G). It is filed under its primary figure; `PAPER_MAP.md` lists all three.
-- **Directory letters follow the compiled PDF, not the filenames.** `appendix-emp.tex`
-  compiles as Appendix **G** and `appendix-G.tex` as Appendix **F**. That mismatch is
-  recorded for the author in `docs/overleafs/v9/open-items/19-cleanup.md`.
+`--check` is not decorative. It fails if a figure is missing, if the paper references a
+figure the manifest does not know about, if a mapped figure is unreferenced, or if a
+notebook exists that is listed neither as a figure producer nor as supporting. Add a
+notebook and the check tells you to declare it.
 
 ## Traps worth knowing before you re-run anything
 
-- **A trial run can overwrite a paper asset.** The paper notebooks save straight into
-  `docs/overleafs/v9/figures/`. When exploring, redirect `FIG_DIR` / `PAPER_FIG_DIR` to a
+- **A trial run can overwrite a paper asset.** The `paper/` notebooks save straight into
+  `docs/overleafs/v9/figures/`. When exploring, point `FIG_DIR` / `PAPER_FIG_DIR` at a
   scratch path first.
 - **A cell that looks like setup may launch a sweep.** `nj_subsampling_nonbalanced` cell 15
-  bootstraps `sys.path` *and* kicks off an n=4000 synthetic sweep. Do not assume the leading
-  cells are cheap.
-- **Some `notebook_dir(...)` arguments are historical cache keys**, not paths — e.g.
-  `"01_cbm_theory/balanced_binary_threshold"` and `"03_sampling_methods/nnm_vs_ipw"`. The
-  directories of those names are gone; the keys are kept so cached results still resolve.
-  Renaming them orphans real data.
-- **`kingman_threshold_vs_theory` (Fig 7) needs a `results/` run that is gitignored**, so it
-  cannot run in a fresh clone until that sweep is regenerated. See `docs/RUNBOOK.md`.
-- Editing a notebook cell clears its stored outputs. The 6 paper notebooks carry the
-  published numbers in those outputs — prefer patching JSON `source` arrays over a
-  round-trip that drops them.
+  bootstraps `sys.path` *and* kicks off an n=4000 synthetic sweep.
+- **Some `notebook_dir(...)` arguments are historical cache keys, not paths** — e.g.
+  `"01_cbm_theory/balanced_binary_threshold"` in `fig06`. Those directories are long gone;
+  the keys are kept so cached results still resolve. Renaming one orphans real data.
+- **`fig07` needs a `results/` run that is gitignored**, so it cannot run in a fresh clone
+  until that sweep is regenerated. See `docs/RUNBOOK.md`.
+- Editing a notebook cell clears its stored outputs, and the `paper/` notebooks carry the
+  published numbers there. Patch the JSON `source` array rather than round-tripping.
 
-## Shared utilities (`utils/`)
+## utils/
 
-Imported as `from analysis.utils import …`. Notebooks put the
-package root on `sys.path` via a depth-invariant walk up to `setup.py`, so this resolves
-from any folder depth. **Do not move `utils/`.**
+Imported as `from analysis.utils import …`. Notebooks put the package root on `sys.path` via
+a depth-invariant walk up to `setup.py`, so this resolves from any depth.
 
 - `block_model`, `balanced_binary` — closed-form `S` and population Fiedler vectors
 - `linalg_features` — μ(U), λ₂, spectral gap, Lemma 0.4 row
@@ -90,11 +79,8 @@ from any folder depth. **Do not move `utils/`.**
 - `spectral`, `recovery`, `sweep`, `cache`, `plotting` — Fiedler/IPW/NNM, sign-agreement,
   ARI/NMI, the p\* detector, disk cache, recovery figures
 - `perturbation` — Davis–Kahan / sin-Θ machinery
-- `generated_data` — `make_generated`, `build_ids` (Kingman + birth-death loader)
-- `sweep_plots` — multi-figure η-pool plots (`plot_pstar_vs_n`, `plot_nmi_grid`, …)
-- `sweep_plots_two_panel` — the per-η 2-panel figure tiled by LaTeX `subfigure`
-- `src/utils/eta_pool_sweep` — single source of truth for the
-  "discover pool samples → bootstrap p-sweep → collect" loop, shared with
-  `scripts/build_sweeps.py`
-- `src/utils/threshold_utils` — `find_discrete_threshold` (the p̂\* read-off),
-  `fit_power_law`
+- `generated_data` — Kingman + birth-death loader
+- `sweep_plots` — η-pool plots for the **appendix** figures (fits `C` by least squares)
+- `sweep_plots_two_panel` — the per-η 2-panel figure for the **main** figures (fits `C` by
+  median-of-ratios). The two are **not** interchangeable; see their headers.
+- `src/utils/threshold_utils` — `find_discrete_threshold` (the p̂\* read-off), `fit_power_law`

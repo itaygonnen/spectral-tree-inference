@@ -17,7 +17,7 @@ figure md5s are unchanged and the PDF still builds to 29 pages / 2,586,870 bytes
   directory has never held a single test.
 - Committed modules that tracked notebooks already imported but that were never added:
   `analysis/utils/sweep_plots_two_panel.py` (Figs 2, 3), `src/utils/screening.py`,
-  `src/utils/eta_pool_griffing.py`, and `hbm_spectral_gap_verification.ipynb` — the sole
+  `src/utils/eta_pool_griffing.py`, and `paper/fig04_hbm_spectral_gap.ipynb` — the sole
   producer of Figure 4. A fresh clone previously raised `ImportError` on five notebooks.
 - v9 is now self-contained: Figure 5 resolved through `\graphicspath{{../}}` to assets
   outside the tree, so uploading `v9/` alone to Overleaf failed.
@@ -39,9 +39,10 @@ figure md5s are unchanged and the PDF still builds to 29 pages / 2,586,870 bytes
 
 ### Changed
 
-- Notebooks reorganized **by paper section, then data source** (`sec5_empirical/`,
-  `appD_hbm/`, `appG_supplementary/`, `supporting/`), and the
-  `analysis/theoretical_interpretation/` layer collapsed away — imports are `analysis.utils`.
+- `analysis/` flattened to `paper/` (6 notebooks named `figNN_*`), `supporting/` (12),
+  `utils/` and `notebooks_cache/`. The `theoretical_interpretation/` layer and all per-topic
+  subdirectories are gone — 18 notebooks had been spread over 16 directories, and `.npz`
+  data sat beside 2 notebooks but not the other 16. Imports are now `analysis.utils`.
 - `scripts/` now holds only things you run; the six imported `plot_*` libraries moved to
   `src/plots/` and `merge_results.py` to `src/utils/`.
 - Six superseded analysis packages archived under `analysis/legacy/`.

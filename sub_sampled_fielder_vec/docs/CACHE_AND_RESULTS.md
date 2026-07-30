@@ -96,7 +96,7 @@ then nested underneath them.
 
 | Path | Why it matters |
 |---|---|
-| `results/runs/kingman_mean/uniform/20260501-194101-kingman_mean_n500-8000_mu_0p1_uniform/` | **Figure 7's hard prerequisite.** `kingman_threshold_vs_theory.ipynb` asserts this exists in its setup cell, so Fig 7 cannot be regenerated in a fresh clone without re-running this sweep. |
+| `results/runs/kingman_mean/uniform/20260501-194101-kingman_mean_n500-8000_mu_0p1_uniform/` | **Figure 7's hard prerequisite.** `paper/fig07_identity_checks.ipynb` asserts this exists in its setup cell, so Fig 7 cannot be regenerated in a fresh clone without re-running this sweep. |
 | `results/notebooks/01_cbm_theory/balanced_binary_threshold/` | **Figure 6's inputs** — `trials.csv` (501 KB), `agg.csv`, `config.json`. The `01_cbm_theory` prefix is a historical cache key; renaming it orphans this. |
 | `results/notebooks/03_sampling_methods/nnm_vs_ipw/` | outputs of the `nnm_vs_ipw` supporting notebook |
 | `results/runs/20260609-*-bpart_*` | distance-route (bpart) evidence, June 2026 — the newest generation |

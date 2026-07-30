@@ -70,7 +70,7 @@ Figure 5 resolve outside the tree, so uploading `v9/` alone to Overleaf failed.
 
 ## Figure 2 — synthesized flat CBM, `fig:pstar_synth`
 
-Notebook: `sec5_empirical/synthesized/nonbalanced_flat_cbm.ipynb`
+Notebook: `paper/fig02_pstar_synth_cbm.ipynb`
 
 No sweep prerequisite — `S` is closed-form, so the notebook is self-sufficient (it
 caches trials under `cache/full_matrix` + `cache/sweep_trial` via `utils/cache.py`).
@@ -81,7 +81,7 @@ silently shifts the realised η — m=90 at η=15 gives 17.0.
 
 ## Figures 3, 8, 9 — generated Kingman, `fig:pstar_gen` / `recovery_grid` / `operator_sensitivity`
 
-Notebook: `sec5_empirical/generated/eta_pool_sweep.ipynb` (one notebook, three figures)
+Notebook: `paper/fig03_pstar_gen_kingman.ipynb` (one notebook, three figures)
 
 ```bash
 python scripts/build_eta_pool.py --n 500          # -> cache/pool_sample   (or build_eta_pool_parallel.py)
@@ -99,7 +99,7 @@ python scripts/build_sweeps.py --ns 500 --methods sign sigma2 kmeans
 
 ## Figure 4 — HBM spectral gap, `fig:hbm_spectral_verification`
 
-Notebook: `appD_hbm/synthesized/hbm_spectral_gap_verification.ipynb`
+Notebook: `paper/fig04_hbm_spectral_gap.ipynb`
 
 No prerequisite; HBM matrices are built in memory. **Both panels must come from one
 execution** — a v8 version of this figure shipped with two panels from two different runs
@@ -107,7 +107,7 @@ execution** — a v8 version of this figure shipped with two panels from two dif
 
 ## Figure 5 — Fiedler bipartitions by η, `fig:fiedler_partitions`
 
-Notebook: `appD_hbm/generated/fiedler_tree_partition_by_eta.ipynb`
+Notebook: `paper/fig05_fiedler_partitions.ipynb`
 
 ```bash
 python scripts/build_eta_pool.py --n 500     # -> cache/pool_sample
@@ -119,7 +119,7 @@ paper.
 
 ## Figure 6 — balanced binary threshold, `fig:pstar_balanced`
 
-Notebook: `appG_supplementary/synthesized/balanced_binary_threshold.ipynb`
+Notebook: `paper/fig06_pstar_balanced.ipynb`
 
 Reads `trials.csv` / `agg.csv` from
 `results/notebooks/01_cbm_theory/balanced_binary_threshold/`. That `01_cbm_theory`
@@ -134,7 +134,7 @@ when it is large.
 
 ## Figure 7 — identity checks, `fig:identity_gen`
 
-Notebook: `appG_supplementary/generated/kingman_threshold_vs_theory.ipynb`
+Notebook: `paper/fig07_identity_checks.ipynb`
 
 **This is the one figure not reproducible from a clean checkout.** The notebook asserts,
 in its *setup* cell, that this exists:

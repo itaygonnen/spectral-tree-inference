@@ -66,8 +66,9 @@ sub_sampled_fielder_vec/
 ├── tests/                        # no suite yet -- see tests/README.md
 ├── analysis/                     # the paper's notebooks, by section then data source
 │   ├── utils/                   # shared helpers (import: analysis.utils)
-│   ├── sec5_empirical/  appD_hbm/  appG_supplementary/   # the 6 figure-producing notebooks
-│   ├── supporting/              # the 10 that produce no paper figure
+│   ├── paper/                   # the 6 figure-producing notebooks, named figNN_*
+│   ├── supporting/              # the 12 that produce no paper figure
+│   ├── notebooks_cache/         # every .npz a notebook computes (tracked)
 │   └── legacy/                  # superseded analysis packages, unmaintained
 └── results/                      # Auto-generated experiment artifacts (gitignored)
     └── runs/<timestamp>-<run_name>/

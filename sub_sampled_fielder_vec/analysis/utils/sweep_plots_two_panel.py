@@ -1,8 +1,8 @@
 """Phase-transition-next-to-scale figure for the eta-pool sweep, one file per eta.
 
 Serves the paper's MAIN empirical figures: Fig 2 (fig:pstar_synth, via
-``sec5_empirical/synthesized/nonbalanced_flat_cbm.ipynb``) and Fig 3
-(fig:pstar_gen, via ``sec5_empirical/generated/eta_pool_sweep.ipynb``). The
+``paper/fig02_pstar_synth_cbm.ipynb``) and Fig 3
+(fig:pstar_gen, via ``paper/fig03_pstar_gen_kingman.ipynb``). The
 appendix figures 8 and 9 come from :mod:`sweep_plots`, which fits ``C`` by least
 squares rather than by median-of-ratios -- constants from the two modules are not
 comparable. See that module's header.
@@ -200,3 +200,81 @@ def plot_pstar_pair(
     fig.tight_layout()
     _finish(fig, savepath)
     return fig
+
+
+def split_censored_pstar(
+    pstar_rows: List[Tuple[int, float]], p_values: np.ndarray,
+) -> Tuple[List[Tuple[int, float]], List[Tuple[int, float]]]:
+    """Split ``p*`` read-offs into ``(measured, censored)`` at the grid ceiling.
+
+    ``find_discrete_threshold`` returns the smallest grid ``p`` whose mean metric
+    clears the threshold. The largest grid point is ``p=1``, where the "sub-sample"
+    IS the full matrix and the metric is 1 by construction -- so ``p* == max(p_grid)``
+    is always attainable and means the exact opposite of a threshold: **the operator
+    never recovered the split below full data**.
+
+    Those points are right-censored, not measured. Feeding them to
+    :func:`median_ratio_C` or plotting a fitted ``C log n/n`` through them
+    manufactures a rate out of non-detections -- at high imbalance on the distance
+    route most sizes land there, which drives ``C`` up by two orders of magnitude
+    and the per-point spread past 15x. Callers must report the censored sizes
+    rather than quietly fit them.
+    """
+    if len(p_values) == 0:
+        return list(pstar_rows), []
+    ceiling = float(np.max(p_values)) * (1.0 - 1e-9)
+    measured = [(n, v) for n, v in pstar_rows if v < ceiling]
+    censored = [(n, v) for n, v in pstar_rows if v >= ceiling]
+    return measured, censored
+
+
+def plot_pstar_pair_censored(
+    results_for_method: Dict[Tuple[int, int], np.ndarray],
+    p_values: np.ndarray,
+    eta: int,
+    ns: List[int],
+    *,
+    metric_label: str = "NMI",
+    agg: str = "mean",
+    threshold: float = 0.90,
+    n_ticks: Optional[List[int]] = None,
+    size_label: str = r"$n$ (taxa)",
+    savepath: Optional[Path] = None,
+) -> Tuple[Figure, List[Tuple[int, float]], List[Tuple[int, float]]]:
+    """:func:`plot_pstar_pair`, but honest about read-offs pinned at ``p=1``.
+
+    Identical geometry -- it calls the very same ``_draw_recovery_panel`` and
+    ``_draw_scale_panel`` helpers, so these figures tile beside the paper's Figs 2
+    and 3 unchanged. The single difference is the scale panel:
+
+    * sizes with a *measured* ``p*`` are drawn and fitted exactly as before;
+    * sizes whose ``p*`` is censored at the grid ceiling (see
+      :func:`split_censored_pstar`) are drawn as **open** markers at the ceiling and
+      excluded from the ``C log n/n`` fit.
+
+    Showing them open, rather than dropping them, keeps the panel's point count
+    equal to the number of sizes swept -- a silently missing marker reads as "not
+    run" when it actually means "did not recover".
+
+    The left panel is untouched and shows every size's recovery curve, including
+    the non-recovering ones: that is where the failure is legible.
+
+    Returns ``(fig, measured_rows, censored_rows)`` so the caller can report both.
+    """
+    ng = np.array(sorted(ns), float)
+    pstar = compute_pstar(results_for_method, p_values, [eta], ns,
+                          agg=agg, threshold=threshold)
+    measured, censored = split_censored_pstar(pstar.get(eta, []), p_values)
+
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 4.3))
+    _draw_recovery_panel(axes[0], results_for_method, p_values, eta, ns,
+                         agg=agg, threshold=threshold, metric_label=metric_label)
+    _draw_scale_panel(axes[1], measured, ng, eta,
+                      n_ticks=n_ticks, size_label=size_label)
+    if censored:
+        color = ETA_COLORS.get(eta, "black")
+        axes[1].plot([n for n, _ in censored], [v for _, v in censored],
+                     marker="o", ls="none", ms=8, mfc="none", mew=1.8, color=color)
+    fig.tight_layout()
+    _finish(fig, savepath)
+    return fig, measured, censored

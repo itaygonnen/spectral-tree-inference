@@ -99,11 +99,17 @@ The November-2025 optimizations in `src/core/` are why experiments at `n=8192` a
 
 ### Analysis notebooks
 
-`analysis/` holds the paper's 16 notebooks directly, organized **by paper section, then
-by data source**: `sec5_empirical/`, `appD_hbm/`, `appG_supplementary/` (the 6 that
-produce paper figures) and `supporting/` (the 10 that do not). `utils/` is the shared
-library — **do not move it**. Imports are `analysis.utils`, not a deeper path: the
-former `theoretical_interpretation/` layer was collapsed away.
+`analysis/` is flat and holds exactly four things:
+
+- **`paper/`** — the 6 notebooks that produce a manuscript figure, named `figNN_*` so `ls`
+  answers "which notebook makes Figure 3?". `fig03` also emits Figs 8 and 9.
+- **`supporting/`** — the 12 that produce no paper figure. Flat, one file each.
+- **`utils/`** — shared code, imported as `analysis.utils`. **Do not move it.**
+- **`notebooks_cache/`** — every `.npz` a notebook computes, tracked so re-plotting works
+  in a fresh clone. Data does NOT live beside notebooks.
+
+There is no per-topic nesting: 18 notebooks previously sat in 16 directories, which
+grouped nothing.
 
 Its one sibling is **`analysis/legacy/`** — six superseded packages (`comparison`,
 `generic_analysis`, `leveraged_sampling_analysis`, `notebooks`, `scripts`,
