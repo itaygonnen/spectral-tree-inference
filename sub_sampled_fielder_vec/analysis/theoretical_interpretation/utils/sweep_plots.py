@@ -29,7 +29,7 @@ from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.ticker import NullFormatter, ScalarFormatter
 
-from analysis.comparison.phase_transition_utils import find_discrete_threshold
+from src.utils.threshold_utils import find_discrete_threshold
 
 # eta -> color (shared across all sweep figures)
 ETA_COLORS = {1: "#4b5563", 5: "#1d4ed8", 10: "#ea580c", 15: "#b91c1c"}

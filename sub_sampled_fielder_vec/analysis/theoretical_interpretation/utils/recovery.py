@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 
 from src.utils.metrics import compute_sign_agreement
-from analysis.comparison.phase_transition_utils import find_discrete_threshold
+from src.utils.threshold_utils import find_discrete_threshold
 
 
 def compute_recovery(v_full: np.ndarray, v_hat: np.ndarray) -> float:

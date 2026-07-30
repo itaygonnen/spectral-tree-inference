@@ -18,7 +18,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from analysis.comparison.phase_transition_utils import (
+from src.utils.threshold_utils import (
     fit_power_law,
     evaluate_power_law,
 )
