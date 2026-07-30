@@ -3,6 +3,9 @@ from typing import Dict, List, Tuple
 import numpy as np
 
 from ..config import StructuredConfig
+# Single definition, shared with bootstrap_sweep. This module used to carry its own
+# byte-for-byte-equivalent copy.
+from .p_sweep_inner import align_fiedler_by_dot_product
 from ..utils.random_entries import _subsample_matrix_entries, compute_fiedler_from_similarity, compute_fiedler_from_laplacian
 from ..core.utils import compute_laplacian
 from ..utils.metrics import (
@@ -16,52 +19,6 @@ from ..utils.metrics import (
     compute_dk_ratio
 )
 from ..utils.logging import log_info, log_warning, suppress_warnings
-
-
-def align_fiedler_by_dot_product(fiedler_vector: np.ndarray, reference_vector: np.ndarray) -> np.ndarray:
-    """
-    Align a Fiedler vector using magnitude-based dot product alignment.
-
-    Algorithm:
-    1. Normalize both vectors
-    2. Compute dot product
-    3. If dot product is negative, flip the sign
-
-    Args:
-        fiedler_vector: Fiedler vector to align
-        reference_vector: Reference vector for alignment
-
-    Returns:
-        Aligned and normalized Fiedler vector
-    """
-    import warnings
-
-    # Suppress all numpy RuntimeWarnings during alignment
-    # (normalization and dot product can trigger numerical warnings for degenerate vectors)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", RuntimeWarning)
-
-        try:
-            v_normalized = _normalize_vector(fiedler_vector)
-            u_normalized = _normalize_vector(reference_vector)
-        except ValueError as e:
-            # Vector is degenerate (near-zero norm) - skip alignment
-            log_warning('align', f"Normalization failed: {e}")
-            return fiedler_vector
-
-        # Compute dot product
-        dot_product = np.dot(v_normalized, u_normalized)
-
-        # Check for numerical issues
-        if not np.isfinite(dot_product):
-            log_warning('align', f"Non-finite dot product: {dot_product}")
-            return fiedler_vector
-
-        # Flip sign if needed
-        if dot_product < 0:
-            return -v_normalized
-        else:
-            return v_normalized
 
 
 def process_p_value_worker(

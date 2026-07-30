@@ -35,7 +35,7 @@ from dendropy.calculate import treecompare
 import spectraltree
 from spectraltree import utils as st_utils
 
-from ..cache_io import CacheScope, make_key
+from ..cache_io import distance_matrix, make_key
 from ..config import StructuredConfig
 from ..core.similarity_builder import SimilarityMatrixBuilder
 from ..models import get_tree_factory, get_sequence_factory
@@ -47,7 +47,9 @@ from ..utils.summaries import save_json
 
 _SIM_FLOOR = 1e-12  # protects -log(0) when computing D = -log(R)
 
-_distance_cache = CacheScope("distance_matrix")
+# Declared in cache_io alongside the other six scopes, not constructed here --
+# an ad-hoc CacheScope is how this directory ended up outside the declared set.
+_distance_cache = distance_matrix
 
 
 def cached_distance_matrix(cfg: StructuredConfig, n_taxa: int, seq_len: int) -> np.ndarray:

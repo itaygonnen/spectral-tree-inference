@@ -30,13 +30,21 @@ from ..models import get_tree_factory, get_sequence_factory
 from ..utils.logging import log_info
 from ..utils.metrics import estimate_operator_norm_diff, compute_sign_agreement
 from ..utils.summaries import save_json
-# Reuse the existing notebook-utility Fiedler computer + Laplacian
-import sys as _sys
-from pathlib import Path as _Path
-_PROJECT_ROOT = _Path(__file__).resolve().parents[2]
-if str(_PROJECT_ROOT) not in _sys.path:
-    _sys.path.insert(0, str(_PROJECT_ROOT))
-from analysis.theoretical_interpretation.utils.spectral import compute_fiedler_of_S
+from ..core.utils import compute_laplacian
+from ..core.fiedler_computer import FiedlerVectorComputer
+
+
+def compute_fiedler_of_S(S: np.ndarray, sampling_prob: float | None = None) -> np.ndarray:
+    """Fiedler vector of ``L = D - S`` with the project's sign convention.
+
+    Inlined from ``analysis.theoretical_interpretation.utils.spectral``, which this
+    module used to reach via a ``sys.path`` hack -- a src -> analysis dependency
+    inversion. Both pieces it needs already live in ``src/core``, so the import is
+    unnecessary as well as backwards.
+    """
+    return FiedlerVectorComputer().compute(
+        compute_laplacian(S), sampling_prob=sampling_prob
+    )
 
 
 def _build_truth_similarity(cfg: StructuredConfig, n_taxa: int, seq_len: int

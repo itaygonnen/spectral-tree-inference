@@ -220,13 +220,17 @@ class CacheScope:
                 shutil.rmtree(d)
 
 
-# Pre-built scopes
+# Pre-built scopes. These are the ONLY scopes that should exist on disk -- see
+# docs/CACHE_AND_RESULTS.md for each one's size, key scheme, writer and readers.
 full_matrix     = CacheScope("full_matrix")
 experiment_data = CacheScope("experiment_data")
 pool_sample     = CacheScope("pool_sample")
 sweep_trial     = CacheScope("sweep_trial")
 bootstrap_sweep = CacheScope("bootstrap_sweep")
 bpart_sweep     = CacheScope("bpart_sweep")
+# Declared here rather than constructed ad hoc in src/runners/nj_sweep.py, which is how
+# a seventh cache directory appeared on disk outside the declared set.
+distance_matrix = CacheScope("distance_matrix")
 
 
 def run_dir(

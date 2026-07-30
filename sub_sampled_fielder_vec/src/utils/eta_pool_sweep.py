@@ -30,10 +30,15 @@ from .eta_pool_cache import (
 from .sweep_cache import compute_or_load_sweep, compute_sweep_key, load_sweep_result
 from ..core.utils import compute_normalized_laplacian, compute_fiedler_from_laplacian
 
-# Canonical cache location. The eta_pool / sweep caches ignore the cache_root
-# arg (they use src.cache_io.CACHE_ROOT), but we pass this for compatibility.
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
-_CACHE_ROOT = _PROJECT_ROOT / "src" / "cache"
+# The real cache root, imported rather than re-derived.
+#
+# This used to be `_PROJECT_ROOT / "src" / "cache"` -- a path that DOES NOT EXIST. It
+# was harmless only because every eta_pool / sweep cache shim ignores its cache_root
+# argument and uses cache_io.CACHE_ROOT instead, so the bogus value was passed and
+# discarded. It was still a live footgun: any shim that started honouring the argument
+# would silently write to a fresh empty tree and every cached sweep would appear to
+# miss. Pointing it at the true root makes the value correct whether or not it is used.
+from ..cache_io import CACHE_ROOT as _CACHE_ROOT
 
 # --- method specs: name -> (laplacian, partition_method, min_split) ----------
 METHOD_SPECS: Dict[str, Tuple[str, str, int]] = {
