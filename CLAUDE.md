@@ -29,7 +29,21 @@ python scripts/run_experiment.py              # edit SWEEP_CONFIG dict at top, t
 ```
 Results land in `sub_sampled_fielder_vec/results/<timestamp>-<run_name>/n{taxa}_L{seq_len}/`. Matrix caches live in `sub_sampled_fielder_vec/src/cache/` (gitignored, reused across runs keyed by `(n_taxa, seq_len, mu, tree_model, seq_model)`).
 
-There is no formal test runner for `sub_sampled_fielder_vec/tests/` — the directory exists but is largely empty. Validate changes by running a small experiment (e.g. `taxa_values=[256], bootstrap_reps=2, p_values=[0.1, 0.5, 1.0]`).
+There is no test suite for `sub_sampled_fielder_vec/` — see `tests/README.md` for why (a bare
+`test*.py` in `.gitignore` made any test file uncommittable; now negated for that dir). Validate
+changes with:
+
+```bash
+python -m src.cache_io                        # cache key/sentinel smoke checks
+python scripts/sync_paper_figures.py --check  # figure provenance; non-zero on problems
+python scripts/collate_open_items.py          # regenerates + lints the open-items register
+```
+
+`collate_open_items.py` currently **exits 1** on one pre-existing lint warning
+(`13-B1.md [B1/29]`, Item longer than 3 sentences). It still writes `OPEN_ITEMS.md`
+correctly — that non-zero exit is not a regression.
+
+plus a small experiment (e.g. `taxa_values=[256], bootstrap_reps=2, p_values=[0.1, 0.5, 1.0]`).
 
 ## Architecture: `spectraltree`
 
@@ -84,7 +98,40 @@ The November-2025 optimizations in `src/core/` are why experiments at `n=8192` a
 `sub_sampled_fielder_vec` does **not** import from `spectraltree`. Tree generation lives in `src/models/tree_models.py`; sequence simulation in `src/models/sequence_models.py`. If you need something from `spectraltree`, port it — don't add a cross-import.
 
 ### Analysis notebooks
-`sub_sampled_fielder_vec/analysis/` holds Jupyter notebooks that consume `results/` JSON. The `theoretical_interpretation/` subdir is the current focus (see git status: figure 1/2/3 notebooks and `utils/{block_model,linalg_features,tree_features}.py`). These are research artifacts — treat them as scratch unless told otherwise.
+
+`analysis/` contains exactly two things:
+
+- **`theoretical_interpretation/`** — the paper's 16 notebooks, organized **by paper
+  section, then by data source**: `sec5_empirical/`, `appD_hbm/`,
+  `appG_supplementary/` (the 6 that produce paper figures) and `supporting/` (the 10
+  that do not). `utils/` is the shared library — **do not move it**.
+- **`analysis/legacy/`** — six superseded packages (`comparison`, `generic_analysis`,
+  `leveraged_sampling_analysis`, `notebooks`, `scripts`, `spectral_analysis`).
+  Unmaintained; don't add to them, and don't revive an import from them.
+
+**`PAPER_MAP.md` is the authority** for which notebook produces which figure, which
+claim it supports, which cache it consumes, and how to rebuild it. It is *generated*
+from `paper_figures.py` — edit that, then run
+`python scripts/sync_paper_figures.py --write-map`. Validate with `--check`, which
+cross-checks the manifest against every `\includegraphics` in `v9/sections/*.tex` and
+exits non-zero on a mismatch.
+
+Load-bearing invariants:
+
+- **`src/` must never import from `analysis/`.** Two modules used to be pulled in by
+  bare name through `sys.path` hacks (`partition_validity`, `tree_plots`), which meant
+  `import src` only worked by accident. Both now live in `src/utils/`.
+- Some `notebook_dir(...)` arguments are **historical cache keys, not paths** —
+  `"01_cbm_theory/balanced_binary_threshold"` and `"03_sampling_methods/nnm_vs_ipw"`.
+  The directories are gone; renaming the keys orphans real cached results.
+- A cell that looks like setup may launch a sweep (`nj_subsampling_nonbalanced` cell 15
+  starts an n=4000 run).
+- Editing a notebook cell clears its stored outputs, and the 6 paper notebooks hold the
+  published numbers there. Patch the JSON `source` arrays instead of round-tripping.
+
+Key docs: `docs/RUNBOOK.md` (rebuild figure N, with costs), `docs/CACHE_AND_RESULTS.md`
+(all 7 cache scopes, what's orphaned), `scripts/README.md` (which `plot_*` files are
+libraries that notebooks import, so must not be moved).
 
 ## Thesis presentation (`sub_sampled_fielder_vec/docs/thesis_seminar.html`)
 
@@ -131,10 +178,18 @@ When writing HTML content containing MathJax LaTeX from Python strings, `\r`, `\
 ## The v9 manuscript (`sub_sampled_fielder_vec/docs/overleafs/v9/`)
 
 Thin master `thesis_v9.tex` + `sections/*.tex`; figures in `figures/`; open questions in
-`open-items/` (collated to `OPEN_ITEMS.md`). Related Work is deferred to `deferred/related.tex`.
+`open-items/` (collated to `OPEN_ITEMS.md`). Related Work is **not** at
+`deferred/related.tex` — that dir is empty and the master's claim is stale; the outline is
+`sections/related.tex`.
 
-- **NEVER assume `docs/overleafs/` is recoverable — the whole tree is untracked by git.** Confirm
-  destructive edits with the author or snapshot first.
+- **v9 is now TRACKED by git** — `.tex`, `figures/`, `open-items/`, and the PDF. It is also
+  self-contained: every `\includegraphics` resolves inside `v9/figures/`, so do **not** re-add
+  `{../}` to `\graphicspath` (that is what made Figure 5 depend on assets outside the tree).
+  Build artifacts are excluded by `v9/.gitignore`.
+- **`v7/`, `v8/` and `distance approach/` are still untracked AND gitignored** — for those,
+  assume nothing is recoverable and snapshot before destructive edits.
+- Appendix filenames do not match compiled letters: `appendix-G.tex` → App **F**,
+  `appendix-emp.tex` → App **G**. The notebook dirs follow the *compiled* letters.
 - ALWAYS build with `latexmk -pdf -interaction=nonstopmode thesis_v9.tex` **from inside the v9
   directory** (the shell cwd is not where you think after backgrounded commands), and verify with
   `grep -c "undefined" thesis_v9.log` against a baseline taken *before* editing. Zero is the
