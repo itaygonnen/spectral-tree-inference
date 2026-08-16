@@ -52,7 +52,7 @@ $|\langle\vv,\EL\vv\rangle|\le\opnorm{\EL}\norm{\vv}_2^2=\opnorm{\EL}$,
 $|(P_\perp\EL\vv)_i|\le|(\EL\vv)_i|+\opnorm{\EL}|\vv_i|$.
 \end{proof}
 
-\begin{remark}[Asymmetric correction in the non-balanced CBM]\label{rem:C-asym}
+\begin{remark}[Asymmetric correction in the non-balanced CFBM]\label{rem:C-asym}
 The correction $\opnorm{\EL}|\vv_i|$ equals $\opnorm{\EL}c_A$ for $i\in A$ and
 $\opnorm{\EL}c_B$ for $i\in B$. For the binding clan $B$ this is
 $\opnorm{\EL}/\sqrt{m\eta}$, strictly sub-dominant to the recovery target $c_B$
@@ -61,6 +61,10 @@ leading-order simplification $|w^{(1)}_i|\lesssim|(\EL\vv)_i|/\Dlam$ for $i\in B
 \end{remark}
 
 \subsection{Per-node Bernstein concentration}\label{app:comp3b}
+
+Under the leading-order simplification of \Cref{rem:C-asym} the entry-wise error
+at node $i$ is governed by the scalar $(\EL\vv)_i$, which we now represent as a
+sum of independent increments and concentrate.
 
 \begin{lemma}[Laplacian increment representation]\label{lem:C-inc}
 For every node $i$, $(\EL\vv)_i=\sum_{j\ne i}X_{ij}$ with
@@ -74,14 +78,15 @@ $(\EL\vv)_i=\sum_{k\ne i}(\ES)_{ik}\vv_i-\sum_{j\ne i}(\ES)_{ij}\vv_j
 \end{proof}
 
 \begin{proposition}[Within-clan terms vanish]\label{prop:C-within}
-Under \Cref{asm:cbm}, $\vv$ is constant on each clan (\Cref{lem:A-decomp}), so
+Under \Cref{asm:cfbm}, $\vv$ is constant on each clan (\Cref{lem:A-decomp}), so
 $X_{ij}=0$ for same-clan pairs; only cross-clan pairs survive:
 $(\EL\vv)_i=\sum_{j\in A}X_{ij}$ for $i\in B$, and
 $(\EL\vv)_i=\sum_{j\in B}X_{ij}$ for $i\in A$.
 \end{proposition}
 
 \begin{proposition}[Per-node variance]\label{prop:C-var}
-Under \Cref{asm:cbm,asm:bounded,asm:sampling} with $\bze=\Sout^{\max}$, using
+Under \Cref{asm:cfbm} and the observation model \eqref{eq:sampling_estimator}, with
+$\bze=\Sout^{\max}$ and using
 $(c_A+c_B)^2=m/(ab)=(1+\eta)^2/(m\eta)$,
 \begin{equation}
    \sigma_B^2:=\operatorname{Var}\bigl((\EL\vv)_i\bigr)\big|_{i\in B}
@@ -111,7 +116,7 @@ and a union bound over the $m$ nodes at $\delta=\delta_0/m$ yields
 \end{proof}
 
 \begin{proposition}[Clan $B$ is binding]\label{prop:C-bind}
-Under \Cref{asm:cbm}, $\min_i|\vv_i|=|c_B|$, attained on the larger clan $B$. The
+Under \Cref{asm:cfbm}, $\min_i|\vv_i|=|c_B|$, attained on the larger clan $B$. The
 per-node condition $|(\EL\vv)_i|<\Dlam|\vv_i|$ requires
 $p>8m(1+\eta)\bze^2\log m/\Dlam^2$ on $B$ (the clan-$A$ condition carries an extra
 $1/\eta$), so since $\eta\ge1$, clan $B$ binds.

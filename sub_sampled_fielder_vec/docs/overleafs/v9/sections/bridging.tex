@@ -26,7 +26,7 @@ $\eta$ moves both against recovery: it first inflates $\coh$, then erodes
 $\Dlam$.
 
 \begin{proposition}[Topological scaling of coherence]\label{prop:coherence}
-Under \Cref{asm:cbm}, the tree imbalance $\eta$ maps deterministically to the
+Under \Cref{asm:cfbm}, the tree imbalance $\eta$ maps deterministically to the
 subspace coherence,
 \begin{equation}\label{eq:coherence_linear_growth}
    \coh=\frac{1+\eta}{2}.
@@ -37,7 +37,11 @@ subspace coherence,
 \Cref{app:comp1}. Thus a balanced split attains the
 optimal coherence $\coh=1$, and the signal spreads more unevenly across nodes as
 $\eta$ grows; the generated regime of \Cref{sec:empirical} confirms the identity
-on data from the full generative pipeline.
+on data from the full generative pipeline. The identity is reported as a
+structural diagnostic: since the noise bound of \Cref{lem:B-bernstein} is obtained
+from the row norms of $S$ directly (\Cref{app:comp2}), $\coh$ does not itself enter
+the sampling rate, and the $\eta$-dependence of \eqref{eq:main_rate} arrives
+through the margin and the gap instead.
 
 % [Reviewer Note: the coherence-vs-eta validation figure (former Figure 2,
 %  coherence_vs_eta_by_n.png) was removed at the author's instruction.  The
@@ -59,9 +63,10 @@ vector satisfies
 \end{lemma}
 \noindent The full algebraic-connectivity derivation is given in \Cref{app:comp1},
 building on the eigenpairs of \Cref{lem:A-decomp}. The bound
-\eqref{eq:spectral_gap_margin} is purely a CBM statement, controlling the gap
-through the abstract minimum intra-clan similarity $\Sin^{\min}$. Under the
-relaxation of \Cref{asm:hbm} that minimum stops being a free parameter and becomes
+\eqref{eq:spectral_gap_margin} is purely a CFBM statement, controlling the gap
+through the abstract minimum intra-clan similarity $\Sin^{\min}$ of
+\eqref{eq:cfbm_floor}. Under the sufficient condition of
+\Cref{asm:hbm} that minimum stops being a free parameter and becomes
 a function of tree shape: it is pinned to the geometric floor
 $\Sin\,\alpha^{D_{\max}}$, so depth erodes the gap in the same way imbalance does,
 and the gap survives only while the decay $\alpha^{D_{\max}}$ still clears the
@@ -96,18 +101,15 @@ a model-dependent constant $c$.
 \noindent The proof sketch (substituting the diameter/depth bounds into
 $\eta<\Sin^{\min}/\Sout^{\max}$) is given in \Cref{app:comp1}.
 
+% [Reviewer Note (2026-08-04): this paragraph previously re-explained the
+%  statistical failure mode -- localisation of the signal, the coherence-limited
+%  matrix-completion barrier, the same three citations -- in wording near
+%  identical to rem:infeasible-mech in sec:main-result-dist.  Two faults, not
+%  one: the two-mode framing is already stated above (before cor:tolerance) and
+%  in the introduction, and the mechanism was narrated here before thm:main-sim
+%  and cor:infeasible had been stated at all.  The explanation now occurs once,
+%  at the bound that exhibits it; this paragraph keeps only the forward pointer.]
 So under balanced generative models the gap survives polynomial imbalance. A
-positive gap is necessary but not sufficient, however: even when $\Dlam>0$,
-finite sampling may demand more entries than exist, which is the second failure
-mode. Inflated coherence $\coh=(1+\eta)/2$ concentrates the split signal on a vanishing
-fraction of nodes, so uniform sampling must observe an ever-larger share of $S$ to
-capture it. \Cref{thm:main-sim} makes this precise: the rate its sufficient
-condition demands grows with $\eta$, and once that demand exceeds $p=1$ the
-guarantee is vacuous --- \Cref{cor:infeasible} locates the threshold. This barrier is the
-coherence-limited sampling phenomenon familiar from matrix completion, where
-recovery becomes infeasible once the leading subspace concentrates on too few
-coordinates \cite{candes2009power, recht2011simpler, chen2014completing},
-mirroring the noise threshold for spectral clustering
-\cite{Balakrishnan2011clustering}. The two bounds frame the admissible region:
-$\eta$ must be small enough for the gap to open (structural) and small enough for
-sampling to remain feasible (statistical).
+positive gap is necessary but not sufficient: even when $\Dlam>0$, the rate
+demanded by \Cref{thm:main-sim} grows with $\eta$, and \Cref{cor:infeasible}
+locates the imbalance past which that demand exceeds $p=1$.

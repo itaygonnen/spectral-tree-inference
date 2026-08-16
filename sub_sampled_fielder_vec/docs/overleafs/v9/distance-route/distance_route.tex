@@ -1,0 +1,835 @@
+%==============================================================================
+%  The Distance Route: split recovery from a sub-sampled double-centred
+%  distance matrix.
+%
+%  SELF-CONTAINED.  Own preamble, own bibliography (refs.bib, in this
+%  directory).  Build from inside distance-route/ with
+%
+%      latexmk -pdf -interaction=nonstopmode distance_route.tex
+%
+%  It shares no \input, no label namespace and no .bib file with thesis_v9.tex,
+%  and it must never be added to the master's \input list without first
+%  renaming its labels -- every label here is prefixed d: for that reason.
+%  Every macro is \providecommand'd so that an \input into a document which
+%  already defines \Dmat/\Bop/... is a no-op rather than a clash.
+%
+%  [Reviewer Note: this document deliberately does NOT reuse the machinery of
+%   the deleted sections/appendix-G.tex.  That route factored B through the
+%   Bandelt--Dress canonical decomposition, stated its only closed-form gap for
+%   balanced splits, and carried a per-node cancellation hypothesis that the
+%   route's own referee report records as false and removed.  The structure
+%   theorems below (Theorem 1 and Theorem 2) are proved here from the
+%   definition of an additive tree metric and from the Laplacian of the tree.]
+%==============================================================================
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\crefname{assumption}{Assumption}{Assumptions}
+\Crefname{assumption}{Assumption}{Assumptions}
+
+\bibliographystyle{plain}
+
+%------------------------------ theorem environments --------------------------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\renewcommand{\theassumption}{D\arabic{assumption}}
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+%------------------------------ notation --------------------------------------
+\providecommand{\Dmat}{\mathcal{D}}          % leaf-to-leaf distance matrix
+\providecommand{\Bop}{\mathcal{B}}           % centred distance operator H D H
+\providecommand{\Mop}{\mathcal{M}}           % -Bop, positive semidefinite
+\providecommand{\uone}{u^{(1)}}
+\providecommand{\huone}{\hat u^{(1)}}
+\providecommand{\1}{\mathbf{1}}
+\providecommand{\E}{\mathbb{E}}
+\providecommand{\Prob}{\mathbb{P}}
+\providecommand{\R}{\mathbb{R}}
+\providecommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\providecommand{\opnorm}[1]{\norm{#1}_{2}}
+\providecommand{\hp}{with high probability}
+\newcommand{\dmax}{d_{\max}}
+\newcommand{\est}{e_{*}}
+\newcommand{\wst}{w_{*}}
+\newcommand{\Ast}{A_{*}}
+\newcommand{\Bst}{B_{*}}
+\newcommand{\ehat}{\hat{e}}
+
+\title{The Distance Route:\\
+       split recovery from a sub-sampled double-centred distance matrix}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let $\Dmat$ be the matrix of path distances between the $m$ leaves of a weighted
+tree and let $\Bop=H\Dmat H$ be its double centring, $H=I-\tfrac1m\1\1^\top$. We
+give a self-contained account of why the sign pattern of the leading-magnitude
+eigenvector of $\Bop$ is a bipartition of the leaves cut by a single edge of the
+tree, and of how much of the matrix may be discarded before that sign pattern
+changes. Two exact structure theorems carry the argument. The first writes
+$\Bop$ as a negatively weighted sum of rank-one split projectors,
+$\Bop=-\sum_{e}w_e\,\ehat_e\ehat_e^\top$ with $w_e=2\ell_e a_e b_e/m$; the second
+identifies $-\tfrac12\Bop$ with the Moore--Penrose pseudoinverse of the tree
+Laplacian Schur-complemented onto the leaves. The first supplies the spectral
+gap, and an explicit preference for balanced bipartitions that the Laplacian
+operator does not share; the second supplies validity, with no quantitative
+hypothesis at all. Against these we run a sampling model in which each pair is
+observed independently with probability $p$: an operator-norm bound for the
+inverse-probability estimator, a Davis--Kahan step, and a one-step refinement
+whose per-leaf statistic concentrates by a scalar Bernstein inequality. The
+conclusion is that $p=\Theta(\log m/m)$ suffices to reproduce exactly the
+partition the fully observed operator returns.
+\end{abstract}
+
+%==============================================================================
+\section{Setting}\label{d:sec:setup}
+%==============================================================================
+
+Let $T$ be a tree with leaf set $X$, $|X|=m\ge 4$, internal vertex set $R$, edge
+set $E$, and a strictly positive length $\ell_e$ on each edge. For $i,j\in X$
+let $\Dmat_{ij}$ be the total length of the unique $i$--$j$ path, and write
+\begin{equation}\label{d:eq:dmax}
+  \dmax:=\max_{i,j\in X}\Dmat_{ij}.
+\end{equation}
+Let $H:=I-\tfrac1m\1\1^\top$ be the centring projector and set
+\begin{equation}\label{d:eq:bdef}
+  \Bop:=H\,\Dmat\,H,\qquad \Mop:=-\Bop .
+\end{equation}
+The object of study is the \emph{sign rule}: take $\uone$, a unit eigenvector of
+$\Bop$ belonging to the eigenvalue of largest absolute value, and partition $X$
+by $\operatorname{sign}(\uone)$.
+
+\begin{remark}[Sign convention]\label{d:rem:sign}
+\Cref{d:cor:nsd} below shows $\Bop\preceq0$, so the eigenvalue of largest
+absolute value is the \emph{most negative} one, and $\uone$ is the top
+eigenvector of $\Mop\succeq0$. The literature that uses this operator describes
+$\uone$ as ``leading'' \cite{aizenbud2023spectral}; on $\Bop$ that word must be
+read as largest in magnitude, not largest algebraically, since the largest
+algebraic eigenvalue of $\Bop$ is the eigenvalue $0$ carried by $\1$.
+\end{remark}
+
+Throughout, $A_e\subset X$ and $B_e=X\setminus A_e$ denote the two leaf sets
+obtained by deleting edge $e$ from $T$, with $a_e=|A_e|$ and $b_e=|B_e|$; both
+are non-empty. A bipartition of $X$ of this form is called a \emph{split of
+$T$}. For $A\subseteq X$ we write $\1_A$ for its indicator vector.
+
+%==============================================================================
+\section{The split-covariance identity}\label{d:sec:structure}
+%==============================================================================
+
+The first structure theorem needs nothing beyond the definition of an additive
+metric and one line of algebra.
+
+\begin{lemma}[Path decomposition]\label{d:lem:path}
+For $e\in E$ put $S_e:=\1_{A_e}\1_{B_e}^\top+\1_{B_e}\1_{A_e}^\top$. Then
+\begin{equation}\label{d:eq:path}
+  \Dmat=\sum_{e\in E}\ell_e\,S_e .
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+$T$ is a tree, so the $i$--$j$ path is unique and
+$\Dmat_{ij}=\sum_{e\in E}\ell_e\,\mathbf{1}\{e\text{ lies on the }i\text{--}j
+\text{ path}\}$. Deleting $e$ splits $T$ into the two components containing
+$A_e$ and $B_e$ respectively, and $e$ lies on the $i$--$j$ path exactly when $i$
+and $j$ fall in different components, i.e.\ exactly when $(S_e)_{ij}=1$.
+\end{proof}
+
+\begin{lemma}[Rank-one centring]\label{d:lem:centring}
+Let $A\subseteq X$ with $a=|A|\in\{1,\dots,m-1\}$, $b=m-a$, and set
+$\tilde u:=H\1_A$. Then
+\begin{equation}\label{d:eq:centring}
+  H\bigl(\1_A\1_{B}^\top+\1_{B}\1_A^\top\bigr)H=-2\,\tilde u\tilde u^\top,
+  \qquad
+  \norm{\tilde u}^2=\frac{ab}{m},
+\end{equation}
+where $B=X\setminus A$. Moreover $\tilde u_i=b/m$ for $i\in A$ and
+$\tilde u_i=-a/m$ for $i\in B$, so with $\ehat:=\tilde u/\norm{\tilde u}$,
+\begin{equation}\label{d:eq:deloc}
+  \ehat_i=\sqrt{\tfrac{b}{am}}\ \ (i\in A),\qquad
+  \ehat_i=-\sqrt{\tfrac{a}{bm}}\ \ (i\in B),\qquad
+  \min_{i}|\ehat_i|=\sqrt{\frac{\min(a,b)}{m\,\max(a,b)}} .
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+$H\1=0$ and $\1_B=\1-\1_A$, hence $H\1_B=-\tilde u$. Therefore
+$H(\1_A\1_B^\top+\1_B\1_A^\top)H
+ =(H\1_A)(H\1_B)^\top+(H\1_B)(H\1_A)^\top
+ =-2\tilde u\tilde u^\top$.
+The entries of $\tilde u=\1_A-\tfrac{a}{m}\1$ are as stated, so
+$\norm{\tilde u}^2=a(b/m)^2+b(a/m)^2=ab(a+b)/m^2=ab/m$, and dividing gives
+\eqref{d:eq:deloc}.
+\end{proof}
+
+Write $\tilde u_e:=H\1_{A_e}$ and $\ehat_e:=\tilde u_e/\norm{\tilde u_e}$.
+Note that $\operatorname{sign}(\ehat_e)$ \emph{is} the split $(A_e,B_e)$, with no
+zero coordinate.
+
+\begin{theorem}[Split covariance]\label{d:thm:splitcov}
+\begin{equation}\label{d:eq:splitcov}
+  \Bop=-\sum_{e\in E}w_e\,\ehat_e\ehat_e^\top,
+  \qquad
+  w_e:=\frac{2\,\ell_e\,a_e\,b_e}{m}\;>\;0 .
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Apply $H(\cdot)H$ to \eqref{d:eq:path} and use \eqref{d:eq:centring} term by
+term: $H(\ell_eS_e)H=-2\ell_e\tilde u_e\tilde u_e^\top
+=-2\ell_e\norm{\tilde u_e}^2\ehat_e\ehat_e^\top=-w_e\ehat_e\ehat_e^\top$.
+\end{proof}
+
+\Cref{d:thm:splitcov} is the exact and finite counterpart, for a tree metric, of
+a canonical split decomposition \cite{bandeltdress1992canonical}: the split
+system of $T$ is its edge set, so no limiting or canonical-form argument is
+required.
+
+\begin{corollary}[Definiteness, rank, trace]\label{d:cor:nsd}
+$\Bop\preceq0$ with $\Bop\1=0$; $\operatorname{rank}\Bop=m-1$, so the inertia of
+$\Bop$ is $(0,1,m-1)$; and
+\begin{equation}\label{d:eq:trace}
+  \sum_{e\in E}w_e=\operatorname{tr}\Mop=\frac{1}{m}\,\1^\top\Dmat\,\1 .
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Negative semidefiniteness and $\Bop\1=0$ are immediate from
+\eqref{d:eq:splitcov} and $\ehat_e^\top\1=0$. For the rank: the $m$ pendant
+edges contribute the vectors $\tilde u_{\{i\}}=He_i$, $i\in X$, which span
+$\1^{\perp}$, a space of dimension $m-1$; since every $w_e>0$ the quadratic form
+$x^\top\Mop x=\sum_ew_e\langle \ehat_e,x\rangle^2$ vanishes on $\1^{\perp}$ only
+at $0$. For the trace, each $\ehat_e$ is a unit vector, so
+$\operatorname{tr}\Mop=\sum_ew_e$; independently
+$\operatorname{tr}(H\Dmat H)=\operatorname{tr}(\Dmat H)
+ =\operatorname{tr}\Dmat-\tfrac1m\1^\top\Dmat\1=-\tfrac1m\1^\top\Dmat\1$
+because $\Dmat$ has zero diagonal.
+\end{proof}
+
+\begin{remark}[Inertia of $\Dmat$ itself]\label{d:rem:inertia}
+\Cref{d:cor:nsd} is consistent with, and is the centred form of, the classical
+statement that the distance matrix of a tree on $m$ vertices has exactly one
+positive and $m-1$ negative eigenvalues. For \emph{weighted} trees --- the case
+here --- the citable statement is the $s=1$ specialisation of Bapat's
+matrix-weight determinant theorem \cite{bapat2006determinant}; Graham and
+Pollak proved the determinant
+$\det\Dmat=(-1)^{m-1}(m-1)2^{m-2}$ for the unweighted case
+\cite{grahampollak1971addressing}, and Graham and Lov\'asz the associated
+polynomials \cite{grahamlovasz1978polynomials}. The wider family of exact
+relations between the distance matrix of a tree and its Laplacian, including the
+closed form of $\Dmat^{-1}$, is collected in
+\cite{bapat2005distance,bapat2014graphs}.
+% [Reviewer Note: the exponent is m-2.  Several secondary sources print
+%  2^{m-1}; that is a transcription error.  A second trap in the same
+%  literature: the vector tau = 2*1 - d appearing in the inverse formula of
+%  bapat2005distance uses the UNWEIGHTED degree, not the weighted degree.]
+\end{remark}
+
+\begin{remark}[$\Bop$ is the classical scaling operator]\label{d:rem:mds}
+$G=-\tfrac12\Bop$ is the Gram matrix of classical multidimensional scaling
+applied to $\Dmat$ \cite{young1938discussion,torgerson1952mds,gower1966distance},
+so $\operatorname{sign}(\uone)$ is the sign of the first principal coordinate of
+the leaves. \Cref{d:cor:nsd} states that this Gram matrix is positive
+semidefinite for every weighted tree, which is the assertion that the tree metric
+$\Dmat$ --- not its square --- is a squared Euclidean distance, i.e.\ that
+$\sqrt{\Dmat}$ embeds isometrically in $\R^{m-1}$
+\cite{schoenberg1935remarks,gower1985properties}; that phylogenetic distance
+matrices have this property, and the elementary reason for it, are discussed in
+\cite{devienne2011euclidean,layer2017embeddings}. The geometry of where the
+principal axes cut a tree is treated in \cite{fiedler2005euclidean}.
+\end{remark}
+
+\begin{lemma}[Gap bracket]\label{d:lem:bracket}
+$\displaystyle \max_{e\in E}w_e\;\le\;\lambda_1(\Mop)\;\le\;\sum_{e\in E}w_e$.
+\end{lemma}
+
+\begin{proof}
+Lower: $\lambda_1(\Mop)\ge\ehat_e^\top\Mop\,\ehat_e\ge w_e$ for each $e$, since
+every summand in \eqref{d:eq:splitcov} is positive semidefinite. Upper:
+$\lambda_1(\Mop)\le\operatorname{tr}\Mop$, again by positive semidefiniteness.
+\end{proof}
+
+The inner products between split directions are also closed-form. Any two
+distinct edges of a tree induce nested splits, so after orienting $A_f$
+appropriately exactly one of the two cases below applies.
+
+\begin{lemma}[Split Gram matrix]\label{d:lem:gram}
+Let $e,f\in E$, $e\ne f$. Then
+\begin{equation}\label{d:eq:gram}
+  \langle\tilde u_e,\tilde u_f\rangle=
+  \begin{cases}
+    \dfrac{a_f\,b_e}{m}, & A_f\subseteq A_e,\\[2mm]
+    -\dfrac{a_e\,a_f}{m}, & A_f\subseteq B_e .
+  \end{cases}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+$\langle H\1_{A_e},H\1_{A_f}\rangle=\1_{A_e}^\top H\1_{A_f}
+ =|A_e\cap A_f|-a_ea_f/m$. In the first case $|A_e\cap A_f|=a_f$, giving
+$a_f(1-a_e/m)=a_fb_e/m$; in the second $|A_e\cap A_f|=0$.
+\end{proof}
+
+\Cref{d:eq:gram} is never zero, which is the reason the sign rule does not
+simply return the edge of largest weight $w_e$: the directions $\ehat_e$ are not
+orthogonal, and the top eigenvector of $\Mop$ responds to the whole correlated
+family. \Cref{d:sec:empirical} records how often the two differ.
+
+%==============================================================================
+\section{Validity, unconditionally}\label{d:sec:validity}
+%==============================================================================
+
+The second structure theorem says that $-\tfrac12\Bop$ is not merely some
+positive semidefinite matrix but a Laplacian pseudoinverse. It is asserted
+without proof in \cite[\S4.4, \S4.8.1]{griffing2012connections}; we prove it,
+because everything in this section rests on it.
+
+Give each edge the conductance $c_e:=1/\ell_e$ and let $L\in\R^{V\times V}$,
+$V=X\sqcup R$, be the weighted Laplacian of $T$. Order $V$ with the leaves
+first,
+\begin{equation}\label{d:eq:block}
+  L=\begin{pmatrix} L_{XX} & L_{XR}\\ L_{RX} & L_{RR}\end{pmatrix},
+  \qquad
+  L^{*}:=L/L_{RR}=L_{XX}-L_{XR}L_{RR}^{-1}L_{RX}.
+\end{equation}
+$L_{RR}$ is a principal submatrix of a connected graph Laplacian obtained by
+deleting a non-empty vertex set, hence positive definite, so $L^{*}$ is
+well defined.
+
+\begin{theorem}[Gower matrix as a Laplacian pseudoinverse]\label{d:thm:pinv}
+\begin{equation}\label{d:eq:pinv}
+  G:=-\tfrac12\,H\Dmat H=\bigl(L^{*}\bigr)^{\dagger}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1: $L^{*}$ is the boundary current-to-potential map.} Let
+$x\in\R^{X}$ with $\1^\top x=0$, and let $v=(v_X,v_R)$ solve $Lv=(x,0)$. The
+second block gives $v_R=-L_{RR}^{-1}L_{RX}v_X$, and substituting into the first
+gives $L^{*}v_X=x$. So injecting the current $x$ at the leaves and none at the
+internal vertices produces leaf potentials $v_X$ related to $x$ by $L^{*}$.
+Consequently the effective resistance between $i,j\in X$ in the network $(T,c)$
+equals $(e_i-e_j)^\top (L^{*})^{\dagger}(e_i-e_j)$.
+
+\emph{Step 2: effective resistance is the tree metric.} In a tree the $i$--$j$
+path is unique, so resistors in series give effective resistance
+$\sum_{e\in\text{path}}1/c_e=\sum_{e\in\text{path}}\ell_e=\Dmat_{ij}$. Hence
+$\Dmat$ is exactly the resistance matrix of $L^{*}$.
+
+\emph{Step 3: double centring inverts the resistance formula.} For any
+symmetric positive semidefinite $L^{*}$ with kernel $\1$, write
+$g:=\operatorname{diag}\bigl((L^{*})^{\dagger}\bigr)$. Expanding Step 1,
+$\Dmat_{ij}=g_i+g_j-2(L^{*})^{\dagger}_{ij}$, i.e.
+$\Dmat=\1g^\top+g\1^\top-2(L^{*})^{\dagger}$. Apply $H(\cdot)H$: the first two
+terms are annihilated because $H\1=0$, so
+$H\Dmat H=-2\,H(L^{*})^{\dagger}H$. Finally $(L^{*})^{\dagger}\1=0$ and
+$(L^{*})^{\dagger}$ is symmetric, so $H(L^{*})^{\dagger}H=(L^{*})^{\dagger}$,
+which is \eqref{d:eq:pinv}.
+\end{proof}
+
+Pseudoinversion fixes eigenvectors and inverts the non-zero eigenvalues.
+Both $G$ and $L^{*}$ have kernel exactly $\operatorname{span}(\1)$
+(\Cref{d:cor:nsd} for $G$; connectivity for $L^{*}$), so:
+
+\begin{corollary}[Spectral correspondence]\label{d:cor:corr}
+$G$ and $L^{*}$ have the same eigenvectors. The eigenvector of $G$ at its
+largest eigenvalue --- equivalently, by \Cref{d:rem:sign}, the vector $\uone$ of
+\Cref{d:sec:setup} --- is the Fiedler vector of $L^{*}$, and
+$\lambda_{\max}(G)=1/\lambda_2(L^{*})$.
+\end{corollary}
+
+$L^{*}$ is the Laplacian of a weighted graph on the leaves obtained from $T$ by
+eliminating internal vertices, and the sign pattern of its Fiedler vector is
+governed by a theorem of Stone and Griffing
+\cite[Thm.~3.3]{stone2009fiedler}: it partitions $X$ into $V_+$ and $V_-$ such
+that, together with a suitable partition of the internal vertices, both parts
+induce connected subgraphs of $T$. This is the Schur-complemented counterpart of
+Fiedler's classical result that each nodal domain of a Fiedler vector induces a
+connected subgraph \cite{fiedler1975property}; the behaviour of the later
+eigenvectors under the same reduction is described in
+\cite{griffing2013interlacing}. A bipartition of the leaves whose two sides
+induce connected subtrees is a split of $T$. Hence:
+
+\begin{corollary}[Validity of the sign rule]\label{d:cor:validity}
+$\operatorname{sign}(\uone)$ is the bipartition $(A_{e},B_{e})$ induced by some
+single edge $e\in E$, and $\uone$ has no zero coordinate. No quantitative
+hypothesis on $T$ is required.
+\end{corollary}
+
+\begin{definition}[Dominant edge]\label{d:def:dominant}
+By \Cref{d:cor:validity} there is an edge $\est\in E$ with
+$\operatorname{sign}(\uone)=(A_{\est},B_{\est})$. Write
+$\Ast:=A_{\est}$, $\Bst:=B_{\est}$, $a:=|\Ast|$, $b:=|\Bst|$,
+$\ell_*:=\ell_{\est}$, $\wst:=w_{\est}=2\ell_*ab/m$, and
+$\delta_*:=\min_i|\uone_i|>0$.
+\end{definition}
+
+This is the target of everything that follows. The task of the remaining
+sections is not to identify $\est$ --- \Cref{d:cor:validity} has already
+guaranteed that the exact rule returns a split of $T$ --- but to say how much of
+$\Dmat$ may be discarded before the sampled rule stops returning
+$(\Ast,\Bst)$.
+
+\begin{remark}[Relation to the Fiedler vector of a similarity Laplacian]
+\label{d:rem:notthesame}
+\Cref{d:cor:validity} certifies that the distance operator returns \emph{a}
+split. It does not assert that this split is the one a Laplacian built from a
+similarity matrix returns, and in general it is not: the two operators are
+different functions of the tree and they select different edges. The
+quantitative reason is isolated in \Cref{d:prop:balance}.
+\end{remark}
+
+%==============================================================================
+\section{Population landmarks}\label{d:sec:landmarks}
+%==============================================================================
+
+Three population quantities enter the sampling analysis. Each is a property of
+the fully observed operator alone.
+
+\begin{assumption}[Spectral gap]\label{d:asm:gap}
+$\lambda_1(\Mop)$ is simple, and
+$\Delta:=\lambda_1(\Mop)-\lambda_2(\Mop)\ \ge\ \gamma\,\wst$
+for a constant $\gamma>0$.
+\end{assumption}
+
+\begin{assumption}[Delocalisation]\label{d:asm:deloc}
+$\delta_*=\min_i|\uone_i|\ \ge\ c_\delta/\sqrt{m}$ for a constant $c_\delta>0$.
+\end{assumption}
+
+\begin{assumption}[Row separation]\label{d:asm:rowsep}
+For every $i\in X$, with the convention that the sums omit $j=i$,
+\begin{equation}\label{d:eq:rowsep}
+  s_i:=\Bigl|\;
+    \frac{1}{|\Bst|}\sum_{j\in \Bst}\Dmat_{ij}
+    -\frac{1}{|\Ast|-1}\sum_{j\in \Ast}\Dmat_{ij}\;\Bigr|
+  \;\ge\;s_0>0
+  \quad(i\in\Ast),
+\end{equation}
+and symmetrically for $i\in\Bst$. Write $\kappa_{\mathrm{ref}}:=\dmax/s_0$.
+\end{assumption}
+
+\Cref{d:asm:deloc} is a normalisation, not a restriction on the tree: by
+\eqref{d:eq:deloc} the split direction $\ehat_{\est}$ itself has
+$\min_i|\ehat_i|=\sqrt{\min(a,b)/(m\max(a,b))}$, which is
+$c_\delta/\sqrt m$ with $c_\delta=(1+\eta)^{-1/2}$ at imbalance
+$\eta=\max(a,b)/\min(a,b)$. \Cref{d:asm:rowsep} says the same split is visible
+in a single row of $\Dmat$; by \Cref{d:lem:path} the edge $\est$ alone
+contributes exactly $\ell_*$ to $s_i$, so $s_0$ is the part of that
+contribution that survives the other edges.
+
+\paragraph{A family in which all three are exact.}
+Let $T$ be the balanced binary tree on $m=2^k$ leaves in which the two edges at
+the root have length $L$ and every other edge has length $g$, so that
+$\Dmat_{ij}=2L+2g(k-1)$ across the root split and $2gd$ within, $d$ being the
+depth of the meet. Then $\Ast,\Bst$ are the two halves,
+$\wst=2\cdot(2L)\cdot\tfrac{m}{2}\cdot\tfrac{m}{2}/m=Lm$, and $\uone$ equals
+$\ehat_{\est}$ exactly, so $\delta_*=1/\sqrt m$ and $c_\delta=1$. Numerically,
+for $g=1$:
+
+\begin{center}
+\begin{tabular}{rrrrrrr}
+\toprule
+$m$ & $L$ & $|\lambda_1(\Mop)|$ & $|\lambda_2(\Mop)|$ & $\Delta$ & $\wst=Lm$
+    & $\sqrt m\,\delta_*$\\
+\midrule
+ 64 & 0.5 &   94.00 &  62.00 &   32.00 &   32.00 & 1.000\\
+ 64 & 1.0 &  126.00 &  62.00 &   64.00 &   64.00 & 1.000\\
+ 64 & 2.0 &  190.00 &  62.00 &  128.00 &  128.00 & 1.000\\
+ 64 & 4.0 &  318.00 &  62.00 &  256.00 &  256.00 & 1.000\\
+256 & 0.5 &  382.00 & 254.00 &  128.00 &  128.00 & 1.000\\
+256 & 1.0 &  510.00 & 254.00 &  256.00 &  256.00 & 1.000\\
+256 & 2.0 &  766.00 & 254.00 &  512.00 &  512.00 & 1.000\\
+256 & 4.0 & 1278.00 & 254.00 & 1024.00 & 1024.00 & 1.000\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+so $\Delta=\wst$ identically and \Cref{d:asm:gap} holds with $\gamma=1$, while
+$\lambda_2(\Mop)=m-2$ is set by the internal edges alone. Here
+$\dmax=2L+2g(k-1)$, and the two ratios that govern the rate are
+$\kappa:=\dmax/\ell_*$ and $\kappa_{\mathrm{ref}}=\dmax/s_0$.
+
+%==============================================================================
+\section{Observation model and spectral noise}\label{d:sec:noise}
+%==============================================================================
+
+Each unordered pair is observed independently with probability $p$: let
+$\Omega_{ij}=\Omega_{ji}\sim\mathrm{Bernoulli}(p)$ for $i<j$, independent across
+pairs, $\Omega_{ii}=0$, and form the inverse-probability estimator
+\begin{equation}\label{d:eq:ipw}
+  \widehat{\Dmat}:=p^{-1}\,\Dmat\circ\Omega,
+  \qquad
+  \widehat{\Bop}:=H\,\widehat{\Dmat}\,H .
+\end{equation}
+
+\begin{lemma}[Unbiasedness]\label{d:lem:unbiased}
+$\E\widehat{\Dmat}=\Dmat$ and $\E\widehat{\Bop}=\Bop$. Moreover, with
+$Z:=\widehat{\Dmat}-\Dmat$,
+\begin{equation}\label{d:eq:proj}
+  \opnorm{\widehat{\Bop}-\Bop}=\opnorm{HZH}\le\opnorm{Z}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+$\E\Omega_{ij}=p$ gives the first claim entrywise; $H$ is deterministic, so it
+passes through the expectation and centring introduces no bias. For
+\eqref{d:eq:proj}, $H$ is an orthogonal projector, so $\opnorm{H}=1$.
+\end{proof}
+
+The entries of $Z$ on and above the diagonal are independent and mean zero,
+with
+\begin{equation}\label{d:eq:zbounds}
+  |Z_{ij}|\le \dmax/p,
+  \qquad
+  \operatorname{Var}(Z_{ij})=\Dmat_{ij}^2\,\frac{1-p}{p}\le\frac{\dmax^2}{p}.
+\end{equation}
+
+\begin{lemma}[Spectral error]\label{d:lem:opnorm}
+There are absolute constants $C_0,C_1,C_2$ such that if $pm\ge C_0$ then
+\begin{equation}\label{d:eq:opnorm}
+  \opnorm{Z}\;\le\;2.01\,\dmax\sqrt{\frac{m}{p}}
+  \qquad\text{with probability at least } 1-C_1e^{-C_2pm}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+$Z$ is symmetric with independent, mean-zero entries on and above the diagonal,
+bounded in absolute value by $\dmax/p$ and with variance at most $\dmax^2/p$ by
+\eqref{d:eq:zbounds}. This is the hypothesis of
+\cite[Thm.~8.4]{chatterjee2015usvt}, applied to the matrix $pZ/\dmax$, whose
+entries are bounded by $1$ and have variance at most $p$.
+\end{proof}
+
+\begin{remark}[Which concentration inequality, and why]\label{d:rem:whichbound}
+\Cref{d:lem:opnorm} uses \cite{chatterjee2015usvt} because it is stated for
+exactly this ensemble: a symmetric matrix with independent entries on and above
+the diagonal. A fully self-contained derivation is available from the matrix
+Bernstein inequality \cite[Thm.~1.4]{tropp2012userfriendly} --- writing $Z$ as a
+sum of $\binom m2$ independent symmetric rank-two terms, with scale $\dmax/p$
+and variance proxy $m\dmax^2/p$, gives
+$\opnorm{Z}\lesssim\dmax\bigl(\sqrt{m\log m/p}+\log m/p\bigr)$, which costs a
+factor $\sqrt{\log m}$. Two neighbouring results do not apply as stated:
+\cite[Thm.~2]{achlioptas2007fast} is the algorithmic precedent for the same
+$\sqrt{m/p}$ rate but is stated for the non-symmetric independent-entry model,
+and \cite[Thm.~1.1]{bandeira2016sharp} is sharp but Gaussian.
+\end{remark}
+
+%==============================================================================
+\section{From the spectrum to the labels}\label{d:sec:perturb}
+%==============================================================================
+
+Let $\huone$ be a unit eigenvector of $\widehat{\Bop}$ at its
+largest-magnitude eigenvalue, sign-aligned so that
+$\langle\huone,\uone\rangle\ge0$.
+
+\begin{lemma}[$\ell_2$ control]\label{d:lem:dk}
+Under \Cref{d:asm:gap}, on the event of \Cref{d:lem:opnorm},
+\begin{equation}\label{d:eq:dk}
+  \norm{\huone-\uone}_2\ \le\ \sqrt2\,\sin\Theta(\huone,\uone)
+  \ \le\ \frac{2\sqrt2\,\opnorm{Z}}{\Delta}
+  \ \le\ \frac{5.69\,\dmax}{\gamma\,\wst}\sqrt{\frac{m}{p}} .
+\end{equation}
+In particular, if $\Ast$ and $\Bst$ are balanced up to a constant, so that
+$\wst\asymp\ell_*m$, then with $\kappa=\dmax/\ell_*$,
+\begin{equation}\label{d:eq:dk2}
+  \norm{\huone-\uone}_2\ \lesssim\ \frac{\kappa}{\gamma\sqrt{pm}} .
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Apply the one-dimensional case of the statistical variant
+\cite[Cor.~1]{yu2015useful} of the Davis--Kahan $\sin\Theta$ theorem
+\cite{davis1970rotation} to the symmetric pair $\Mop$, $-\widehat{\Bop}$,
+whose difference has operator norm at most $\opnorm{Z}$ by
+\eqref{d:eq:proj}; the corollary requires only the \emph{population} gap
+$\Delta$, which is \Cref{d:asm:gap}. The bound
+$\norm{\huone-\uone}_2\le\sqrt2\sin\Theta$ holds after sign alignment. Substitute
+\eqref{d:eq:opnorm} and $\Delta\ge\gamma\wst$.
+\end{proof}
+
+\begin{proposition}[Misclassification count]\label{d:prop:misclass}
+Let $\mathcal{E}:=\{i:\operatorname{sign}(\huone_i)\ne\operatorname{sign}(\uone_i)\}$.
+Under \Cref{d:asm:gap,d:asm:deloc},
+\begin{equation}\label{d:eq:misclass}
+  \frac{|\mathcal{E}|}{m}\ \le\ \frac{\norm{\huone-\uone}_2^2}{m\,\delta_*^2}
+  \ \le\ \frac{1}{c_\delta^2}\,\norm{\huone-\uone}_2^2
+  \ \lesssim\ \frac{\kappa^2}{c_\delta^2\gamma^2\,pm}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+If $i\in\mathcal{E}$ then $\huone_i$ and $\uone_i$ have opposite signs, so
+$|\huone_i-\uone_i|\ge|\uone_i|\ge\delta_*$. Hence
+$|\mathcal{E}|\,\delta_*^2\le\norm{\huone-\uone}_2^2$. Insert
+\Cref{d:asm:deloc} and \eqref{d:eq:dk2}.
+\end{proof}
+
+\begin{remark}[Why not carry the eigenvector to $\ell_\infty$ directly]
+\label{d:rem:linf}
+Exact recovery by the raw sign rule needs
+$\norm{\huone-\uone}_\infty<\delta_*$. The only dimension-free transfer,
+$\norm{\cdot}_\infty\le\norm{\cdot}_2$, charges every leaf as though it were the
+worst one, and against $\delta_*\asymp m^{-1/2}$ that costs a factor $m$: it
+turns \eqref{d:eq:dk2} into the requirement $p\gtrsim\kappa^2/(c_\delta\gamma)^2$,
+a constant sampling rate. \Cref{d:sec:exact} recovers the $\log m/m$ rate by
+adding a second stage instead; \Cref{d:rem:entrywise} names the alternative.
+\end{remark}
+
+%==============================================================================
+\section{Exact recovery by one-step refinement}\label{d:sec:exact}
+%==============================================================================
+
+Let $(\widehat{C}_0,\widehat{C}_1)$ be the partition
+$\operatorname{sign}(\huone)$ from \Cref{d:sec:perturb}, and define the refined
+labelling: assign $i$ to the part $c$ minimising
+\begin{equation}\label{d:eq:refine}
+  \psi_c(i):=\frac{1}{|\widehat{C}_c\setminus\{i\}|}
+             \sum_{j\in \widehat{C}_c\setminus\{i\}}\widehat{\Dmat}_{ij},
+  \qquad c\in\{0,1\}.
+\end{equation}
+
+\begin{lemma}[Per-leaf concentration]\label{d:lem:pernode}
+Fix $i$ and a set $C\subseteq X\setminus\{i\}$ with $|C|\ge m/4$. For any
+$\tau\in(0,1)$,
+\begin{equation}\label{d:eq:bernstein}
+  \Prob\Bigl(\bigl|\psi_C(i)-\bar\Dmat_{iC}\bigr|
+       \ge \dmax\sqrt{\frac{8\log(m/\tau)}{p\,|C|}}
+           +\frac{4\dmax\log(m/\tau)}{3p\,|C|}\Bigr)\le\frac{2\tau}{m},
+\end{equation}
+where $\bar\Dmat_{iC}:=|C|^{-1}\sum_{j\in C}\Dmat_{ij}$.
+\end{lemma}
+
+\begin{proof}
+$\psi_C(i)=|C|^{-1}\sum_{j\in C}p^{-1}\Omega_{ij}\Dmat_{ij}$ is an average of
+$|C|$ independent random variables with mean $\bar\Dmat_{iC}$, each bounded in
+absolute value by $\dmax/(p|C|)$ after scaling and with variance at most
+$\dmax^2/(p|C|^2)$ by \eqref{d:eq:zbounds}. Bernstein's inequality for bounded
+independent summands gives \eqref{d:eq:bernstein}.
+\end{proof}
+
+\begin{theorem}[Exact recovery]\label{d:thm:main}
+Assume \Cref{d:asm:gap,d:asm:deloc,d:asm:rowsep}, and that the imbalance
+$\eta=\max(a,b)/\min(a,b)$ is bounded. There are constants
+$C=C(\gamma,c_\delta,\eta)$ and $c>0$ such that if
+\begin{equation}\label{d:eq:mainrate}
+  p\;\ge\;C\,\bigl(\kappa_{\mathrm{ref}}^2+\kappa^2\bigr)\,
+              \frac{\log m}{m},
+  \qquad \kappa=\frac{\dmax}{\ell_*},\quad
+         \kappa_{\mathrm{ref}}=\frac{\dmax}{s_0},
+\end{equation}
+then with probability at least $1-m^{-c}$ the refined labelling equals
+$\operatorname{sign}(\uone)$ at every leaf. By \Cref{d:cor:validity} that
+labelling is the bipartition of $X$ induced by the edge $\est$ of $T$.
+\end{theorem}
+
+\begin{proof}
+Write $\varepsilon:=|\mathcal{E}|/m$ for the stage-one error rate. By
+\Cref{d:prop:misclass} and \eqref{d:eq:mainrate},
+$\varepsilon\lesssim\kappa^2/(c_\delta\gamma)^2pm\le s_0/(8\dmax)$ once $C$ is
+large enough; in particular $\varepsilon<\tfrac12\min(a,b)/m$, so both
+$\widehat{C}_0$ and $\widehat{C}_1$ have at least $m/4$ elements and each is
+within $\varepsilon m$ leaves of the corresponding true part.
+
+Fix $i\in\Ast$. Replacing $\widehat{C}_0,\widehat{C}_1$ by $\Ast,\Bst$ inside
+\eqref{d:eq:refine} changes each average by at most
+$2\varepsilon\dmax\cdot(m/\min|\widehat{C}_c|)\le 8\varepsilon\dmax\le s_0/4$,
+because at most $\varepsilon m$ summands differ and each is bounded by $\dmax$.
+By \Cref{d:asm:rowsep} the population difference
+$\bar\Dmat_{i\Bst}-\bar\Dmat_{i\Ast}$ has absolute value at least $s_0$ and the
+sign that identifies $i$ as belonging to $\Ast$. It therefore suffices that the
+stochastic deviation of each of the two averages be below $s_0/4$. By
+\Cref{d:lem:pernode} with $\tau=m^{-c}$ and $|C|\ge m/4$, both deviations are at
+most
+\[
+  \dmax\sqrt{\frac{32(1+c)\log m}{p\,m}}
+  +\frac{16(1+c)\dmax\log m}{3pm}
+  \;\le\;\frac{s_0}{4}
+\]
+whenever $pm\ge C'\kappa_{\mathrm{ref}}^2\log m$, which is
+\eqref{d:eq:mainrate}. A union bound over the $2m$ statistics
+$\psi_c(i)$ costs a factor $2m$, absorbed by $\tau=m^{-c}$. The argument for
+$i\in\Bst$ is identical.
+\end{proof}
+
+\begin{corollary}[Rate]\label{d:cor:rate}
+If $\gamma$, $c_\delta$, $\eta$, $\kappa$ and $\kappa_{\mathrm{ref}}$ are
+bounded as $m$ grows, then $p=\Theta(\log m/m)$ suffices, and the expected number
+of observed entries is $\Theta(m\log m)$ --- a vanishing fraction
+$\Theta(\log m/m)$ of the $\binom m2$ pairwise distances.
+\end{corollary}
+
+\begin{remark}[Claim discipline]\label{d:rem:sufficient}
+\eqref{d:eq:mainrate} is a sufficient condition. No matching lower bound is
+established here, so $\Theta$ in \Cref{d:cor:rate} names the growth order of a
+sufficient rate, not the optimal one.
+\end{remark}
+
+\begin{remark}[The single-stage rule]\label{d:rem:singlestage}
+Stage one alone --- the raw sign rule on $\huone$, with no refinement --- is
+covered by \Cref{d:prop:misclass}, which gives an error rate
+$O(\kappa^2/(c_\delta\gamma)^2pm)$, and by \Cref{d:rem:linf}, which gives exact
+recovery at the constant rate $p\gtrsim\kappa^2/(c_\delta\gamma)^2$.
+\end{remark}
+
+\begin{remark}[Entrywise alternative]\label{d:rem:entrywise}
+The factor $m$ lost in \Cref{d:rem:linf} is an artefact of routing an
+$\ell_\infty$ event through an $\ell_2$ bound. A leave-one-out decomposition of
+$\huone$ bounds $\norm{\huone-\uone}_\infty$ directly
+\cite{abbe2020entrywise,chen2021spectral} and yields exact recovery from the
+single-stage rule at the rate of \eqref{d:eq:mainrate}. The two-stage argument
+above is preferred here because \Cref{d:lem:pernode} is elementary and its
+hypotheses are visible. Two-stage refinement of a spectral initialiser is the
+standard device for converting an $\ell_2$ guarantee into exact labelling
+\cite{gao2017achieving,loffler2021optimality}.
+\end{remark}
+
+%==============================================================================
+\section{What the operator selects}\label{d:sec:empirical}
+%==============================================================================
+
+\Cref{d:thm:splitcov} contains a structural statement about \emph{which} split
+the operator favours, independent of any sampling.
+
+\begin{proposition}[Balance preference]\label{d:prop:balance}
+For a fixed edge length $\ell$, the weight $w_e=2\ell a_eb_e/m$ attached to a
+split of sizes $(a_e,b_e)$ satisfies
+\begin{equation}\label{d:eq:balance}
+  w_e=\frac{\ell m}{2}\cdot\frac{4\eta_e}{(1+\eta_e)^2},
+  \qquad \eta_e:=\frac{\max(a_e,b_e)}{\min(a_e,b_e)},
+\end{equation}
+which is maximal at $\eta_e=1$ and decays like $4/\eta_e$ as
+$\eta_e\to\infty$. An edge must therefore be longer by a factor
+$\asymp\eta_e/4$ to compete with a balanced edge of the same length.
+\end{proposition}
+
+\begin{proof}
+Substitute $a_e=m/(1+\eta_e)$, $b_e=m\eta_e/(1+\eta_e)$ into $2\ell a_eb_e/m$.
+\end{proof}
+
+Two consequences are visible in simulation. First, the splits returned by the
+sign rule are markedly more balanced than those returned by a Fiedler vector of
+a similarity Laplacian, which carries no analogue of the factor $a_eb_e$.
+Across $1000$ trees per cohort at $m=1000$, with no sub-sampling and each
+operator using the rounding rule its own analysis states:
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+ & \multicolumn{2}{c}{Kingman} & \multicolumn{2}{c}{birth--death}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & $L(S)$ & $\Bop$ & $L(S)$ & $\Bop$\\
+\midrule
+valid single-edge split & 996 & 986 & 996 & 555\\
+median $\eta$           & 3.00 & 1.85 & 3.08 & 1.53\\
+maximum $\eta$          & 499 & 24.6 & 999 & 5.3\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+The median and maximum imbalance of $\Bop$ are bounded where those of $L(S)$ are
+not, which is \eqref{d:eq:balance}. The same pattern appears on random weighted
+trees generated without a coalescent: over $200$ trees at $m=64$ with
+independent uniform edge lengths, $\Bop$ returned a valid single-edge split in
+$200$ cases out of $200$ --- \Cref{d:cor:validity} --- with median $\eta=1.29$
+and maximum $\eta=4.8$.
+
+Second, on those same $200$ trees the selected split was the one of largest
+weight $w_e$ in only $40\%$ of cases, the median rank being $2$. This is
+\Cref{d:lem:gram} at work: the directions $\ehat_e$ are mutually correlated, so
+the top eigenvector of $\Mop$ is not the single heaviest projector but the
+direction that best explains the whole family.
+
+The birth--death column reads the same way through \Cref{d:asm:gap}. Under that
+cohort the products $\ell_ea_eb_e$ are more nearly equal across edges, $\Delta$
+is small relative to $\wst$, and $\uone$ is a mixture of several $\ehat_e$ whose
+sign pattern need not be any single split --- the regime in which
+\Cref{d:asm:gap} is the operative hypothesis and in which
+\eqref{d:eq:mainrate} degrades through $\gamma$.
+
+%==============================================================================
+\section{Scope, and the two routes side by side}\label{d:sec:scope}
+%==============================================================================
+
+The results above are stated for additive metrics of a weighted tree, for the
+pairwise Bernoulli observation model \eqref{d:eq:ipw}, and under
+\Cref{d:asm:gap,d:asm:deloc,d:asm:rowsep} with bounded
+$\kappa,\kappa_{\mathrm{ref}},\gamma,c_\delta,\eta$. Within that scope the
+conclusion is exact recovery of the fully observed operator's own partition, at
+$p=\Theta(\log m/m)$, from $\Theta(m\log m)$ observed distances.
+
+\Cref{d:cor:validity} is stronger in one respect and weaker in another than the
+quantitative results: it holds for every weighted tree with no hypothesis at
+all, and it certifies that the partition is a split of $T$ --- but it says which
+split only through \Cref{d:def:dominant}, i.e.\ by naming the edge the exact
+operator selects. That is the appropriate form of the claim, because the
+distance operator and a similarity Laplacian select different edges by
+construction (\Cref{d:prop:balance}), and a guarantee that pinned the distance
+route to the other operator's edge would be false.
+
+The four steps correspond to those of the similarity route as follows.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Step & Similarity route & Distance route & Where they differ\\
+\midrule
+1. Population geometry
+  & block structure of $L$
+  & \Cref{d:thm:splitcov,d:thm:pinv}
+  & validity is unconditional here\\
+2. Operator-norm error
+  & matrix Bernstein
+  & \Cref{d:lem:opnorm}
+  & symmetric-ensemble bound, no $\sqrt{\log m}$\\
+3. Eigenvector control
+  & resolvent expansion
+  & \Cref{d:lem:dk}
+  & Davis--Kahan; no series to truncate\\
+4. Per-node concentration
+  & scalar Bernstein
+  & \Cref{d:lem:pernode}
+  & same tool, applied after refinement\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+Step 3 is the deliberate divergence. A resolvent expansion produces an
+$\ell_\infty$ bound in one stroke and so needs no second stage, at the price of
+controlling the tail of the series, which requires the ratio
+$\opnorm{Z}/\Delta$ to be small. \Cref{d:lem:dk} asks nothing of that ratio and
+pushes the $\ell_\infty$ work into \Cref{d:lem:pernode}, where it is a scalar
+Bernstein bound over the $\asymp pm$ entries actually observed in one row.
+
+\begin{remark}[Reproducibility of the numerical statements]\label{d:rem:numerics}
+Every identity asserted without a displayed proof constant ---
+\eqref{d:eq:path}, \eqref{d:eq:centring}, \eqref{d:eq:splitcov},
+\eqref{d:eq:trace}, \eqref{d:eq:gram} and \eqref{d:eq:pinv} --- was checked
+numerically on random weighted trees to a maximum absolute error of
+$1.4\times10^{-14}$, as was the landmark table of \Cref{d:sec:landmarks} and the
+scaling $p\propto\kappa^2\log m/m$ of \Cref{d:thm:main} over
+$m=256,\dots,2048$.
+\end{remark}
+
+\bibliography{refs}
+
+\end{document}

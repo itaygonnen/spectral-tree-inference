@@ -16,6 +16,32 @@
 %  lem:neumann, lem:pernode and the proof environment are untouched.  Internal
 %  \Cref{sec:outline-*} self-references became prose ("above", "below"), and
 %  appendix-C's two references to sec:outline-synth now point at sec:outline.]
+%
+%  [Reviewer Note (v9 outline pass): the section promised three stages but
+%  stated only two lemmas, and the two paragraphs between the opening and the
+%  proof re-derived the margin, the gap and the noise bound in prose -- so the
+%  same algebra appeared twice on one page, once informally and once inside a
+%  lemma.  Three changes.  (i) The STATEMENT of lem:B-bernstein is promoted here
+%  from app:comp2, giving Stage 1 a lemma of its own; three stages now carry
+%  three lemmas, and its proof stays in the appendix.  (ii) The motivational
+%  prose is rewritten at the conceptual altitude of v8's "The Neumann trick"
+%  paragraph (v8:495-517), which explains WHY the device is decisive without
+%  competing with the lemma that follows it; every formula it used to carry is
+%  now stated once, in a lemma.  The standalone motivational paragraph that
+%  briefly sat between the opening and Stage 1 was then removed as well: it
+%  argued method choice rather than this proof (nothing in Steps 1-4 depended on
+%  it), it landed after the opening's handoff sentence so the promised Stage 1
+%  was 250 words late, and it pre-empted Stage 3's own punchline.  Its three
+%  load-bearing pieces were redistributed to where they do work -- the
+%  l-infinity/l-2 mismatch now opens Stage 2 as the reason that stage exists, the
+%  attribution and the lemma-not-theorem note ride on lem:neumann's pointer, and
+%  the sqrt(m) saving plus the app:compare/rem:E-compare pointers close Stage 3.
+%  The same argument is made at length in appendix-E and in intro_prev.tex.
+%  (iii) Steps 1-3 of the proof are one clause
+%  each, naming only what each stage hands to the next; Step 4 is the single
+%  place in the section where algebra is done.  The Step 1-4 labels are
+%  retained: appendix-C cites "Step 2" and "Step 4", and app:dist cites "the
+%  same three stages and synthesis".]
 %==============================================================================
 \section{Proof Outline}\label{sec:outline}
 The proof of \Cref{thm:main-sim} compares two quantities evaluated at the same
@@ -26,35 +52,34 @@ per-node Bernstein bound controls that scalar --- after which imposing
 \eqref{eq:entrywise} yields the rate \eqref{eq:main_rate}. Each stage is stated
 as a lemma; the proofs are in \Cref{app:comp1,app:comp2,app:comp3}.
 
-Two population quantities of $L$ fix the two sides of \eqref{eq:entrywise}.
-The spectral gap $\Dlam$ is bounded below in \Cref{lem:gap} by
-$m_{\min}(\rho-\eta\Sout^{\max})$, kept positive by \Cref{asm:margin}; the
-margin is read off the piecewise-constant Fiedler vector of
-\Cref{lem:A-decomp} as $\min_i|\vv_i|=c_B=1/\sqrt{m\eta}$, attained on the
-larger clan $B$. Under imbalance these two extremes sit at different nodes,
-which is what makes the final synthesis $\eta$-dependent. A third quantity is a
-standing hypothesis: the Neumann expansion introduced next converges, with
-negligible remainder against $c_B$, only in the strong-signal regime
-$\opnorm{\EL}<\Dlam$; \Cref{lem:B-bernstein} (\Cref{app:comp2}) supplies the
-noise side of it, $\opnorm{\EL}\le\tilde C\sqrt{m(1+\eta)\log m/p}$, to be
-compared against the gap bound above.
+\emph{Stage 1 (population geometry and noise budget).} The same imbalance $\eta$
+sets both sides of \eqref{eq:entrywise} at once --- it fixes the margin and the
+spectral gap through the piecewise-constant Fiedler vector of
+\Cref{lem:A-decomp} and the gap bound of \Cref{lem:gap}, kept positive by
+\Cref{asm:margin}, while on the other side matrix Bernstein applied to the
+sampling mask bounds the noise the gap has to absorb.
 
-Classical eigenvector perturbation bounds, foremost Davis--Kahan, control the
-error only in $\ell_2$; passing to the $\ell_\infty$ norm of
-\eqref{eq:entrywise} via $\norm{\cdot}_\infty\le\norm{\cdot}_2$ forfeits a
-factor $\sqrt m$, enough under imbalance to push the required rate past
-$p\le1$ (the rate $p_{\mathrm{naive}}$ of \Cref{rem:E-compare}). A
-coordinate-wise argument is needed instead: following Eldridge et al.\
-\cite{eldridge2017unperturbed}, Fan et al.\ \cite{fan2018eigenvector}, and
-Abbe et al.\ \cite{abbe2020entrywise}, we expand the perturbed Fiedler vector
-as a resolvent (Neumann) series in the noise operator $\EL$, isolating a
-single leading term $-(\EL\vv)_i/\Dlam$ per coordinate with a second-order
-remainder. That term is a sum of $O(m)$ independent, mean-zero increments
-rather than an extremal singular value, so a per-node Bernstein bound
-concentrates it a factor $\sqrt m$ tighter than a global operator-norm bound
-would pay --- the saving that turns \eqref{eq:entrywise} into the tight rate
-\eqref{eq:main_rate} (\Cref{app:compare}). It is not a result of this paper;
-we record it as a lemma.
+\begin{lemma}[Laplacian spectral error via matrix Bernstein]\label{lem:B-bernstein}
+Under \Cref{asm:clock,asm:cfbm} and the observation model
+\eqref{eq:sampling_estimator}, there are constants $\tilde C,C_0$
+such that if $p\ge C_0\,\tfrac{\log m}{m}$ then \hp
+\[
+   \opnorm{\EL}\le\tilde C\sqrt{\frac{m\log m}{p}}.
+\]
+\end{lemma}
+\noindent The proof is in \Cref{app:comp2}. Compared against the gap bound of
+\Cref{lem:gap}, this is what certifies the strong-signal regime
+$\opnorm{\EL}<\Dlam$ that the next stage assumes. Under imbalance the margin and
+the gap are extremal at different nodes, which is what makes the final synthesis
+$\eta$-dependent.
+
+\emph{Stage 2 (entry-wise reduction).} Since \eqref{eq:entrywise} is an
+$\ell_\infty$ event while Davis--Kahan controls only $\ell_2$, and the sole
+dimension-free transfer between them, $\norm{\cdot}_\infty\le\norm{\cdot}_2$,
+charges every node as though it were the worst one, the reduction has to be
+coordinate-wise: in the regime of Stage 1 a resolvent (Neumann) expansion of
+$\vvh$ in $\EL$ trades the operator norm for a single scalar per coordinate, at
+the price of a remainder that is second order in the noise-to-gap ratio.
 
 \begin{lemma}[Neumann decomposition of the Fiedler vector]\label{lem:neumann}
 Let $L$ be symmetric with eigenpairs $\{(\lambda_\ell,v^{(\ell)})\}$, let
@@ -69,21 +94,22 @@ $w=\sum_{k\ge1}(-1)^k(\Dlam^{-1}\Pi\EL)^k\vv$, whose first-order term is
 so that entrywise $w_i=-(\EL\vv)_i/\Dlam+R_i$ with the remainder of second order,
 $\norm{R}_\infty=O\!\bigl(\opnorm{\EL}^2/\Dlam^2\bigr)$.
 \end{lemma}
-\noindent The decomposition and its first-order bound are proved in
-\Cref{app:comp3a} (\Cref{lem:C-series,lem:C-first}, \Cref{rem:C-asym}). The
-second-order remainder $R$ is bounded separately in \Cref{app:comp3c}
-(\Cref{lem:C-remainder}); its discard is what confines the argument to the
-strong-signal regime identified above.
+\noindent The expansion is due to Eldridge et al.\
+\cite{eldridge2017unperturbed}, Fan et al.\ \cite{fan2018eigenvector} and Abbe
+et al.\ \cite{abbe2020entrywise} rather than to this paper, which is why it is
+stated as a lemma; the decomposition and its first-order bound are proved in
+\Cref{app:comp3a}, and the remainder $R$ separately in \Cref{app:comp3c}
+(\Cref{lem:C-remainder}), its discard being what confines the argument to the
+strong-signal regime of Stage 1.
 
-\Cref{lem:neumann} leaves a scalar, $(\EL\vv)_i$, and \Cref{app:comp3b} shows
-it is well-behaved: \Cref{lem:C-inc} rewrites it as a sum of independent,
-mean-zero increments $X_{ij}=(\omega_{ij}/p-1)S_{ij}(\vv_i-\vv_j)$,
-\Cref{prop:C-within} removes every within-clan pair since $\vv$ is constant
-on each clan, and \Cref{prop:C-var} evaluates the surviving variance on clan
-$B$ at $\sigma_B^2=(1-p)(1+\eta)\bze^2/(\eta p)=(1-p)\rhotil/p$ with
-$\rhotil=(1+\eta)\bze^2/\eta$. Bernstein's inequality then applies directly,
-and since this is the only place $p$ enters the final condition, we state it
-in the main text.
+\emph{Stage 3 (per-node concentration).} The surviving scalar $(\EL\vv)_i$ is a
+sum of independent, mean-zero increments, each carrying the factor $\vv_i-\vv_j$.
+Every within-clan increment therefore vanishes \emph{exactly} --- this is a
+cancellation, not a bound, and it rests on the clock (\Cref{asm:clock}) making
+$\vv$ exactly piecewise constant, so it is the one step that would degrade if the
+cross-clan block were only approximately constant. Only cross-clan pairs survive,
+Bernstein's inequality applies node by node, and since this is the only place the
+sampling rate $p$ enters the final condition, we state the bound in the main text.
 
 \begin{lemma}[Per-node concentration]\label{lem:pernode}
 With scale $R_B=\bze(1+\eta)/(p\sqrt{m\eta})$, for each $i\in B$ and $\delta>0$,
@@ -95,35 +121,35 @@ at $\delta=\delta_0/m$ gives, \hp\ uniformly over $i$,
    |(\EL\vv)_i|\lesssim\sqrt{\frac{8(1+\eta)\bze^2\log(2m/\delta_0)}{\eta\,p}}.
 \end{equation}
 \end{lemma}
-\noindent The proof is in \Cref{app:comp3b}. This is the step that realises the
-$\sqrt m$ saving quantified in \Cref{rem:E-compare}: the variance $\sigma_B^2$ of
-the individual increment sum is smaller than $\opnorm{\EL}^2$ by a factor $m$.
-The three stages now combine.
+\noindent The increment representation, the cancellation of the within-clan
+pairs, the per-node variance $\sigma_B^2$ and the proof are in
+\Cref{app:comp3b}. This is the step that realises the $\sqrt m$ saving that the
+Davis--Kahan route forfeits: the variance of the increment sum is smaller than
+$\opnorm{\EL}^2$ by a factor $m$, and it is this per-coordinate saving that turns
+\eqref{eq:entrywise} into the rate \eqref{eq:main_rate}; \Cref{app:compare} runs
+the two routes side by side and \Cref{rem:E-compare} reports the ratio. The three
+stages now combine.
 
 \begin{proof}[Proof of \Cref{thm:main-sim}]
+\emph{Step 1 (population geometry).} \Cref{lem:A-decomp,lem:gap} supply the
+right-hand side of \eqref{eq:entrywise} as $\min_i|\vv_i|=c_B$ and a spectral gap
+$\Dlam$ that is positive under \Cref{asm:margin}, and \Cref{lem:B-bernstein}
+places $\opnorm{\EL}$ below it.
 
-   
-\emph{Step 1 (population geometry).} \Cref{lem:gap} lower-bounds the spectral gap
-by $\Dlam\ge m_{\min}(\rho-\eta\Sout^{\max})$, positive under \Cref{asm:margin};
-\Cref{lem:A-decomp} gives the right-hand side of \eqref{eq:entrywise} as
-$\min_i|\vv_i|=c_B$ with $c_B^2=1/(m\eta)$.
+\emph{Step 2 (entry-wise reduction).} \Cref{lem:neumann} is therefore applicable
+and gives $w_i=-(\EL\vv)_i/\Dlam+R_i$; discarding $R$ as lower order against
+$c_B$ reduces \eqref{eq:entrywise} to the per-node condition
+$|(\EL\vv)_i|<\Dlam|\vv_i|$ holding at every node $i$.
 
-\emph{Step 2 (entry-wise reduction).} \Cref{lem:neumann}, applicable in the
-strong-signal regime of Step~1, writes $\vvh-\vv=w$ with
-$w_i=-(\EL\vv)_i/\Dlam+R_i$ and $\norm{R}_\infty=O(\opnorm{\EL}^2/\Dlam^2)$.
-Discarding the remainder as lower order against $c_B$ reduces
-\eqref{eq:entrywise} to the per-node condition $|(\EL\vv)_i|<\Dlam|\vv_i|$ holding
-for every node $i$.
+\emph{Step 3 (concentration).} \Cref{lem:pernode} bounds the left-hand side of
+that condition uniformly over the $m$ nodes.
 
-\emph{Step 3 (concentration).} \Cref{lem:pernode} bounds the left-hand side
-uniformly over the $m$ nodes: \hp,
-$|(\EL\vv)_i|\lesssim\sqrt{8\rhotil\log m/p}$ with $\rhotil=(1+\eta)\bze^2/\eta$.
-
-\emph{Step 4 (synthesis).} The per-node condition of Step 2 is tightest on clan
-$B$, since $\eta\ge1$. Squaring $\sqrt{8\sigma_B^2\log m}<\Dlam c_B$ and
-substituting $\sigma_B^2$, $c_B^2=1/(m\eta)$ and the gap bound of Step 1, the
-factor $\eta$ cancels and solving for $p$ gives exactly \eqref{eq:main_rate}
-(\Cref{prop:C-bind,cor:C-cond}). Under \eqref{eq:main_rate} every node satisfies
+\emph{Step 4 (synthesis).} The per-node condition is tightest on clan $B$, since
+$\eta\ge1$. Squaring $\sqrt{8\sigma_B^2\log m}<\Dlam c_B$ and substituting
+$\sigma_B^2$, $c_B^2=1/(m\eta)$ and the gap bound
+$\Dlam\ge m_{\min}(\rho-\eta\Sout^{\max})$, the factor $\eta$ cancels and solving
+for $p$ gives exactly \eqref{eq:main_rate}
+(\Cref{prop:C-bind} and \Cref{cor:C-cond}). Under \eqref{eq:main_rate} every node satisfies
 $|w_i|<|\vv_i|$, hence $\vvh_i$ and $\vv_i$ share a sign; since $\vv$ is
 sign-constant on each clan (\Cref{lem:A-decomp}), the zero-threshold partition of
 $\vvh$ is $(A,B)$ exactly.

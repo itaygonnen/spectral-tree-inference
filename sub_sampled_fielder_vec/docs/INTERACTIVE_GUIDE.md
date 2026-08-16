@@ -11,8 +11,9 @@ python scripts/interactive_run.py
 
 ## Features
 
-### 🎨 Gemini-Style UI
-- Colorful gradient logo (blue → cyan → magenta)
+### 🎨 UI
+- Gradient logo, shaded top to bottom (cyan → indigo → pink), 24-bit where the
+  terminal supports it and the 256-colour cube otherwise (`src/utils/interactive_ui.py`)
 - Clean menu system with colored options
 - Inline parameter editing with defaults
 
@@ -21,13 +22,15 @@ python scripts/interactive_run.py
 When you launch, you'll see:
 
 ```
-    ███████╗████████╗██████╗ ██████╗
-    ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗
-    ███████╗   ██║   ██║  ██║██████╔╝
-    ╚════██║   ██║   ██║  ██║██╔══██╗
-    ███████║   ██║   ██████╔╝██║  ██║
-    ╚══════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝
-    Subsampled Spectral Tree Recovery
+    s u b - s a m p l e d
+    ███████╗    ████████╗    ██████╗     ██████╗
+    ██╔════╝    ╚══██╔══╝    ██╔══██╗    ██╔══██╗
+    ███████╗       ██║       ██║  ██║    ██████╔╝
+    ╚════██║       ██║       ██║  ██║    ██╔══██╗
+    ███████║       ██║       ██████╔╝    ██║  ██║
+    ╚══════╝       ╚═╝       ╚═════╝     ╚═╝  ╚═╝
+
+    Spectral Tree Recovery
 
 Main Menu
 ─────────

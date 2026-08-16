@@ -9,6 +9,7 @@ question — and, honestly, which ones are stale.
 |---|---|
 | [../README.md](../README.md) | What this is, what the three pipelines are, how to verify the repo |
 | [RUNBOOK.md](RUNBOOK.md) | How to rebuild Figure N from nothing, and what it costs |
+| [BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md) | `scripts/run_benchmark.py` — every prompt, eta pooling, outputs, resume rules |
 | [CACHE_AND_RESULTS.md](CACHE_AND_RESULTS.md) | What is in `cache/` and `results/`, what is orphaned, what is safe to prune |
 | [../analysis/PAPER_MAP.md](../analysis/PAPER_MAP.md) | Which notebook produces which figure, and which claim it supports |
 | [../analysis/README.md](../analysis/README.md) | Notebook layout (section → source) and its traps |
@@ -27,7 +28,7 @@ July-2026 reorganization. Trust the mechanism, verify the paths.
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture. Covers pipeline A only. |
 | [CONFIGURATION.md](CONFIGURATION.md) | `StructuredConfig` / Pydantic reference. Still current. |
 | [METRICS.md](METRICS.md) | Metric definitions. Predates NMI becoming the paper's score. |
-| [INTERACTIVE_GUIDE.md](INTERACTIVE_GUIDE.md) | `scripts/interactive_run.py` walkthrough. Still current. |
+| [INTERACTIVE_GUIDE.md](INTERACTIVE_GUIDE.md) | `scripts/interactive_run.py` walkthrough — pipeline A, *not* the benchmark launcher. Still current. |
 | [../CHANGELOG.md](../CHANGELOG.md) | Notably the 2026-02-20 LDS debiasing fix (`π_ij`, not `p_ij`). |
 
 ## Sampling methods

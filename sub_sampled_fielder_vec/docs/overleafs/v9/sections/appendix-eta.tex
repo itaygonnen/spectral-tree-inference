@@ -1,0 +1,90 @@
+%==============================================================================
+%  Appendix G --- which split each operator picks.
+%  Filename carries the topic, not the letter (see the master's header note).
+%  Every number here comes from analysis/supporting/eta_by_operator.ipynb.
+%==============================================================================
+
+\section{Which Split Each Operator Picks}\label{app:eta}
+
+Two cohorts of 1000 trees, Kingman and birth--death, at $m=1000$ and $L=10^4$ under
+\Cref{asm:gtr,asm:clock}, with no sub-sampling. Each operator uses the rounding rule its
+own theorem states: $k$-means on the Fiedler vector of $L(S)$, sign on the
+leading-magnitude eigenvector of $\Bop=H\Dmat H$. Per tree we record the imbalance of the
+returned split, $\eta=\max(n_1,n_2)/\min(n_1,n_2)$, and whether that split is an edge of
+the true tree.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{Kingman, $L(S)$, $k$-means}\label{fig:eta-king-ls}
+        \includegraphics[width=\textwidth]{eta_hist_kingman_S.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{Kingman, $\Bop$, sign}\label{fig:eta-king-b}
+        \includegraphics[width=\textwidth]{eta_hist_kingman_B.png}
+    \end{subfigure}
+
+    \vspace{3mm}
+
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{birth--death, $L(S)$, $k$-means}\label{fig:eta-bd-ls}
+        \includegraphics[width=\textwidth]{eta_hist_bd_S.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{birth--death, $\Bop$, sign}\label{fig:eta-bd-b}
+        \includegraphics[width=\textwidth]{eta_hist_bd_B.png}
+    \end{subfigure}
+    \caption{\textbf{Imbalance of the returned split, 1000 trees per model.} Green is a
+    genuine single-edge bipartition of the true tree, red is not; dashed line is the
+    median. All four panels share bins and axes.}
+    \label{fig:eta-hist}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Both operators on both cohorts, 1000 trees each.}
+\label{tab:eta-agreement}
+\begin{tabular}{lrrrr}
+\toprule
+& \multicolumn{2}{c}{Kingman} & \multicolumn{2}{c}{birth--death}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+& $L(S)$ & $\Bop$ & $L(S)$ & $\Bop$\\
+\midrule
+valid single-edge split & $996$ & $986$ & $996$ & $\mathbf{555}$\\
+median $\eta$           & $3.00$ & $1.85$ & $3.08$ & $1.53$\\
+maximum $\eta$          & $499$  & $24.6$ & $999$  & $5.3$\\
+\midrule
+only $L(S)$ valid       & \multicolumn{2}{r}{$14$}  & \multicolumn{2}{r}{$443$}\\
+only $\Bop$ valid       & \multicolumn{2}{r}{$4$}   & \multicolumn{2}{r}{$2$}\\
+identical $\eta$        & \multicolumn{2}{r}{$64.1\%$} & \multicolumn{2}{r}{$33.2\%$}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Four things follow.
+
+\begin{enumerate}[leftmargin=2em, itemsep=3pt, topsep=3pt]
+\item \textbf{On Kingman trees the operators differ in \emph{which} edge, not in whether
+      they find one} --- $99.6\%$ and $98.6\%$ valid, and the same split on $64.1\%$ of
+      trees.
+\item \textbf{$\Bop$'s output is confined to near-balanced splits}: $\eta\le24.6$ on
+      Kingman and $\eta\le5.3$ on birth--death, against true splits reaching $\eta=999$.
+      This is \Cref{lem:dist-edge} --- each edge contributes at least
+      $2\tau_e n_1(e)n_2(e)/m$ to $|\lambda_1(\Bop)|$, and $n_1(e)n_2(e)$ is maximal at
+      balance. Where the rules disagree, $\Bop$'s split is the more balanced one in $355$
+      of $359$ Kingman cases and $654$ of $668$ birth--death cases.
+\item \textbf{That confinement breaks $\Bop$ on imbalanced trees.} Its validity falls from
+      $98.6\%$ to $55.5\%$ while $L(S)$ holds at $99.6\%$; on $443$ birth--death trees
+      $L(S)$ returns an edge and $\Bop$ does not. Lacking a near-balanced edge it does not
+      decline --- it returns a near-balanced \emph{non}-edge.
+\item \textbf{A narrow $\eta$ distribution is a property of the operator, not of the
+      tree.} Comparing the two routes' sampling rates is meaningful only with the target
+      split held fixed; otherwise the rates describe different recovery problems, and on
+      birth--death trees one is conditioned on a split absent from the tree.
+\end{enumerate}

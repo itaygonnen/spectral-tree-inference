@@ -8,11 +8,32 @@
 \section{Proof of the spectral geometry}\label{app:comp1}
 % Supports Proposition~\ref{prop:coherence}, Lemma~\ref{lem:gap}, Corollary~\ref{cor:tolerance}.
 
-For the proof of \Cref{lem:gap} we first derive the spectral properties of the
+We first record the range of the population entries, which earlier versions carried
+as a standing assumption and which is in fact a consequence of the three that
+precede it.
+
+\begin{remark}[Range of the population entries]\label{rem:range}
+Under \Cref{asm:gtr,asm:clock,asm:cfbm} the population matrix satisfies
+\[
+   S_{ii}=1,\qquad
+   0<\bze\le S_{ij}\le\Smax<1\quad(i\ne j),
+   \qquad \Smax:=\max_{i\ne j}S_{ij}.
+\]
+Indeed $\tau_{ii}=0$ makes $S_{ii}=\exp(0)=1$ --- consistent with
+\eqref{eq:sampling_estimator}, whose unbiasedness $\E[\hat S]=S$ requires it ---
+while off the diagonal \Cref{asm:clock} places every cross-clan entry at
+$\bze\in(0,1)$ and \eqref{eq:cfbm_floor} places every same-clan entry in
+$(\bze,\Smax]$. No range claim is made for $\hat S$: by
+\eqref{eq:sampling_estimator} its observed off-diagonal entries equal $S_{ij}/p$,
+which exceed $1$ throughout the regime $p=\Theta(\log m/m)$ of interest.
+\end{remark}
+
+\noindent Every later appeal to a bounded entry is to this remark. For the proof of
+\Cref{lem:gap} we next derive the spectral properties of the
 Fiedler vector.
 
 \begin{lemma}[Spectral decomposition of the imbalanced Laplacian]\label{lem:A-decomp}
-Under \Cref{asm:clock,asm:cbm}: (i) the smallest eigenvalue is $\lambda_1=0$ with
+Under \Cref{asm:clock,asm:cfbm}: (i) the smallest eigenvalue is $\lambda_1=0$ with
 $v^{(1)}=\tfrac1{\sqrt m}\1_m$; (ii) the Fiedler eigenvalue is $\lambda_2=m\bze$;
 (iii) the Fiedler vector is piecewise constant, $\vv_i=+c_A$ for $i\in A$ and
 $\vv_i=-c_B$ for $i\in B$, with $c_A=\sqrt{b/(am)}$ and $c_B=\sqrt{a/(bm)}$.
@@ -31,17 +52,24 @@ hence
 \]
 
 \emph{Eigenpair verification.} Write $\vv=(c_A\1_a,\,-c_B\1_b)^\top$ with
-$ac_A=bc_B$. Using the block form of $L$ and $J_{a\times b}\1_b=b\1_a$,
-$J_{b\times a}\1_a=a\1_b$, together with $S_A\1_a=\operatorname{rowsum}(S_A)\1_a$,
+$ac_A=bc_B$. The only structural input is that the diagonal sub-degrees of
+\Cref{asm:cfbm} already carry the row sums of their own block,
+$D_A=\operatorname{diag}(S_A\1_a)+b\bze I_a$, so that
+\begin{equation}\label{eq:block_annihilation}
+   (D_A-S_A)\1_a=b\bze\1_a,\qquad(D_B-S_B)\1_b=a\bze\1_b,
+\end{equation}
+\emph{identically, for arbitrary symmetric $S_A,S_B$}: no constancy of the diagonal
+blocks is used, and the intra-clan floor of \eqref{eq:cfbm_floor} plays no role here.
+Using the block form of $L$ with $J_{a\times b}\1_b=b\1_a$,
+$J_{b\times a}\1_a=a\1_b$ and \eqref{eq:block_annihilation},
 \[
    Lv^{(2)}=
    \begin{pmatrix}
-     \bigl(D_A-\operatorname{rowsum}(S_A)\bigr)c_A\1_a+b\bze c_B\1_a\\[2pt]
-     -a\bze c_A\1_b-\bigl(D_B-\operatorname{rowsum}(S_B)\bigr)c_B\1_b
-   \end{pmatrix}.
+     b\bze c_A\1_a+b\bze c_B\1_a\\[2pt]
+     -a\bze c_A\1_b-a\bze c_B\1_b
+   \end{pmatrix},
 \]
-Since $D_A=\operatorname{rowsum}(S_A)+b\bze$ and
-$D_B=\operatorname{rowsum}(S_B)+a\bze$, this reduces to
+which reduces to
 $\bigl(b\bze(c_A+c_B)\1_a,\,-a\bze(c_A+c_B)\1_b\bigr)^\top$. From $ac_A=bc_B$,
 $b(c_A+c_B)=mc_A$ and $a(c_A+c_B)=mc_B$, so $Lv^{(2)}=m\bze\,\vv$ and
 $\lambda_2=m\bze$.
@@ -58,7 +86,7 @@ Substituting the Fiedler coordinates of \Cref{lem:A-decomp} into
 \end{proof}
 
 \begin{proof}[Proof of \Cref{lem:gap}]
-The argument uses \Cref{asm:clock,asm:cbm,asm:bounded}. By \Cref{lem:A-decomp} the
+The argument uses \Cref{asm:clock,asm:cfbm} and \Cref{rem:range}. By \Cref{lem:A-decomp} the
 Fiedler eigenvalue is $\lambda_2=m\bze=m\Sout^{\max}$.
 For $\lambda_3$, standard algebraic-connectivity interlacing gives
 $\lambda_3(L)\ge\min\bigl(\lambda_2(L_{C_1}),\lambda_2(L_{C_2})\bigr)$, and applying

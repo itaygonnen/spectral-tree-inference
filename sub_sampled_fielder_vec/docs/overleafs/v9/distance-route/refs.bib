@@ -1,0 +1,371 @@
+%==============================================================================
+%  Bibliography for distance_route.tex -- SELF-CONTAINED.
+%
+%  Deliberately independent of ../references.bib.  Every entry below carries a
+%  DOI or a resolved URL that was checked; sources whose bibliographic data
+%  could only be obtained second-hand are listed at the bottom of this file as
+%  comments and are NOT cited in the manuscript.
+%
+%  Three transcription traps, recorded once so they are not re-introduced:
+%    * Graham--Pollak's determinant is  det D = (-1)^{m-1}(m-1)2^{m-2}.
+%      Several secondary sources print 2^{m-1}.  The exponent is m-2.
+%    * Bapat--Kirkland--Neumann's vector  tau = 2*1 - d  uses the UNWEIGHTED
+%      degree (number of neighbours), not the weighted degree.
+%    * Cavender & Felsenstein 1987 appeared in Journal of Classification, not
+%      in J. Mol. Evol.  (Not cited here; noted because the error is common.)
+%==============================================================================
+
+%------------------------------------------------- the Griffing / Stone lineage
+% Verified 2026-08-08 against the NCSU institutional repository: issued
+% 2012-02-15, Bioinformatics, committee Eric A. Stone (chair), Spencer Muse,
+% Ignazio Carbone, Jeffrey Thorne.  77 pp.  The Gower-pseudoinverse identity is
+% asserted in Sections 4.4 and 4.8.1 without proof; the split theorem it invokes
+% is Theorem 3.3 of stone2009fiedler.
+@phdthesis{griffing2012connections,
+  title  = {Connections Between Numerical Taxonomy and Phylogenetics},
+  author = {Griffing, Alexander R.},
+  school = {North Carolina State University},
+  type   = {{PhD} dissertation, Bioinformatics},
+  year   = {2012},
+  month  = feb,
+  url    = {https://repository.lib.ncsu.edu/items/fd9ad79e-1109-4870-b73d-aab6590323da},
+  note   = {Permanent URI \url{http://www.lib.ncsu.edu/resolver/1840.16/7496}}
+}
+
+@article{stone2009fiedler,
+  title   = {On the {F}iedler vectors of graphs that arise from trees by
+             {S}chur complementation of the {L}aplacian},
+  author  = {Stone, Eric A. and Griffing, Alexander R.},
+  journal = {Linear Algebra and its Applications},
+  volume  = {431},
+  number  = {10},
+  pages   = {1869--1880},
+  year    = {2009},
+  doi     = {10.1016/j.laa.2009.06.024}
+}
+
+@article{griffing2013interlacing,
+  title   = {An eigenvector interlacing property of graphs that arise from trees
+             by {S}chur complementation of the {L}aplacian},
+  author  = {Griffing, Alexander R. and Lynch, Brian R. and Stone, Eric A.},
+  journal = {Linear Algebra and its Applications},
+  volume  = {438},
+  number  = {3},
+  pages   = {1078--1094},
+  year    = {2013},
+  doi     = {10.1016/j.laa.2012.10.005}
+}
+
+%------------------------------------------------ double centering / classical MDS
+@article{gower1966distance,
+  title   = {Some distance properties of latent root and vector methods used in
+             multivariate analysis},
+  author  = {Gower, John C.},
+  journal = {Biometrika},
+  volume  = {53},
+  number  = {3--4},
+  pages   = {325--338},
+  year    = {1966},
+  doi     = {10.1093/biomet/53.3-4.325}
+}
+
+@article{gower1985properties,
+  title   = {Properties of {E}uclidean and non-{E}uclidean distance matrices},
+  author  = {Gower, John C.},
+  journal = {Linear Algebra and its Applications},
+  volume  = {67},
+  pages   = {81--97},
+  year    = {1985},
+  doi     = {10.1016/0024-3795(85)90187-9}
+}
+
+@article{torgerson1952mds,
+  title   = {Multidimensional scaling: {I}. {T}heory and method},
+  author  = {Torgerson, Warren S.},
+  journal = {Psychometrika},
+  volume  = {17},
+  number  = {4},
+  pages   = {401--419},
+  year    = {1952},
+  doi     = {10.1007/BF02288916}
+}
+
+@article{young1938discussion,
+  title   = {Discussion of a set of points in terms of their mutual distances},
+  author  = {Young, Gale and Householder, Alston S.},
+  journal = {Psychometrika},
+  volume  = {3},
+  number  = {1},
+  pages   = {19--22},
+  year    = {1938},
+  doi     = {10.1007/BF02287916}
+}
+
+@article{schoenberg1935remarks,
+  title   = {Remarks to {M}aurice {F}r{\'e}chet's article ``{S}ur la d{\'e}finition
+             axiomatique d'une classe d'espaces distanci{\'e}s vectoriellement
+             applicable sur l'espace de {H}ilbert''},
+  author  = {Schoenberg, Isaac J.},
+  journal = {Annals of Mathematics},
+  volume  = {36},
+  number  = {3},
+  pages   = {724--732},
+  year    = {1935},
+  doi     = {10.2307/1968654}
+}
+
+%------------------------------------------- distance matrices of trees: structure
+@article{grahampollak1971addressing,
+  title   = {On the addressing problem for loop switching},
+  author  = {Graham, Ronald L. and Pollak, Henry O.},
+  journal = {The Bell System Technical Journal},
+  volume  = {50},
+  number  = {8},
+  pages   = {2495--2519},
+  year    = {1971},
+  doi     = {10.1002/j.1538-7305.1971.tb02618.x}
+}
+
+@article{grahamlovasz1978polynomials,
+  title   = {Distance matrix polynomials of trees},
+  author  = {Graham, Ronald L. and Lov{\'a}sz, L{\'a}szl{\'o}},
+  journal = {Advances in Mathematics},
+  volume  = {29},
+  number  = {1},
+  pages   = {60--88},
+  year    = {1978},
+  doi     = {10.1016/0001-8708(78)90005-1}
+}
+
+% The citation to use for the inertia of a WEIGHTED tree distance matrix: the
+% s = 1 case of the matrix-weight theorem gives exactly (1, 0, m-1).
+@article{bapat2006determinant,
+  title   = {Determinant of the distance matrix of a tree with matrix weights},
+  author  = {Bapat, Ravindra B.},
+  journal = {Linear Algebra and its Applications},
+  volume  = {416},
+  number  = {1},
+  pages   = {2--7},
+  year    = {2006},
+  doi     = {10.1016/j.laa.2005.02.022}
+}
+
+@article{bapat2005distance,
+  title   = {On distance matrices and {L}aplacians},
+  author  = {Bapat, Ravindra B. and Kirkland, Stephen J. and Neumann, Michael},
+  journal = {Linear Algebra and its Applications},
+  volume  = {401},
+  pages   = {193--209},
+  year    = {2005},
+  doi     = {10.1016/j.laa.2004.05.011}
+}
+
+@book{bapat2014graphs,
+  title     = {Graphs and Matrices},
+  author    = {Bapat, Ravindra B.},
+  edition   = {2},
+  series    = {Universitext},
+  publisher = {Springer},
+  year      = {2014},
+  doi       = {10.1007/978-1-4471-6569-9}
+}
+
+%--------------------------------------------------------- Fiedler and tree metrics
+@article{fiedler1975property,
+  title   = {A property of eigenvectors of nonnegative symmetric matrices and its
+             application to graph theory},
+  author  = {Fiedler, Miroslav},
+  journal = {Czechoslovak Mathematical Journal},
+  volume  = {25},
+  number  = {4},
+  pages   = {619--633},
+  year    = {1975},
+  doi     = {10.21136/cmj.1975.101357}
+}
+
+@article{fiedler2005euclidean,
+  title   = {Matrices and graphs in {E}uclidean geometry},
+  author  = {Fiedler, Miroslav},
+  journal = {Electronic Journal of Linear Algebra},
+  volume  = {14},
+  pages   = {51--58},
+  year    = {2005},
+  doi     = {10.13001/1081-3810.1177}
+}
+
+@article{devienne2011euclidean,
+  title   = {{E}uclidean nature of phylogenetic distance matrices},
+  author  = {de Vienne, Damien M. and Aguileta, Gabriela and Ollier, S{\'e}bastien},
+  journal = {Systematic Biology},
+  volume  = {60},
+  number  = {6},
+  pages   = {826--832},
+  year    = {2011},
+  doi     = {10.1093/sysbio/syr066}
+}
+
+@article{layer2017embeddings,
+  title   = {Phylogenetic trees and {E}uclidean embeddings},
+  author  = {Layer, Mark and Rhodes, John A.},
+  journal = {Journal of Mathematical Biology},
+  volume  = {74},
+  number  = {1--2},
+  pages   = {99--111},
+  year    = {2017},
+  doi     = {10.1007/s00285-016-1018-0}
+}
+
+@article{bandeltdress1992canonical,
+  title   = {A canonical decomposition theory for metrics on a finite set},
+  author  = {Bandelt, Hans-J{\"u}rgen and Dress, Andreas W. M.},
+  journal = {Advances in Mathematics},
+  volume  = {92},
+  number  = {1},
+  pages   = {47--105},
+  year    = {1992},
+  doi     = {10.1016/0001-8708(92)90061-O}
+}
+
+@article{aizenbud2023spectral,
+  title   = {Spectral top-down recovery of latent tree models},
+  author  = {Aizenbud, Yariv and Jaffe, Ariel and Wang, Meng and Hu, Amber and
+             Amsel, Noah and Nadler, Boaz and Chang, Joseph T. and Kluger, Yuval},
+  journal = {Information and Inference: A Journal of the IMA},
+  volume  = {12},
+  number  = {3},
+  pages   = {2300--2350},
+  year    = {2023},
+  doi     = {10.1093/imaiai/iaad032}
+}
+
+%---------------------------------------------- concentration and perturbation
+% Theorem 8.4 is the one statement in this literature that covers the SYMMETRIC
+% model with independent entries on and above the diagonal, which is exactly the
+% observation model of Section 4.
+@article{chatterjee2015usvt,
+  title   = {Matrix estimation by universal singular value thresholding},
+  author  = {Chatterjee, Sourav},
+  journal = {The Annals of Statistics},
+  volume  = {43},
+  number  = {1},
+  pages   = {177--214},
+  year    = {2015},
+  doi     = {10.1214/14-AOS1272}
+}
+
+@article{tropp2012userfriendly,
+  title   = {User-friendly tail bounds for sums of random matrices},
+  author  = {Tropp, Joel A.},
+  journal = {Foundations of Computational Mathematics},
+  volume  = {12},
+  number  = {4},
+  pages   = {389--434},
+  year    = {2012},
+  doi     = {10.1007/s10208-011-9099-z}
+}
+
+@article{achlioptas2007fast,
+  title   = {Fast computation of low-rank matrix approximations},
+  author  = {Achlioptas, Dimitris and McSherry, Frank},
+  journal = {Journal of the ACM},
+  volume  = {54},
+  number  = {2},
+  pages   = {9},
+  year    = {2007},
+  doi     = {10.1145/1219092.1219097}
+}
+
+@article{bandeira2016sharp,
+  title   = {Sharp nonasymptotic bounds on the norm of random matrices with
+             independent entries},
+  author  = {Bandeira, Afonso S. and van Handel, Ramon},
+  journal = {The Annals of Probability},
+  volume  = {44},
+  number  = {4},
+  pages   = {2479--2506},
+  year    = {2016},
+  doi     = {10.1214/15-AOP1025}
+}
+
+@article{davis1970rotation,
+  title   = {The rotation of eigenvectors by a perturbation. {III}},
+  author  = {Davis, Chandler and Kahan, William M.},
+  journal = {SIAM Journal on Numerical Analysis},
+  volume  = {7},
+  number  = {1},
+  pages   = {1--46},
+  year    = {1970},
+  doi     = {10.1137/0707001}
+}
+
+@article{yu2015useful,
+  title   = {A useful variant of the {D}avis--{K}ahan theorem for statisticians},
+  author  = {Yu, Yi and Wang, Tengyao and Samworth, Richard J.},
+  journal = {Biometrika},
+  volume  = {102},
+  number  = {2},
+  pages   = {315--323},
+  year    = {2015},
+  doi     = {10.1093/biomet/asv008}
+}
+
+@article{abbe2020entrywise,
+  title   = {Entrywise eigenvector analysis of random matrices with low expected
+             rank},
+  author  = {Abbe, Emmanuel and Fan, Jianqing and Wang, Kaizheng and Zhong, Yiqiao},
+  journal = {The Annals of Statistics},
+  volume  = {48},
+  number  = {3},
+  pages   = {1452--1474},
+  year    = {2020},
+  doi     = {10.1214/19-AOS1854}
+}
+
+@article{gao2017achieving,
+  title   = {Achieving optimal misclassification proportion in stochastic block
+             models},
+  author  = {Gao, Chao and Ma, Zongming and Zhang, Anderson Y. and Zhou, Harrison H.},
+  journal = {Journal of Machine Learning Research},
+  volume  = {18},
+  number  = {60},
+  pages   = {1--45},
+  year    = {2017},
+  url     = {https://jmlr.org/papers/v18/16-245.html}
+}
+
+@article{loffler2021optimality,
+  title   = {Optimality of spectral clustering in the {G}aussian mixture model},
+  author  = {L{\"o}ffler, Matthias and Zhang, Anderson Y. and Zhou, Harrison H.},
+  journal = {The Annals of Statistics},
+  volume  = {49},
+  number  = {5},
+  pages   = {2506--2530},
+  year    = {2021},
+  doi     = {10.1214/20-AOS2044}
+}
+
+@article{chen2021spectral,
+  title   = {Spectral methods for data science: {A} statistical perspective},
+  author  = {Chen, Yuxin and Chi, Yuejie and Fan, Jianqing and Ma, Cong},
+  journal = {Foundations and Trends in Machine Learning},
+  volume  = {14},
+  number  = {5},
+  pages   = {566--806},
+  year    = {2021},
+  doi     = {10.1561/2200000079}
+}
+
+%==============================================================================
+%  NOT CITED -- bibliographic data available only second-hand.  Listed so that a
+%  later editor does not re-derive them from a search engine and cite blind.
+%
+%    Zaretskii, K. A. (1965).  Constructing a tree on the basis of a set of
+%      distances between the hanging vertices (Russian).  Uspekhi Mat. Nauk
+%      20(6):90--92.  Original never viewed; pagination second-hand; no DOI.
+%    Buneman, P. (1971).  The recovery of trees from measures of dissimilarity.
+%      In: Mathematics in the Archaeological and Historical Sciences, Edinburgh
+%      University Press, pp. 387--395.  Conference-volume pagination second-hand.
+%    Critchley, F. & Fichet, B. (1997).  On (super-)spherical distance matrices
+%      and two results from Schoenberg.  Linear Algebra Appl. 251:145--165.
+%      Second-hand only.
+%==============================================================================

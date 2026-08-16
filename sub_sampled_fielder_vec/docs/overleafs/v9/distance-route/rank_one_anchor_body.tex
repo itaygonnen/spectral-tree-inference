@@ -1,0 +1,59 @@
+\section{Appendix F: The Distance Route (Revised)}
+\label{sec:appendix_f}
+
+This appendix develops the distance route under a structural perturbation framework. Unlike the Laplacian operator $L = D-S$, where the Fiedler vector is governed by algebraic connectivity, the leading eigenvector of the double-centered distance matrix naturally targets the most dominant, balanced split in the tree \cite{griffing2012connections}. Instead of treating the full population matrix as the unperturbed signal, we isolate this dominant split as a pure rank-1 signal and treat the remainder of the tree hierarchy---along with the sub-sampling noise---as perturbations.
+
+\subsection{Building $\mathcal{B}$ and the Split Decomposition}
+
+Fix the tree $\mathcal{T}$ on $m$ leaves, and let $\mathcal{D}$ be the tree-additive distance matrix. We apply double centering with the orthogonal projector $H = I - \frac{1}{m}\mathbf{1}\mathbf{1}^\top$:
+\begin{equation}
+\mathcal{B} := H \mathcal{D} H
+\end{equation}
+
+By the canonical split decomposition of tree-additive metrics \cite{bandeltdress1992canonical}, the distance matrix can be written as a non-negative combination of cut metrics. Griffing \cite{griffing2012connections} showed that applying the centering matrix $H$ decomposes $\mathcal{B}$ exactly into a sum of rank-one negative semi-definite terms:
+\begin{equation}
+\label{eq:bandelt_dress_B}
+\mathcal{B} = -\frac{1}{2} \sum_{e \in E(\mathcal{T})} \tau_e (H s_e)(H s_e)^\top
+\end{equation}
+where $\tau_e \ge 0$ is the branch length and $s_e \in \{-1, +1\}^m$ is the signed split indicator for edge $e$. For any edge $e$ splitting the leaves into clans of size $n_A(e)$ and $n_B(e)$, standard centering identity yields $\|H s_e\|_2^2 = \frac{4 n_A(e) n_B(e)}{m}$.
+
+\subsection{Isolating the Primary Signal}
+
+We define the primary split $e_0$ as the edge that maximizes the Rayleigh quotient contribution $\tau_e n_A(e) n_B(e)$. We decompose the population matrix into the primary signal and a structural remainder:
+\begin{equation}
+\mathcal{B} = \mathcal{B}_0 + \mathcal{B}_{\text{rem}}
+\end{equation}
+where $\mathcal{B}_0 = -\frac{1}{2} \tau_0 (H s_0)(H s_0)^\top$ and $\mathcal{B}_{\text{rem}} = -\frac{1}{2} \sum_{e \neq e_0} \tau_e (H s_e)(H s_e)^\top$.
+
+The signal matrix $\mathcal{B}_0$ is exactly rank-1 with eigenvalue $\lambda_0 = -\frac{2 \tau_0 n_A n_B}{m}$. Its unit eigenvector is $v_0 = \frac{H s_0}{\|H s_0\|_2}$. Because $s_0 \in \{-1, +1\}^m$, applying the centering matrix $H$ yields a strictly piecewise-constant vector on the two clans. Thus, the entry-wise margin is attained on the larger clan: $\min_i |(v_0)_i| = \frac{1}{\sqrt{m \eta_0}} =: c_B$, where $\eta_0$ is the imbalance ratio.
+
+\subsection{The Sub-sampling Perturbation Model}
+
+Under Bernoulli($p$) masking, the inverse-probability weighted empirical operator is $\hat{\mathcal{B}} = H \hat{\mathcal{D}} H = \mathcal{B} + E_{\mathcal{B}}$, where $E_{\mathcal{B}}$ is the zero-mean sampling noise. We rewrite this relative to the rank-1 signal:
+\begin{equation}
+\hat{\mathcal{B}} = \mathcal{B}_0 + \Delta \quad \text{where} \quad \Delta = \mathcal{B}_{\text{rem}} + E_{\mathcal{B}}
+\end{equation}
+
+\subsection{Global $\ell_2$ Bounds and Resolvent Expansion}
+
+Let $\hat{v}_1$ be the leading eigenvector of $\hat{\mathcal{B}}$ with eigenvalue $\hat{\lambda}_1$. Provided the primary split is dominant such that the spectral gap $\delta = |\lambda_0| - \|\Delta\|_2 > 0$, the Davis-Kahan $\sin \Theta$ theorem \cite{davis1970rotation} guarantees $\|\hat{v}_1 - v_0\|_2 \le \frac{C \|\Delta\|_2}{|\lambda_0|}$.
+
+To establish exact sign recovery, we require entry-wise $\ell_\infty$ bounds. Following recent advances in entry-wise eigenvector perturbation theory \cite{eldridge2018unperturbed, fan2018eigenvector, abbe2020entrywise}, we expand the resolvent into a Neumann series (as formally stated in Lemma 3):
+\begin{equation}
+\hat{v}_1 \propto v_0 + \frac{1}{\hat{\lambda}_1} \Delta v_0 + \sum_{k=2}^{\infty} \left(\frac{\Delta}{\hat{\lambda}_1}\right)^k v_0
+\end{equation}
+
+The first-order $\ell_\infty$ error decomposes as $\Delta v_0 = \mathcal{B}_{\text{rem}} v_0 + E_{\mathcal{B}} v_0$.
+The structural bias $\|\mathcal{B}_{\text{rem}} v_0\|_\infty$ is a deterministic constant bounded by the internal sub-splits. The sampling noise $(E_{\mathcal{B}} v_0)_i$ is a sum of independent zero-mean variables. By Matrix Bernstein inequalities \cite{tropp2012userfriendly}, this concentrates tightly: $\|E_{\mathcal{B}} v_0\|_\infty \lesssim d_0 \sqrt{\frac{\log m}{p}}$. 
+Higher-order terms ($k \ge 2$) are bounded algebraically via operator sub-multiplicativity as $\mathcal{O}(\|\Delta\|_2^2 / \lambda_0^2)$, standard in Neumann expansions \cite{abbe2020entrywise}.
+
+\subsection{Synthesis and the Recovery Rate}
+
+For $\hat{v}_1$ to perfectly recover the primary split by sign, the maximum entry-wise deviation must be strictly less than the margin: $\|\hat{v}_1 - v_0\|_\infty < \frac{1}{\sqrt{m \eta_0}}$. Substituting the Neumann bounds:
+\begin{equation}
+\frac{\|E_{\mathcal{B}} v_0\|_\infty}{|\lambda_0|} + \frac{\|\mathcal{B}_{\text{rem}} v_0\|_\infty}{|\lambda_0|} + \mathcal{O}\left( \frac{\|\Delta\|_2^2}{\lambda_0^2} \right) < \frac{1}{\sqrt{m \eta_0}}
+\end{equation}
+Assuming the structural bias and higher-order terms are sufficiently small due to primary split dominance, the sampling noise bounds the threshold. Substituting $|\lambda_0| = \frac{2 \tau_0 \eta_0 m}{(1+\eta_0)^2}$ yields the sufficient condition:
+\begin{equation}
+p \gtrsim \mathcal{O}\left( \frac{d_0^2 (1+\eta_0)^4}{4 \tau_0^2 \eta_0} \cdot \frac{\log m}{m} \right) = \Theta\left(\frac{\log m}{m}\right)
+\end{equation}

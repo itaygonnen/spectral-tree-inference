@@ -1,0 +1,157 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+
+\section{The Distance Route: Single-Stage Spectral Recovery}
+
+This section establishes the exact recovery of tree splits using the sign pattern of the leading eigenvector of the double-centered distance matrix. Rather than relying on multi-stage refinement algorithms or demanding full knowledge of the eigenvector's shape, we pursue a purely spectral approach. By importing the structural Schur complement theory of Stone and Griffing \cite{stone2009fiedler} and the leave-one-out entrywise perturbation framework of Abbe et al. \cite{abbe2020entrywise}, the recovery guarantee emerges organically from the native geometry of the distance matrix.
+
+\subsection{Population Geometry and the Spectral Target}
+
+Let $T$ be a weighted tree with $m$ leaves, and let $\mathcal{D}$ be the additive path-distance matrix between the leaves. We apply double centering with the orthogonal projector $H = I - \frac{1}{m}\mathbf{1}\mathbf{1}^\top$ to form the distance operator:
+\begin{equation}
+\mathcal{B} := H \mathcal{D} H
+\end{equation}
+The recovery algorithm classifies leaves by the sign pattern of $u^{(1)}$, the unit eigenvector of $\mathcal{B}$ belonging to its largest-magnitude eigenvalue.
+
+Griffing \cite{griffing2012} showed that $-\frac{1}{2}\mathcal{B}$ is exactly the Moore-Penrose pseudoinverse of the tree Laplacian Schur-complemented onto the leaves. Consequently, $u^{(1)}$ is mathematically identical to the Fiedler vector of this Schur complement. By the structural theorems of Stone and Griffing \cite{stone2009fiedler}, this vector unconditionally partitions the leaves into a valid split of the tree.
+
+\begin{lemma}[Target Geometry \cite{stone2009fiedler}]
+The sign pattern of $u^{(1)}$ corresponds to a bipartition of the leaves cut by a single edge in $T$. Furthermore, $u^{(1)}$ has no zero coordinate, yielding a strictly positive margin $\delta_* := \min_i |u_i^{(1)}| > 0$.
+\end{lemma}
+
+Because we do not assume the tree is perfectly symmetric or balanced, $u^{(1)}$ is not strictly piecewise constant. We treat its geometric ``bumpiness'' simply as a parameter of the margin $\delta_*$. Furthermore, we assume $u^{(1)}$ is delocalized such that $\delta_* \ge c_\delta / \sqrt{m}$ and $\|u^{(1)}\|_\infty \le C_\delta / \sqrt{m}$.
+
+\subsection{Observation Model and Error Decomposition}
+
+We observe each pairwise distance independently with probability $p$. The inverse-probability weighted empirical matrix is $\hat{\mathcal{D}} = p^{-1} \mathcal{D} \circ \Omega$, where $\Omega_{ij} \sim \text{Bernoulli}(p)$. The empirical distance operator is $\hat{\mathcal{B}} = H\hat{\mathcal{D}}H$, with leading eigenvector $\hat{u}^{(1)}$. 
+
+The error takes the form $\hat{\mathcal{B}} = \mathcal{B} + E_{\mathcal{B}}$, where $E_{\mathcal{B}} = H(\hat{\mathcal{D}} - \mathcal{D})H$ is the zero-mean sampling noise. Let $E_{\mathcal{D}} = \hat{\mathcal{D}} - \mathcal{D}$ be the uncentered noise matrix, which has independent mean-zero entries bounded by $d_{\max}/p$, and variance bounded by $d_{\max}^2/p$.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[
+        scale=0.75, transform shape,
+        node distance=0.7cm and 0.5cm,
+        box/.style={rectangle, draw, rounded corners=3pt, thick, align=center, inner sep=10pt, text width=12cm},
+        boxhalf/.style={rectangle, draw, rounded corners=3pt, thick, align=center, inner sep=10pt, text width=5.5cm},
+        cite/.style={draw=green!60!black, fill=green!5},
+        prove/.style={draw=red!80!black, fill=red!5},
+        deduce/.style={draw=orange!90!black, fill=orange!5},
+        arrow/.style={-{Stealth[scale=1.2]}, thick, draw=gray}
+    ]
+    
+    % Nodes
+    \node (target) [box, cite] {\textbf{TARGET GEOMETRY (STONE \& GRIFFING 2009)} \\ \vspace{0.15cm} $\text{sign}(u^{(1)})$ exactly partitions the tree. \\ Margin: $\delta_* = \min_i |u_i^{(1)}| \ge c_\delta / \sqrt{m}$};
+    
+    \node (perturb) [box, cite, below=of target] {\textbf{ENTRYWISE $\ell_\infty$ PERTURBATION (ABBE ET AL. 2020)} \\ \vspace{0.15cm} Leave-One-Out bounds max entry error directly: \\ $\|\hat{u}^{(1)} - u^{(1)}\|_\infty \lesssim \frac{d_{\max}}{\Delta\lambda(\mathcal{B})} \sqrt{\frac{\log m}{p}}$};
+    
+    \node (noise) [box, prove, below=of perturb] {\textbf{NOISE CONDITION CHECK} \\ \vspace{0.15cm} Verify LOO applies despite centering matrix $H$ correlating entries in $E_{\mathcal{B}}$};
+    
+    \node (recovery) [boxhalf, deduce, below=of noise, xshift=-3.25cm] {\textbf{RECOVERY CRITERION} \\ \vspace{0.15cm} $\|\hat{u}^{(1)} - u^{(1)}\|_\infty < \delta_*$ \\ (Correct sign at every node)};
+    
+    \node (rate) [boxhalf, deduce, right=0.5cm of recovery] {\textbf{FINAL RATE} \\ \vspace{0.15cm} $\frac{d_{\max}}{\Delta\lambda} \sqrt{\frac{\log m}{p}} < \frac{c_\delta}{\sqrt{m}} \Rightarrow p = \Theta\left(\frac{\log m}{m}\right)$};
+    
+    % Arrows
+    \draw [arrow] (target) -- (perturb);
+    \draw [arrow] (perturb) -- (noise);
+    \draw [arrow] (noise.south) -- (recovery.north);
+    \draw [arrow] (recovery.east) -- (rate.west);
+    
+    \end{tikzpicture}
+    \caption{The Leave-One-Out (LOO) proof route for single-stage exact recovery.}
+    \label{fig:loo_route}
+\end{figure}
+
+\subsection{Full Entrywise Proof}
+
+\begin{theorem}[Single-Stage Exact Recovery]
+Assume the spectral gap $\Delta\lambda = |\lambda_1(\mathcal{B})| - |\lambda_2(\mathcal{B})|$ is strictly positive. If the sampling rate satisfies
+\begin{equation}
+p = \Theta\left(\frac{d_{\max}^2}{\Delta\lambda^2 \cdot \delta_*^2} \log m\right)
+\end{equation}
+then with high probability, $\text{sign}(\hat{u}^{(1)}) = \text{sign}(u^{(1)})$, meaning the raw spectral signs exactly recover the split. For a well-behaved tree where $\Delta\lambda \asymp m$ and $\delta_* \asymp 1/\sqrt{m}$, this yields the standard $p = \Theta(\frac{\log m}{m})$ rate.
+\end{theorem}
+
+\begin{proof}
+The proof proceeds by bounding the entrywise $\ell_\infty$ error of the eigenvector directly, bypassing the weak $\ell_2$ dimension factor. We deploy the Leave-One-Out (LOO) perturbation framework. For clarity, we restate the relevant consequence of the master theorem from Abbe et al. \cite{abbe2020entrywise}:
+
+\begin{theorem}[Abbe et al. 2020, Theorem 2.1 (Consequence for Symmetric Matrices)]
+Let $M$ be a symmetric matrix with eigendecomposition $M = U \Lambda U^\top$, and let $\hat{M} = M + E$ where $E$ is a symmetric noise matrix with independent mean-zero entries (up to symmetry). Let $\hat{U}$ denote the empirical top $r$ eigenvectors. Provided the spectral gap $\Delta\lambda$ is sufficiently large, there exists an orthogonal alignment matrix $W$ such that:
+\begin{equation}
+\|\hat{U} W - U\|_\infty \lesssim \frac{\|E U\|_\infty}{\Delta\lambda} + \frac{\|E\|_2 \|E\|_{\text{row\_max}}}{\Delta\lambda^2} \|U\|_\infty
+\end{equation}
+\end{theorem}
+
+In our context, the target signal is the rank-1 leading subspace ($r=1$), so $U$ is the single vector $u^{(1)}$, $W$ is a scalar sign flip (which we resolve by assuming aligned signs), $M$ is the population distance operator $\mathcal{B}$, and $E$ is the centered noise matrix $E_{\mathcal{B}}$. While $\mathcal{B}$ is full rank, the LOO expansion strictly isolates the leading eigenspace gap $\Delta\lambda$, yielding the analogous bound:
+\begin{equation}
+\|\hat{u}^{(1)} - u^{(1)}\|_\infty \lesssim \frac{\|E_{\mathcal{B}} u^{(1)}\|_\infty}{\Delta\lambda} + \frac{\|E_{\mathcal{B}}\|_2 \|E_{\mathcal{B}}\|_{\text{row\_max}}}{\Delta\lambda^2} \|u^{(1)}\|_\infty
+\end{equation}
+
+We now rigorously bound each of the relevant norms for the centered noise matrix $E_{\mathcal{B}} = H E_{\mathcal{D}} H$.
+
+\textbf{1. Bounding the first-order term $\|E_{\mathcal{B}} u^{(1)}\|_\infty$:} \\
+Since the population vector is centered ($H u^{(1)} = u^{(1)}$), we have $E_{\mathcal{B}} u^{(1)} = H E_{\mathcal{D}} u^{(1)}$. The $i$-th entry of $E_{\mathcal{D}} u^{(1)}$ is:
+\begin{equation}
+(E_{\mathcal{D}} u^{(1)})_i = \sum_{j=1}^m (E_{\mathcal{D}})_{ij} u^{(1)}_j
+\end{equation}
+Because the entries $(E_{\mathcal{D}})_{ij}$ are independent with mean zero, and $u^{(1)}$ is a fixed vector, this is a sum of independent random variables. The variance of the sum is bounded by $\sum_j \frac{d_{\max}^2}{p} (u^{(1)}_j)^2 = \frac{d_{\max}^2}{p}$. The maximum absolute value of a single summand is bounded by $\frac{d_{\max}}{p} \|u^{(1)}\|_\infty$. By Bernstein's inequality, with high probability:
+\begin{equation}
+\|E_{\mathcal{D}} u^{(1)}\|_\infty \lesssim d_{\max} \sqrt{\frac{\log m}{p}}
+\end{equation}
+The centering matrix $H$ only subtracts the mean $\frac{1}{m}\mathbf{1}^\top E_{\mathcal{D}} u^{(1)}$, which is an average of these concentrated sums and is therefore of even smaller order. Thus, $\|E_{\mathcal{B}} u^{(1)}\|_\infty \lesssim d_{\max} \sqrt{\frac{\log m}{p}}$.
+
+\textbf{2. Bounding the operator and row norms ($\|E_{\mathcal{B}}\|_2$ and $\|E_{\mathcal{B}}\|_{\text{row\_max}}$):} \\
+By standard Matrix Bernstein inequalities \cite{tropp2012}, the operator norm of the independent noise matrix concentrates as $\|E_{\mathcal{D}}\|_2 \lesssim d_{\max} \sqrt{\frac{m}{p}}$. Because $H$ is a projector, $\|E_{\mathcal{B}}\|_2 \le \|E_{\mathcal{D}}\|_2 \lesssim d_{\max} \sqrt{\frac{m}{p}}$. 
+Similarly, the row norm $\|e_i^\top E_{\mathcal{B}}\|_2$ is dominated by the Euclidean norm of a row of $E_{\mathcal{D}}$, which is the square root of $m$ independent variables each with variance $d_{\max}^2/p$. By scalar concentration, $\|E_{\mathcal{B}}\|_{\text{row\_max}} \lesssim d_{\max} \sqrt{\frac{m}{p}}$.
+
+\textbf{3. Synthesis and Recovery Criterion:} \\
+Substitute these probabilistic bounds into the LOO master equation:
+\begin{equation}
+\|\hat{u}^{(1)} - u^{(1)}\|_\infty \lesssim \frac{d_{\max}}{\Delta\lambda} \sqrt{\frac{\log m}{p}} + \frac{d_{\max}^2 m}{p \Delta\lambda^2} \|u^{(1)}\|_\infty
+\end{equation}
+For exact sign recovery, we require this total deviation to be strictly less than the margin $\delta_*$. Assuming standard delocalization where $\|u^{(1)}\|_\infty \asymp 1/\sqrt{m}$ and $\delta_* \asymp 1/\sqrt{m}$, the two terms require:
+\begin{equation}
+\text{Term 1: } \frac{d_{\max}}{\Delta\lambda} \sqrt{\frac{\log m}{p}} < \frac{c_\delta}{\sqrt{m}} \implies p \gtrsim \frac{d_{\max}^2 m \log m}{\Delta\lambda^2}
+\end{equation}
+\begin{equation}
+\text{Term 2 (H.O.T.): } \frac{d_{\max}^2 m}{p \Delta\lambda^2 \sqrt{m}} < \frac{c_\delta}{\sqrt{m}} \implies p \gtrsim \frac{d_{\max}^2 m}{\Delta\lambda^2}
+\end{equation}
+Since $\log m > 1$, the first-order term dominates the sample complexity. Thus, $p = \Theta\left( \frac{d_{\max}^2 m \log m}{\Delta\lambda^2} \right)$ is sufficient for exact sign recovery. 
+\end{proof}
+
+\subsection{Open Question: How Do $\Delta\lambda$ and $\delta_*$ Depend on the Tree?}
+The theorem above is only as good as the two numbers it is stated in terms of. Both are properties of the population matrix $\mathcal{B}$ alone --- no randomness is involved:
+\begin{itemize}
+\item $\Delta\lambda = |\lambda_1(\mathcal{B})| - |\lambda_2(\mathcal{B})|$, the spectral gap;
+\item $\delta_* = \min_i |u^{(1)}_i|$, the smallest entry of the leading eigenvector.
+\end{itemize}
+We assumed $\Delta\lambda \asymp m$ and $\delta_* \asymp 1/\sqrt{m}$, which is what turns the general rate $p \gtrsim d_{\max}^2 m \log m / \Delta\lambda^2$ into $p \gtrsim \log m / m$. What is missing is a proof of those two assumptions from the tree itself. Concretely, the open question is:
+
+\begin{quote}
+Given a weighted tree $T$ with $m$ leaves, bound $\Delta\lambda$ from below and $\delta_*$ from below in terms of $T$'s topology and branch lengths.
+\end{quote}
+
+Two remarks on what to expect. First, the two quantities are not independent: $u^{(1)}$ is the maximizer of the Rayleigh quotient of $\mathcal{B}$, so a small gap and a small margin tend to occur together, and a bound on one will likely come with a bound on the other. Second, the answer depends on the tree, and the range is wide:
+\begin{itemize}
+\item \textbf{Balanced binary trees.} Symmetry fixes the eigenvector: it is close to piecewise constant on the two halves, every entry is of order $1/\sqrt{m}$, and the gap is large. The assumed scaling holds.
+\item \textbf{Random trees (Kingman coalescent, birth--death).} Here the natural statement is a high-probability one, and the tools are those of random matrix theory rather than exact algebra.
+\item \textbf{Caterpillar and other unbalanced trees.} With very uneven branch lengths, $u^{(1)}$ can concentrate its mass on a handful of leaves. Then $\delta_*$ is far below $1/\sqrt{m}$ and $\Delta\lambda$ is far below $m$, and the theorem still applies --- it just demands a much larger $p$.
+\end{itemize}
+So the theorem is not vacuous for hard trees; it degrades on them in a quantified way. Pinning down that degradation is exactly the missing piece.
+
+\newpage
+\bibliographystyle{plain}
+\bibliography{bibi}
+
+\end{document}

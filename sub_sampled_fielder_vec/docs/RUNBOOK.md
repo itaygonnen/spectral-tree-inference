@@ -79,16 +79,20 @@ caches trials under `cache/full_matrix` + `cache/sweep_trial` via `utils/cache.p
 needs its own m grid** (÷2, ÷6, ÷11, ÷16 for η = 1, 5, 10, 15). Reusing one grid
 silently shifts the realised η — m=90 at η=15 gives 17.0.
 
-## Figures 3, 8, 9 — generated Kingman, `fig:pstar_gen` / `recovery_grid` / `operator_sensitivity`
+## Figure 3 — generated Kingman, `fig:pstar_gen`
 
-Notebook: `paper/fig03_pstar_gen_kingman.ipynb` (one notebook, three figures)
+Notebook: `paper/fig03_pstar_gen_kingman.ipynb`
 
 ```bash
 python scripts/build_eta_pool.py --n 500          # -> cache/pool_sample   (or build_eta_pool_parallel.py)
 python scripts/build_sweeps.py --ns 500 --methods kmeans   # -> cache/bootstrap_sweep
 ```
 
-Then run the notebook. For **Figure 9** you additionally need the other two operators:
+Then run the notebook. Its other two outputs — the full recovery grid and the
+three-operator rounding-rule comparison — were Figs 10 and 11 of the appendix deleted on
+2026-08-04, so they no longer appear in the paper; the cells still run and the PNGs are
+listed in `paper_figures.py`'s `RETIRED` map. The rounding-rule panel needs all three
+operators:
 
 ```bash
 python scripts/build_sweeps.py --ns 500 --methods sign sigma2 kmeans
@@ -117,9 +121,12 @@ Writes the four panels to `v9/figures/Fiedler_Bipartitions/` via `PAPER_FIG_DIR`
 coherence panels go to the scratch `analysis/.../figures/` dir and are not used by the
 paper.
 
-## Figure 6 — balanced binary threshold, `fig:pstar_balanced`
+## Retired — balanced binary threshold, was `fig:pstar_balanced`
 
-Notebook: `paper/fig06_pstar_balanced.ipynb`
+**Not in the paper since 2026-08-04**, when `sections/appendix-emp.tex` was deleted. Kept
+because `thm:main-sim` at `η=1` is still the baseline claim it backed.
+
+Notebook: `supporting/pstar_balanced_nmi.ipynb`
 
 Reads `trials.csv` / `agg.csv` from
 `results/notebooks/01_cbm_theory/balanced_binary_threshold/`. That `01_cbm_theory`
@@ -132,11 +139,15 @@ When you do fill it in: `C` is the **median of the per-point ratios**
 (`median_ratio_C`), never a linear-scale least-squares fit, and report the max/min spread
 when it is large.
 
-## Figure 7 — identity checks, `fig:identity_gen`
+## Retired — identity checks, was `fig:identity_gen`
 
-Notebook: `paper/fig07_identity_checks.ipynb`
+**Not in the paper since 2026-08-04**, when `sections/appendix-emp.tex` was deleted — but
+`empirical.tex` still asserts the coherence, `λ₂` and gap identities this figure was the
+only evidence for (`open-items/23-appG-removal.md`).
 
-**This is the one figure not reproducible from a clean checkout.** The notebook asserts,
+Notebook: `supporting/identity_checks_kingman.ipynb`
+
+**This was the one figure not reproducible from a clean checkout.** The notebook asserts,
 in its *setup* cell, that this exists:
 
 ```

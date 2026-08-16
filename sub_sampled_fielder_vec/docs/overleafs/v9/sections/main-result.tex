@@ -7,30 +7,26 @@
 %              NMI paragraph + eq:nmi_def + cor:nmi              -> sec:empirical (C1)
 %              eq:entrywise                                      -> sec:problem (A1)
 %
-%  [Reviewer Note (v9 refine pass): this section is now laser-focused on the two
-%  sampling-rate theorems.  Previously it stated Theorem 1, then spent a
-%  corollary and a remark on the reach of that theorem, and only then -- in a
-%  subsection of its own -- introduced a second operator from scratch and stated
-%  Theorem 2.  The reader met the paper's second main result after the section
-%  had already begun winding down.  The B construction is now setup (§2), and
-%  the two theorems run back to back; the corollary and both remarks follow as a
-%  single coda about where the guarantees apply.]
+%  [Reviewer Note (2026-08-04): the distance route left this section.  Theorem 2
+%  and its coda (rem:dist-remainder, cor:dist-balanced, rem:gap-scope) now open
+%  app:dist, and sections/main-result-dist.tex was deleted after its
+%  similarity-route remainder -- cor:infeasible and the no-converse paragraph --
+%  was folded back in below.]
 %==============================================================================
 \section{Main Result}\label{sec:main}
 The entry-wise recovery criterion \eqref{eq:entrywise} is what the sampling rate
-has to buy. This section converts it into a sufficient condition on $p$, first
-for the Laplacian $L=D-S$ and then for the centred distance operator $\Bop$,
-stated throughout in the structural quantities of \Cref{sec:bridging}: the
+has to buy. This section converts it into a sufficient condition on $p$ for the
+Laplacian $L=D-S$, stated in the structural quantities of \Cref{sec:bridging}: the
 margin $\rho$ of \eqref{eq:margin_definition} and the imbalance $\eta$ of
 \eqref{eq:imbalance_ratio}.
 
 \begin{theorem}[Exact top-down split recovery]\label{thm:main-sim}
-In a non-balanced CBM with $m$ terminal nodes and imbalance $\eta\ge1$, let $\rho$
+In a non-balanced CFBM with $m$ terminal nodes and imbalance $\eta\ge1$, let $\rho$
 be the structural margin and let $\vvh$ be the empirical Fiedler vector --- the
 unit eigenvector belonging to the second-smallest eigenvalue of the sampled
 Laplacian $\hat L=\hat D-\hat S$, formed from entries observed with probability
-$p$ as in \Cref{asm:sampling}. Assume
-\Cref{asm:gtr,asm:clock,asm:cbm,asm:bounded,asm:margin,asm:sampling}. For the
+$p$ as in the observation model \eqref{eq:sampling_estimator}. Assume
+\Cref{asm:gtr,asm:clock,asm:cfbm,asm:margin}. For the
 top-down partition to succeed (i.e.\ $\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$), it
 suffices that
 \begin{equation}\label{eq:main_rate}
@@ -40,9 +36,27 @@ suffices that
 in which case $\operatorname{sign}(\vvh)$ recovers $(A,B)$ exactly \hp.
 \end{theorem}
 
+\noindent \eqref{eq:main_rate} is a \emph{sufficient} condition. No matching lower
+bound is proved anywhere in this paper, so the $\Theta(\log m/m)$ is the growth
+order of that sufficient bound and not a claim that the rate is tight or
+order-optimal.
+
 \noindent The distance operator $\Bop=H\Dmat H$ of \Cref{sec:problem} admits a
 statement of the same shape --- entry-wise sign agreement of an empirical
 structural eigenvector against a piecewise-constant target, at a rate governed by
-a spectral gap. Since the hypotheses of the two operators are not nested, the
-following is a \emph{sibling} of \Cref{thm:main-sim} rather than a corollary of
-it.
+a spectral gap. Since the hypotheses of the two operators are not nested, it is a
+\emph{sibling} of \Cref{thm:main-sim} rather than a corollary of it;
+\Cref{app:dist} states it as \Cref{thm:main-dist} and proves it.
+
+\noindent What remains is to record where these sufficient conditions can be met
+at all.
+
+\begin{corollary}[Vacuity of the certificate under imbalance]\label{cor:infeasible}
+Under the hypotheses of \Cref{thm:main-sim}, with $\bze$ and the margin
+$\rho-\eta\Sout^{\max}$ held bounded away from $0$ independently of $\eta$, the
+right-hand side of \eqref{eq:main_rate} exceeds $1$ once
+$\eta=\Omega\!\bigl(\sqrt[3]{m/\log m}\bigr)$; in general the threshold is
+reached when $\eta^3\bze^2/(\rho-\eta\Sout^{\max})^2=\Omega(m/\log m)$. No admissible sampling rate
+$p\in(0,1]$ then satisfies the sufficient condition, so \Cref{thm:main-sim}
+certifies nothing about the split in that regime.
+\end{corollary}

@@ -173,7 +173,11 @@ quantity; \eqref{eq:similarity_gtr} thus maps the tree onto $S$, the first fully
 linear-algebraic object of the paper. The empirical log-det estimator
 $\hat S_{ij}$ concentrates around $S_{ij}$ at rate $\mathcal O(1/\sqrt\ell)$
 \cite{aizenbud2023spectral}; the structural conditions that follow are stated
-as properties of the population $S$, whose observable proxy is $\hat S$.
+as properties of the population $S$, whose observable proxy is $\hat S$. That
+choice fixes the scope of the guarantees in \Cref{sec:main}: they carry no
+$\mathcal O(1/\sqrt\ell)$ term, so the error from a finite alignment is omitted
+from every rate in this paper, and the sampled entries in
+\eqref{eq:sampling_estimator} are taken to be exact.
 \end{assumption}
 
 We now read the topology off the matrix. Since $\mathrm{tr}(Q)<0$,
@@ -181,82 +185,109 @@ We now read the topology off the matrix. Since $\mathrm{tr}(Q)<0$,
 $\tau_{ij}$, so leaves with a shallower common ancestor are more similar.
 Within-clan pairs satisfy $\tau_{ij}<\tau_{\mathrm{root}}$ and therefore dominate
 every cross-clan pair: the primary split appears as two strong diagonal blocks of
-$S$ separated by a weaker off-diagonal block. Four conditions turn this depth
+$S$ separated by a weaker off-diagonal block. Two conditions turn this depth
 monotonicity into algebra: the molecular clock (\Cref{asm:clock}) collapses the
-cross-clan block to a single baseline; the Constant Block Model
-(\Cref{asm:cbm}) idealizes the two diagonal blocks as uniformly dominating that
-baseline; the Hierarchical Block Model (\Cref{asm:hbm}) \emph{relaxes} that
-idealization to a geometric decay with path depth; and range restriction
-(\Cref{asm:bounded}) confines every entry to $(0,1)$.
+cross-clan block to a single baseline, and the Clan-Floor Block Model
+(\Cref{asm:cfbm}) requires the two diagonal blocks to clear that baseline by a
+fixed floor, leaving their internal structure free. Between them they also confine
+every off-diagonal entry to $(0,1)$, so no separate range restriction is needed
+(\Cref{rem:range}). A third condition, the
+Hierarchical Block Model, derives that floor from tree shape; since no result
+below depends on it, it is deferred to \Cref{app:hbm}.
 
 \begin{assumption}[Molecular clock]\label{asm:clock}
 The tree is ultrametric: all cross-clan MRCA depths equal the root depth, so every
 cross-clan similarity collapses to a common baseline $\bze\in(0,1)$.
 \end{assumption}
 
-\begin{assumption}[Constant Block Model (CBM)]\label{asm:cbm}
-The population matrix $S$ satisfies a localized Constant Block Model at the root
+% [Reviewer Note: this assumption previously required the two diagonal blocks to
+%  collapse to a single constant, and then asserted -- as part of the hypothesis --
+%  that the leading rank-2 invariant subspace is [1/sqrt(m), v] with v piecewise
+%  constant.  Both were removed.  (i) No proof in the paper consumes intra-clan
+%  constancy: in lem:A-decomp the identity (D_A - S_A)1_a = b*beta_0*1_a holds for
+%  an ARBITRARY symmetric S_A, since D_A already carries diag(S_A 1_a); what is
+%  load-bearing is only that the CROSS-clan block is exactly beta_0, which is
+%  asm:clock.  The single consumer of genuine block constancy was prop:B-rank2 in
+%  app:comp2, which has been deleted as both lossy and unnecessary.  (ii) The
+%  spectral consequences are the CONCLUSION of lem:A-decomp, so stating them here
+%  was circular; worse, "leading rank-2" is an ordering claim (lambda_2 < lambda_3)
+%  that presupposes asm:margin, introduced 100 lines below and itself derived from
+%  lem:gap.  The assumption is now strictly weaker, the main rate eq:main_rate is
+%  unchanged, and lem:B-bernstein improves by a factor (1+eta).]
+% [Reviewer Note: the name is "Clan-Floor Block Model" (CFBM).  The earlier name
+%  "Clan Block Model" abbreviated to CBM, which reads as "Constant Block Model" --
+%  constancy of the diagonal blocks being the one property eq:cfbm_floor does NOT
+%  require -- and the same passage used "flat CBM" for the constant case, so the
+%  collision was live inside a single paragraph.  "Clan-Floor" states what the
+%  assumption is: a floor.  The constant-diagonal-block special case is
+%  "constant-block CFBM" throughout, replacing "flat CBM"; the notebook filenames
+%  in sec:empirical keep their historical "cbm" spelling, since they are paths.]
+\begin{assumption}[Clan-Floor Block Model (CFBM)]\label{asm:cfbm}
+The population matrix $S$ satisfies a localized Clan-Floor Block Model at the root
 split if cross-clan similarities equal the baseline $\bze$ while intra-clan
-similarities strictly dominate it ($S_{ij}>\bze$ for all same-clan $i,j$)
-\cite{aizenbud2023spectral}. Under a valid CBM configuration, $S$ and $L=D-S$
-accept the block form of \Cref{fig:structural_split_balanced}, with diagonal
-sub-degrees $D_A=\operatorname{diag}(S_A\1_a)+b\bze I_a$ and
-$D_B=\operatorname{diag}(S_B\1_b)+a\bze I_b$. The leading rank-$2$ invariant
-subspace $U=[v^{(1)},\vv]$ of $L$ has $v^{(1)}=\tfrac1{\sqrt m}\1_m$ and Fiedler
-vector $\vv$ piecewise constant on the split.
+similarities are bounded away from it from above,
+\begin{equation}\label{eq:cfbm_floor}
+   S_{ij}=\bze\quad(i\in A,\ j\in B),
+   \qquad
+   \bze<\Sin^{\min}\le S_{ij}\le\Smax<1\quad(i\ne j\ \text{in the same clan}),
+\end{equation}
+the diagonal blocks being otherwise arbitrary \cite{aizenbud2023spectral}. Under a
+valid CFBM configuration, $S$ and $L=D-S$ accept the block form of
+\Cref{fig:structural_split_balanced}, with diagonal sub-degrees
+$D_A=\operatorname{diag}(S_A\1_a)+b\bze I_a$ and
+$D_B=\operatorname{diag}(S_B\1_b)+a\bze I_b$. We call the special case in which the
+diagonal blocks are themselves constant the \emph{constant-block} CFBM. The spectral
+consequences --- that $v^{(1)}=\tfrac1{\sqrt m}\1_m$ and that the Fiedler vector
+$\vv$ is piecewise constant on the split --- are \emph{derived} from
+\eqref{eq:cfbm_floor} in \Cref{lem:A-decomp} rather than assumed here.
 \end{assumption}
 
-The CBM collapses all within-clan structure to a single baseline, which holds
-exactly under the strict molecular clock with \emph{symmetric} clans. For
-asymmetric, caterpillar-like clans the within-clan MRCA depths vary even under
-the clock, so intra-clan entries are no longer constant. The next assumption
-records the corresponding relaxation. It is a \emph{weakening} of
-\Cref{asm:cbm}, not an extra requirement: the main development proceeds entirely
-under the CBM, and the HBM is invoked only where the per-edge decay rate $\alpha$
-is traced through the spectral gap (\Cref{sec:bridging}, \Cref{app:hbm}).
+% [Reviewer Note: the previous version of this passage claimed the CFBM "holds
+%  exactly under the strict molecular clock with symmetric clans".  That is false
+%  even for the four-leaf clan drawn in fig:structural_split_balanced, which has
+%  two distinct within-clan MRCA depths: symmetry equalizes ROOT-TO-LEAF depths,
+%  not PAIRWISE MRCA depths.  Under the binary-tree hypothesis of this section,
+%  exactly constant diagonal blocks force a single shared MRCA per clan, i.e. the
+%  two-star realization noted in rem:flat-realization -- so the constant-block CFBM has no
+%  instances at all once a clan carries three or more leaves.  The floor form of
+%  asm:cfbm is stated precisely to avoid resting the paper on that empty case.]
+% [Reviewer Note: asm:hbm and tab:assumption_chain were moved from here to
+%  app:hbm.  The HBM is a hypothesis of NO theorem in the paper -- thm:main-sim
+%  and thm:main-dist both list gtr/clock/cfbm/bounded/(margin)/sampling and never
+%  cite it -- so carrying it in the main assumption block inflated the count the
+%  reader has to hold: seven assumptions of which one is never used.  Since asm:cfbm
+%  was restated in floor form, the HBM's only job is to supply that floor from tree
+%  shape, which is exactly what app:hbm does, so both it and the chain table now sit
+%  beside prop:D-floor where they are consumed.  The main text keeps a forward
+%  pointer.  Consequence: the assumption letters shift -- bounded/margin/sampling
+%  move up one and the HBM is numbered last, in the appendix.]
+Only the \emph{floor} in \eqref{eq:cfbm_floor} is required, not constancy: within-clan
+MRCA depths vary under the clock for symmetric and asymmetric clans alike, so
+intra-clan entries are in general non-constant, and the constant-block CFBM is realized only
+by the degenerate two-star tree of \Cref{rem:flat-realization}. What the floor
+needs is a lower bound on the deepest within-clan coalescence, and the tree itself
+supplies one: under geometric per-edge decay the weakest intra-clan similarity is
+pinned at $\Sin\,\alpha^{D_{\max}}$. That is the Hierarchical Block Model. It is
+not a competing model and not an extra requirement --- it is a \emph{sufficient
+condition} for \eqref{eq:cfbm_floor}, it is a hypothesis of no result in this paper,
+and it is invoked only where the per-edge decay rate $\alpha$ is traced through the
+spectral gap. We therefore state it, together with the chain of generative
+assumptions that produces the block structure of $S$, in \Cref{app:hbm}.
 
-\begin{assumption}[Hierarchical Block Model with geometric decay]\label{asm:hbm}
-The HBM relaxes the CBM by letting intra-clan similarities decay geometrically with
-path depth, parameterized by the maximum tree depth $D_{\max}$, a per-edge decay
-factor $\alpha\in(0,1]$ (under GTR with unit edges $\alpha=\exp(4\,\mathrm{tr}(Q)\,\Delta\tau)$),
-and a top-level baseline $\Sin$. We say $S$ satisfies the HBM if the weakest
-intra-clan similarity is bounded below by
-$\Sin^{\min}\ge\Sin\,\alpha^{D_{\max}}$. The depth $D_{\max}$ is governed by tree
-shape: under Yule or Kingman models it scales as $\mathcal O(\log m)$, while
-degenerate caterpillar geometries reach $\mathcal O(m)$
-\cite{steel2001properties, blum2006which}.
-\end{assumption}
-
-\Cref{tab:assumption_chain} places the two block models in the chain that runs
-from the generative model to the block structure of $S$.
-
-\begin{table}[htbp]
-\centering\footnotesize\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}p{0.26\textwidth} p{0.66\textwidth}@{}}
-\toprule
-\textbf{Generative assumption} & \textbf{Consequence for $S$} \\
-\midrule
-GTR alone & $S_{ij}=\exp(4\,\mathrm{tr}(Q)\,\tau_{ij})$; diagonal (intra-clan)
-blocks dominate off-diagonal blocks by MRCA-depth monotonicity. \\
-\addlinespace
-GTR + molecular clock & Localised CBM: cross-clan similarities decay uniformly to
-an exact baseline $\bze$. \\
-\addlinespace
-GTR + clock + abstracted intra-clan & Full CBM: within-clan structure collapses to
-a single dominant baseline; applies to symmetric and asymmetric trees. \\
-\addlinespace
-GTR + clock + path-depth variance & HBM: intra-clan similarities decay
-geometrically as $\alpha^{\mathrm{depth}}$, weakest bounded at depth $D_{\max}$. \\
-\bottomrule
-\end{tabular}
-\caption{From the generative model to the block structure of $S$.}
-\label{tab:assumption_chain}
-\end{table}
-
-\begin{assumption}[Bounded / range-restricted entries]\label{asm:bounded}
-All similarities are range restricted, $0<S_{ij}<1$.
-\end{assumption}
-
+% [Reviewer Note: the range-restriction assumption ("All similarities are range
+%  restricted, 0 < S_ij < 1") was deleted here and replaced by rem:range in
+%  app:comp1, which derives the same fact.  Three reasons.  (i) It is redundant:
+%  asm:clock already puts every cross-clan entry at beta_0 in (0,1), and the floor
+%  eq:cfbm_floor already bounds every same-clan off-diagonal entry by Smax < 1, so
+%  A2 + A3 cover the whole off-diagonal.  (ii) It was FALSE as stated: tau_ii = 0
+%  gives S_ii = exp(0) = 1, and eq:sampling_estimator sets the diagonal of Shat to
+%  1 by hand -- unbiasedness E[Shat] = S then REQUIRES S_ii = 1, so the strict
+%  upper bound contradicted def:sampling (then asm:sampling), not merely asm:gtr.  (iii) "All
+%  similarities" was ambiguous across three different matrices: the population S
+%  (in (0,1] and the only one the claim held for), the IPW-sampled Shat whose
+%  observed entries are S_ij/p and therefore exceed 1 throughout the regime
+%  p ~ log m / m, and the finite-l log-det estimate, which is unbounded.  The
+%  replacement remark is scoped to the population matrix and says so.]
 % [Reviewer Note: the three formal Definition environments are dissolved into
 %  this passage.  Their displayed equations are unchanged and keep their labels,
 %  so every downstream statement still cites them; what is removed is the
@@ -303,7 +334,7 @@ dominates the latter; we record this as a standing assumption, derived from the
 spectral-gap bound of \Cref{lem:gap} in \Cref{sec:bridging}.
 
 \begin{assumption}[Separation margin / recoverability]\label{asm:margin}
-Under the CBM, the primary split is spectrally recoverable only if the structural
+Under the CFBM, the primary split is spectrally recoverable only if the structural
 margin strictly dominates the imbalance-weighted cross-clan boundary,
 \begin{equation}\label{eq:margin_assumption}
    \rho>\eta\,\Sout^{\max},\qquad\text{equivalently}\qquad
@@ -315,21 +346,31 @@ $\alpha^{D_{\max}}>(1+\eta)\Sout^{\max}/\Sin$ in place of
 \eqref{eq:margin_assumption} (\Cref{prop:D-gap}).
 \end{assumption}
 
+% [Reviewer Note (2026-08-04): the observation model below was an
+%  \begin{assumption} (the former A5), cited in every theorem's "Assume A1--A5"
+%  list.  It is not an assumption: the Bernoulli(p) mask and the 1/p reweighting
+%  are the sampling design and estimator WE impose, not a hypothesis about the
+%  data that could fail to hold.  It is also not a Definition -- it defines no
+%  object worth naming, it states the problem setting -- so it carries no
+%  theorem-like environment at all and runs as prose.  The numbered anchor is
+%  eq:sampling_estimator; every result that needs the sampled matrix now points
+%  at that equation ("the observation model (7)") instead of asserting a
+%  hypothesis.  Do NOT re-add a bare \label here: with the environment gone it
+%  would bind to the preceding assumption counter and print "Assumption A4".]
 In practice the population matrix $S$ is hidden, and only a sparse sample of its
 entries is observed. Following the matrix-completion paradigm
 \cite{candes2009power, candes2008exact}, we observe entries through a random mask
-and reweight, as recorded in the sampling assumption.
-
-\begin{assumption}[Independent sampling with inverse-probability weighting]\label{asm:sampling}
-Let $\Omega\in\{0,1\}^{m\times m}$ be a symmetric mask whose upper-triangular
-entries are independent $\mathrm{Bernoulli}(p)$, $p\in(0,1]$. The empirical
-similarity is formed by inverse-probability weighting \cite{candes2009matrix},
+and reweight: let $\Omega\in\{0,1\}^{m\times m}$ be a symmetric mask whose
+upper-triangular entries are independent $\mathrm{Bernoulli}(p)$, $p\in(0,1]$, and
+form the empirical similarity by inverse-probability weighting
+\cite{candes2009matrix},
 \begin{equation}\label{eq:sampling_estimator}
-   \hat S_{ij}=\begin{cases}\tfrac1p\,\Omega_{ij}\,S_{ij}, & i\ne j,\\ 1, & i=j,\end{cases}
+   \hat S_{ij}=\begin{cases}\tfrac1p\,\Omega_{ij}\,S_{ij}, & i\ne j,\\ 1, & i=j.\end{cases}
 \end{equation}
-which is unbiased, $\E[\hat S]=S$, so $\EL=\hat L-L$ is mean zero, where
-$\hat L=\hat D-\hat S$.
-\end{assumption}
+This estimator is unbiased, $\E[\hat S]=S$, so $\EL=\hat L-L$ is mean zero, where
+$\hat L=\hat D-\hat S$. The resulting error is missingness rather than additive
+noise: most pairs are left at zero and the rest rescaled by $1/p$, so it is heavy,
+structured, and its per-node variance diverges as $p\to0$ (\Cref{prop:C-var}).
 
 % [Reviewer Note: the construction of the centered distance operator B = H D H
 %  is moved here from the old §5.2 (sections/main-result-dist.tex).  It is
@@ -345,7 +386,7 @@ $\Bop:=H\Dmat H$ with $H=I-\tfrac1m\1\1^\top$. There the split sits in the sign
 pattern of $\uone$, the eigenvector of $\Bop$ at the eigenvalue of largest
 absolute value, rather than in the Fiedler vector of $L$. \Cref{app:dist} works
 out the population spectrum of $\Bop$ and shows that the same
-$\mathrm{Bernoulli}(p)$ mask of \Cref{asm:sampling} applies to $\Dmat$
+$\mathrm{Bernoulli}(p)$ mask $\Omega$ applies to $\Dmat$
 unchanged, so both operators are observed under one sampling model and
 \Cref{sec:main} states a rate for each.
 

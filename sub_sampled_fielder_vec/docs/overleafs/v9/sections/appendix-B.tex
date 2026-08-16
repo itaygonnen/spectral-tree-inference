@@ -3,77 +3,63 @@
 %  Source: v8 app:comp2 (v8:789-861).
 %  Retargeted: two \Cref{lem:A-coherence} citations -> \Cref{prop:coherence}
 %  (the appendix restatement has been folded into its proof, see app:comp1).
+%  Moved out (v9 outline pass): the STATEMENT of lem:B-bernstein now lives in
+%  sec:outline as the Stage-1 lemma, so that the three stages of the proof
+%  outline carry one lemma each.  Only its proof remains here, attached to the
+%  main-text statement -- the same one-statement-one-home pattern already used
+%  for lem:gap and prop:coherence in app:comp1.
 %==============================================================================
 \section{Proof of the Laplacian sampling error}\label{app:comp2}
 
-We bound $\opnorm{\EL}\le\opnorm{\ED}+\opnorm{\ES}$, where $\ES=\hat S-S$ and
-$\ED=\hat D-D$, and show $\opnorm{\ES}$ dominates. We first record three structural
-facts about $S$.
+% [Reviewer Note: three propositions (prop:B-rank2, prop:B-scale, prop:B-rownorm)
+%  were deleted here.  They routed the row-norm bound through the rank-2
+%  factorization S = U Lambda U^T, which (a) does not follow from asm:cfbm -- that
+%  assumption is an inequality on the diagonal blocks, and S is not rank 2 with a
+%  unit diagonal in any case -- and (b) is LOSSY: the detour yields
+%  max_i ||S_{i,.}||^2 <= 2 m Smax^2 mu = m(1+eta) Smax^2, whereas the trivial
+%  bound gives m Smax^2.  The rank-2 route therefore manufactured the very factor
+%  (1+eta) that it then propagated into lem:B-bernstein.  Bounding the row norm
+%  directly removes it.  This is a proof repair, not an erratum: lem:B-bernstein
+%  is used only qualitatively, to certify the strong-signal regime ||E_L|| < Dlam
+%  of Stage 1, so eq:main_rate is unaffected -- the rate comes from lem:pernode.
+%  Consequence: nothing in the main rate now depends on the coherence mu, so
+%  prop:coherence is a descriptive identity rather than a load-bearing step.]
+We prove \Cref{lem:B-bernstein} by bounding
+$\opnorm{\EL}\le\opnorm{\ED}+\opnorm{\ES}$, where $\ES=\hat S-S$ and
+$\ED=\hat D-D$. The only structural fact needed is the entry range of
+\Cref{rem:range}. By \eqref{eq:sampling_estimator} the diagonal is observed exactly,
+$\hat S_{ii}=S_{ii}=1$, so it carries no noise and only off-diagonal pairs enter the
+sums below; on those $S_{ij}\le\Smax<1$, giving
+\begin{equation}\label{eq:row_norm_trivial}
+   \max_i\sum_{j\ne i}S_{ij}^2\;\le\;(m-1)\,\Smax^2\;<\;m\,\Smax^2 .
+\end{equation}
 
-\begin{proposition}[Rank-2 dominance of the rows]\label{prop:B-rank2}
-Under \Cref{asm:cbm}, $S$ is rank $2$ and its row mass is captured by its leading
-rank-$2$ decomposition $U\Lambda U^\top$:
-$\max_i\norm{S_{i,\cdot}}_2\le\max_i\norm{e_i^\top U\Lambda U^\top}_2$, and
-$\max_i\norm{e_i^\top U\Lambda U^\top}_2^2\le\lambda_{\max}^2\max_i\norm{e_i^\top U}_2^2$.
-\end{proposition}
-\begin{proof}
-The first inequality is immediate since $S=U\Lambda U^\top$ under the CBM. For the
-second, put $x^\top=e_i^\top U$; orthonormality of $U$'s columns preserves norm
-under $U^\top$, so with $\Lambda=\operatorname{diag}(\lambda_1,\lambda_2)$,
-$\norm{x^\top\Lambda U^\top}_2^2=\lambda_1^2x_1^2+\lambda_2^2x_2^2\le
-\lambda_{\max}^2\norm{e_i^\top U}_2^2$.
-\end{proof}
-
-\begin{proposition}[Spectral scaling]\label{prop:B-scale}
-Under \Cref{asm:cbm,asm:bounded}, $\lambda_{\max}(S)\le m\,\Smax$.
-\end{proposition}
-\begin{proof}
-$S$ is non-negative, so by Perron--Frobenius its spectral radius is at most the
-maximum row sum, $\lambda_{\max}(S)\le\max_i\sum_j S_{ij}\le m\Smax$.
-\end{proof}
-
-\begin{proposition}[Row-norm / coherence bound]\label{prop:B-rownorm}
-Under \Cref{asm:cbm}, $\max_i\norm{U_{i,:}}_2^2=\tfrac{2\coh}{m}=\tfrac{1+\eta}{m}$.
-\end{proposition}
-\begin{proof}
-Immediate from \eqref{eq:coherence_definition} and $\coh=(1+\eta)/2$ (\Cref{prop:coherence}).
-\end{proof}
-
-\begin{lemma}[Laplacian spectral error via matrix Bernstein]\label{lem:B-bernstein}
-Under \Cref{asm:cbm,asm:bounded,asm:sampling}, there are constants $C,C_0$ such
-that if $p\ge C_0\,\tfrac{(1+\eta)\log m}{m}$ then \hp
-\[
-   \opnorm{\EL}\le C\sqrt{\frac{m(1+\eta)\log m}{p}}.
-\]
-\end{lemma}
-\begin{proof}
-\emph{Bounding $\opnorm{\ES}$.} Write $\ES=\sum_{i\le j}Z^{(ij)}$, where $Z^{(ij)}$
-is supported on the symmetric pair $(i,j)$ with value $(\tfrac1p\Omega_{ij}-1)S_{ij}$;
+\begin{proof}[Proof of \Cref{lem:B-bernstein}]
+\emph{Bounding $\opnorm{\ES}$.} Write $\ES=\sum_{i<j}Z^{(ij)}$, where $Z^{(ij)}$
+is supported on the symmetric off-diagonal pair $(i,j)$ with value
+$(\tfrac1p\Omega_{ij}-1)S_{ij}$;
 the summands are independent and mean zero. The scale is
 $\opnorm{Z^{(ij)}}\le\max(\tfrac1p-1,1)S_{ij}\le\Smax/p=:R$. For the variance proxy,
-$\E[(Z^{(ij)}_{ij})^2]=\tfrac{p(1-p)}{p^2}S_{ij}^2\le\tfrac1pS_{ij}^2$, so
-$\sigma^2\le\tfrac1p\max_i\norm{S_{i,\cdot}}_2^2$. Combining
-\Cref{prop:B-rank2,prop:B-scale,prop:B-rownorm} with
-$\max_i\norm{e_i^\top U}_2^2=2\coh/m$,
+$\E[(Z^{(ij)}_{ij})^2]=\tfrac{p(1-p)}{p^2}S_{ij}^2\le\tfrac1pS_{ij}^2$, so by
+\eqref{eq:row_norm_trivial},
 \[
-   \max_i\norm{S_{i,\cdot}}_2^2\le\lambda_{\max}^2\tfrac{2\coh}{m}
-   \le(m\Smax)^2\tfrac{2\coh}{m}=2m\Smax^2\coh,
-   \qquad \sigma^2\le\tfrac2p m\Smax^2\coh.
+   \sigma^2\le\tfrac1p\max_i\sum_{j\ne i}S_{ij}^2\le\tfrac1p m\Smax^2 .
 \]
-Matrix Bernstein,
+Matrix Bernstein \cite{tropp2012userfriendly},
 $\Prob(\opnorm{\ES}\ge t)\le2m\exp(\tfrac{-t^2/2}{\sigma^2+Rt/3})$, gives in the
 variance-dominated regime, with probability $1-\epsilon$,
-$\opnorm{\ES}\le2\Smax\sqrt{m\,\coh\,\ln(2m/\epsilon)/p}$.
+$\opnorm{\ES}\le2\Smax\sqrt{m\ln(2m/\epsilon)/p}$.
 
 \emph{Bounding $\opnorm{\ED}$.} $\ED$ is diagonal with
-$(\ED)_{ii}=\sum_j(\tfrac1p\Omega_{ij}-1)S_{ij}$; a scalar Bernstein with
+$(\ED)_{ii}=\sum_{j\ne i}(\tfrac1p\Omega_{ij}-1)S_{ij}$; a scalar Bernstein with
 $\sigma_D^2\le\tfrac1p mS_{\max}^2$ and $R_D=\Smax/p$ gives
 $\opnorm{\ED}\lesssim\Smax\sqrt{m\ln(2m/\epsilon)/p}$.
 
-\emph{Synthesis.} Since $\opnorm{\ES}/\opnorm{\ED}=\Theta(\sqrt{\coh})\ge1$, $\ES$
-dominates. Substituting $\coh=(1+\eta)/2$ (\Cref{prop:coherence}),
+\emph{Synthesis.} The two terms are now of the same order, so
 \[
-   \opnorm{\EL}\le\opnorm{\ES}+\opnorm{\ED}\le\tilde C\sqrt{\frac{m(1+\eta)\log m}{p}},
+   \opnorm{\EL}\le\opnorm{\ES}+\opnorm{\ED}\le\tilde C\sqrt{\frac{m\log m}{p}},
 \]
-with $\tilde C$ absorbing $\Smax$ and absolute constants.
+with $\tilde C$ absorbing $\Smax$ and absolute constants. The bound is uniform in
+$\eta$: the imbalance enters the argument only through the gap $\Dlam$ this noise
+is compared against, not through the noise itself.
 \end{proof}

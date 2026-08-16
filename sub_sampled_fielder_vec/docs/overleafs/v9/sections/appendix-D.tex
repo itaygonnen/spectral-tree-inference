@@ -1,21 +1,77 @@
 %==============================================================================
 %  Appendix D  Extension: the Hierarchical Block Model              [owner: A1]
 %  Source: v8 app:hbm (v8:1005-1117).
-%  Moved out: asm:hbm and tab:assumption_chain now live in sec:problem.
-%  This appendix must NOT reopen the assumption environment -- a second
-%  \label{asm:hbm} would silently double-number every later assumption.
+%  asm:hbm and tab:assumption_chain live HERE (they were in sec:problem between the
+%  v9 refine pass and the CFBM audit; moved back because no theorem cites asm:hbm).
+%  There must be exactly ONE \label{asm:hbm} in the document -- a second copy left
+%  behind in sec:problem would silently double-number every later assumption.
 %  Retargeted: \Cref{lem:A-gap} -> \Cref{lem:gap} (twice).
 %==============================================================================
-\section{Extension: the Hierarchical Block Model}\label{app:hbm}
-Here \Cref{asm:cbm} is replaced by \Cref{asm:hbm}; \Cref{asm:gtr,asm:clock,asm:bounded}
-are retained. The CBM holds exactly under the strict clock with \emph{symmetric}
-clans; for asymmetric (caterpillar-like) clans, within-clan MRCA depths vary even
-under the clock, so intra-clan entries are no longer constant. The HBM of
-\Cref{asm:hbm} retains the constant cross-clan boundary but lets intra-clan
-similarities decay geometrically with path depth; its place in the chain of
-generative assumptions is recorded in \Cref{tab:assumption_chain}. This appendix
-draws the two consequences: a geometric floor on the weakest intra-clan
-similarity, and the spectral-gap bound that floor induces.
+% [Reviewer Note: this appendix used to open "asm:cfbm is replaced by asm:hbm",
+%  which overstated what is at risk.  Since asm:cfbm was restated in floor form
+%  (eq:cfbm_floor), the HBM no longer competes with it: the HBM keeps the cross-clan
+%  block constant and only constrains the diagonal blocks, which eq:cfbm_floor
+%  leaves free apart from a floor.  So the HBM SATISFIES asm:cfbm rather than
+%  replacing it -- the Fiedler vector stays exactly piecewise constant, thm:main-sim
+%  applies unchanged, and the only quantity that moves is the gap in lem:gap.  The
+%  appendix is therefore a corollary, not an extension.  This also settles register
+%  item R1/04: with the floor stated directly, structural collapse has instances.]
+\section{The Hierarchical Block Model as a sufficient condition}\label{app:hbm}
+The floor $\Sin^{\min}$ of \eqref{eq:cfbm_floor} is an abstract property of the
+matrix. This appendix connects it to the tree: under geometric per-edge decay the
+floor is pinned by the depth of the deeper clan, which is what makes the
+gap --- and therefore recoverability --- a function of tree shape rather than of a
+free scalar. The hypothesis that does it is the following.
+
+\begin{assumption}[Hierarchical Block Model with geometric decay]\label{asm:hbm}
+The HBM instantiates the floor of \eqref{eq:cfbm_floor} by letting intra-clan
+similarities decay geometrically with
+path depth, parameterized by the maximum tree depth $D_{\max}$, a per-edge decay
+factor $\alpha\in(0,1]$ (under GTR with unit edges $\alpha=\exp(4\,\mathrm{tr}(Q)\,\Delta\tau)$),
+and a top-level baseline $\Sin$. We say $S$ satisfies the HBM if the weakest
+intra-clan similarity is bounded below by
+$\Sin^{\min}\ge\Sin\,\alpha^{D_{\max}}$. The depth $D_{\max}$ is governed by tree
+shape: under Yule or Kingman models it scales as $\mathcal O(\log m)$, while
+degenerate caterpillar geometries reach $\mathcal O(m)$
+\cite{steel2001properties, blum2006which}.
+\end{assumption}
+
+\Cref{asm:hbm} is \emph{added} to \Cref{asm:gtr,asm:clock,asm:cfbm}, none
+of which is withdrawn. It keeps the constant cross-clan boundary and constrains only
+the diagonal blocks --- exactly the part that \eqref{eq:cfbm_floor} leaves free apart
+from the floor. It is therefore a sufficient condition for \Cref{asm:cfbm} rather
+than a substitute for it: under the HBM the Fiedler vector is still exactly
+piecewise constant (\Cref{lem:A-decomp}), \Cref{thm:main-sim} applies verbatim, and
+the only quantity that moves is the spectral gap. No result in the main text takes
+\Cref{asm:hbm} as a hypothesis. \Cref{tab:assumption_chain} places it in the chain
+that runs from the generative model to the block structure of $S$; the rest of the
+appendix draws the two consequences, a geometric floor on the weakest intra-clan
+similarity and the spectral-gap bound that floor induces.
+
+\begin{table}[htbp]
+\centering\footnotesize\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{0.26\textwidth} p{0.66\textwidth}@{}}
+\toprule
+\textbf{Generative assumption} & \textbf{Consequence for $S$} \\
+\midrule
+GTR alone & $S_{ij}=\exp(4\,\mathrm{tr}(Q)\,\tau_{ij})$; diagonal (intra-clan)
+blocks dominate off-diagonal blocks by MRCA-depth monotonicity. \\
+\addlinespace
+GTR + molecular clock & Localised CFBM: cross-clan similarities decay uniformly to
+an exact baseline $\bze$. \\
+\addlinespace
+GTR + clock + intra-clan floor & Full CFBM: within-clan similarities clear the
+baseline by $\Sin^{\min}-\bze>0$, their internal structure left free; applies to
+symmetric and asymmetric trees alike. \\
+\addlinespace
+GTR + clock + path-depth variance & HBM: intra-clan similarities decay
+geometrically as $\alpha^{\mathrm{depth}}$, which supplies the floor
+$\Sin^{\min}\ge\Sin\,\alpha^{D_{\max}}$ at depth $D_{\max}$. \\
+\bottomrule
+\end{tabular}
+\caption{From the generative model to the block structure of $S$.}
+\label{tab:assumption_chain}
+\end{table}
 
 \begin{proposition}[Geometric floor]\label{prop:D-floor}
 Under \Cref{asm:hbm}, $\Sin^{\min}\ge\Sin\,\alpha^{D_{\max}}$ with
@@ -36,7 +92,7 @@ Substituting \Cref{prop:D-floor} into \Cref{lem:gap} gives
         =m_{\min}\Sin\alpha^{D_{\max}}-(1+\eta)m_{\min}\Sout^{\max},
 \]
 positive iff $\alpha^{D_{\max}}>(1+\eta)\Sout^{\max}/\Sin$. As $\alpha\to1$ (or
-$D_{\max}=0$) this reduces to \Cref{lem:gap} and the CBM margin condition of
+$D_{\max}=0$) this reduces to \Cref{lem:gap} and the CFBM margin condition of
 \Cref{asm:margin}.
 \end{proposition}
 

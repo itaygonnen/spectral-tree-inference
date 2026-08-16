@@ -1,0 +1,67 @@
+%==============================================================================
+%  Rank-One Anchor -- standalone wrapper.
+%
+%  The prose lives in rank_one_anchor_body.tex, which is a bare \section{} and
+%  is therefore ALSO \input-able straight into thesis_v9.tex as an appendix.
+%  This file exists only so the same body can be compiled on its own:
+%
+%      latexmk -pdf -interaction=nonstopmode rank_one_anchor.tex
+%
+%  Do not move the body's content into this file -- that would break the
+%  \input path into the master.
+%
+%  The body was renamed from "Rank-One Anchor.tex" on 2026-08-12: the space in
+%  the filename makes \input and latexmk unusable without quoting.
+%
+%  Bibliography is the shared refs.bib in this directory, the same one
+%  distance_route.tex uses, so the two documents cannot drift apart on a key.
+%==============================================================================
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\bibliographystyle{plain}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\renewcommand{\theassumption}{F\arabic{assumption}}
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+% Guarded so that \input-ing the body into a master which already defines these
+% is a no-op rather than a clash.
+\providecommand{\Dmat}{\mathcal{D}}
+\providecommand{\Bop}{\mathcal{B}}
+\providecommand{\1}{\mathbf{1}}
+\providecommand{\E}{\mathbb{E}}
+\providecommand{\Prob}{\mathbb{P}}
+\providecommand{\R}{\mathbb{R}}
+\providecommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\providecommand{\opnorm}[1]{\norm{#1}_{2}}
+
+\title{The Rank-One Anchor\\
+       \large Split recovery from a sub-sampled $\mathcal{B}=H\mathcal{D}H$,
+       with the dominant split as the unperturbed signal}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+% Compiled on its own the body's \section becomes \S1; \input into thesis_v9
+% after \appendix it becomes an appendix letter instead.
+\input{rank_one_anchor_body}
+
+\bibliography{refs}
+
+\end{document}

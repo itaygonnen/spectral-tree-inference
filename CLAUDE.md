@@ -40,7 +40,7 @@ python scripts/collate_open_items.py          # regenerates + lints the open-ite
 ```
 
 `collate_open_items.py` currently **exits 1** on one pre-existing lint warning
-(`13-B1.md [B1/29]`, Item longer than 3 sentences). It still writes `OPEN_ITEMS.md`
+(`12-A3.md [A3/01]`, Item longer than 3 sentences). It still writes `OPEN_ITEMS.md`
 correctly — that non-zero exit is not a regression.
 
 plus a small experiment (e.g. `taxa_values=[256], bootstrap_reps=2, p_values=[0.1, 0.5, 1.0]`).
@@ -101,9 +101,13 @@ The November-2025 optimizations in `src/core/` are why experiments at `n=8192` a
 
 `analysis/` is flat and holds exactly four things:
 
-- **`paper/`** — the 6 notebooks that produce a manuscript figure, named `figNN_*` so `ls`
-  answers "which notebook makes Figure 3?". `fig03` also emits Figs 8 and 9.
-- **`supporting/`** — the 12 that produce no paper figure. Flat, one file each.
+- **`paper/`** — the 4 notebooks that produce a manuscript figure, named `figNN_*` so `ls`
+  answers "which notebook makes Figure 3?". The prefix is the filename, not the printed
+  number: `fig04`→Fig 6, `fig05`→Fig 7 (Figs 4–5 are the distance pair, built from
+  `supporting/`). Two notebooks left `paper/` on 2026-08-04 when App G was deleted.
+- **`supporting/`** — 11 files: 8 that produce no paper figure, plus 3 figure producers that
+  were promoted without being moved (`eta_by_operator` → Fig 8, `pstar_flat_cbm_distance` →
+  Fig 4, `pstar_eta_pool_distance` → Fig 5). Flat, one file each.
 - **`utils/`** — shared code, imported as `analysis.utils`. **Do not move it.**
 - **`notebooks_cache/`** — every `.npz` a notebook computes, tracked so re-plotting works
   in a fresh clone. Data does NOT live beside notebooks.
@@ -131,10 +135,10 @@ Load-bearing invariants:
 - Some `notebook_dir(...)` arguments are **historical cache keys, not paths** —
   `"01_cbm_theory/balanced_binary_threshold"` and `"03_sampling_methods/nnm_vs_ipw"`.
   The directories are gone; renaming the keys orphans real cached results.
-- A cell that looks like setup may launch a sweep (`nj_subsampling_nonbalanced` cell 15
-  starts an n=4000 run).
-- Editing a notebook cell clears its stored outputs, and the 6 paper notebooks hold the
-  published numbers there. Patch the JSON `source` arrays instead of round-tripping.
+- A cell that looks like setup may launch a sweep (`pstar_flat_cbm_distance` and
+  `pstar_eta_pool_distance` both kick off their grid from cell 2).
+- Editing a notebook cell clears its stored outputs, and the 7 figure-producing notebooks
+  hold the published numbers there. Patch the JSON `source` arrays instead of round-tripping.
 
 Key docs: `docs/RUNBOOK.md` (rebuild figure N, with costs), `docs/CACHE_AND_RESULTS.md`
 (all 7 cache scopes, what's orphaned), `scripts/README.md` (which `plot_*` files are
@@ -196,13 +200,36 @@ Thin master `thesis_v9.tex` + `sections/*.tex`; figures in `figures/`; open ques
 - **`v7/`, `v8/` and `distance approach/` are still untracked AND gitignored** — for those,
   assume nothing is recoverable and snapshot before destructive edits.
 - Appendix filenames do not match compiled letters: `appendix-G.tex` → App **F**,
-  `appendix-emp.tex` → App **G**. The notebook dirs follow the *compiled* letters.
+  `appendix-H.tex` → App **G**. ALWAYS resolve which one a request means before editing or
+  deleting — the two candidates for "Appendix G" differ by 500 lines and a main theorem.
+  `sections/appendix-emp.tex` (the old App G, supplementary empirical figures) was **deleted
+  2026-08-04**; that is what shifted the letters. It is recoverable from commit `70b67ce`.
 - ALWAYS build with `latexmk -pdf -interaction=nonstopmode thesis_v9.tex` **from inside the v9
   directory** (the shell cwd is not where you think after backgrounded commands), and verify with
   `grep -c "undefined" thesis_v9.log` against a baseline taken *before* editing. Zero is the
   expected value. A truncated `.aux`/`.out` from an interrupted run causes
   `File ended while scanning use of \@newl@bel`; fix with `latexmk -C` then rebuild.
 - ALWAYS put restructure rationale in the `.tex` as `% [Reviewer Note: ...]` — invisible in the PDF.
+- **NEVER write confession prose into the `.tex`.** This is a document we intend to publish. It
+  states results and the conditions under which they hold. It never narrates what was not done,
+  what it would cost, or what a future experiment might show, and it never disparages its own
+  evidence. Every one of these is a defect, not a virtue of honesty:
+  *"a birth–death cohort or a larger m would be needed to test that"*, *"says nothing about"*,
+  *"not resolved within budget"*, *"we did not test"*, *"remains to be verified"*, *"future work"*,
+  *"this configuration cannot show"*.
+  A scope statement in the paper is a **positive boundary on the claim** — "the result is stated
+  for Kingman trees at m=1000, where both rules clear the validity gate" — from which a consequence
+  is drawn. It is never an apology. Everything genuinely missing (untested regimes, blocked items,
+  compute that was cut) goes to `open-items/`; that register exists precisely so the manuscript does
+  not have to carry it. Honesty about limits lives in the *scope of the claim*, not in a confession
+  about the authors.
+  Acceptance test before any `.tex` prose is committed — must return 0 on the file you touched:
+  ```bash
+  grep -nEi "would be needed|would be required|not (yet )?(tested|resolved|attempted|verified)|\
+we did not|did not (test|resolve|attempt)|says nothing|cannot show|future work|within budget|\
+remains to be|is left to|no attempt|untested" sections/*.tex
+  ```
+  It currently returns 0 across the whole manuscript. Keep it that way.
 - **NEVER attach a bare `\label{}` to unnumbered material** (after `\subsection*`, `\paragraph`, or
   mid-paragraph). It binds to the last stepped counter and `\Cref` then prints a figure or lemma
   number. When a heading or `definition` environment is dissolved, either keep a numbered anchor or

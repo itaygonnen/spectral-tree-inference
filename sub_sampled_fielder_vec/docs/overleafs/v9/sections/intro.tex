@@ -1,0 +1,92 @@
+%==============================================================================
+%  v9 / sections/intro.tex                                        [owner: A3]
+%  Introduction and Related Work are one section as of 2026-07-31; the former
+%  sections/related.tex was deleted and its \input removed from the master.
+%  Its text is recoverable from git history at the commit before that date.
+%==============================================================================
+
+\section{Introduction}\label{sec:intro}
+
+A latent tree graphical model relates $m$ observed leaves through unobserved
+internal nodes, and the inference problem is to recover the topology from leaf
+data alone \cite{aizenbud2023spectral, semple2003phylogenetics}. Phylogenetics is
+the canonical instance and supplies our vocabulary: the leaves are extant
+organisms, the internal nodes their extinct ancestors, the data aligned
+sequences. Distance-, likelihood- and spectral-based reconstruction are all well
+developed \cite{saitou1987neighbor, erdos1999logs, jaffe2021spectral,
+mossel2005learning}, but datasets now reach tens of thousands of leaves, and the
+accurate methods are the slow ones.
+
+That pressure produced the top-down spectral family, which is spectral clustering
+run on a phylogeny. Build a similarity matrix $S$ over the leaves, form the
+Laplacian $L=D-S$, split the leaf set by the sign pattern of the Fiedler vector
+of $L$, recurse on each side, and merge \cite{aizenbud2023spectral,
+vonluxburg2007tutorial, fiedler1975property}. The split is provably consistent:
+the two sides are complementary \emph{clans}, the unrooted analogue of a clade
+\cite{wilkinson2007clades}, which is what keeps the merge tractable. Both the
+error and the cost of the recursion land on the top split, since no parent call
+corrects it and it is the only call that sees all $m$ leaves. Every entry of $S$
+is a sequence-pair estimate over a length-$\ell$ alignment rather than a lookup,
+so that one call costs $\Theta(m^2)$ estimator evaluations --- the cost
+divide-and-conquer exists to avoid.
+
+This paper asks what happens to the spectrum when that cost is not paid. Compute
+only a random $p$-fraction of the pairs, reweight the survivors by $1/p$, and
+take the Fiedler vector of the incomplete matrix, in the manner of low-rank
+matrix completion \cite{candes2008exact, candes2009power, candes2009matrix,
+recht2011simpler, keshavan2010matrix, bhojanapalli2014universal}. Does its sign
+pattern still recover the split, and how small can $p$ be? There is reason to
+expect an answer well below $1$: under a molecular clock the population matrix
+has exactly two blocks and the Fiedler vector is constant on each clan, so the
+signal being sampled is extremely concentrated.
+
+Two things keep this from being routine. What decides recoverability from a
+random subset is how spread the leading subspace is across coordinates, not how
+large the matrix is \cite{chen2014completing}; and guarantees for recursive
+spectral bipartitioning are stated for clusters of comparable size
+\cite{Balakrishnan2011clustering, qinrohe2013regularized}, whereas real
+phylogenies are markedly more imbalanced than standard null models predict
+\cite{blum2006which, yule1925mathematical, kingman1982coalescent,
+steel2001properties, aldous2001stochastic}. Imbalance pushes both governing
+quantities the wrong way: it concentrates the split signal onto the smaller clan,
+raising the sampling cost, and it shrinks the eigenvalue gap that isolates the
+Fiedler vector, degrading the signal itself. The two failures are distinct ---
+one leaves the eigenvector informative but unaffordable to sample, the other
+leaves nothing worth sampling --- so pooling them shows one curve where there are
+two mechanisms.
+
+Recovering a split from a sign pattern is a claim about \emph{every} coordinate
+of an eigenvector, whereas classical perturbation theory controls only its
+Euclidean norm \cite{davis1970rotation};
+passing between the two charges every node as though it were the worst one, which
+here decides whether a guarantee is satisfiable at all. We therefore work
+coordinate-wise \cite{eldridge2017unperturbed, fan2018eigenvector,
+abbe2020entrywise, tropp2012userfriendly}.
+
+Our contributions are:
+\begin{itemize}
+\item We make the imbalance ratio $\eta$ the single parameter through which tree
+shape reaches the linear algebra, and express both governing spectral quantities
+in it: the subspace coherence in closed form, and a lower bound on the Fiedler
+gap (\Cref{sec:bridging}).
+
+\item We prove that a sampling rate of order $\log m/m$ suffices, at fixed
+imbalance, for the sign pattern of the empirical Fiedler vector to recover the
+split exactly \hp, with an explicit cubic dependence on $\eta$
+(\Cref{sec:main}). 
+
+\item The proof works coordinate-wise rather than in Euclidean norm, through a
+Neumann expansion and a per-node Bernstein bound (\Cref{sec:outline}); on this
+model the Euclidean route costs a further factor of $m$ in the required rate. 
+
+\item The same programme on the double-centred \emph{distance} matrix gives a companion
+statement \cite{Griffing2012, BandeltDress1992}, and we test both in simulation,
+scoring against the planted split \cite{strehlghosh2002cluster,
+fortunato2010community} and stratifying by imbalance rather than pooling.
+\end{itemize}
+
+\Cref{sec:problem} fixes the generative model, the observation model and the
+two operators we analyse; \Cref{sec:bridging} routes tree shape into the spectrum
+through $\eta$. \Cref{sec:main} states the Laplacian rate and \Cref{app:dist} the
+distance rate, \Cref{sec:outline} assembles the proof, and \Cref{sec:empirical}
+tests them.
