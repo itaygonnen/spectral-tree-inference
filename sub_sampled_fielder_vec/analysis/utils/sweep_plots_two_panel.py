@@ -204,6 +204,7 @@ def plot_pstar_pair(
 
 def split_censored_pstar(
     pstar_rows: List[Tuple[int, float]], p_values: np.ndarray,
+    *, censor_floor: bool = False,
 ) -> Tuple[List[Tuple[int, float]], List[Tuple[int, float]]]:
     """Split ``p*`` read-offs into ``(measured, censored)`` at the grid ceiling.
 
@@ -219,12 +220,22 @@ def split_censored_pstar(
     route most sizes land there, which drives ``C`` up by two orders of magnitude
     and the per-point spread past 15x. Callers must report the censored sizes
     rather than quietly fit them.
+
+    ``censor_floor=True`` applies the same reasoning to the *other* end. A ``p*``
+    sitting on the smallest grid point means the metric already cleared the
+    threshold at the lowest rate ever tried, so the true threshold is at or below
+    it: an upper bound, not a measurement. Fitting those is the mirror-image error
+    and biases ``C`` *up*, since the grid floor is larger than the unobserved
+    truth. It is opt-in because it changes which points a figure fits: the callers
+    that predate it were validated on grids whose
+    floor never bound, and flipping the default would silently redraw them.
     """
     if len(p_values) == 0:
         return list(pstar_rows), []
     ceiling = float(np.max(p_values)) * (1.0 - 1e-9)
-    measured = [(n, v) for n, v in pstar_rows if v < ceiling]
-    censored = [(n, v) for n, v in pstar_rows if v >= ceiling]
+    floor = float(np.min(p_values)) * (1.0 + 1e-9) if censor_floor else -np.inf
+    measured = [(n, v) for n, v in pstar_rows if floor < v < ceiling]
+    censored = [(n, v) for n, v in pstar_rows if v >= ceiling or v <= floor]
     return measured, censored
 
 
@@ -239,6 +250,7 @@ def plot_pstar_pair_censored(
     threshold: float = 0.90,
     n_ticks: Optional[List[int]] = None,
     size_label: str = r"$n$ (taxa)",
+    censor_floor: bool = False,
     savepath: Optional[Path] = None,
 ) -> Tuple[Figure, List[Tuple[int, float]], List[Tuple[int, float]]]:
     """:func:`plot_pstar_pair`, but honest about read-offs pinned at ``p=1``.
@@ -259,12 +271,19 @@ def plot_pstar_pair_censored(
     The left panel is untouched and shows every size's recovery curve, including
     the non-recovering ones: that is where the failure is legible.
 
+    With ``censor_floor=True`` a ``p*`` pinned at the *smallest* grid point is drawn
+    open and excluded too -- it is an upper bound (see
+    :func:`split_censored_pstar`). An open marker therefore means "bound, not
+    measurement" at either end; which end it is has to come from the caller's own
+    report, since the two look alike on the panel.
+
     Returns ``(fig, measured_rows, censored_rows)`` so the caller can report both.
     """
     ng = np.array(sorted(ns), float)
     pstar = compute_pstar(results_for_method, p_values, [eta], ns,
                           agg=agg, threshold=threshold)
-    measured, censored = split_censored_pstar(pstar.get(eta, []), p_values)
+    measured, censored = split_censored_pstar(pstar.get(eta, []), p_values,
+                                             censor_floor=censor_floor)
 
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 4.3))
     _draw_recovery_panel(axes[0], results_for_method, p_values, eta, ns,
@@ -275,6 +294,17 @@ def plot_pstar_pair_censored(
         color = ETA_COLORS.get(eta, "black")
         axes[1].plot([n for n, _ in censored], [v for _, v in censored],
                      marker="o", ls="none", ms=8, mfc="none", mew=1.8, color=color)
+
+    # p is a probability, so nothing above 1 is meaningful. Letting the fitted
+    # reference set the top of the axis put 10^0 in the MIDDLE of the panel and
+    # squashed every measured point into the bottom third -- worst at high eta,
+    # where the fit rests on two points and extrapolates to p~15. Clamp the top
+    # just above 1: the reference then simply leaves the frame over the sizes where
+    # it would demand p>1, which is the honest reading of those sizes (infeasible,
+    # and censored anyway).
+    ys = [v for _, v in measured + censored]
+    if ys:
+        axes[1].set_ylim(bottom=min(ys) / 3.0, top=1.4)
     fig.tight_layout()
     _finish(fig, savepath)
     return fig, measured, censored

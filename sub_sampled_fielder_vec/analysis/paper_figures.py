@@ -67,7 +67,50 @@ PAPER_FIGURES: tuple[Figure, ...] = (
         notes="k-means on L_sym (PAPER_METHOD). Kingman + JC69, l=1e4.",
     ),
     Figure(
-        number="4",
+        number="4 (a-d)",
+        files=tuple(f"pstar_synth_dist_eta{e}.png" for e in ETAS),
+        section="sections/empirical.tex",
+        label="fig:pstar_synth_dist",
+        notebook="supporting/pstar_flat_cbm_distance.ipynb",
+        claims=("thm:main-dist", "cor:dist-balanced"),
+        cache="cache/bpart_sweep (eigsolver=lm_k1 keyspace)",
+        rebuild="run the notebook; closed-form CBM in distance space, no sweep "
+                "prerequisite",
+        notes="Distance analogue of Figure 2 and LIKE-FOR-LIKE with it (same sign rule, "
+              "same per-trial accounting). Only eta=1 is inside thm:main-dist's verified "
+              "configuration (cor:dist-balanced). Open markers are p*=1 read-offs, i.e. "
+              "never recovered below full data -- censored, excluded from the fitted C. "
+              "At eta=15 only 2 of 7 sizes are uncensored, so no C is quoted.",
+    ),
+    Figure(
+        number="5 (a-d)",
+        files=tuple(f"pstar_gen_dist_eta{e}.png" for e in ETAS),
+        section="sections/empirical.tex",
+        label="fig:pstar_gen_dist",
+        notebook="supporting/pstar_eta_pool_distance.ipynb",
+        claims=("thm:main-dist",),
+        cache="cache/pool_sample + cache/bpart_sweep "
+              "(eigsolver=lm_k1 + aggregation=avg_vector, 33-point 1e-4 keyspace)",
+        rebuild="python scripts/build_eta_pool.py --n <n> ; then run the notebook, which "
+                "writes these four PNGs here directly (D = -log S is recovered from the "
+                "cached S -- no re-simulation)",
+        notes="Replicate accounting is ALIGNED with Figure 3: both sign-align the 10 "
+              "sub-sampled eigenvectors, average them, and partition the average once "
+              "(aggregation='avg_vector'). Sweeps the WIDE grid geomspace(1e-4, 1, 33), an "
+              "exact superset of Figure 3's geomspace(1e-3, 1, 25), so the two stay "
+              "readable at matched p; the extra decade was needed because aligning the "
+              "accounting pushed eta~1's large-n thresholds below the old 1e-3 floor. "
+              "EVERY threshold is now resolved strictly inside the grid -- no floor "
+              "censoring anywhere, one ceiling bound (n=500 at eta=10). n=3000 is excluded "
+              "(NS_INCLUDE) and is the only size never swept on this grid. C = 0.475 "
+              "(spread 2.5x) at eta=1 on 6 of 6 sizes; 2.11 / 19.7 / 24.2 with spreads "
+              "166x / 30.5x / 184x at eta=5/10/15, where eta=10,15 rest on 3 pool samples "
+              "so those spreads are sample noise. Rounding rule differs from Fig 3 "
+              "(k-means there, sign here -- each as its own theorem states it). Kingman "
+              "trees are outside thm:main-dist's verified configuration at every eta.",
+    ),
+    Figure(
+        number="6",
         files=("S_by_alpha.png", "spectral_gap_bound.png"),
         section="sections/appendix-D.tex",
         label="fig:hbm_spectral_verification",
@@ -80,7 +123,7 @@ PAPER_FIGURES: tuple[Figure, ...] = (
               "which is why sync_paper_figures checks for mixed runs.",
     ),
     Figure(
-        number="5 (a-d)",
+        number="7 (a-d)",
         files=tuple(f"Fiedler_Bipartitions/fiedler_tree_partition_eta{e:02d}.png"
                     for e in ETAS),
         section="sections/appendix-D.tex",
@@ -93,54 +136,26 @@ PAPER_FIGURES: tuple[Figure, ...] = (
               "used to live outside v9/ and resolved through \\graphicspath{{../}}, "
               "which made the paper non-self-contained.",
     ),
+    # Figures 8-11 lived in sections/appendix-emp.tex, deleted 2026-08-04 when the
+    # supplementary-figures appendix was removed. Their PNGs are in RETIRED below;
+    # the notebooks that build them are untouched and still listed in Supporting.
     Figure(
-        number="6",
-        files=("pstar_balanced_nmi.png",),
-        section="sections/appendix-emp.tex",
-        label="fig:pstar_balanced",
-        notebook="paper/fig06_pstar_balanced.ipynb",
-        claims=("thm:main-sim",),
-        cache="results/notebooks/01_cbm_theory/balanced_binary_threshold/ "
-              "(historical cache key -- do not rename)",
-        rebuild="run the notebook; reads trials.csv/agg.csv from the scope above",
-        notes="Caption still prints C=[TBD, C3]; the refitted value lives only in "
-              "open-items/16-C3.md. See open-items/19-cleanup.md.",
-    ),
-    Figure(
-        number="7",
-        files=("identity_scatter_kingman.png",),
-        section="sections/appendix-emp.tex",
-        label="fig:identity_gen",
-        notebook="paper/fig07_identity_checks.ipynb",
-        claims=("prop:coherence", "lem:gap"),
-        cache="results/runs/kingman_mean/uniform/"
-              "20260501-194101-kingman_mean_n500-8000_mu_0p1_uniform/",
-        rebuild="pipeline A (scripts/run_experiment.py, kingman_mean + uniform) -- "
-                "results/ is gitignored, so a fresh clone MUST regenerate this first",
-        notes="The notebook asserts that run exists in its setup cell, so it cannot "
-              "even start in a fresh clone. Uses kingman_mu0.1 of 3 datasets.",
-    ),
-    Figure(
-        number="8",
-        files=("recovery_grid_kmeans.png",),
-        section="sections/appendix-emp.tex",
-        label="fig:recovery_grid",
-        notebook="paper/fig03_pstar_gen_kingman.ipynb",
-        claims=("thm:main-sim",),
-        cache="cache/pool_sample + cache/bootstrap_sweep",
-        rebuild="same as Figure 3 -- one notebook produces Figs 3, 8 and 9",
-    ),
-    Figure(
-        number="9",
-        files=("pstar_gen_3operators.png",),
-        section="sections/appendix-emp.tex",
-        label="fig:operator_sensitivity",
-        notebook="paper/fig03_pstar_gen_kingman.ipynb",
-        claims=(),
-        cache="cache/pool_sample + cache/bootstrap_sweep (all three operators)",
-        rebuild="python scripts/build_sweeps.py --ns <n> --methods sign sigma2 kmeans",
-        notes="Rounding-rule sensitivity: needs sigma2, the expensive operator. Pass it "
-              "as cached-only so a new n cannot trigger a fresh expensive run.",
+        number="8 (a-d)",
+        files=("eta_hist_kingman_S.png", "eta_hist_kingman_B.png",
+               "eta_hist_bd_S.png", "eta_hist_bd_B.png"),
+        section="sections/appendix-eta.tex",
+        label="fig:eta-hist",
+        notebook="supporting/eta_by_operator.ipynb",
+        claims=("lem:dist-edge",),
+        cache="analysis/notebooks_cache/eta_by_operator/{kingman,bd}_n1000_L10000.npz",
+        rebuild="run the notebook (it fills the cache on a miss via "
+                "analysis/utils/eta_screen.py, ~15 min on 6 workers, resumable); "
+                "set FIG_DIR=<scratch> to preview without overwriting v9/figures/",
+        notes="No sub-sampling -- this is what each operator returns on the FULL matrix. "
+              "1000 Kingman + 1000 birth-death trees, m=1000, L=1e4. Rules are each "
+              "theorem's own: k-means on L(S), sign on B. All four panels share bins and "
+              "axes. The birth-death row is the load-bearing one: B's validity collapses "
+              "there because it cannot return an imbalanced split -- see app:eta item 3.",
     ),
 )
 
@@ -154,6 +169,15 @@ NON_IMAGE_FLOATS = {
 # Present in v9/figures/ but deliberately unused. Listed so the checker can tell
 # "retired on purpose" from "someone forgot to reference this".
 RETIRED: dict[str, str] = {
+    "pstar_balanced_nmi.png": "was Fig 8; sections/appendix-emp.tex deleted 2026-08-04",
+    "identity_scatter_kingman.png": "was Fig 9; sections/appendix-emp.tex deleted "
+                                    "2026-08-04 -- the generated-regime identity claim "
+                                    "at empirical.tex now has no figure behind it "
+                                    "(open-items/23-appG-removal.md)",
+    "recovery_grid_kmeans.png": "was Fig 10; sections/appendix-emp.tex deleted 2026-08-04",
+    "pstar_gen_3operators.png": "was Fig 11; sections/appendix-emp.tex deleted "
+                                "2026-08-04 -- the only evidence for choosing k-means "
+                                "over the sign and sigma2 rules",
     "pstar_synth_agr_eta1.png": "scored by sign-agreement; paper switched to NMI",
     "pstar_synth_agr_eta2.png": "scored by sign-agreement; paper switched to NMI",
     "pstar_synth_agr_eta4.png": "scored by sign-agreement; paper switched to NMI",
@@ -178,23 +202,17 @@ class Supporting:
 
 SUPPORTING: tuple[Supporting, ...] = (
     Supporting("supporting/distance_vs_similarity_generated.ipynb",
-               "App F / thm:main-dist (the distance route, which has NO figure)",
+               "App F / thm:main-dist beyond the sweeps of Figs 4-5",
                "live evidence; generated twin of the real-data notebook"),
     Supporting("supporting/distance_vs_similarity_real.ipynb",
                "App F / thm:main-dist on the 600-tree real benchmark",
                "live evidence; needs data/real_datasets (gitignored)"),
-    Supporting("supporting/nj_subsampling_balanced.ipynb",
-               "distance-route context: NJ under sub-sampling",
-               "exploratory - not cited; outputs cleared"),
-    Supporting("supporting/nj_subsampling_nonbalanced.ipynb",
-               "distance-route context: NJ on unbalanced birth-death trees",
-               "exploratory - not cited; cell 15 LAUNCHES an n=4000 sweep"),
-    Supporting("supporting/snj_subsampling.ipynb",
-               "SNJ sigma2 separation / RF distance vs p",
-               "exploratory - not cited; outputs cleared"),
-    Supporting("supporting/subsample_S_vs_subsample_D.ipynb",
-               "sub-sampling S directly vs sub-sampling D then S=exp(-alpha*D)",
-               "exploratory - not cited; outputs cleared"),
+    # Deleted 2026-08-08, all three uncited and none reproducible in a fresh clone:
+    # nj_subsampling_balanced (snj_subsampling with s/snj/nj/), snj_subsampling
+    # (both read gitignored results/runs/ sweeps), and nj_subsampling_nonbalanced --
+    # which was not NJ at all but the B=HDH clan-partition prototype, superseded by
+    # pstar_{eta_pool,flat_cbm}_distance. subsample_S_vs_subsample_D went too.
+    # src/runners/nj_sweep.py and src/plots/plot_{s,}nj_* stay: scripts/ imports them.
     Supporting("supporting/flat_cbm_variance_recovery.ipynb",
                "asm:margin / cross-clan variance intuition",
                "supporting; frozen"),
@@ -207,13 +225,16 @@ SUPPORTING: tuple[Supporting, ...] = (
     Supporting("supporting/stdr_partition_recovery.ipynb",
                "context: one split is not the full recursion (open-items/12-A3.md)",
                "exploratory - not cited; outputs cleared"),
-    Supporting("supporting/pstar_flat_cbm_distance.ipynb",
-               "App F / thm:main-dist -- Griffing B=HDH mirror of Fig 2 on synthesized flat CBM",
-               "live; NOT in the manuscript"),
-    Supporting("supporting/pstar_eta_pool_distance.ipynb",
-               "App F / thm:main-dist -- Griffing B=HDH mirror of Fig 3 on the eta pool; "
-               "note it is NOT like-for-like with Fig 3",
-               "live; NOT in the manuscript"),
+    # Both were paper notebooks (Figs 8 and 9) until sections/appendix-emp.tex was
+    # deleted on 2026-08-04. Kept, and moved out of paper/, because the claims they
+    # back are still made in the text -- see open-items/23-appG-removal.md.
+    Supporting("supporting/pstar_balanced_nmi.ipynb",
+               "thm:main-sim at eta=1; was Fig 8 of the removed App G",
+               "frozen; its refitted C=32.69 was never carried into any caption"),
+    Supporting("supporting/identity_checks_kingman.ipynb",
+               "prop:coherence / lem:gap in the generated regime; was Fig 9 of the "
+               "removed App G, and empirical.tex still asserts those identities",
+               "frozen; asserts a gitignored results/ run in its setup cell"),
 )
 
 
