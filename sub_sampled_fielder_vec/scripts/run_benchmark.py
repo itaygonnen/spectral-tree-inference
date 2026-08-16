@@ -237,13 +237,15 @@ def print_results(summary: dict, out_dir: Path) -> None:
     print(f"\n  r(T) range   : {summary.get('rT_min', 0):.3f} – "
           f"{summary.get('rT_max', 0):.3f}")
     print(f"\n  results in   : {out_dir}")
-    for name, what in (("summary.json", "these numbers, machine-readable"),
+    for name, what in (("results.json", "every metric at every p, per n"),
+                       ("n<n>_L<L>/results.json", "the same, split per size"),
+                       ("summary.json", "the table above, machine-readable"),
                        ("recovery_curve.png", "NMI vs p"),
                        ("scale_plot.png", "p* vs r(T)"),
                        ("compare_sweep.npz", "every per-tree curve"),
                        ("screen_table.csv", "per-tree validity + eta"),
                        ("sweeps/", "one npz per tree (the resume cache)")):
-        print(f"    {name:20s} {what}")
+        print(f"    {name:23s} {what}")
     print()
 
 

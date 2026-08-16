@@ -74,9 +74,15 @@ def griffing_leading_eigvec(
     B = griffing_centered(D)
     B = 0.5 * (B + B.T)
 
-    # ARPACK needs k < m-1, and below a few dozen rows the dense solve is
-    # already faster than setting up an iterative one.
-    if solver == "lm_k1" and B.shape[0] > 3:
+    # ARPACK needs k < m-1; and it cannot start on an all-zero operator (it
+    # raises "Starting vector is zero"). B is exactly zero whenever the
+    # sub-sample kept no entries at all -- the deep-degenerate tail of a p-grid,
+    # where m^2*p/2 < 1. There is no leading eigenvector to find there, so route
+    # those to the dense path, which is deterministic and is what the historical
+    # solver returned: the first basis vector, i.e. a one-vs-rest split carrying
+    # no information. Doing this by test rather than by exception keeps the
+    # degenerate regime silent instead of logging once per solve.
+    if solver == "lm_k1" and B.shape[0] > 3 and np.any(B):
         try:
             _vals, vecs = eigsh(B, k=1, which="LM")
             return np.asarray(vecs[:, 0], dtype=np.float64)

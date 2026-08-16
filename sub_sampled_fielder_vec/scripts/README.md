@@ -24,7 +24,7 @@ so it is recorded here. Every file has a `__main__` guard, so "it has one" prove
 | `plot_griffing_overlay.py` | **`<run_dir>`** positionally | `results/notebooks/05_nj_distance/…` | griffing |
 | `plot_distance_vs_similarity_grid.py` | **no args** (paths hardcoded) | PNG under `results/runs/balanced_binary/` | exploratory |
 | `interactive_run.py` | **interactive menu** | `results/runs/…`, `cache/experiment_data` | pipeline A |
-| `run_benchmark.py` | **interactive menu** | `results/runs/…` + `screen_table.csv` | operator comparison |
+| `run_benchmark.py` | **interactive menu** — see [docs/BENCHMARK_GUIDE.md](../docs/BENCHMARK_GUIDE.md) | `results/runs/…` + `results.json`, `screen_table.csv` | operator comparison |
 | `run_experiment.py` | **edit `SWEEP_CONFIG` at the top, then run** — no CLI | `results/runs/…` | **Fig 7's prerequisite** |
 | `run_nj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…`, `cache/distance_matrix` | NJ notebooks |
 | `run_snj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…` | SNJ notebook |

@@ -31,6 +31,26 @@ from ..runners.nj_sweep import _impute_mean
 SCHEMA_VERSION = "v1"
 _METRICS = ("agreement", "dot", "ari", "nmi")
 
+# How the ``reps`` replicates are collapsed into a per-p number. The similarity
+# route uses BOTH of these, in different figures, so the distance route needs both
+# to stay like-for-like with its twin:
+#
+#   "per_rep"    -- score each replicate, caller averages the metric. Mirrors
+#                   analysis/utils/sweep.run_sweep (Fig 2), where ``reps`` play the
+#                   role of independent trials. This is Fig 4's accounting and
+#                   paper_figures.py records it as "LIKE-FOR-LIKE with Figure 2
+#                   (same per-trial accounting)" -- do not change it.
+#   "avg_vector" -- average the sign-aligned eigenvectors, then partition once.
+#                   Mirrors p_sweep_inner.bootstrap_p_sweep_simple (Fig 3), where
+#                   spread comes from pool samples rather than reps. Fig 5 needs
+#                   this: paper_figures.py records it as "NOT like-for-like with
+#                   Figure 3".
+#
+# They are different estimators (avg_vector reduces noise ~sqrt(reps) before
+# rounding, so it reads optimistic against per_rep), never to be pooled.
+AGGREGATIONS = ("per_rep", "avg_vector")
+DEFAULT_AGGREGATION = "per_rep"
+
 # UniformSampler with self_value=0.0 (distance convention). Stateless → reuse.
 _SAMPLER = SimilarityMatrixBuilder(method="uniform", matrix_kind="distance").sampler
 
@@ -69,6 +89,7 @@ def _build_config(
     p_values: Sequence[float], reps: int, seed_base: int, imputation: str,
     method: str = "griffing_double_centering",
     eigsolver: str = DEFAULT_SOLVER,
+    aggregation: str = DEFAULT_AGGREGATION,
 ) -> Dict[str, Any]:
     """Config dict that IS the cache key (sha1'd by :func:`compute_sweep_key`).
 
@@ -89,15 +110,17 @@ def _build_config(
     }
     if eigsolver != DEFAULT_SOLVER:
         config["eigsolver"] = str(eigsolver)
+    if aggregation != DEFAULT_AGGREGATION:
+        config["aggregation"] = str(aggregation)
     return config
 
 
 def compute_sweep_key(
     p_values: Sequence[float], reps: int, seed_base: int, imputation: str,
-    eigsolver: str = DEFAULT_SOLVER,
+    eigsolver: str = DEFAULT_SOLVER, aggregation: str = DEFAULT_AGGREGATION,
 ) -> Tuple[str, Dict[str, Any]]:
     config = _build_config(p_values, reps, seed_base, imputation,
-                           eigsolver=eigsolver)
+                           eigsolver=eigsolver, aggregation=aggregation)
     blob = json.dumps(config, sort_keys=True).encode("utf-8")
     return hashlib.sha1(blob).hexdigest()[:12], config
 
@@ -105,22 +128,26 @@ def compute_sweep_key(
 def bpart_sweep_raw(
     D: np.ndarray, p_values: Sequence[float], reps: int,
     seed_base: int = 0, imputation: str = "mean",
-    eigsolver: str = DEFAULT_SOLVER,
+    eigsolver: str = DEFAULT_SOLVER, aggregation: str = DEFAULT_AGGREGATION,
 ) -> Dict[str, Any]:
     """Run one B-method subsampling sweep on a single distance matrix ``D``.
 
-    Returns the reference split ``(n1, n2, eta)`` and, for each ``p``, the
-    **raw per-rep** value of each metric (no aggregation — callers average as
-    they wish, e.g. across pool samples)::
+    Returns the reference split ``(n1, n2, eta)`` and, for each ``p``, the metric
+    values under the chosen ``aggregation`` (see :data:`AGGREGATIONS`)::
 
         {"p_values":[...], "n1":int, "n2":int, "eta":float,
-         "per_p":[{"p":p, "agreement":[…reps], "dot":[…], "ari":[…], "nmi":[…]}, …]}
+         "per_p":[{"p":p, "agreement":[…], "dot":[…], "ari":[…], "nmi":[…]}, …]}
+
+    Under ``"per_rep"`` each list holds ``reps`` values; under ``"avg_vector"`` each
+    holds exactly one, computed from the bootstrap-averaged eigenvector.
 
     ``eigsolver`` is used for the reference vector **and** every sub-sampled one,
     so a sweep never compares across two implementations.
     """
     if imputation not in ("mean", "zero"):
         raise ValueError(f"imputation must be 'mean' or 'zero', got {imputation!r}")
+    if aggregation not in AGGREGATIONS:
+        raise ValueError(f"aggregation must be one of {AGGREGATIONS}, got {aggregation!r}")
     v_ref = griffing_leading_eigvec(D, eigsolver)
     n1 = int(np.sum(v_ref >= 0))
     n2 = int(v_ref.size - n1)
@@ -128,18 +155,32 @@ def bpart_sweep_raw(
 
     per_p: List[Dict[str, Any]] = []
     for p_idx, p in enumerate(p_values):
-        acc: Dict[str, List[float]] = {m: [] for m in _METRICS}
+        aligned: List[np.ndarray] = []
         for rep in range(reps):
             seed = int(seed_base + 10_000 * p_idx + rep)
             D_hat = _SAMPLER.sample(D, float(p), seed=seed)
             if imputation == "mean":
                 D_hat = _impute_mean(D_hat)
-            v_hat = _align_sign(griffing_leading_eigvec(D_hat, eigsolver), v_ref)
-            acc["agreement"].append(_partition_agreement(v_ref, v_hat))
-            acc["dot"].append(float(np.abs(np.dot(v_hat, v_ref))))
-            acc["ari"].append(_binary_ari(v_ref, v_hat))
-            acc["nmi"].append(_binary_nmi(v_ref, v_hat))
-        per_p.append({"p": float(p), **acc})
+            aligned.append(_align_sign(griffing_leading_eigvec(D_hat, eigsolver), v_ref))
+
+        if aggregation == "avg_vector":
+            # Average the sign-aligned eigenvectors, THEN partition once, exactly
+            # as bootstrap_p_sweep_simple does. Length-1 lists keep the ``per_p``
+            # schema and every downstream mean/std consumer working unchanged.
+            v_avg = np.mean(aligned, axis=0)
+            nrm = float(np.linalg.norm(v_avg))
+            v_avg = v_avg / nrm if nrm > 0 else np.zeros_like(v_ref)
+            scored = [v_avg]
+        else:
+            scored = aligned
+
+        per_p.append({
+            "p": float(p),
+            "agreement": [_partition_agreement(v_ref, v) for v in scored],
+            "dot": [float(np.abs(np.dot(v, v_ref))) for v in scored],
+            "ari": [_binary_ari(v_ref, v) for v in scored],
+            "nmi": [_binary_nmi(v_ref, v) for v in scored],
+        })
 
     return {
         "p_values": [float(p) for p in p_values],
@@ -155,19 +196,21 @@ def compute_or_load_bpart_sweep(
     seed_base: int = 0,
     imputation: str = "mean",
     eigsolver: str = DEFAULT_SOLVER,
+    aggregation: str = DEFAULT_AGGREGATION,
     use_cache: bool = True,
 ) -> Optional[Tuple[Dict[str, Any], bool]]:
     """Return ``(result, was_cached)`` for one matrix's sweep, or ``None``.
 
     ``identity_parts`` name *which matrix* (e.g. a synthetic param key, or
     ``param_key, bin_name(eta), "sample_0001"`` for a pool sample); the sweep
-    key (p-grid / reps / seed / imputation / non-default eigsolver) is appended
+    key (p-grid / reps / seed / imputation / non-default eigsolver / non-default
+    aggregation) is appended
     automatically. The distance matrix is built lazily via ``D_loader`` only on a
     cache miss; ``None`` is returned when ``D_loader`` yields ``None`` (e.g. a
     missing pool sample), so callers can skip cleanly.
     """
     sweep_key, config = compute_sweep_key(p_values, reps, seed_base, imputation,
-                                          eigsolver=eigsolver)
+                                          eigsolver=eigsolver, aggregation=aggregation)
     parts = tuple(str(x) for x in identity_parts) + (sweep_key,)
 
     if use_cache and _scope.is_complete(*parts):
@@ -178,7 +221,8 @@ def compute_or_load_bpart_sweep(
     D = D_loader()
     if D is None:
         return None
-    raw = bpart_sweep_raw(D, p_values, reps, seed_base, imputation, eigsolver)
+    raw = bpart_sweep_raw(D, p_values, reps, seed_base, imputation, eigsolver,
+                          aggregation=aggregation)
     _scope.save(*parts, result=raw, config=config)
     return raw, False
 

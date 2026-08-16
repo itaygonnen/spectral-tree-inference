@@ -79,17 +79,57 @@ class RealLoader:
 
 @dataclass(frozen=True)
 class GeneratedLoader:
-    """Simulated-tree loader — Kingman / birth-death, no files on disk."""
+    """Simulated-tree loader — no files on disk, everything keyed by the tree id.
 
-    n_taxa: int
+    The id carries the model, the taxon count and (optionally) the eta bin, so
+    one loader serves a run that spans several models, several sizes and several
+    eta bins at once. ``n_taxa`` is only the fallback for legacy ids that predate
+    the ``_n`` field.
+
+    Two routes, chosen per id:
+
+    * no eta field — regenerate the tree and alignment from the id's seed.
+    * an eta field — read the tree back from the eta pool, which is the only
+      place a rejection-sampled tree exists (see ``eta_pool_bridge``).
+    """
+
     seq_len: int
+    n_taxa: Optional[int] = None
+    mutation_rate: Optional[float] = None
+    params: Optional[dict] = None
+    seq_model: str = "JC69"
+
+    @property
+    def pop_size(self) -> float:
+        return float((self.params or {}).get("pop_size", 1.0))
 
     def group_of(self, tree_id: str) -> Optional[str]:
-        """``'kingman_007'`` -> ``'kingman'`` (used to balance the cohort)."""
-        return tree_id.rsplit("_", 1)[0]
+        """Cohort-balancing key — one group per (model, size, eta bin)."""
+        from ..utils.tree_ids import parse_spec
+        try:
+            return parse_spec(tree_id).cell
+        except ValueError:
+            return tree_id.rsplit("_", 1)[0]
 
     def __call__(self, tree_id: str) -> LoadResult:
-        from analysis.utils.generated_data import (
-            make_generated,
-        )
-        return make_generated(tree_id, self.n_taxa, self.seq_len)
+        from ..models.generated_trees import make_generated
+        from ..utils.tree_ids import MODEL_OF_TAG, parse_spec
+
+        spec = parse_spec(tree_id)
+        if spec.eta is None:
+            return make_generated(tree_id, self.n_taxa, self.seq_len,
+                                  params=self.params,
+                                  mutation_rate=self.mutation_rate)
+
+        from .eta_pool_bridge import load_from_pool
+
+        if spec.n_taxa is None:
+            raise ValueError(f"{tree_id!r} names an eta bin but no taxon count; "
+                             "the pool is keyed by size")
+        if self.mutation_rate is None:
+            raise ValueError("eta-pooled ids need an explicit mutation_rate — it "
+                             "is part of the pool's cache key")
+        return load_from_pool(
+            MODEL_OF_TAG.get(spec.model, spec.model), spec.n_taxa, spec.eta,
+            spec.index, seq_len=self.seq_len, mu=float(self.mutation_rate),
+            pop_size=self.pop_size, seq_model=self.seq_model)

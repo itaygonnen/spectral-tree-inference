@@ -2,8 +2,9 @@
 
 Provides colored text, ASCII art logo, and input helpers for the interactive launcher.
 """
+import os
 import sys
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Sequence, Tuple
 
 
 # ANSI color codes for gradient effects
@@ -18,6 +19,37 @@ class Colors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     RESET = '\033[0m'
+
+    # 24-bit colour where the terminal advertises it, otherwise the 6x6x6 cube of
+    # the 256-colour palette — which Terminal.app and every other ANSI terminal
+    # render correctly. The eight named codes above are too few for a gradient.
+    TRUECOLOR = os.environ.get("COLORTERM", "").lower() in ("truecolor", "24bit")
+
+    @staticmethod
+    def rgb(r: int, g: int, b: int) -> str:
+        """Foreground escape for one RGB triple, at the best depth available."""
+        r, g, b = (max(0, min(255, int(v))) for v in (r, g, b))
+        if Colors.TRUECOLOR:
+            return f"\033[38;2;{r};{g};{b}m"
+        cube = 16 + 36 * round(r / 51) + 6 * round(g / 51) + round(b / 51)
+        return f"\033[38;5;{cube}m"
+
+    @staticmethod
+    def ramp(stops: Sequence[Tuple[int, int, int]], n: int) -> List[str]:
+        """``n`` escapes interpolated along the piecewise-linear path through ``stops``."""
+        if n <= 0:
+            return []
+        if n == 1 or len(stops) == 1:
+            return [Colors.rgb(*stops[0])]
+        out = []
+        span = len(stops) - 1
+        for i in range(n):
+            pos = i / (n - 1) * span
+            k = min(int(pos), span - 1)
+            t = pos - k
+            a, b = stops[k], stops[k + 1]
+            out.append(Colors.rgb(*(a[j] + (b[j] - a[j]) * t for j in range(3))))
+        return out
 
     @staticmethod
     def gradient(text: str, colors: List[str]) -> str:
@@ -34,23 +66,78 @@ class Colors:
         return '\n'.join(colored_lines)
 
 
+# One glyph per letter, six rows each, padded to a fixed width so the letters can
+# be spaced out and coloured independently.
+_STDR_GLYPHS = {
+    "S": ["███████╗",
+          "██╔════╝",
+          "███████╗",
+          "╚════██║",
+          "███████║",
+          "╚══════╝"],
+    "T": ["████████╗",
+          "╚══██╔══╝",
+          "   ██║   ",
+          "   ██║   ",
+          "   ██║   ",
+          "   ╚═╝   "],
+    "D": ["██████╗ ",
+          "██╔══██╗",
+          "██║  ██║",
+          "██║  ██║",
+          "██████╔╝",
+          "╚═════╝ "],
+    "R": ["██████╗ ",
+          "██╔══██╗",
+          "██████╔╝",
+          "██╔══██╗",
+          "██║  ██║",
+          "╚═╝  ╚═╝"],
+}
+
+# Gradient stops, walked **top to bottom** across the glyph rows. Six stops
+# interpolated over six rows means every row gets its own colour rather than three
+# banded pairs.
+_LOGO_STOPS = (
+    (34, 211, 238),    # cyan
+    (56, 152, 245),    # sky
+    (99, 102, 241),    # indigo
+    (147, 92, 246),    # violet
+    (205, 74, 235),    # fuchsia
+    (244, 114, 182),   # pink
+)
+
+# Gap between glyphs, wide enough that the letters read as "S T D R".
+_LOGO_GAP = "    "
+
+
+def _letter_spaced(word: str) -> str:
+    """``'sub-sampled'`` -> ``'s u b - s a m p l e d'``."""
+    return " ".join(word)
+
+
 def print_logo():
-    """Print Gemini-style STDR logo with gradient."""
-    logo = """
-    ███████╗████████╗██████╗ ██████╗
-    ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗
-    ███████╗   ██║   ██║  ██║██████╔╝
-    ╚════██║   ██║   ██║  ██║██╔══██╗
-    ███████║   ██║   ██████╔╝██║  ██║
-    ╚══════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝
+    """Letter-spaced 'sub-sampled' over STDR, shaded down the same gradient.
+
+    The block letters shade **vertically** (one colour per glyph row) and the
+    headline shades horizontally along the identical ramp — on a single line
+    there is no vertical axis to use, and sharing the ramp ties the two together.
     """
+    pad = "    "
+    rows = _STDR_GLYPHS["S"]
 
-    subtitle = "    Subsampled Spectral Tree Recovery"
+    head = _letter_spaced("sub-sampled")
+    head_cols = Colors.ramp(_LOGO_STOPS, len(head))
+    print()
+    print(pad + Colors.BOLD
+          + "".join(c + ch for c, ch in zip(head_cols, head)) + Colors.RESET)
 
-    # Apply gradient: blue → cyan → magenta
-    gradient_colors = [Colors.BLUE, Colors.CYAN, Colors.MAGENTA]
-    print(Colors.gradient(logo, gradient_colors))
-    print(Colors.CYAN + subtitle + Colors.RESET)
+    for row, col in enumerate(Colors.ramp(_LOGO_STOPS, len(rows))):
+        line = _LOGO_GAP.join(_STDR_GLYPHS[ch][row] for ch in "STDR")
+        print(f"{pad}{col}{line}{Colors.RESET}")
+
+    print(f"\n{pad}{Colors.rgb(*_LOGO_STOPS[2])}Spectral Tree Recovery"
+          f"{Colors.RESET}")
     print()
 
 

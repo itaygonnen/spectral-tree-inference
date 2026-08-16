@@ -13,12 +13,13 @@ expect, so Griffing can be plotted as a third "method" alongside the others.
 """
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
 from ..runners.bpart_eta_pool import _D_from_M
 from .bpart_sweep_cache import compute_or_load_bpart_sweep
+from .griffing import DEFAULT_SOLVER
 from .eta_pool_cache import bin_name, list_completed_samples, load_pool_entry, param_key
 from .eta_pool_sweep import (
     ETA_SAMPLE_CAP, ETA_TARGETS, P_VALUES, _default_pool_params,
@@ -38,6 +39,8 @@ def collect_griffing_sweeps(
     max_per_eta: Optional[int] = None,
     use_cache: bool = True,
     metric: str = "nmi",
+    eigsolver: str = DEFAULT_SOLVER,
+    on_sample: Optional[Callable[[int, int, int, bool], None]] = None,
 ) -> Dict[Tuple[int, int], np.ndarray]:
     """Run (or load) the B-method (Griffing-on-D) sweep for every pool sample.
 
@@ -46,6 +49,11 @@ def collect_griffing_sweeps(
     sample's per-p ``metric`` curve averaged over reps. Mirrors one method's
     sub-dict from ``run_and_collect_sweeps`` so the caller can splice it in as a
     third operator.
+
+    ``eigsolver`` picks how the single leading eigenpair of ``B`` is computed;
+    ``"lm_k1"`` is what makes a 25-point grid over the whole pool tractable (see
+    :data:`src.utils.griffing.SOLVERS`). ``on_sample(n, eta, idx, was_cached)``
+    fires per sample so a long run can report progress.
     """
     if metric not in _METRICS:
         raise ValueError(f"metric must be one of {_METRICS}, got {metric!r}")
@@ -68,11 +76,20 @@ def collect_griffing_sweeps(
                     key, bin_name(int(eta)), f"sample_{int(idx):04d}",
                     D_loader=lambda M=M: _D_from_M(M),
                     p_values=p_values, reps=reps, seed_base=seed_base,
-                    imputation="mean", use_cache=use_cache,
+                    imputation="mean", eigsolver=eigsolver, use_cache=use_cache,
+                    # Figure 5's twin is Figure 3, which k-means-rounds the bootstrap
+                    # AVERAGE of the Fiedler vectors. Scoring each replicate and
+                    # averaging the metric (the historical default, and the right
+                    # accounting for Figure 4 against Figure 2) is a different
+                    # estimator, and paper_figures.py records the resulting mismatch
+                    # as "NOT like-for-like with Figure 3". This makes it like-for-like.
+                    aggregation="avg_vector",
                 )
                 if outcome is None:
                     continue
-                result, _was_cached = outcome
+                result, was_cached = outcome
+                if on_sample is not None:
+                    on_sample(n, int(eta), int(idx), was_cached)
                 curves.append([float(np.mean(pp_[metric])) for pp_ in result["per_p"]])
             results[(n, int(eta))] = (
                 np.asarray(curves) if curves else np.empty((0, len(p_values)))

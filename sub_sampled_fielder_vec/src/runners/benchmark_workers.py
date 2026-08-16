@@ -27,7 +27,9 @@ from ..core.utils import (  # noqa: E402
     compute_fiedler_from_laplacian, compute_laplacian,
     compute_normalized_laplacian,
 )
-from ..utils.benchmark_cache import BenchmarkConfig  # noqa: E402
+from ..utils.benchmark_cache import (  # noqa: E402
+    SWEEP_METRIC_SOURCES, BenchmarkConfig, curve_key,
+)
 from ..utils.bpart_sweep_cache import bpart_sweep_raw  # noqa: E402
 from ..utils.griffing import griffing_leading_eigvec  # noqa: E402
 from ..utils.metrics import compute_reference_partition_and_quality  # noqa: E402
@@ -46,28 +48,33 @@ def init_worker(loader, cfg: BenchmarkConfig) -> None:
 
 def canonical_partitions(S: np.ndarray, D: np.ndarray,
                          cfg: BenchmarkConfig) -> Dict[str, np.ndarray]:
-    """The three canonical (operator, threshold) bipartitions of one tree.
+    """The selected (operator, threshold) bipartitions of one tree.
 
     Fiedler-on-S and Fiedler-on-L_sym are cut at the σ₂ gap; Griffing-on-D by the
     sign of the leading eigenvector of ``B = HDH``. One failing operator must not
-    cost the whole tree, so each is guarded separately.
+    cost the whole tree, so each is guarded separately. Operators the config did
+    not select are not computed at all.
     """
+    wanted = set(cfg.screen_ops())
     out: Dict[str, np.ndarray] = {}
     for key, vec_fn in (
         ("S", lambda: compute_fiedler_from_laplacian(compute_laplacian(S))),
         ("Lsym", lambda: compute_fiedler_from_laplacian(
             compute_normalized_laplacian(S))),
     ):
+        if key not in wanted:
+            continue
         try:
             part, _, _ = compute_reference_partition_and_quality(
                 vec_fn(), S, num_gaps=cfg.num_gaps, min_split=cfg.min_split)
             out[key] = np.asarray(part).astype(bool)
         except Exception:  # noqa: BLE001
             pass
-    try:
-        out["D"] = griffing_leading_eigvec(D) >= 0
-    except Exception:  # noqa: BLE001
-        pass
+    if "D" in wanted:
+        try:
+            out["D"] = griffing_leading_eigvec(D) >= 0
+        except Exception:  # noqa: BLE001
+            pass
     return out
 
 
@@ -94,43 +101,60 @@ def screen_one(tree_id: str) -> Optional[dict]:
                 "traceback": traceback.format_exc(limit=3)}
 
 
-def sweep_one(item) -> dict:
-    """The notebook's three sweeps for one tree, plus r(T). ``item`` = (tree_id, ti).
+def _curves_from_sweep(method: str, out: dict) -> dict:
+    """Pull every per-p metric the Fiedler sweep returned, under canonical keys."""
+    return {curve_key(method, metric): np.asarray(out[src], float)
+            for metric, src in SWEEP_METRIC_SOURCES.items() if src in out}
 
-    ``ti`` is the tree's index in the frozen cohort, so the per-tree seed
-    ``1000 * ti`` is stable across resumes and matches the notebook.
+
+def sweep_one(item) -> dict:
+    """The requested sweeps for one tree, plus r(T).
+
+    ``item`` = ``(tree_id, ti)`` or ``(tree_id, ti, methods)``. ``ti`` is the
+    tree's index in the frozen cohort, so the per-tree seed ``1000 * ti`` is
+    stable across resumes and matches the notebook. ``methods`` defaults to
+    everything the config selects; passing a subset matters because a tree only
+    needs the operators it was found *valid* for — the others would contribute a
+    curve to no figure.
     """
-    tree_id, ti = item
+    tree_id, ti, *rest = item
+    want = set(rest[0]) if rest else set(_CFG.methods())
     try:
         loaded = _LOADER(tree_id)
         if loaded is None:
             return {"tree": tree_id, "error": "loader returned None"}
         S, _labels, _tree, D = loaded
         cfg, seed = _CFG, 1000 * int(ti)
+        res: dict = {"tree": tree_id, "rT": float(np.max(D))}
 
-        raw = bpart_sweep_raw(D, cfg.p_values, reps=cfg.bootstrap_reps,
-                              seed_base=seed)
-        nmi_G = np.array([float(np.mean(pp["nmi"])) for pp in raw["per_p"]])
+        if "G" in want:
+            raw = bpart_sweep_raw(D, cfg.p_values, reps=cfg.bootstrap_reps,
+                                  seed_base=seed)
+            # Mean over bootstrap reps, one value per p, for every metric the
+            # sweep produced — not just NMI. results.json reports all of them.
+            for metric, src in (("nmi", "nmi"), ("ari", "ari"),
+                                ("agreement", "agreement"), ("dot", "dot")):
+                if src in raw["per_p"][0]:
+                    res[curve_key("G", metric)] = np.array(
+                        [float(np.mean(pp[src])) for pp in raw["per_p"]], float)
 
-        out_L = bootstrap_p_sweep_simple(
-            S, compute_fiedler_from_laplacian(compute_laplacian(S)), cfg.p_values,
-            bootstrap_reps=cfg.bootstrap_reps, seed=seed, num_gaps=cfg.num_gaps,
-            min_split=cfg.min_split, partition_method="kmeans",
-            laplacian="unnormalized")
+        if "L" in want:
+            out_L = bootstrap_p_sweep_simple(
+                S, compute_fiedler_from_laplacian(compute_laplacian(S)),
+                cfg.p_values, bootstrap_reps=cfg.bootstrap_reps, seed=seed,
+                num_gaps=cfg.num_gaps, min_split=cfg.min_split,
+                partition_method="kmeans", laplacian="unnormalized")
+            res.update(_curves_from_sweep("L", out_L))
 
-        out_LS = bootstrap_p_sweep_simple(
-            S, compute_fiedler_from_laplacian(compute_normalized_laplacian(S)),
-            cfg.p_values, bootstrap_reps=cfg.bootstrap_reps, seed=seed,
-            num_gaps=cfg.num_gaps, min_split=cfg.min_split,
-            partition_method="kmeans", laplacian="normalized")
+        if "Lsym" in want:
+            out_LS = bootstrap_p_sweep_simple(
+                S, compute_fiedler_from_laplacian(compute_normalized_laplacian(S)),
+                cfg.p_values, bootstrap_reps=cfg.bootstrap_reps, seed=seed,
+                num_gaps=cfg.num_gaps, min_split=cfg.min_split,
+                partition_method="kmeans", laplacian="normalized")
+            res.update(_curves_from_sweep("Lsym", out_LS))
 
-        return {
-            "tree": tree_id,
-            "G": nmi_G,
-            "L": np.asarray(out_L["partition_nmi_M"], float),
-            "Lsym": np.asarray(out_LS["partition_nmi_M"], float),
-            "rT": float(np.max(D)),
-        }
+        return res
     except Exception as exc:  # noqa: BLE001
         return {"tree": tree_id, "error": f"{type(exc).__name__}: {exc}",
                 "traceback": traceback.format_exc(limit=3)}
