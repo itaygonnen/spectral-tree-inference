@@ -1,9 +1,22 @@
 \documentclass[11pt]{article}
 \usepackage{amsmath, amssymb, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{float}
 \usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
 \usepackage{hyperref}
+\usepackage[capitalise]{cleveref}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
+
+% Let two figure floats share a page instead of each claiming one.
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+\setlength{\floatsep}{10pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{12pt plus 2pt minus 3pt}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
@@ -17,6 +30,7 @@
 This section establishes the exact recovery of tree splits using the sign pattern of the leading eigenvector of the double-centered distance matrix. Rather than relying on multi-stage refinement algorithms or demanding full knowledge of the eigenvector's shape, we pursue a purely spectral approach. By importing the structural Schur complement theory of Stone and Griffing \cite{stone2009fiedler} and the leave-one-out entrywise perturbation framework of Abbe et al. \cite{abbe2020entrywise}, the recovery guarantee emerges organically from the native geometry of the distance matrix.
 
 \subsection{Population Geometry and the Spectral Target}
+\label{sec:target}
 
 Let $T$ be a weighted tree with $m$ leaves, and let $\mathcal{D}$ be the additive path-distance matrix between the leaves. We apply double centering with the orthogonal projector $H = I - \frac{1}{m}\mathbf{1}\mathbf{1}^\top$ to form the distance operator:
 \begin{equation}
@@ -131,24 +145,233 @@ Since $\log m > 1$, the first-order term dominates the sample complexity. Thus, 
 \end{proof}
 
 \subsection{Open Question: How Do $\Delta\lambda$ and $\delta_*$ Depend on the Tree?}
-The theorem above is only as good as the two numbers it is stated in terms of. Both are properties of the population matrix $\mathcal{B}$ alone --- no randomness is involved:
+
+The rate above is written in terms of two numbers, and both are fixed as soon as the tree
+is fixed --- no sampling enters either one:
 \begin{itemize}
-\item $\Delta\lambda = |\lambda_1(\mathcal{B})| - |\lambda_2(\mathcal{B})|$, the spectral gap;
-\item $\delta_* = \min_i |u^{(1)}_i|$, the smallest entry of the leading eigenvector.
+\item the gap $\Delta\lambda = |\lambda_1(\mathcal{B})| - |\lambda_2(\mathcal{B})|$, which
+says how far the leading direction of $\mathcal{B}$ stands out from the next one;
+\item the smallest entry $\delta_* = \min_i |u^{(1)}_i|$, which says how close the closest
+leaf comes to sitting on the fence between the two sides.
 \end{itemize}
-We assumed $\Delta\lambda \asymp m$ and $\delta_* \asymp 1/\sqrt{m}$, which is what turns the general rate $p \gtrsim d_{\max}^2 m \log m / \Delta\lambda^2$ into $p \gtrsim \log m / m$. What is missing is a proof of those two assumptions from the tree itself. Concretely, the open question is:
+We put $\Delta\lambda \asymp m$ and $\delta_* \asymp 1/\sqrt{m}$ into the general rate to
+get $p \gtrsim \log m / m$. What is open is how to read those two numbers off a tree:
 
 \begin{quote}
-Given a weighted tree $T$ with $m$ leaves, bound $\Delta\lambda$ from below and $\delta_*$ from below in terms of $T$'s topology and branch lengths.
+Given a weighted tree $T$ with $m$ leaves, how small can $\Delta\lambda$ and $\delta_*$
+be, in terms of the shape of $T$ and the lengths of its branches?
 \end{quote}
 
-Two remarks on what to expect. First, the two quantities are not independent: $u^{(1)}$ is the maximizer of the Rayleigh quotient of $\mathcal{B}$, so a small gap and a small margin tend to occur together, and a bound on one will likely come with a bound on the other. Second, the answer depends on the tree, and the range is wide:
-\begin{itemize}
-\item \textbf{Balanced binary trees.} Symmetry fixes the eigenvector: it is close to piecewise constant on the two halves, every entry is of order $1/\sqrt{m}$, and the gap is large. The assumed scaling holds.
-\item \textbf{Random trees (Kingman coalescent, birth--death).} Here the natural statement is a high-probability one, and the tools are those of random matrix theory rather than exact algebra.
-\item \textbf{Caterpillar and other unbalanced trees.} With very uneven branch lengths, $u^{(1)}$ can concentrate its mass on a handful of leaves. Then $\delta_*$ is far below $1/\sqrt{m}$ and $\Delta\lambda$ is far below $m$, and the theorem still applies --- it just demands a much larger $p$.
-\end{itemize}
-So the theorem is not vacuous for hard trees; it degrades on them in a quantified way. Pinning down that degradation is exactly the missing piece.
+The two travel together. The vector $u^{(1)}$ is the direction that maximises the Rayleigh
+quotient of $\mathcal{B}$, so a tree that leaves little room between the first and second
+directions is also a tree whose leading vector comes close to zero somewhere. A useful
+reference point: if $u^{(1)}$ were exactly two-valued, one value on each side of a split
+that puts a fraction $\alpha \le 1/2$ of the leaves on the smaller side, then centering and
+unit length fix its entries, and the smaller of the two is
+\begin{equation}
+\label{eq:two-block-margin}
+\delta_* = \frac{1}{\sqrt{m}}\sqrt{\frac{\alpha}{1-\alpha}} .
+\end{equation}
+So the margin is set by how lopsided the split is, and $\alpha$ is something the tree model
+decides. \Cref{tab:tree-kinds} collects what each kind of tree does to the two numbers.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{2.9cm}p{3.1cm}p{2.7cm}p{5.2cm}@{}}
+\toprule
+Tree & $\delta_* \approx$ & $\Delta\lambda \approx$ & Note \\
+\midrule
+Balanced binary
+  & $1/\sqrt{m}$
+  & order $m$
+  & Symmetry fixes the vector: it is close to two-valued with $\alpha = 1/2$, so every
+    entry has about the same size. \\[4pt]
+Kingman coalescent
+  & $\sqrt{\alpha/(1-\alpha)}\,/\sqrt{m}$
+  & a constant fraction of $|\lambda_1|$
+  & Theory: the topology is Yule, whose root split is uniform in size
+    \cite{steel2001yule,aldous2001stochastic}, so the smaller side $\alpha$ is uniform on
+    $\{1/m,\dots,1/2\}$; it is typically of order one and
+    $\delta_*$ of order $1/\sqrt{m}$, with a tail down to $1/m$ when the split peels off a
+    single leaf. The last coalescence lasts $\mathrm{Exp}(1)$ against a tree height of mean
+    $2(1-1/m)$ \cite{kingman1982coalescent,wakeley2009coalescent}, so the deepest split
+    stands clear of the next one by a fixed proportion. Both are borne out in
+    \Cref{fig:app-eig,fig:app-vec}. \\[4pt]
+Pure birth (Yule branch lengths)
+  & $0.024/\sqrt{m}$
+  & $0.38\,|\lambda_1|$
+  & Same topology law as the row above, so the same $\alpha$; what changes is where the
+    branch lengths sit. Medians over $200$ trees at $m=1000$, against $0.36/\sqrt{m}$ and
+    $0.60\,|\lambda_1|$ for the coalescent; see \Cref{fig:app-eig,fig:app-vec}. \\[4pt]
+Caterpillar, very uneven branch lengths (extreme)
+  & well below $1/\sqrt{m}$
+  & well below $m$
+  & The vector puts most of its weight on a handful of leaves and the rest of the entries
+    are tiny, which is $\alpha \to 1/m$ in \eqref{eq:two-block-margin}. How far below is
+    the open part. \\
+\bottomrule
+\end{tabular}
+\caption{What each kind of tree does to the two numbers the rate is written in.}
+\label{tab:tree-kinds}
+\end{table}
+
+So one half of the assumption in \Cref{sec:target} is comfortable and the other half is
+where the work is. The bound $\|u^{(1)}\|_\infty \le C_\delta/\sqrt{m}$ holds on both
+random models with a small constant. The margin $\delta_* \ge c_\delta/\sqrt{m}$ is the
+half that a tree can push down, and since $p$ scales as $1/\delta_*^2$, a margin ten times
+smaller asks for a hundred times more of the matrix. The general form
+$p \gtrsim d_{\max}^2 \log m / (\Delta\lambda^2 \delta_*^2)$ covers all three rows; what
+each row needs is the right pair of numbers to put into it.
+
+\appendix
+
+\section{The two operators on simulated trees}
+\label{app:operators}
+
+% [Reviewer Note: this appendix supplies the empirical picture behind the two quantities
+% the open question in Section 1.4 is stated in --- the gap Delta-lambda and the margin
+% delta_*. Assets are produced by analysis/supporting/eta_by_operator.ipynb (final cell)
+% and live in figures/dr2_*.png.]
+
+The quantities the recovery rate is stated in, $\Delta\lambda$ and $\delta_*$, are
+properties of the population operator, so they can be read off simulated trees exactly.
+The figures below do that on Jukes--Cantor sequences of length $L=10^4$ over trees with
+$m=1000$ leaves: one tree for the anatomy of a single split
+(\Cref{fig:app-tree,fig:app-mat}), and pools of $200$ Kingman and $200$ birth--death
+trees for the distributions (\Cref{fig:app-eig,fig:app-vec}). Throughout, $\mathcal{B}$
+is compared against the graph Laplacian $L(S)=\mathrm{Deg}(S)-S$ of the similarity matrix
+$S=e^{-\mathcal{D}}$, whose Fiedler vector is the alternative classifier.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.46\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{Fiedler vector of $L(S)$}
+        \includegraphics[width=\textwidth]{figures/dr2_tree_vec_S.png}
+        \label{fig:app-tree-a}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.46\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$u^{(1)}$ of $\mathcal{B}=H\mathcal{D}H$}
+        \includegraphics[width=\textwidth]{figures/dr2_tree_vec_B.png}
+        \label{fig:app-tree-b}
+    \end{subfigure}
+    \caption{One Kingman tree, drawn twice, each copy cut by its own vector: blue and
+    orange are the two sides of that cut, grey a clade straddling it, and the scatter
+    holds the vector entries in the same leaf order. The tree shown is the one in the
+    pool where the two cuts differ most: $u^{(1)}$ splits it $505/495$, the Fiedler
+    vector $998/2$.}
+    \label{fig:app-tree}
+\end{figure}
+
+The two vectors are read off two different matrices built from the same alignment, shown next in the same leaf order.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.24\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$S=e^{-\mathcal{D}}$}
+        \includegraphics[width=\textwidth]{figures/dr2_mat_S.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.24\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$L(S)=\mathrm{Deg}(S)-S$}
+        \includegraphics[width=\textwidth]{figures/dr2_mat_L.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.24\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\mathcal{D}=-\log S$}
+        \includegraphics[width=\textwidth]{figures/dr2_mat_D.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.24\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\mathcal{B}=H\mathcal{D}H$}
+        \includegraphics[width=\textwidth]{figures/dr2_mat_B.png}
+    \end{subfigure}
+    \caption{The four matrices on the tree of \Cref{fig:app-tree}, leaves ordered so that
+    a clade is a contiguous block. Each panel carries its own colour scale: the diagonal
+    of $L(S)$ is the degree, three orders above its off-diagonal, and is masked in grey;
+    $\mathcal{B}$ is signed and shown diverging about zero.}
+    \label{fig:app-mat}
+\end{figure}
+
+Across the pools, the quantity that governs the rate is the separation between the first two eigenvalues.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.42\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{Kingman, $L(S)$}
+        \includegraphics[width=\textwidth]{figures/dr2_eig_kingman_L.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.42\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{Kingman, $\mathcal{B}$}
+        \includegraphics[width=\textwidth]{figures/dr2_eig_kingman_B.png}
+    \end{subfigure}
+
+    \begin{subfigure}[t]{0.42\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{birth--death, $L(S)$}
+        \includegraphics[width=\textwidth]{figures/dr2_eig_bd_L.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.42\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{birth--death, $\mathcal{B}$}
+        \includegraphics[width=\textwidth]{figures/dr2_eig_bd_B.png}
+    \end{subfigure}
+    \caption{Distribution over $200$ trees per model of the two leading eigenvalues of
+    each operator: grey $\lambda_1$, coloured $\lambda_2$, dashed lines at the medians.
+    For $L(S)$ the eigenvalues are ascending and $\lambda_1\equiv0$, so its bar is
+    clipped; for $\mathcal{B}$ they are the two largest in magnitude, both negative.
+    The relative gap $(|\lambda_1|-|\lambda_2|)/|\lambda_1|$ of $\mathcal{B}$ has median
+    $0.60$ on Kingman trees and $0.38$ on birth--death trees, against $0.20$ and $0.25$
+    for the corresponding Fiedler gap $(\lambda_3-\lambda_2)/\lambda_3$.}
+    \label{fig:app-eig}
+\end{figure}
+
+The margin $\delta_*$ is a property of the entries themselves, pooled below over the same trees.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.42\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{Kingman, Fiedler of $L(S)$}
+        \includegraphics[width=\textwidth]{figures/dr2_vec_kingman_L.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.42\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{Kingman, $u^{(1)}$}
+        \includegraphics[width=\textwidth]{figures/dr2_vec_kingman_B.png}
+    \end{subfigure}
+
+    \begin{subfigure}[t]{0.42\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{birth--death, Fiedler of $L(S)$}
+        \includegraphics[width=\textwidth]{figures/dr2_vec_bd_L.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.42\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{birth--death, $u^{(1)}$}
+        \includegraphics[width=\textwidth]{figures/dr2_vec_bd_B.png}
+    \end{subfigure}
+    \caption{Entries of the classifying vector, pooled over the same $200$ trees per
+    model, each vector normalised to $\|v\|=1$, scaled by $\sqrt{m}$ and oriented with
+    the minority side positive; counts are logarithmic and the dotted lines mark
+    $\pm1$, the value a perfectly delocalised vector takes. The entries of $u^{(1)}$
+    cluster at $\pm1$ with a largest entry of $5.7$ against $\sqrt{m}=31.6$, which is
+    the delocalisation $\|u^{(1)}\|_\infty \asymp 1/\sqrt{m}$ assumed in
+    Section~\ref{sec:target}; the Fiedler vector reaches $16.4$ on Kingman trees and $21.1$ on birth--death trees.}
+    \label{fig:app-vec}
+\end{figure}
 
 \newpage
 \bibliographystyle{plain}

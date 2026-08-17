@@ -33,6 +33,8 @@ sub_sampled_fielder_vec/**/*.png
 # Both patterns are needed: the second covers figures/Fiedler_Bipartitions/.
 !sub_sampled_fielder_vec/docs/overleafs/v9/figures/*.png
 !sub_sampled_fielder_vec/docs/overleafs/v9/figures/**/*.png
+# Same for the distance-route note, which carries its own figures/ dir.
+!sub_sampled_fielder_vec/docs/overleafs/v9/distance-route-2/figures/*.png
 # Notebook scratch figure dir (v8-era leftovers; see analysis/README.md).
 # Both paths listed while the theoretical_interpretation/ layer is being collapsed;
 # the second line goes away once the move lands.
