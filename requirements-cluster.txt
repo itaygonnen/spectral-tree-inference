@@ -1,0 +1,21 @@
+# Minimal runtime for the sub_sampled_fielder_vec experiments on a Linux box.
+#
+# setup.py's install_requires is the *documentation* build plus every optional
+# reconstruction method: oct2py (needs a system Octave), toytree, sphinx, seaborn. None
+# of them are on the import path of `import spectraltree` or of the real-cohort screens
+# and sweeps, and oct2py in particular fails on a cluster without Octave. So the cluster
+# install is:
+#
+#     pip install -r requirements-cluster.txt
+#     pip install -e . --no-deps
+#
+# python-igraph IS required: spectraltree/utils.py imports it at module level.
+numpy>=1.24
+scipy>=1.9
+pandas>=2.0
+scikit-learn>=1.3
+dendropy>=4.5
+python-igraph>=0.10
+pydantic>=2.0
+matplotlib>=3.7
+tqdm>=4.65

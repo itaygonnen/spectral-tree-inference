@@ -23,12 +23,13 @@ so it is recorded here. Every file has a `__main__` guard, so "it has one" prove
 | `plot_fiedler_overlay.py` | **`<run_dir>`** positionally | PNGs in the run dir | — (see note) |
 | `plot_griffing_overlay.py` | **`<run_dir>`** positionally | `results/notebooks/05_nj_distance/…` | griffing |
 | `plot_distance_vs_similarity_grid.py` | **no args** (paths hardcoded) | PNG under `results/runs/balanced_binary/` | exploratory |
-| `interactive_run.py` | **interactive menu** | `results/runs/…`, `cache/experiment_data` | pipeline A |
+| `interactive_run.py` | **interactive menu** (`d` = real FASTA cohorts) | `results/runs/…`, `cache/experiment_data`, real-cohort caches | pipeline A + real data |
 | `run_benchmark.py` | **interactive menu** — see [docs/BENCHMARK_GUIDE.md](../docs/BENCHMARK_GUIDE.md) | `results/runs/…` + `results.json`, `screen_table.csv` | operator comparison |
 | `run_experiment.py` | **edit `SWEEP_CONFIG` at the top, then run** — no CLI | `results/runs/…` | **Fig 7's prerequisite** |
 | `run_nj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…`, `cache/distance_matrix` | NJ notebooks |
 | `run_snj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…` | SNJ notebook |
 | `run_griffing_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…` | griffing |
+| `run_real_sweep.py` | `--cohort --stage --workers --p-points --reps` (`--list` to see cohorts) | `analysis/notebooks_cache/distance_vs_similarity_real/` | real-cohort screen + sweep, `distance_vs_similarity_real` |
 
 The four "edit-the-dict" scripts take **no arguments at all**. An earlier version of this
 table wrongly listed three of them as `argparse`, and `nj_recompute_normalized_metrics.py`
@@ -39,6 +40,12 @@ too — it uses `sys.argv` directly.
 `results/runs/*-fiedler_sweep_*` dirs exist but nothing in the repo reproduces them. The
 runner was kept rather than deleted precisely because it is the only producer of data
 those two modules read.
+
+## `cluster/`
+Not a script but a kit: `push.sh` (rsync the repo and a cohort to a Linux
+box), `bootstrap.sh` (venv + `requirements-cluster.txt` + `pip install -e . --no-deps`)
+and a README with the ssh workflow. `run_real_sweep.py` is the non-interactive twin of
+`interactive_run.py`'s real-data branch and is what runs there under `nohup`.
 
 ## `validation/`
 

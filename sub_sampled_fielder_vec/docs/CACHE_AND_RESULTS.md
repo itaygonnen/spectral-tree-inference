@@ -3,8 +3,11 @@
 Measured 2026-07-30. **Nothing here was deleted** — this is the record that makes a
 later pruning decision safe, not the pruning itself.
 
-Totals: `cache/` **3.2 GB**, `results/` **4.4 GB**, `data/` **594 MB**. All three are
-gitignored. `logs/` (35 files) **is** committed.
+Totals: `cache/` **3.2 GB**, `results/` **4.4 GB**, `data/` **594 MB** — `data/` is now
+**4.0 GB**: `data/real_datasets/Datasets/6000 taxa/` (added 2026-08-31) holds 100 alignments
+of 6000 taxa x 5000 sites (2.8 GB) beside all 3000 true trees (586 MB), extracted from
+`sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz`; the remaining 2900 alignments stay in
+the archive (~90 GB extracted). All three are gitignored. `logs/` (35 files) **is** committed.
 
 Everything is regenerable in principle, but not cheaply: rebuilding `pool_sample` alone
 means re-running the η-pool builder at every size. Cost model (from `CLAUDE.md`):

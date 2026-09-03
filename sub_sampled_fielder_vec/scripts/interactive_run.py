@@ -12,8 +12,12 @@ Features:
 - Single selection: Type "1" to run one cached matrix
 - Batch selection: Type "1,3,5" to run multiple matrices in one sweep
 - Batch mode requires compatible parameters (same tree_model, seq_len, mutation_rate)
+- "d": real FASTA cohorts (screen / recovery sweep) instead of simulated matrices
 
 No more editing SWEEP_CONFIG - everything is interactive!
+
+Runs on Linux over ssh as-is; for jobs longer than the session, use the non-interactive
+twin `scripts/run_real_sweep.py` under nohup. See `scripts/cluster/README.md`.
 """
 import os
 import sys
@@ -21,8 +25,11 @@ import json
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-# Add parent directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# Add the package root (for `src` and `analysis`) and the repo root (for `spectraltree`)
+_PKG_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+for _p in (_PKG_ROOT, os.path.dirname(_PKG_ROOT)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import numpy as np
 
@@ -123,11 +130,12 @@ def show_main_menu() -> tuple[List[str], List[Dict[str, Any]]]:
 
     # New matrix option
     print_option("n", "Create new matrix configuration")
+    print_option("d", "Real data (FASTA cohorts): screen / recovery sweep")
     print_option("q", "Quit")
     print()
 
     # Build valid choices
-    valid_choices = ['n', 'q']
+    valid_choices = ['n', 'd', 'q']
     if last_run:
         valid_choices.insert(0, 'r')
     if cached:
@@ -503,6 +511,11 @@ def main():
             # Create new configuration
             config = create_new_config()
             run_experiment(config)
+
+        elif len(choices) == 1 and choices[0] == 'd':
+            # Real FASTA cohorts - a different question set, see the module docstring
+            from analysis.utils.real_interactive import run_real_data_menu
+            run_real_data_menu()
 
         else:
             # Choices are numbers - load from cache (single or batch)
