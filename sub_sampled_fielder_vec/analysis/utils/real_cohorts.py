@@ -1,9 +1,11 @@
-"""Real benchmark cohorts: any ``data/real_datasets/Datasets/<name>/{fasta,newick}`` pair.
+"""Real benchmark cohorts: any ``<name>/{fasta,newick}`` directory pair.
 
-A cohort is a directory holding aligned FASTA files and the true tree for each of them,
-matched by stem (``random_tree_0007.fasta`` <-> ``random_tree_0007.nwk``). Two are on
-disk today -- ``1000 taxa`` and ``6000 taxa`` -- and anything rsynced to the cluster in
-the same shape is discovered without a code change.
+A cohort holds aligned FASTA files and the true tree for each of them, matched by stem
+(``random_tree_0007.fasta`` <-> ``random_tree_0007.nwk``). Cohorts live in the repo-level
+``data/cohorts/`` so both projects in this repo -- and the cluster copy -- point at one
+place; ``$STR_DATA_DIR`` overrides it (a scratch filesystem, a shared mount). Two are on
+disk today, ``1000 taxa`` and ``6000 taxa``, and anything copied in the same shape is
+discovered without a code change.
 
 One load per tree gives every consumer both operators' inputs:
 
@@ -18,6 +20,7 @@ anything computed on top of a load.
 """
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -31,17 +34,38 @@ for _p in (str(_ROOT), str(_REPO)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-DATASETS_ROOT = _ROOT / "data" / "real_datasets" / "Datasets"
+def search_roots() -> List[Path]:
+    """Where cohorts are looked for, most specific first.
+
+    ``$STR_DATA_DIR`` wins so a cluster can keep the data on scratch without editing code;
+    the package-local path is the pre-2026-09 location, kept so an old checkout still works.
+    """
+    roots = []
+    env = os.environ.get("STR_DATA_DIR")
+    if env:
+        roots.append(Path(env).expanduser())
+    roots.append(_REPO / "data" / "cohorts")
+    roots.append(_ROOT / "data" / "real_datasets" / "Datasets")
+    return roots
+
+
+DATASETS_ROOT = _REPO / "data" / "cohorts"
 
 
 @dataclass(frozen=True)
 class Cohort:
-    """One real dataset: ``<DATASETS_ROOT>/<name>/{fasta,newick}``."""
+    """One real dataset: ``<root>/<name>/{fasta,newick}``."""
 
     name: str
+    root: Optional[Path] = None
 
     @property
     def dir(self) -> Path:
+        if self.root is not None:
+            return Path(self.root) / self.name
+        for r in search_roots():
+            if (r / self.name / "fasta").is_dir():
+                return r / self.name
         return DATASETS_ROOT / self.name
 
     @property
@@ -107,20 +131,27 @@ class Cohort:
 
 
 def list_cohorts() -> List[Cohort]:
-    """Every dataset directory that has both a ``fasta/`` and a ``newick/`` subdir."""
-    if not DATASETS_ROOT.is_dir():
-        return []
-    return [Cohort(d.name) for d in sorted(DATASETS_ROOT.iterdir())
-            if (d / "fasta").is_dir() and (d / "newick").is_dir()]
+    """Every dataset dir with both a ``fasta/`` and a ``newick/``, first root to define it."""
+    out, seen = [], set()
+    for root in search_roots():
+        if not root.is_dir():
+            continue
+        for d in sorted(root.iterdir()):
+            if d.name in seen:
+                continue
+            if (d / "fasta").is_dir() and (d / "newick").is_dir():
+                out.append(Cohort(d.name, root))
+                seen.add(d.name)
+    return out
 
 
 def get_cohort(name: str) -> Cohort:
-    c = Cohort(name)
-    if not c.fasta_dir.is_dir():
-        raise FileNotFoundError(
-            f"no cohort {name!r} under {DATASETS_ROOT} "
-            f"(have: {[x.name for x in list_cohorts()]})")
-    return c
+    for c in list_cohorts():
+        if c.name == name:
+            return c
+    raise FileNotFoundError(
+        f"no cohort {name!r} in {[str(r) for r in search_roots()]} "
+        f"(have: {[x.name for x in list_cohorts()]})")
 
 
 CACHE_ROOT = (_ROOT / "analysis" / "notebooks_cache" / "distance_vs_similarity_real")

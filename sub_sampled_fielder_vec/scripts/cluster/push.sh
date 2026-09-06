@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Copy the repo (and optionally a real-data cohort) to a Linux box over ssh.
+# Copy the repo (and optionally a cohort from data/cohorts/) to a Linux box over ssh.
+# Prefer scripts/cluster/get_data.sh when the data is already in Google Drive -- it pulls
+# straight onto the cluster instead of routing GBs through a laptop.
 #
 #   ./scripts/cluster/push.sh user@host                      # code only
 #   ./scripts/cluster/push.sh user@host --data "6000 taxa"   # code + that cohort
@@ -38,23 +40,20 @@ rsync -avzP --human-readable \
   --exclude '*.pyc' \
   --exclude "$PKG/cache/" \
   --exclude "$PKG/results/" \
-  --exclude "$PKG/data/" \
   --exclude 'data/' \
   --exclude "$PKG/docs/overleafs/" \
   "$REPO_ROOT/" "$HOST:$DEST/"
 
 if [[ -n "$DATA" ]]; then
-  SRC_ROOT="$REPO_ROOT/$PKG/data/real_datasets/Datasets"
+  SRC_ROOT="$REPO_ROOT/data/cohorts"
   if [[ "$DATA" == "all" ]]; then
     echo "==> data (all cohorts, this is GBs)  ->  $HOST:$DEST"
-    rsync -avzP --human-readable "$SRC_ROOT/" \
-      "$HOST:$DEST/$PKG/data/real_datasets/Datasets/"
+    rsync -avzP --human-readable "$SRC_ROOT/" "$HOST:$DEST/data/cohorts/"
   else
     [[ -d "$SRC_ROOT/$DATA" ]] || { echo "no cohort '$DATA' under $SRC_ROOT" >&2; exit 1; }
     echo "==> data ('$DATA')  ->  $HOST:$DEST"
-    ssh "$HOST" "mkdir -p '$DEST/$PKG/data/real_datasets/Datasets'"
-    rsync -avzP --human-readable "$SRC_ROOT/$DATA" \
-      "$HOST:$DEST/$PKG/data/real_datasets/Datasets/"
+    ssh "$HOST" "mkdir -p '$DEST/data/cohorts'"
+    rsync -avzP --human-readable "$SRC_ROOT/$DATA" "$HOST:$DEST/data/cohorts/"
   fi
 fi
 

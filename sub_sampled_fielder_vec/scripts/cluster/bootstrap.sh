@@ -59,7 +59,8 @@ for c in cohorts:
     m, L = c.shape()
     print(f"      {c.name!r}: {len(c.ids())} trees, m={m}, L={L}")
 if not cohorts:
-    print("      (no FASTA cohorts yet -- push one with scripts/cluster/push.sh --data)")
+    print("      (no cohorts yet -- fetch one:")
+    print("       bash sub_sampled_fielder_vec/scripts/cluster/get_data.sh '6000 taxa')")
 PY
 
 cat <<'EOF'
@@ -71,6 +72,9 @@ ready. Every session:
 
 Interactive (needs the ssh session to stay open -- use tmux):
   python scripts/interactive_run.py        # "d" = real data
+
+Data (once per cohort, straight from Google Drive):
+  bash sub_sampled_fielder_vec/scripts/cluster/get_data.sh "6000 taxa" --shared
 
 Long jobs (survive logout):
   nohup python scripts/run_real_sweep.py --cohort "6000 taxa" --stage sweep \
