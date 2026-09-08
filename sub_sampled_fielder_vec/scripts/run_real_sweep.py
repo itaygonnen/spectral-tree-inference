@@ -53,7 +53,7 @@ def screen_rows(cohort_name: str) -> dict:
             if "error" not in r}
 
 
-def select_ids(cohort_name: str, ids, rule: str) -> list:
+def select_ids(cohort_name: str, ids, rule: str, max_eta: float = 0.0) -> list:
     """Filter ``ids`` by the screen's validity verdicts under ``rule``."""
     if rule == "all":
         return list(ids)
@@ -69,7 +69,12 @@ def select_ids(cohort_name: str, ids, rule: str) -> list:
         "any": lambda r: r.get("valid_S") or r.get("valid_B"),
     }[rule]
     out = [t for t in ids if t in rows and keep(rows[t])]
-    print(f"cohort rule {rule!r}: {len(out)}/{len(ids)} trees")
+    n_gate = len(out)
+    if max_eta and max_eta > 0:
+        out = [t for t in out
+               if max(rows[t].get("eta_S", 0.0), rows[t].get("eta_B", 0.0)) <= max_eta]
+    print(f"cohort rule {rule!r}: {n_gate}/{len(ids)} trees"
+          + (f", {len(out)} after eta<={max_eta:g}" if max_eta else ""))
     return out
 
 
@@ -91,6 +96,10 @@ def main() -> None:
     ap.add_argument("--min-split", type=int, default=5)
     ap.add_argument("--cohort-rule", choices=COHORT_RULES, default="both",
                     help="which screened trees enter the sweep")
+    ap.add_argument("--max-eta", type=float, default=20.0,
+                    help="drop trees whose reference split is more lopsided than this "
+                         "(0 keeps all); a 1/999 split is a real edge but has no "
+                         "recovery signal")
     ap.add_argument("--prefix", default="",
                     help="name this run: results land in runs/<timestamp>-<name>/")
     ap.add_argument("--display-mode", choices=("progress", "debug"), default="progress",
@@ -163,7 +172,7 @@ def _run_cohort(cohort, args) -> list:
                             cohort_name=cohort.name, workers=args.workers)
 
     if args.stage in ("sweep", "both"):
-        sweep_ids = select_ids(cohort.name, ids, args.cohort_rule)
+        sweep_ids = select_ids(cohort.name, ids, args.cohort_rule, args.max_eta)
         if not sweep_ids:
             print("nothing to sweep -- no tree passes the cohort rule "
                   f"{args.cohort_rule!r}. Try --cohort-rule valid_S or all.")

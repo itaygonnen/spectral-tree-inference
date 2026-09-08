@@ -48,6 +48,13 @@ from src.utils.logging import (close_log_file, set_display_mode,  # noqa: E402
 P_MIN, P_POINTS, REPS = 1e-4, 20, 10
 ALL_TREES = "every tree, valid or not"
 
+# Reference splits this lopsided are not a recovery question. At m=1000 the L(S) k-means
+# cut routinely isolates ONE taxon (1/999, eta=999): a real pendant edge, so the validity
+# gate passes it, but every sub-sample then picks a different singleton and NMI sits at 0
+# for every p. 20 is well above the recoverability scale (m/log m)^(1/3) ~ 5.3 at m=1000,
+# so it removes the degenerate cases without touching the ones the theory speaks about.
+MAX_ETA = 20.0
+
 # Which screened trees a sweep may use. The gate is whether that operator's partition of
 # the FULL matrix is a real single-edge split of the true tree -- sub-sampling recovery
 # towards a reference that is not a tree edge measures stability, not correctness.
@@ -68,11 +75,17 @@ def _verdicts(cohort) -> dict:
             if "error" not in r}
 
 
-def _select_ids(ids, verdicts: dict, rule: str) -> list:
+def _select_ids(ids, verdicts: dict, rule: str, max_eta: float = 0.0) -> list:
+    """Trees passing the validity gate, and (when ``max_eta`` > 0) not too lopsided."""
     if not verdicts:
         return list(ids)
     keep = RULES[rule]
-    return [t for t in ids if t in verdicts and keep(verdicts[t])]
+    out = [t for t in ids if t in verdicts and keep(verdicts[t])]
+    if max_eta and max_eta > 0:
+        out = [t for t in out
+               if max(verdicts[t].get("eta_S", 0.0),
+                      verdicts[t].get("eta_B", 0.0)) <= max_eta]
+    return out
 
 
 def _default_rule(cohorts, verdicts_by: Dict[str, dict]) -> str:
@@ -90,7 +103,7 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
                workers=max(1, min(8, (os.cpu_count() or 4) // 2)),
                rule=_default_rule(cohorts, verdicts_by),
                p_min=P_MIN, p_points=P_POINTS, reps=REPS, prefix="",
-               display_mode="progress")
+               display_mode="progress", max_eta=MAX_ETA)
 
     print_divider()
     print("configuration (applies to every cohort chosen):")
@@ -99,7 +112,8 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
         print(f"  workers    {cfg['workers']}")
         print("  arms       L(S)+k-means and B=HDH+sign, min_split=5")
     else:
-        print(f"  trees      all, gated on [{cfg['rule']}]")
+        print(f"  trees      all, gated on [{cfg['rule']}], "
+              f"eta <= {cfg['max_eta']:g}")
         print(f"  p-grid     {cfg['p_points']} log-spaced points, {cfg['p_min']:g} .. 1.0")
         print(f"  reps       {cfg['reps']} bootstrap replicates per p")
         print("  metrics    NMI, ARI, agreement, sign agreement, dot "
@@ -125,6 +139,9 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
     chosen = get_menu_choice("Reference partition must be a real tree edge under:",
                              labels, default_index=list(RULES).index(cfg["rule"]))
     cfg["rule"] = list(RULES)[labels.index(chosen)]
+    cfg["max_eta"] = float(get_input(
+        "Drop trees whose reference split is more lopsided than eta (0 = keep all)",
+        default=str(cfg["max_eta"])))
     cfg["p_min"] = float(get_input("Smallest sub-sampling rate p (largest is always 1.0)",
                                    default=str(cfg["p_min"])))
     cfg["p_points"] = int(get_input(
@@ -148,7 +165,7 @@ def _plan(cohorts, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> 
         if is_screen:
             secs = len(ids) * (75.0 if m >= 6000 else 10.0) / max(1, cfg["workers"])
         else:
-            ids = _select_ids(ids, verdicts_by[c.name], cfg["rule"])
+            ids = _select_ids(ids, verdicts_by[c.name], cfg["rule"], cfg["max_eta"])
             # one sub-sampled Fiedler solve is ~9 s at m=6000 and scales as O(m^3)
             secs = len(ids) * cfg["p_points"] * cfg["reps"] * 9.0 * (m / 6000.0) ** 3
         rows.append(dict(cohort=c, m=m, ids=ids, hours=secs / 3600.0,

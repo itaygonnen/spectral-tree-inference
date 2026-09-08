@@ -4,7 +4,9 @@ For one tree the sweep asks: replace the full matrix by a uniform sub-sample at 
 ``p`` and re-read the bipartition -- how much of the full-matrix partition survives?
 Both arms are scored by NMI against their OWN full-matrix reference:
 
-    L   Fiedler of Deg(S) - S, k-means cut      (``bootstrap_p_sweep_simple``)
+    L   Fiedler of Deg(S) - S, k-means OR sign cut -- whichever cuts the reference more
+        evenly, decided per tree and recorded in the tree's own .npz
+        (``bootstrap_p_sweep_simple``)
     B   leading-|lambda| of H D H, sign cut     (``bpart_sweep_raw``)
 
 Every metric both arms produce is stored per tree -- NMI, ARI, partition agreement, sign
@@ -59,7 +61,7 @@ EXTRA_L = ("sign",)
 
 def sweep_meta(reps: int, num_gaps: int, min_split: int, m: int = 6000) -> Dict:
     return dict(reps=int(reps), num_gaps=int(num_gaps), min_split=int(min_split),
-                partition_method="kmeans", eigsolver="lm_k1",
+                partition_method="kmeans_or_sign", eigsolver="lm_k1",
                 aggregation="avg_vector", m=int(m),
                 metrics=",".join(METRICS + GT_METRICS))
 
@@ -84,6 +86,13 @@ def _gt_partition(tree, labels) -> np.ndarray:
     if n_left in (0, part.size):            # degenerate: keep NMI defined
         part[:part.size // 2] = True
     return part
+
+
+def _eta_of(part: np.ndarray) -> float:
+    """Imbalance of a boolean bipartition: larger clan / smaller clan."""
+    n1 = int(np.sum(part))
+    n2 = int(part.size) - n1
+    return float(max(n1, n2)) / float(max(min(n1, n2), 1))
 
 
 def _score(ref: np.ndarray, pred) -> Dict[str, float]:
@@ -154,14 +163,24 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
         return lambda i, p: progress_cb(stage, i, p)
 
     fr_L = compute_fiedler_from_laplacian(compute_laplacian(S))
+    # Both threshold rules on the reference vector; the more balanced one drives the
+    # sweep. k-means alone routinely isolates one taxon on real data (eta ~ m), which has
+    # no recovery signal at any p. Both etas are recorded so the choice is auditable.
+    from src.runners.p_sweep_inner import _kmeans_bipartition
+    cand = {"kmeans": np.asarray(_kmeans_bipartition(fr_L, min_split)).astype(bool),
+            "sign": np.asarray(fr_L >= 0).astype(bool)}
+    etas = {r: _eta_of(part) for r, part in cand.items()}
+    rule_L = min(cand, key=lambda r: (etas[r], r != "kmeans"))
+    log_info("bootstrap", f"{tid}: L(S) reference k-means eta={etas['kmeans']:.2f}, "
+                          f"sign eta={etas['sign']:.2f} -> using {rule_L}")
+
     out_L = bootstrap_p_sweep_simple(
         S, fr_L, list(p_values), bootstrap_reps=reps, seed=seed,
         num_gaps=num_gaps, min_split=min_split,
-        partition_method="kmeans", laplacian="unnormalized",
+        partition_method=rule_L, laplacian="unnormalized",
         progress_cb=_cb("L"))
     n1, n2 = out_L["partition_split_ref"]
-    log_info("bootstrap", f"{tid}: L(S) reference split {n1}/{n2} "
-                          f"(eta={max(n1, n2) / max(min(n1, n2), 1):.2f})")
+    log_info("bootstrap", f"{tid}: L(S) reference split {n1}/{n2} ({rule_L})")
     # the two arms name the same quantities differently; map both onto METRICS
     out = {f"{m}_L": np.asarray(out_L[k], float) for m, k in (
         ("nmi", "partition_nmi_M"), ("ari", "partition_ari_M"),
@@ -184,6 +203,12 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
         scored = [_score(gt, part) for part in parts]
         for met in ("nmi", "ari", "agreement"):
             out[f"{met}_gt_{arm}"] = np.array([sc[met] for sc in scored], float)
+
+    # provenance of the L arm's threshold choice, per tree
+    out["eta_ref_L_kmeans"] = np.array([etas["kmeans"]], float)
+    out["eta_ref_L_sign"] = np.array([etas["sign"]], float)
+    out["eta_ref_B"] = np.array([raw["eta"]], float)
+    out["rule_L"] = np.array([rule_L], dtype=object)
     return out
 
 
@@ -223,6 +248,9 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
         inner.close()
         np.savez(_cache_file(cache_dir, tid), p_values=pv,
                  meta=np.array(meta, dtype=object), **curves)
+        log_info("bootstrap", f"{tid}: L rule {curves['rule_L'][0]}, "
+                              f"eta_ref L={curves['eta_ref_L_' + curves['rule_L'][0]][0]:.2f} "
+                              f"B={curves['eta_ref_B'][0]:.2f}")
         finished.append(tid)
         el = time.time() - t0
         eta_h = (el / k) * (len(todo) - k) / 3600.0

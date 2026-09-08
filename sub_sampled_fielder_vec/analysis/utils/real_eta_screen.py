@@ -6,8 +6,13 @@ rather than simulated ones. For each tree: load once, read a bipartition off eac
 and record its imbalance eta = larger clan / smaller clan together with whether the
 partition is a genuine single-edge bipartition of the true tree.
 
-    L(S)  Fiedler of Deg(S) - S        -> k-means bipartition
+    L(S)  Fiedler of Deg(S) - S        -> k-means AND sign, whichever cuts more evenly
     B     leading-|lambda| of H D H    -> sign rule
+
+The L arm is scored under both threshold rules and the more balanced one wins. k-means
+alone routinely isolates a single taxon on real data (1/999, eta=999) -- a real pendant
+edge, so a validity gate passes it, but a split with no recovery signal. Both rules'
+eta and validity are recorded, so the choice is auditable and either can be re-read.
 
 Both arms come from ONE ``load_all`` call per tree; the load alone is ~1 min at
 m=6000, so re-loading per operator (which ``src.utils.screening.run_screen`` does)
@@ -56,15 +61,23 @@ def screen_one(tid: str, cohort_name: str) -> Optional[Dict]:
     sidx = _tree_leaf_index(tree, labels)          # labels order -> tree-leaf order
 
     rec: Dict = {"tree": tid, "m": int(S.shape[0])}
-    for tag, part in (
-        ("S", _kmeans_bipartition(
-            compute_fiedler_from_laplacian(compute_laplacian(S)), MIN_SPLIT)),
-        ("B", griffing_leading_eigvec(D, solver="lm_k1") >= 0),
-    ):
-        part = np.asarray(part).astype(bool)
-        rec[f"eta_{tag}"] = _eta(part)
-        # the validity check needs the mask in TREE-LEAF order, not labels order
-        rec[f"valid_{tag}"] = bool(check_partition_valid_in_tree(tree, part[sidx]))
+    fr = compute_fiedler_from_laplacian(compute_laplacian(S))
+    candidates = {
+        "kmeans": np.asarray(_kmeans_bipartition(fr, MIN_SPLIT)).astype(bool),
+        "sign": np.asarray(fr >= 0).astype(bool),
+    }
+    for rule, part in candidates.items():
+        rec[f"eta_S_{rule}"] = _eta(part)
+        rec[f"valid_S_{rule}"] = bool(check_partition_valid_in_tree(tree, part[sidx]))
+    # the more balanced rule wins; ties go to k-means, the historical default
+    rec["rule_S"] = min(candidates, key=lambda r: (rec[f"eta_S_{r}"], r != "kmeans"))
+    rec["eta_S"] = rec[f"eta_S_{rec['rule_S']}"]
+    rec["valid_S"] = rec[f"valid_S_{rec['rule_S']}"]
+
+    part_b = np.asarray(griffing_leading_eigvec(D, solver="lm_k1") >= 0).astype(bool)
+    rec["eta_B"] = _eta(part_b)
+    # the validity check needs the mask in TREE-LEAF order, not labels order
+    rec["valid_B"] = bool(check_partition_valid_in_tree(tree, part_b[sidx]))
     return rec
 
 
@@ -99,6 +112,14 @@ def run_real_eta_screen(
         done = {r["tree"]: r for r in z["rows"]}
         log_info("screen", f"cache: {len(done)} rows in {cache_path}")
 
+    # rows written before the L arm gained the sign/k-means comparison lack rule_S, and
+    # silently keeping them would mix two definitions of eta_S in one screen
+    stale = [t for t, r in done.items() if "error" not in r and "rule_S" not in r]
+    if stale:
+        log_info("screen", f"{len(stale)} cached row(s) predate the two-rule L arm "
+                           f"-- recomputing them", force=True)
+        for t in stale:
+            done.pop(t, None)
     todo = [t for t in ids if t not in done]
     if not todo:
         print(f"  all {len(ids)} trees already cached", flush=True)
@@ -131,10 +152,13 @@ def run_real_eta_screen(
                     log_info("screen", f"{rec['tree']}: FAILED {rec['error'][:100]}")
                 else:
                     log_info("screen",
-                             f"{rec['tree']}: L(S) eta={rec['eta_S']:.2f} "
-                             f"{'edge' if rec['valid_S'] else 'not-an-edge'}, "
-                             f"B eta={rec['eta_B']:.2f} "
-                             f"{'edge' if rec['valid_B'] else 'not-an-edge'}")
+                             f"{rec['tree']}: L(S) k-means eta="
+                             f"{rec['eta_S_kmeans']:.2f}"
+                             f"{'/edge' if rec['valid_S_kmeans'] else '/not-an-edge'}, "
+                             f"sign eta={rec['eta_S_sign']:.2f}"
+                             f"{'/edge' if rec['valid_S_sign'] else '/not-an-edge'} "
+                             f"-> {rec['rule_S']}; B eta={rec['eta_B']:.2f}"
+                             f"{'/edge' if rec['valid_B'] else '/not-an-edge'}")
             n_done += 1
             bar.update(1)
             if n_done % progress == 0 or n_done == len(todo):

@@ -8,7 +8,7 @@
         per_tree.csv        every tree x every p: all metrics, both arms   (long format)
         curves.csv          per cohort x p: median, std, quartiles and a bootstrap
                             interval for the median, across trees          (plot-ready)
-        recovery_curve.png  median NMI vs p, every cohort, both arms, both references
+        recovery_curve.png  median NMI vs p, every cohort, both arms
 
 ``curves.csv`` is the file to plot from: one row per (cohort, p), one column per
 metric x arm x {median, std}. ``per_tree.csv`` is the same numbers before aggregation,
@@ -151,9 +151,17 @@ def write_screening_csv(run_dir: Path, cohorts: Sequence[str]) -> Path | None:
     out = run_dir / "screening.csv"
     with open(out, "w", newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(["cohort", "m", "tree", "eta_L", "valid_L", "eta_B", "valid_B"])
+        w.writerow(["cohort", "m", "tree",
+                    "eta_L", "valid_L", "rule_L",
+                    "eta_L_kmeans", "valid_L_kmeans", "eta_L_sign", "valid_L_sign",
+                    "eta_B", "valid_B"])
         for c, r in sorted(rows, key=lambda x: (x[0], x[1]["tree"])):
-            w.writerow([c, r["m"], r["tree"], f"{r['eta_S']:.4f}", int(r["valid_S"]),
+            w.writerow([c, r["m"], r["tree"],
+                        f"{r['eta_S']:.4f}", int(r["valid_S"]), r.get("rule_S", ""),
+                        f"{r.get('eta_S_kmeans', float('nan')):.4f}",
+                        int(r.get("valid_S_kmeans", 0)),
+                        f"{r.get('eta_S_sign', float('nan')):.4f}",
+                        int(r.get("valid_S_sign", 0)),
                         f"{r['eta_B']:.4f}", int(r["valid_B"])])
     return out
 
@@ -170,12 +178,19 @@ def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
         grid, trees = _sweep_arrays(cohort, ids, p_values)
         if grid is None:
             continue
-        keys = [k for k in ALL_METRICS if any(k in v for v in trees.values())]
+        keys = [k for k in ALL_METRICS
+                if any(k in v and v[k].size == len(grid) for v in trees.values())]
         cols = cols or keys
         for tree, arrays in sorted(trees.items()):
+            rule = str(arrays.get("rule_L", [""])[0]) if "rule_L" in arrays else ""
+            eta_ref_L = (float(arrays["eta_ref_L_" + rule][0])
+                         if rule and f"eta_ref_L_{rule}" in arrays else float("nan"))
+            eta_ref_B = (float(arrays["eta_ref_B"][0])
+                         if "eta_ref_B" in arrays else float("nan"))
             for i, p in enumerate(grid):
                 per_tree_rows.append(
-                    [cohort, tree, f"{p:.6g}"]
+                    [cohort, tree, f"{p:.6g}", rule,
+                     f"{eta_ref_L:.4f}", f"{eta_ref_B:.4f}"]
                     + [f"{arrays[k][i]:.6f}" if k in arrays else "" for k in cols])
         rng = np.random.default_rng(0)      # fixed, so re-exporting a run is stable
         for i, p in enumerate(grid):
@@ -190,7 +205,8 @@ def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
         out = run_dir / "per_tree.csv"
         with open(out, "w", newline="") as fh:
             w = csv.writer(fh)
-            w.writerow(["cohort", "tree", "p"] + cols)
+            w.writerow(["cohort", "tree", "p", "rule_L",
+                        "eta_ref_L", "eta_ref_B"] + cols)
             w.writerows(per_tree_rows)
         written.append(out)
     if curve_rows:
@@ -246,7 +262,13 @@ def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
 
 def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
                   p_values: Sequence[float] | None = None) -> Path | None:
-    """One figure for the whole run: median NMI vs p, every cohort, both references."""
+    """One figure for the whole run: median NMI vs p, every cohort, both arms.
+
+    Scored against each arm's full-matrix split only. The ``*_gt`` columns (vs the true
+    tree's top bipartition) stay in the CSVs, but they are not plotted: that split is the
+    root's two child subtrees, which on these trees is near-degenerate (998/2, 5944/56),
+    so NMI against it is ~0 for every method at every p and the panel showed nothing.
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -260,35 +282,32 @@ def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
         return None
 
     palette = ["#065f46", "#1d4ed8", "#b45309", "#991b1b"]
-    fig, axes = plt.subplots(1, 2, figsize=(13, 6), sharey=True)
-    for ax, ref, ttl in ((axes[0], "", "vs full-matrix split"),
-                         (axes[1], "_gt", "vs true tree's split")):
-        for i, (cohort, p_values, trees) in enumerate(series):
-            color = palette[i % len(palette)]
-            for arm, ls in (("L", "-"), ("B", "--")):
-                key = f"nmi{ref}_{arm}"
-                arr = [v[key] for v in trees.values() if key in v]
-                if not arr:
-                    continue
-                arr = np.vstack(arr)
-                med = np.nanmedian(arr, 0)
-                q25, q75 = (np.nanpercentile(arr, 25, axis=0),
-                            np.nanpercentile(arr, 75, axis=0))
-                ax.plot(p_values, med, color=color, ls=ls, lw=2, marker="o", ms=3,
-                        label=f"{cohort} - {'L(S)' if arm == 'L' else 'B=HDH'} "
-                              f"({arr.shape[0]} trees)")
-                # the middle half of the trees; a +-std band would leave [0, 1]
-                ax.fill_between(p_values, q25, q75, color=color,
-                                alpha=0.16 if arm == "L" else 0.08)
-        ax.set_xscale("log")
-        ax.set_xlabel(r"sub-sampling fraction $p$ (log)", fontsize=12)
-        ax.set_title(f"{ttl}   (solid: $L(S)$, dashed: $B=H\\mathcal{{D}}H$)",
-                     fontsize=11)
-        ax.set_ylim(-0.05, 1.05)
-        ax.grid(alpha=0.25)
-    axes[0].set_ylabel("median NMI across trees (band: interquartile range)",
-                       fontsize=11)
-    axes[0].legend(fontsize=9, loc="upper left")
+    fig, ax = plt.subplots(figsize=(7.5, 6.5))
+    for i, (cohort, p_values, trees) in enumerate(series):
+        color = palette[i % len(palette)]
+        for arm, ls in (("L", "-"), ("B", "--")):
+            key = f"nmi_{arm}"
+            arr = [v[key] for v in trees.values() if key in v]
+            if not arr:
+                continue
+            arr = np.vstack(arr)
+            med = np.nanmedian(arr, 0)
+            q25, q75 = (np.nanpercentile(arr, 25, axis=0),
+                        np.nanpercentile(arr, 75, axis=0))
+            ax.plot(p_values, med, color=color, ls=ls, lw=2, marker="o", ms=3,
+                    label=f"{cohort} - {'L(S)' if arm == 'L' else 'B=HDH'} "
+                          f"({arr.shape[0]} trees)")
+            # the middle half of the trees; a +-std band would leave [0, 1]
+            ax.fill_between(p_values, q25, q75, color=color,
+                            alpha=0.16 if arm == "L" else 0.08)
+    ax.set_xscale("log")
+    ax.set_xlabel(r"sub-sampling fraction $p$ (log)", fontsize=12)
+    ax.set_ylabel("median NMI vs full-matrix split (band: IQR over trees)", fontsize=11)
+    ax.set_title(r"solid: $L(S)$ + k-means     dashed: $B=H\mathcal{D}H$ + sign",
+                 fontsize=11)
+    ax.set_ylim(-0.05, 1.05)
+    ax.grid(alpha=0.25)
+    ax.legend(fontsize=9, loc="upper left")
     fig.tight_layout()
     out = run_dir / "recovery_curve.png"
     fig.savefig(out, dpi=150)
