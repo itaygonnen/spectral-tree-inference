@@ -201,8 +201,8 @@ def run_real_data_menu() -> None:
     stage = get_menu_choice(
         "Run:", ["screening - read a split off each operator on the full matrix and "
                  "check it against the true tree",
-                 "recovery sweep - re-read that split from sub-sampled matrices and "
-                 "score what survives (needs screening)"], default_index=0)
+                 "recovery sweep - sweep trees over p for NMI curve "
+                 "(needs screening)"], default_index=0)
     is_screen = stage.startswith("screening")
 
     for c in chosen:
