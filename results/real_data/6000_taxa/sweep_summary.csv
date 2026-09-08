@@ -1,3 +1,0 @@
-p,n_trees,nmi_L_median,nmi_B_median,ari_L_median,ari_B_median,agreement_L_median,agreement_B_median,dot_L_median,dot_B_median,sign_L_median,nmi_L_std,nmi_B_std,ari_L_std,ari_B_std,agreement_L_std,agreement_B_std,dot_L_std,dot_B_std,sign_L_std
-0.01,1,0.000599,0.439637,0.000367,0.544568,67.783333,86.900000,0.000000,0.883234,33.133333,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000
-1,1,1.000000,1.000000,1.000000,1.000000,100.000000,100.000000,1.000000,1.000000,100.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000

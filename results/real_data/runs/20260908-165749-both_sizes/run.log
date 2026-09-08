@@ -1,0 +1,16 @@
+
+=== 1000 taxa (1/2)
+cohort '1000 taxa': 2 trees, m=1000, L=8675
+cohort rule 'any': 2/2 trees
+sweep: 4 p x 1 reps over 2 trees -> /Users/itayg/PythonRepo/spectral-tree-inference/results/real_data/_cache/1000_taxa/sweep
+0/2 trees already cached; 2 to run (4 p x 1 reps)
+  [1/2] random_tree_001  5 s  (elapsed 0.0 h, ETA 0.0 h)
+  [2/2] random_tree_002  5 s  (elapsed 0.0 h, ETA 0.0 h)
+
+=== 6000 taxa (2/2)
+cohort '6000 taxa': 2 trees, m=6000, L=5000
+cohort rule 'any': 2/2 trees
+sweep: 4 p x 1 reps over 2 trees -> /Users/itayg/PythonRepo/spectral-tree-inference/results/real_data/_cache/6000_taxa/sweep
+0/2 trees already cached; 2 to run (4 p x 1 reps)
+  [1/2] random_tree_0001  83 s  (elapsed 0.0 h, ETA 0.0 h)
+  [2/2] random_tree_0002  85 s  (elapsed 0.0 h, ETA 0.0 h)

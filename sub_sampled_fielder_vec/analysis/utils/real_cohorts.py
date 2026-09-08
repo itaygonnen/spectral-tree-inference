@@ -154,39 +154,43 @@ def get_cohort(name: str) -> Cohort:
         f"(have: {[x.name for x in list_cohorts()]})")
 
 
-# Results live in ONE place at the top of the repo -- <repo>/results/real_data/<cohort>/ --
-# not under analysis/notebooks_cache/. It is the directory a collaborator running this on a
-# cluster has to find, and it is small (a screen is ~10 KB, a swept tree ~3 KB) and NOT
-# gitignored, so a cluster run can be committed and pushed back rather than rsynced.
-# $STR_RESULTS_DIR overrides the location.
+# Two roots under <repo>/results/real_data/, and the distinction matters:
+#
+#   runs/<timestamp>-<name>/   ONE directory per run, holding every cohort that run
+#                              covered -- config, CSVs, plot, log. This is what you
+#                              download, mail or plot from, and it never changes once the
+#                              run finishes.
+#   _cache/<cohort>/           machine state so a killed run resumes: the screen rows and
+#                              one .npz per swept tree, per cohort, reused across runs.
+#
+# $STR_RESULTS_DIR overrides the parent of both.
 def results_root() -> Path:
     env = os.environ.get("STR_RESULTS_DIR")
     return Path(env).expanduser() if env else _REPO / "results" / "real_data"
 
 
 def _slug(name: str) -> str:
-    return name.replace(" ", "_").lower()
+    return "_".join(str(name).lower().split())
 
 
-def cohort_results_dir(name: str) -> Path:
-    return results_root() / _slug(name)
+def cache_dir(cohort_name: str) -> Path:
+    return results_root() / "_cache" / _slug(cohort_name)
 
 
-def screen_cache_path(name: str) -> Path:
-    """Step 1 output: one row per tree (eta + validity per operator)."""
-    return cohort_results_dir(name) / "screen.npz"
+def screen_cache_path(cohort_name: str) -> Path:
+    """Resumable screen state for one cohort: one row per tree."""
+    return cache_dir(cohort_name) / "screen.npz"
 
 
-def sweep_cache_dir(name: str, prefix: str = "") -> Path:
-    """Sweep output: one .npz per tree, every metric for both arms.
-
-    ``prefix`` names the run, so two grids or two validity gates can live side by side
-    (``sweep_lowp/`` beside ``sweep/``) instead of one invalidating the other's cache.
-    Screening takes no prefix: it has no free parameters to vary, one per cohort.
-    """
-    return cohort_results_dir(name) / (f"sweep_{_slug(prefix)}" if prefix else "sweep")
+def sweep_cache_dir(cohort_name: str) -> Path:
+    """Resumable sweep state for one cohort: one .npz per tree."""
+    return cache_dir(cohort_name) / "sweep"
 
 
-def log_path(name: str, stage: str, prefix: str = "") -> Path:
-    stem = f"{stage}_{_slug(prefix)}" if prefix else stage
-    return cohort_results_dir(name) / f"{stem}.log"
+def new_run_dir(name: str = "") -> Path:
+    """``runs/<timestamp>[-<name>]/`` -- created empty, then filled by the run."""
+    from datetime import datetime
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    d = results_root() / "runs" / (f"{stamp}-{_slug(name)}" if name else stamp)
+    d.mkdir(parents=True, exist_ok=True)
+    return d

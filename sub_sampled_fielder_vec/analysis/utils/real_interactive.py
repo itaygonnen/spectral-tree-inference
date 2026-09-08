@@ -32,11 +32,11 @@ from src.utils.interactive_ui import (                       # noqa: E402
     confirm, get_input, get_menu_choice, get_multi_choice, print_divider, print_error,
     print_header, print_option, print_success, print_warning)
 
-from .real_cohorts import (cohort_results_dir, list_cohorts,  # noqa: E402
-                           log_path, screen_cache_path, sweep_cache_dir)
+from .real_cohorts import (list_cohorts, new_run_dir,         # noqa: E402
+                           screen_cache_path, sweep_cache_dir)
 from .real_eta_screen import run_real_eta_screen             # noqa: E402
 from .real_recovery_sweep import run_sweep                   # noqa: E402
-from .real_results import Tee, export_all, write_config_json  # noqa: E402
+from .real_results import Tee, export_run, write_config      # noqa: E402
 
 # Defaults, shared by every cohort in one run. The p-grid and reps match the notebook's
 # figure, so a run left on defaults extends the caches the notebook plots from. p starts
@@ -226,27 +226,31 @@ def run_real_data_menu() -> None:
         print_warning("Cancelled")
         return
 
-    stage_name = "screen" if is_screen else "sweep"   # log file name
-    prefix = "" if is_screen else cfg["prefix"]
-    for k, r in enumerate(plan, 1):
-        cohort, ids = r["cohort"], r["ids"]
-        print_divider()
-        print_header(f"[{k}/{len(plan)}] {cohort.name}")
-        if not ids:
-            print_warning(f"no tree passes [{cfg['rule']}] -- skipped")
-            continue
-        # an interactive run should leave the same record a nohup'd one does
-        write_config_json(cohort.name, dict(cfg, stage=stage_name, m=r["m"],
-                                            trees=len(ids)), prefix)
-        tee = Tee(log_path(cohort.name, stage_name, prefix))
-        sys.stdout = tee
-        try:
+    stage_name = "screen" if is_screen else "sweep"
+    run_dir = new_run_dir(cfg["prefix"])
+    write_config(run_dir, cfg, [c.name for c in chosen], stage_name)
+    print(f"run directory: {run_dir}")
+
+    # one log for the whole run, beside its results
+    tee = Tee(run_dir / "run.log")
+    sys.stdout = tee
+    selected = {}
+    try:
+        for k, r in enumerate(plan, 1):
+            cohort, ids = r["cohort"], r["ids"]
+            print_divider()
+            print_header(f"[{k}/{len(plan)}] {cohort.name}")
+            if not ids:
+                print_warning(f"no tree passes [{cfg['rule']}] -- skipped")
+                continue
+            selected[cohort.name] = list(ids)
             _run_stage(cohort, ids, cfg, is_screen, r["m"])
-        finally:
-            tee.close()
-        for f in export_all(cohort.name, prefix):
-            print(f"  wrote {f}")
-        print_success(f"results -> {cohort_results_dir(cohort.name)}")
+    finally:
+        tee.close()
+
+    for f in export_run(run_dir, selected or {c.name: c.ids() for c in chosen}):
+        print(f"  {f.name}")
+    print_success(f"everything for this run is in {run_dir}")
 
 
 def _run_stage(cohort, ids, cfg: dict, is_screen: bool, m: int) -> None:

@@ -1,59 +1,66 @@
 # results/real_data/
 
-Everything the real-cohort experiments produce, one directory per cohort. This is the
-whole output: nothing is written beside the notebooks, and nothing else has to be
-collected from a cluster run.
-
 ```
-results/real_data/<cohort>/          e.g. 6000_taxa/
-    screen.npz          screening, machine-readable: one row per tree
-    screen.csv          screening, readable: tree, m, eta_L, valid_L, eta_B, valid_B
-    screen.log          what the screening run printed
-    sweep/<tree>.npz    recovery sweep, per tree: every metric, both arms, per p
-    sweep_summary.csv   recovery sweep, readable: per p, median and std across trees
-    sweep.log           what the sweep run printed
+runs/<timestamp>-<name>/     ONE directory per run -- every cohort that run covered
+    config.json              what was asked for: cohorts, gate, p-grid, reps, commit, time
+    summary.json             headline numbers per cohort
+    run.log                  everything the run printed
+    screening.csv            every tree of every cohort: eta and validity per operator
+    per_tree.csv             every tree x every p: all metrics, both arms
+    curves.csv               per cohort x p: median and std across trees  <- plot from this
+    recovery_curve.png       median NMI vs p, every cohort, both arms, both references
+
+_cache/<cohort>/             machine state, not a deliverable: screen.npz and one .npz per
+                             swept tree, so a killed run resumes and a second run reuses
+                             what the first computed
 ```
 
-Naming a run (the launcher's "Name for this run", or `--prefix`) puts its sweep in
-`sweep_<name>/` with `sweep_summary_<name>.csv` and `sweep_<name>.log`, so two grids or
-two validity gates sit side by side instead of one invalidating the other. Screening
-takes no name: it has no free parameters, so there is one per cohort.
+Download or mail a whole run by taking its directory: a few hundred KB, no other file is
+needed. `$STR_RESULTS_DIR` moves the parent of both roots (a scratch filesystem, say).
 
-Small by design — a screen is ~10 KB and a swept tree ~3 KB, so the whole thing is a few
-hundred KB and **is tracked by git**. A run on another machine therefore comes back with
-`git add results/real_data && git commit && git push`; no rsync needed.
+## Plotting from a run
 
-`$STR_RESULTS_DIR` moves the root elsewhere (a scratch filesystem, say).
+`curves.csv` is already aggregated: one row per (cohort, p), one column per
+`<metric>_<arm>_{median,std}`.
 
-## Reading it
+```python
+import pandas as pd, matplotlib.pyplot as plt
+df = pd.read_csv("curves.csv")
+for cohort, g in df.groupby("cohort"):
+    plt.plot(g.p, g.nmi_L_median, label=f"{cohort} L(S)")
+    plt.plot(g.p, g.nmi_B_median, "--", label=f"{cohort} B=HDH")
+plt.xscale("log"); plt.legend()
+```
 
-`screen.csv` — one row per tree. `eta` is the partition imbalance (larger clan / smaller
-clan) of that operator's split of the full matrix; `valid` is 1 when that split is a real
-single-edge bipartition of the true tree. `_L` is the Fiedler vector of `L(S)` cut by
-k-means, `_B` is the leading-|λ| eigenvector of `B = HDH` cut by sign.
+`per_tree.csv` holds the same numbers before aggregation, for per-tree spread.
 
-`sweep_summary.csv` — one row per sub-sampling rate `p`, columns
-`<metric>_<arm>_median` and `_std` across the trees included. Metrics: `nmi`, `ari`,
-`agreement` (% of taxa on the same side), `dot` (with the reference eigenvector), plus
-`sign_L`. NMI is what the paper figure plots; the rest are there so a follow-up question
-does not need a re-run.
+## Columns
 
-**Two references, as in the earlier `results/runs/real_data_benchmark` run.** Bare names
-(`nmi_L`) score the sub-sampled split against that arm's own **full-matrix** split: did
-sub-sampling keep what the full matrix saw? The `_gt` names (`nmi_gt_L`) score it against
-the **true tree's top bipartition**: was the full matrix seeing the right thing? They can
-disagree sharply -- 0.68 against the full matrix beside 0.013 against the tree on the
-m=1000 run -- and the second is the harder question.
+`screening.csv` — one row per tree. `eta` is the partition imbalance (larger clan /
+smaller clan) of that operator's split of the full matrix; `valid` is 1 when that split is
+a real single-edge bipartition of the true tree. `_L` is the Fiedler vector of `L(S)` cut
+by k-means, `_B` the leading-|λ| eigenvector of `B = HDH` cut by sign.
 
-## Producing it
+Metrics in `curves.csv` / `per_tree.csv`: `nmi`, `ari`, `agreement` (% of taxa on the same
+side), `dot` (with the reference eigenvector), plus `sign_L`. NMI is what the paper figure
+plots; the rest are stored so a follow-up question needs no re-run.
+
+**Two references.** Bare names (`nmi_L`) score the sub-sampled split against that arm's
+own **full-matrix** split: did sub-sampling keep what the full matrix saw? The `_gt` names
+(`nmi_gt_L`) score it against the **true tree's top bipartition**: was the full matrix
+seeing the right thing? They can disagree sharply -- 0.68 against the full matrix beside
+0.013 against the tree on the m=1000 benchmark -- and the second is the harder question.
+
+## Producing a run
 
 ```bash
 cd sub_sampled_fielder_vec
-python scripts/interactive_run.py            # real data -> cohorts -> step 1, then step 2
-# or, unattended:
-nohup python scripts/run_real_sweep.py --cohort "6000 taxa" --stage screen --workers 16 &
-nohup python scripts/run_real_sweep.py --cohort "6000 taxa" --stage sweep --cohort-rule valid_S &
+python scripts/interactive_run.py          # real data -> cohorts -> screening, then sweep
+# or unattended, both sizes in one run:
+nohup python scripts/run_real_sweep.py --cohort "1000 taxa,6000 taxa" \
+    --stage sweep --cohort-rule valid_S --prefix overnight &
 ```
 
-Both stages are cached per tree and resumable: interrupt either and re-run the same
-command. See `sub_sampled_fielder_vec/scripts/cluster/README.md` for the ssh workflow.
+Screening has to run before a sweep can be gated on it. Both are cached per tree and
+resumable: interrupt either and re-run the same command. See
+`sub_sampled_fielder_vec/scripts/cluster/README.md` for the ssh workflow.

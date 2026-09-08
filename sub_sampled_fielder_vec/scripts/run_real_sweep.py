@@ -33,10 +33,9 @@ for _p in (str(_ROOT), str(_REPO)):
         sys.path.insert(0, _p)
 
 from analysis.utils.real_cohorts import (                       # noqa: E402
-    cohort_results_dir, get_cohort, list_cohorts, log_path, screen_cache_path,
-    sweep_cache_dir)
-from analysis.utils.real_results import (Tee, export_all,        # noqa: E402
-                                         write_config_json)
+    get_cohort, list_cohorts, new_run_dir, screen_cache_path, sweep_cache_dir)
+from analysis.utils.real_results import (Tee, export_run,        # noqa: E402
+                                         write_config)
 from analysis.utils.real_eta_screen import run_real_eta_screen  # noqa: E402
 from analysis.utils.real_recovery_sweep import run_sweep        # noqa: E402
 
@@ -90,8 +89,7 @@ def main() -> None:
     ap.add_argument("--cohort-rule", choices=COHORT_RULES, default="both",
                     help="which screened trees enter the sweep")
     ap.add_argument("--prefix", default="",
-                    help="name this run: the sweep goes to <cohort>/sweep_<prefix>/ so "
-                         "two grids or gates can sit side by side")
+                    help="name this run: results land in runs/<timestamp>-<name>/")
     args = ap.parse_args()
 
     if args.list:
@@ -102,30 +100,30 @@ def main() -> None:
 
     names = ([c.name for c in list_cohorts()] if args.cohort.strip() == "all"
              else [n.strip() for n in args.cohort.split(",") if n.strip()])
-    for name in names:
-        if len(names) > 1:
-            print(f"\n=== {name} ({names.index(name) + 1}/{len(names)})", flush=True)
-        _run_cohort(get_cohort(name), args)
-    print("done.")
 
+    # one directory for the whole run, every cohort inside it
+    run_dir = new_run_dir(args.prefix)
+    write_config(run_dir, vars(args), names, args.stage)
+    print(f"run directory: {run_dir}", flush=True)
 
-def _run_cohort(cohort, args) -> None:
-    prefix = "" if args.stage == "screen" else args.prefix
-    stage_log = log_path(cohort.name, "screen" if args.stage == "screen" else "sweep",
-                         prefix)
-    write_config_json(cohort.name, dict(vars(args), m=cohort.shape()[0]), prefix)
-    tee = Tee(stage_log)
+    tee = Tee(run_dir / "run.log")
     sys.stdout = tee
+    selected = {}
     try:
-        _run_stages(cohort, args)
+        for i, name in enumerate(names, 1):
+            cohort = get_cohort(name)
+            if len(names) > 1:
+                print(f"\n=== {name} ({i}/{len(names)})", flush=True)
+            selected[name] = _run_cohort(cohort, args)
     finally:
         tee.close()
-    for f in export_all(cohort.name, prefix):
-        print(f"  wrote {f}")
-    print(f"results -> {cohort_results_dir(cohort.name)}  (log: {stage_log.name})")
+
+    for f in export_run(run_dir, selected):
+        print(f"  {f.name}")
+    print(f"everything for this run is in {run_dir}")
 
 
-def _run_stages(cohort, args) -> None:
+def _run_cohort(cohort, args) -> list:
     ids = cohort.ids(args.limit or None)
     m, seq_len = cohort.shape()
     print(f"cohort {cohort.name!r}: {len(ids)} trees, m={m}, L={seq_len}", flush=True)
@@ -139,14 +137,16 @@ def _run_stages(cohort, args) -> None:
         if not sweep_ids:
             print("nothing to sweep -- no tree passes the cohort rule "
                   f"{args.cohort_rule!r}. Try --cohort-rule valid_S or all.")
-            return
-        cache_dir = sweep_cache_dir(cohort.name, args.prefix)
+            return []
+        cache_dir = sweep_cache_dir(cohort.name)
         p_values = np.logspace(np.log10(args.p_min), 0, args.p_points)
         print(f"sweep: {len(p_values)} p x {args.reps} reps over {len(sweep_ids)} trees "
               f"-> {cache_dir}", flush=True)
         run_sweep(sweep_ids, cache_dir, p_values, reps=args.reps,
                   num_gaps=args.num_gaps, min_split=args.min_split,
                   cohort_name=cohort.name, m=m)
+        return sweep_ids
+    return list(ids)
 
 
 if __name__ == "__main__":
