@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the v9 paper's figure provenance, and regenerate PAPER_MAP.md.
+"""Validate the v10 paper's figure provenance, and regenerate PAPER_MAP.md.
 
 The manifest lives in ``analysis/paper_figures.py``.
 This script only reads it, so mapping / docs / checker cannot drift.
@@ -10,11 +10,11 @@ This script only reads it, so mapping / docs / checker cannot drift.
 
 Checks
 ------
-MISSING     a mapped figure is absent from v9/figures/
-UNMAPPED    an \\includegraphics in v9/sections/*.tex has no manifest entry
+MISSING     a mapped figure is absent from v10/figures/
+UNMAPPED    an \\includegraphics in v10/sections/*.tex has no manifest entry
                 -- the check that catches a wrong or stale mapping, which is how the
                    previous hand-maintained version drifted unnoticed
-ORPHAN      a file in v9/figures/ is neither mapped nor listed as RETIRED
+ORPHAN      a file in v10/figures/ is neither mapped nor listed as RETIRED
 NO-NOTEBOOK the producing notebook does not exist at the recorded path
 STALE       the notebook was modified well after the figure was written
 MIXED-RUN   panels of ONE float were written far apart in time, i.e. that figure
@@ -44,9 +44,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 ANALYSIS = ROOT / "analysis"
-V9 = ROOT / "docs" / "overleafs" / "v9"
-FIGURES_DIR = V9 / "figures"
-SECTIONS_DIR = V9 / "sections"
+# The live manuscript. v9 stays tracked as the last state the advisor reviewed;
+# --check validates whichever version MS points at.
+MS = ROOT / "docs" / "overleafs" / "v10"
+FIGURES_DIR = MS / "figures"
+SECTIONS_DIR = MS / "sections"
 MAP_PATH = ANALYSIS / "PAPER_MAP.md"
 
 sys.path.insert(0, str(ANALYSIS))
@@ -69,7 +71,7 @@ def _mtime(path: Path) -> str:
 
 
 def tex_images() -> dict[str, list[str]]:
-    """Every \\includegraphics target in v9/sections/, keyed by filename."""
+    """Every \\includegraphics target in v10/sections/, keyed by filename."""
     found: dict[str, list[str]] = {}
     for tex in sorted(SECTIONS_DIR.glob("*.tex")):
         for img in re.findall(r"\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}", tex.read_text()):
@@ -103,7 +105,7 @@ def check() -> int:
         if "retired" not in p.parts
     }
     for name in sorted(on_disk - set(mapped) - set(PF.RETIRED)):
-        errors.append(f"ORPHAN       {name}  in v9/figures/ but neither mapped nor RETIRED")
+        errors.append(f"ORPHAN       {name}  in v10/figures/ but neither mapped nor RETIRED")
 
     # Every notebook must be accounted for: either it produces a figure or it is listed as
     # supporting. Without this, a new notebook is invisible to the map -- which is exactly
@@ -171,12 +173,12 @@ def listing() -> None:
 def write_map() -> None:
     L: list[str] = []
     A = L.append
-    A("# PAPER_MAP — figure provenance for the v9 manuscript")
+    A("# PAPER_MAP — figure provenance for the v10 manuscript")
     A("")
     A("<!-- GENERATED FILE. Edit paper_figures.py, then run:")
     A("     python scripts/sync_paper_figures.py --write-map -->")
     A("")
-    A("Where every figure in `docs/overleafs/v9/` comes from: which notebook produces it,")
+    A("Where every figure in `docs/overleafs/v10/` comes from: which notebook produces it,")
     A("which claim it speaks to, which cache or results dir it consumes, and how to rebuild")
     A("it. Validated by `python scripts/sync_paper_figures.py --check`.")
     A("")
@@ -208,7 +210,7 @@ def write_map() -> None:
     A("")
     A("## Retired figures")
     A("")
-    A("Present in `v9/figures/` (or `figures/retired/`) but deliberately unreferenced.")
+    A("Present in `v10/figures/` (or `figures/retired/`) but deliberately unreferenced.")
     A("Listed so a stray file reads as \"retired on purpose\", not \"someone forgot\".")
     A("")
     A("| File | Why retired |")

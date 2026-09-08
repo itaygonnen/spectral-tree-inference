@@ -1,0 +1,16 @@
+{
+  "max_trees": 2,
+  "workers": 5,
+  "rule": "L(S) cuts a real tree edge",
+  "p_min": 0.001,
+  "p_points": 10,
+  "reps": 3,
+  "prefix": "trial_2",
+  "cohorts": [
+    "1000 taxa",
+    "6000 taxa"
+  ],
+  "stage": "sweep",
+  "commit": "7887f34",
+  "started": "2026-09-08T18:39:27"
+}

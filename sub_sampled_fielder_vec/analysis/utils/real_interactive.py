@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import os
 import sys
+import traceback
 from pathlib import Path
 from typing import Dict, List
 
@@ -234,7 +235,7 @@ def run_real_data_menu() -> None:
     # one log for the whole run, beside its results
     tee = Tee(run_dir / "run.log")
     sys.stdout = tee
-    selected = {}
+    selected, failures = {}, []
     try:
         for k, r in enumerate(plan, 1):
             cohort, ids = r["cohort"], r["ids"]
@@ -243,13 +244,28 @@ def run_real_data_menu() -> None:
             if not ids:
                 print_warning(f"no tree passes [{cfg['rule']}] -- skipped")
                 continue
-            selected[cohort.name] = list(ids)
-            _run_stage(cohort, ids, cfg, is_screen, r["m"])
+            try:
+                _run_stage(cohort, ids, cfg, is_screen, r["m"])
+                selected[cohort.name] = list(ids)
+            except KeyboardInterrupt:
+                print_warning(f"{cohort.name}: interrupted -- cached trees are kept")
+                selected[cohort.name] = list(ids)
+                break
+            except Exception:
+                # the per-tree cache holds whatever finished, and the other cohorts are
+                # still worth running, so record the failure and carry on
+                failures.append(cohort.name)
+                print_error(f"{cohort.name} failed:")
+                traceback.print_exc(file=sys.stdout)
+                selected[cohort.name] = list(ids)
     finally:
         tee.close()
 
     for f in export_run(run_dir, selected or {c.name: c.ids() for c in chosen}):
         print(f"  {f.name}")
+    if failures:
+        print_error(f"{len(failures)} cohort(s) failed: {', '.join(failures)} "
+                    f"-- traceback in {run_dir / 'run.log'}")
     print_success(f"everything for this run is in {run_dir}")
 
 
@@ -264,5 +280,5 @@ def _run_stage(cohort, ids, cfg: dict, is_screen: bool, m: int) -> None:
         print_success(f"{len(rows)} trees: L(S) cuts a real edge on {n_s}, B on {n_b}")
     else:
         p_values = np.logspace(np.log10(cfg["p_min"]), 0, cfg["p_points"])
-        run_sweep(ids, sweep_cache_dir(cohort.name, cfg["prefix"]), p_values,
+        run_sweep(ids, sweep_cache_dir(cohort.name), p_values,
                   reps=cfg["reps"], cohort_name=cohort.name, m=m)

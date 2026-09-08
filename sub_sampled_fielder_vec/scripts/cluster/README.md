@@ -46,7 +46,16 @@ correct. `$STR_DATA_DIR` overrides the location if the data belongs on scratch.
 `push.sh user@host --data "6000 taxa"` is the alternative when the data is only on a
 laptop: it rsyncs the repo and the cohort over ssh, excluding caches, results and `.git`.
 
-## 3. Run
+## 3. Check, then run
+
+```bash
+python -m analysis.utils.real_selftest   # ~1 min, writes to a scratch dir
+```
+
+Confirms the data is readable and the whole pipeline runs end to end before you start
+anything long.
+
+## 3b. Run
 
 Interactive — the same launcher as on a laptop, option `d`:
 

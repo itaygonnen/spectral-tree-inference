@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import traceback
 from pathlib import Path
 
 import numpy as np
@@ -108,19 +109,32 @@ def main() -> None:
 
     tee = Tee(run_dir / "run.log")
     sys.stdout = tee
-    selected = {}
+    selected, failures = {}, []
     try:
         for i, name in enumerate(names, 1):
-            cohort = get_cohort(name)
             if len(names) > 1:
                 print(f"\n=== {name} ({i}/{len(names)})", flush=True)
-            selected[name] = _run_cohort(cohort, args)
+            try:
+                selected[name] = _run_cohort(get_cohort(name), args)
+            except KeyboardInterrupt:
+                print(f"{name}: interrupted -- cached trees are kept", flush=True)
+                break
+            except Exception:
+                # keep the other cohorts and the export; the cache holds what finished
+                failures.append(name)
+                print(f"ERROR: {name} failed:", flush=True)
+                traceback.print_exc(file=sys.stdout)
     finally:
         tee.close()
 
     for f in export_run(run_dir, selected):
         print(f"  {f.name}")
+    if failures:
+        print(f"ERROR: {len(failures)} cohort(s) failed: {', '.join(failures)} "
+              f"-- traceback in {run_dir / 'run.log'}")
     print(f"everything for this run is in {run_dir}")
+    if failures:
+        sys.exit(1)
 
 
 def _run_cohort(cohort, args) -> list:
