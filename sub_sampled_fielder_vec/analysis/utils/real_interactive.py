@@ -109,8 +109,13 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
         cfg["workers"] = int(get_input("Workers", default=str(cfg["workers"])))
         return cfg
 
-    labels = [f"{name}  ({', '.join(str(len(_select_ids(c.ids(), verdicts_by[c.name], name))) for c in cohorts)} trees)"
-              for name in RULES]
+    # one count per chosen cohort, named -- "2, 91" alone reads as a range or a tuple
+    labels = [
+        f"{name}  ["
+        + "; ".join(f"{c.name}: {len(_select_ids(c.ids(), verdicts_by[c.name], name))}"
+                    f"/{len(c.ids())}" for c in cohorts)
+        + "]"
+        for name in RULES]
     chosen = get_menu_choice("Reference partition must be a real tree edge under:",
                              labels, default_index=list(RULES).index(cfg["rule"]))
     cfg["rule"] = list(RULES)[labels.index(chosen)]
