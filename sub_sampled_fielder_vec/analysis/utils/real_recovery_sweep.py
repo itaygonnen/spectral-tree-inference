@@ -201,17 +201,20 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
 
     finished: List[str] = []
     todo = [t for t in ids if load_tree_sweep(cache_dir, t, pv, meta) is None]
-    log_info("bootstrap", f"{cohort_name}: {len(ids) - len(todo)}/{len(ids)} trees "
-                          f"already cached; {len(todo)} to run "
-                          f"({len(pv)} p x {reps} reps, p={pv[0]:g}..{pv[-1]:g})",
-             force=True)
+    print(f"  {len(ids) - len(todo)}/{len(ids)} trees cached, {len(todo)} to run "
+          f"({len(pv)} p x {reps} reps, p={pv[0]:g}..{pv[-1]:g})", flush=True)
+    log_info("bootstrap", f"{cohort_name}: {len(ids) - len(todo)}/{len(ids)} cached, "
+                          f"{len(todo)} to run, p={pv[0]:g}..{pv[-1]:g}, reps={reps}")
 
     t0 = time.time()
-    trees_bar = create_progress_bar(len(todo), f"{cohort_name}: trees", unit="tree")
+    # ONE bar, not a nested pair: nested bars repaint over each other whenever the output
+    # is piped to a log. The tree counter lives in the description, the ETA in the
+    # postfix, and each bar covers the 2x|p| arm-steps of its own tree -- so it moves
+    # several times a minute even at m=6000.
     for k, tid in enumerate(todo, 1):
         t_tree = time.time()
-        # two arms x |p| steps, so the bar moves several times a minute even at m=6000
-        inner = create_progress_bar(2 * len(pv), f"  {tid}", unit="p", leave=False)
+        inner = create_progress_bar(2 * len(pv),
+                                    f"  [{k}/{len(todo)}] {tid}", unit="p", leave=False)
         curves = sweep_one_tree(
             tid, seed=seed_for(tid, seed_stride), p_values=pv,
             reps=reps, num_gaps=num_gaps, min_split=min_split,
@@ -221,13 +224,13 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
         np.savez(_cache_file(cache_dir, tid), p_values=pv,
                  meta=np.array(meta, dtype=object), **curves)
         finished.append(tid)
-        trees_bar.update(1)
-        el, per = time.time() - t0, (time.time() - t0) / k
+        el = time.time() - t0
+        eta_h = (el / k) * (len(todo) - k) / 3600.0
         log_info("bootstrap",
                  f"[{k}/{len(todo)}] {tid} done in {time.time() - t_tree:.0f} s "
-                 f"(elapsed {el/3600:.2f} h, ETA {per*(len(todo)-k)/3600:.2f} h)",
-                 force=True)
-    trees_bar.close()
+                 f"(elapsed {el/3600:.2f} h, ETA {eta_h:.2f} h)")
+    print(f"  {len(finished)} tree(s) swept in {(time.time() - t0)/3600:.2f} h",
+          flush=True)
     return finished
 
 

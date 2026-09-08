@@ -27,7 +27,7 @@ from typing import Dict, List, Optional, Sequence
 
 import numpy as np
 
-from src.utils.logging import create_progress_bar, log_info
+from src.utils.logging import create_progress_bar, log_info, log_warning
 
 MIN_SPLIT = 5  # matches the STDR/test convention used throughout the repo
 
@@ -101,12 +101,14 @@ def run_real_eta_screen(
 
     todo = [t for t in ids if t not in done]
     if not todo:
-        log_info("screen", f"{cohort_name}: nothing to do -- all "
-                           f"{len(ids)} ids cached", force=True)
+        print(f"  all {len(ids)} trees already cached", flush=True)
+        log_info("screen", f"{cohort_name}: nothing to do, all {len(ids)} ids cached")
         return [done[t] for t in ids]
 
+    print(f"  {len(done)}/{len(ids)} trees cached, {len(todo)} to run "
+          f"on {workers} workers", flush=True)
     log_info("screen", f"{cohort_name}: computing {len(todo)} trees on {workers} "
-                       f"workers ({len(done)} already cached)", force=True)
+                       f"workers ({len(done)} already cached)")
     # One BLAS thread per worker: the per-tree work is already parallel across trees, and
     # on a many-core Linux box the default (every worker opening a full thread pool)
     # oversubscribes the machine and runs slower than serial. "spawn" so the children
@@ -116,7 +118,8 @@ def run_real_eta_screen(
                "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
         os.environ.setdefault(_v, "1")
     n_done = 0
-    bar = create_progress_bar(len(todo), f"{cohort_name}: screening", unit="tree")
+    bar = create_progress_bar(len(todo), f"  screening {cohort_name}", unit="tree",
+                              leave=False)
     with ProcessPoolExecutor(max_workers=workers,
                              mp_context=mp.get_context("spawn")) as ex:
         futs = {ex.submit(_worker, (t, cohort_name)): t for t in todo}
@@ -141,9 +144,14 @@ def run_real_eta_screen(
     bar.close()
 
     rows = [done[t] for t in ids if t in done]
+    n_s = sum(1 for r in rows if r.get("valid_S"))
+    n_b = sum(1 for r in rows if r.get("valid_B"))
+    print(f"  {len(rows)} tree(s) screened: L(S) cuts a real edge on {n_s}, B on {n_b}",
+          flush=True)
     bad = [r for r in rows if "error" in r]
     if bad:
-        print(f"WARNING: {len(bad)} trees failed, e.g. {bad[0]['error'][:120]}")
+        print(f"  WARNING: {len(bad)} trees failed, e.g. {bad[0]['error'][:120]}")
+        log_warning("screen", f"{len(bad)} trees failed")
     return rows
 
 
