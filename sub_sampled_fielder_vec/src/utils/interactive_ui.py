@@ -210,12 +210,18 @@ def get_input(prompt: str, default: Optional[str] = None, color: str = Colors.CY
     else:
         full_prompt = f"{prompt}: "
 
-    try:
-        user_input = input(color + full_prompt + Colors.RESET).strip()
-        return user_input if user_input else default
-    except (KeyboardInterrupt, EOFError):
-        print(f"\n{Colors.RED}Interrupted by user{Colors.RESET}")
-        sys.exit(0)
+    while True:
+        try:
+            user_input = input(color + full_prompt + Colors.RESET).strip()
+            return user_input if user_input else default
+        except (KeyboardInterrupt, EOFError):
+            print(f"\n{Colors.RED}Interrupted by user{Colors.RESET}")
+            sys.exit(0)
+        except UnicodeDecodeError:
+            # e.g. a key pressed while the keyboard is on a non-Latin layout: the byte
+            # never reaches us as text. Re-ask instead of dying mid-run.
+            print(f"{Colors.YELLOW}Could not read that keystroke (non-UTF-8 input) -- "
+                  f"check the keyboard layout and type it again{Colors.RESET}")
 
 
 def get_choice(prompt: str, valid_choices: List[str], case_sensitive: bool = False) -> str:

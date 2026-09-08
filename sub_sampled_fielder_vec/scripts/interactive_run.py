@@ -503,7 +503,9 @@ def main():
     # Clean up incomplete cache entries from interrupted experiments
     clean_incomplete_caches()
 
-    if choose_data_source() == DATA_SOURCES[0]:
+    # The real branch loops back to the data-source question, not into the generated
+    # menu -- "run another" after a real-cohort run meant a different kind of experiment.
+    while choose_data_source() == DATA_SOURCES[0]:
         from analysis.utils.real_interactive import run_real_data_menu
         run_real_data_menu()
         if not confirm("Run another experiment?", default=False):
