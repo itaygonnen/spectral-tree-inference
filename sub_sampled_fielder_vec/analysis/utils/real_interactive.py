@@ -65,8 +65,10 @@ def _select_ids(ids, verdicts: dict, rule: str) -> list:
 ALL_TREES = "every tree, valid or not"
 
 # Defaults for a real-cohort run. The p-grid and reps match the notebook's figure, so a
-# run left on defaults extends the same caches the notebook plots from.
-P_MIN, P_POINTS, REPS = 0.01, 20, 10
+# run left on defaults extends the same caches the notebook plots from. p starts at 1e-4:
+# the transition sits near log n / n, which is 1.4e-3 at m=6000, so the grid has to reach
+# below that for the curve to show a floor rather than start on the ramp.
+P_MIN, P_POINTS, REPS = 1e-4, 20, 10
 
 
 def _default_rule(ids, verdicts: dict) -> str:

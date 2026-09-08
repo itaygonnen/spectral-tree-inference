@@ -78,7 +78,7 @@ def main() -> None:
     ap.add_argument("--stage", choices=("screen", "sweep", "both"), default="both")
     ap.add_argument("--limit", type=int, default=0, help="first N trees only")
     ap.add_argument("--workers", type=int, default=4, help="screen workers")
-    ap.add_argument("--p-min", type=float, default=0.01,
+    ap.add_argument("--p-min", type=float, default=1e-4,
                     help="smallest sub-sampling rate; the grid always ends at 1.0")
     ap.add_argument("--p-points", type=int, default=20, help="log-spaced p in [p-min, 1]")
     ap.add_argument("--reps", type=int, default=10, help="bootstrap reps per p")
