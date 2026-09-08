@@ -38,6 +38,8 @@ from .real_cohorts import (list_cohorts, new_run_dir,         # noqa: E402
 from .real_eta_screen import run_real_eta_screen             # noqa: E402
 from .real_recovery_sweep import run_sweep                   # noqa: E402
 from .real_results import Tee, export_run, write_config      # noqa: E402
+from src.utils.logging import (close_log_file, set_display_mode,  # noqa: E402
+                               setup_log_file)
 
 # Defaults, shared by every cohort in one run. The p-grid and reps match the notebook's
 # figure, so a run left on defaults extends the caches the notebook plots from. p starts
@@ -87,7 +89,8 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
     cfg = dict(max_trees=0,                       # 0 = every tree in each cohort
                workers=max(1, min(8, (os.cpu_count() or 4) // 2)),
                rule=_default_rule(cohorts, verdicts_by),
-               p_min=P_MIN, p_points=P_POINTS, reps=REPS, prefix="")
+               p_min=P_MIN, p_points=P_POINTS, reps=REPS, prefix="",
+               display_mode="progress")
 
     print_divider()
     print("configuration (applies to every cohort chosen):")
@@ -127,8 +130,12 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
     cfg["p_points"] = int(get_input(
         f"p-grid points (log-spaced, {cfg['p_min']:g}..1)", default=str(cfg["p_points"])))
     cfg["reps"] = int(get_input("Bootstrap reps per p", default=str(cfg["reps"])))
-    name = get_input("Name for this run (blank = default 'sweep' dir)", default="")
+    name = get_input("Name for this run (blank = timestamp only)", default="")
     cfg["prefix"] = (name or "").strip()
+    cfg["display_mode"] = get_menu_choice(
+        "Output:", ["progress - bars, and every line in the run's experiment.log",
+                    "debug - every line on the terminal too, no bars"],
+        default_index=0).split(" ")[0]
     return cfg
 
 
@@ -230,6 +237,9 @@ def run_real_data_menu() -> None:
     stage_name = "screen" if is_screen else "sweep"
     run_dir = new_run_dir(cfg["prefix"])
     write_config(run_dir, cfg, [c.name for c in chosen], stage_name)
+    # progress bars on the terminal, every line in the run's own experiment.log
+    set_display_mode(cfg.get("display_mode", "progress"))
+    setup_log_file(str(run_dir))
     print(f"run directory: {run_dir}")
 
     # one log for the whole run, beside its results
@@ -260,6 +270,7 @@ def run_real_data_menu() -> None:
                 selected[cohort.name] = list(ids)
     finally:
         tee.close()
+        close_log_file()
 
     for f in export_run(run_dir, selected or {c.name: c.ids() for c in chosen}):
         print(f"  {f.name}")

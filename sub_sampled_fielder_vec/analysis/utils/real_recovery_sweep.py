@@ -31,6 +31,8 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
+from src.utils.logging import create_progress_bar, log_info
+
 # Cache-key fields. A tree whose stored meta differs is recomputed rather than mixed
 # into a figure with a different grid. ``metrics`` is part of the key so caches written
 # before every metric was stored are recomputed instead of read back half-empty.
@@ -126,8 +128,13 @@ def load_tree_sweep(cache_dir, tid: str, p_values: Sequence[float], meta: Dict,
 
 def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
                    num_gaps: int, min_split: int,
-                   cohort_name: str = "6000 taxa") -> Dict[str, np.ndarray]:
-    """Run both arms on one tree. Returns ``{"<metric>_L"/"_B": one value per p}``."""
+                   cohort_name: str = "6000 taxa",
+                   progress_cb=None) -> Dict[str, np.ndarray]:
+    """Run both arms on one tree. Returns ``{"<metric>_L"/"_B": one value per p}``.
+
+    ``progress_cb(stage, p_index, p)`` is called after every p of every arm, so a caller
+    can show movement inside a tree that takes half an hour.
+    """
     from analysis.utils.real_cohorts import get_cohort
     from src.core.utils import compute_fiedler_from_laplacian, compute_laplacian
     from src.runners.p_sweep_inner import bootstrap_p_sweep_simple
@@ -138,12 +145,23 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
         raise FileNotFoundError(f"{tid}: alignment or tree missing")
     S, labels, tree, D = loaded
     gt = _gt_partition(tree, labels)
+    log_info("bootstrap", f"{tid}: loaded m={S.shape[0]}, "
+                          f"true-tree top split {int(gt.sum())}/{int((~gt).sum())}")
+
+    def _cb(stage):
+        if progress_cb is None:
+            return None
+        return lambda i, p: progress_cb(stage, i, p)
 
     fr_L = compute_fiedler_from_laplacian(compute_laplacian(S))
     out_L = bootstrap_p_sweep_simple(
         S, fr_L, list(p_values), bootstrap_reps=reps, seed=seed,
         num_gaps=num_gaps, min_split=min_split,
-        partition_method="kmeans", laplacian="unnormalized")
+        partition_method="kmeans", laplacian="unnormalized",
+        progress_cb=_cb("L"))
+    n1, n2 = out_L["partition_split_ref"]
+    log_info("bootstrap", f"{tid}: L(S) reference split {n1}/{n2} "
+                          f"(eta={max(n1, n2) / max(min(n1, n2), 1):.2f})")
     # the two arms name the same quantities differently; map both onto METRICS
     out = {f"{m}_L": np.asarray(out_L[k], float) for m, k in (
         ("nmi", "partition_nmi_M"), ("ari", "partition_ari_M"),
@@ -151,7 +169,10 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
         ("sign", "sign_agreement"))}
 
     raw = bpart_sweep_raw(D, list(p_values), reps=reps, seed_base=seed,
-                          eigsolver="lm_k1", aggregation="avg_vector")
+                          eigsolver="lm_k1", aggregation="avg_vector",
+                          progress_cb=_cb("B"))
+    log_info("bootstrap", f"{tid}: B reference split {raw['n1']}/{raw['n2']} "
+                          f"(eta={raw['eta']:.2f})")
     for met in METRICS:
         out[f"{met}_B"] = np.array(
             [float(np.mean(pp[met])) for pp in raw["per_p"]], float)
@@ -180,22 +201,33 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
 
     finished: List[str] = []
     todo = [t for t in ids if load_tree_sweep(cache_dir, t, pv, meta) is None]
-    print(f"{len(ids) - len(todo)}/{len(ids)} trees already cached; "
-          f"{len(todo)} to run ({len(pv)} p x {reps} reps)", flush=True)
+    log_info("bootstrap", f"{cohort_name}: {len(ids) - len(todo)}/{len(ids)} trees "
+                          f"already cached; {len(todo)} to run "
+                          f"({len(pv)} p x {reps} reps, p={pv[0]:g}..{pv[-1]:g})",
+             force=True)
 
     t0 = time.time()
+    trees_bar = create_progress_bar(len(todo), f"{cohort_name}: trees", unit="tree")
     for k, tid in enumerate(todo, 1):
         t_tree = time.time()
+        # two arms x |p| steps, so the bar moves several times a minute even at m=6000
+        inner = create_progress_bar(2 * len(pv), f"  {tid}", unit="p", leave=False)
         curves = sweep_one_tree(
             tid, seed=seed_for(tid, seed_stride), p_values=pv,
             reps=reps, num_gaps=num_gaps, min_split=min_split,
-            cohort_name=cohort_name)
+            cohort_name=cohort_name,
+            progress_cb=lambda stage, i, p: inner.update(1))
+        inner.close()
         np.savez(_cache_file(cache_dir, tid), p_values=pv,
                  meta=np.array(meta, dtype=object), **curves)
         finished.append(tid)
+        trees_bar.update(1)
         el, per = time.time() - t0, (time.time() - t0) / k
-        print(f"  [{k}/{len(todo)}] {tid}  {time.time() - t_tree:.0f} s  "
-              f"(elapsed {el/3600:.1f} h, ETA {per*(len(todo)-k)/3600:.1f} h)", flush=True)
+        log_info("bootstrap",
+                 f"[{k}/{len(todo)}] {tid} done in {time.time() - t_tree:.0f} s "
+                 f"(elapsed {el/3600:.2f} h, ETA {per*(len(todo)-k)/3600:.2f} h)",
+                 force=True)
+    trees_bar.close()
     return finished
 
 

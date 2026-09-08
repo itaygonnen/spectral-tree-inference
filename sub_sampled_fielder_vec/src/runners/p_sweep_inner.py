@@ -13,7 +13,7 @@ quick agreement curve.
 from __future__ import annotations
 
 import warnings
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 
@@ -87,6 +87,7 @@ def bootstrap_p_sweep_simple(
     early_stop_consecutive_100: int = 0,
     partition_method: str = "sigma2",
     laplacian: str = "unnormalized",
+    progress_cb: Optional[Callable[[int, float], None]] = None,
 ) -> Dict[str, Any]:
     """Bootstrap p-sweep with precomputed (M, fiedler_ref). Uniform sampling.
 
@@ -113,6 +114,8 @@ def bootstrap_p_sweep_simple(
         - ``"kmeans"``: data-driven τ via k-means(k=2) on the Fiedler
           entries (Ng-Jordan-Weiss); splits at the variance-minimizing
           natural break, ``min_split`` guards tiny clusters.
+    progress_cb : optional ``f(p_index, p)`` called after each p value, so a caller can
+        drive a progress bar over a sweep that otherwise runs silently for minutes.
     laplacian : which Laplacian the per-bootstrap Fiedler is taken from.
         - ``"unnormalized"`` (default): ``L = Deg(S) - S``.
         - ``"normalized"``: ``L_sym = I - D^{-1/2} S D^{-1/2}``.
@@ -177,6 +180,9 @@ def bootstrap_p_sweep_simple(
             sign_agreement.extend([100.0] * remaining)
             dot_product.extend([1.0] * remaining)
             partitions.extend([partition_ref.copy()] * remaining)
+            if progress_cb is not None:
+                for j in range(idx, len(p_values)):
+                    progress_cb(j, float(p_values[j]))
             break
 
         if p >= 0.9999:
@@ -187,6 +193,8 @@ def bootstrap_p_sweep_simple(
             dot_product.append(1.0)
             partitions.append(partition_ref.copy())
             consecutive_100 += 1
+            if progress_cb is not None:
+                progress_cb(idx, float(p))
             continue
 
         aligned: List[np.ndarray] = []
@@ -243,6 +251,8 @@ def bootstrap_p_sweep_simple(
             log_warning('p_sweep_inner', f"dot_product failed at p={p:.4g}: {e}")
             dot_product.append(float('nan'))
         consecutive_100 = consecutive_100 + 1 if agr_M == 100.0 else 0
+        if progress_cb is not None:
+            progress_cb(idx, float(p))
 
     return {
         "p_values": list(p_values),

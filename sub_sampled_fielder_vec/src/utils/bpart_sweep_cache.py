@@ -129,6 +129,7 @@ def bpart_sweep_raw(
     D: np.ndarray, p_values: Sequence[float], reps: int,
     seed_base: int = 0, imputation: str = "mean",
     eigsolver: str = DEFAULT_SOLVER, aggregation: str = DEFAULT_AGGREGATION,
+    progress_cb: Optional[Callable[[int, float], None]] = None,
 ) -> Dict[str, Any]:
     """Run one B-method subsampling sweep on a single distance matrix ``D``.
 
@@ -143,6 +144,8 @@ def bpart_sweep_raw(
 
     ``eigsolver`` is used for the reference vector **and** every sub-sampled one,
     so a sweep never compares across two implementations.
+
+    ``progress_cb`` is called ``f(p_index, p)`` after each p, for a caller's progress bar.
     """
     if imputation not in ("mean", "zero"):
         raise ValueError(f"imputation must be 'mean' or 'zero', got {imputation!r}")
@@ -184,6 +187,8 @@ def bpart_sweep_raw(
             # (e.g. the true tree's own split) without re-running the sweep
             "partitions": [np.asarray(v) >= 0 for v in scored],
         })
+        if progress_cb is not None:
+            progress_cb(p_idx, float(p))
 
     return {
         "p_values": [float(p) for p in p_values],

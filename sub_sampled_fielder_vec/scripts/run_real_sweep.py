@@ -37,6 +37,8 @@ from analysis.utils.real_cohorts import (                       # noqa: E402
     get_cohort, list_cohorts, new_run_dir, screen_cache_path, sweep_cache_dir)
 from analysis.utils.real_results import (Tee, export_run,        # noqa: E402
                                          write_config)
+from src.utils.logging import (close_log_file, set_display_mode,  # noqa: E402
+                               setup_log_file)
 from analysis.utils.real_eta_screen import run_real_eta_screen  # noqa: E402
 from analysis.utils.real_recovery_sweep import run_sweep        # noqa: E402
 
@@ -91,6 +93,9 @@ def main() -> None:
                     help="which screened trees enter the sweep")
     ap.add_argument("--prefix", default="",
                     help="name this run: results land in runs/<timestamp>-<name>/")
+    ap.add_argument("--display-mode", choices=("progress", "debug"), default="progress",
+                    help="progress: bars on the terminal, full detail in experiment.log; "
+                         "debug: every line on the terminal, no bars")
     args = ap.parse_args()
 
     if args.list:
@@ -105,6 +110,8 @@ def main() -> None:
     # one directory for the whole run, every cohort inside it
     run_dir = new_run_dir(args.prefix)
     write_config(run_dir, vars(args), names, args.stage)
+    set_display_mode(args.display_mode)
+    setup_log_file(str(run_dir))
     print(f"run directory: {run_dir}", flush=True)
 
     tee = Tee(run_dir / "run.log")
@@ -126,6 +133,7 @@ def main() -> None:
                 traceback.print_exc(file=sys.stdout)
     finally:
         tee.close()
+        close_log_file()
 
     for f in export_run(run_dir, selected):
         print(f"  {f.name}")

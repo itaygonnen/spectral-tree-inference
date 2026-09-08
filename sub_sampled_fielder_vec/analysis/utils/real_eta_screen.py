@@ -27,6 +27,8 @@ from typing import Dict, List, Optional, Sequence
 
 import numpy as np
 
+from src.utils.logging import create_progress_bar, log_info
+
 MIN_SPLIT = 5  # matches the STDR/test convention used throughout the repo
 
 
@@ -95,14 +97,16 @@ def run_real_eta_screen(
     if cache_path.exists() and not force:
         z = np.load(cache_path, allow_pickle=True)
         done = {r["tree"]: r for r in z["rows"]}
-        print(f"cache: {len(done)} rows in {cache_path.name}")
+        log_info("screen", f"cache: {len(done)} rows in {cache_path}")
 
     todo = [t for t in ids if t not in done]
     if not todo:
-        print("nothing to do -- all ids cached")
+        log_info("screen", f"{cohort_name}: nothing to do -- all "
+                           f"{len(ids)} ids cached", force=True)
         return [done[t] for t in ids]
 
-    print(f"computing {len(todo)} trees of {cohort_name!r} on {workers} workers")
+    log_info("screen", f"{cohort_name}: computing {len(todo)} trees on {workers} "
+                       f"workers ({len(done)} already cached)", force=True)
     # One BLAS thread per worker: the per-tree work is already parallel across trees, and
     # on a many-core Linux box the default (every worker opening a full thread pool)
     # oversubscribes the machine and runs slower than serial. "spawn" so the children
@@ -112,6 +116,7 @@ def run_real_eta_screen(
                "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
         os.environ.setdefault(_v, "1")
     n_done = 0
+    bar = create_progress_bar(len(todo), f"{cohort_name}: screening", unit="tree")
     with ProcessPoolExecutor(max_workers=workers,
                              mp_context=mp.get_context("spawn")) as ex:
         futs = {ex.submit(_worker, (t, cohort_name)): t for t in todo}
@@ -119,11 +124,21 @@ def run_real_eta_screen(
             rec = f.result()
             if rec is not None:
                 done[rec["tree"]] = rec
+                if "error" in rec:
+                    log_info("screen", f"{rec['tree']}: FAILED {rec['error'][:100]}")
+                else:
+                    log_info("screen",
+                             f"{rec['tree']}: L(S) eta={rec['eta_S']:.2f} "
+                             f"{'edge' if rec['valid_S'] else 'not-an-edge'}, "
+                             f"B eta={rec['eta_B']:.2f} "
+                             f"{'edge' if rec['valid_B'] else 'not-an-edge'}")
             n_done += 1
+            bar.update(1)
             if n_done % progress == 0 or n_done == len(todo):
                 rows = [done[t] for t in ids if t in done]
                 np.savez(cache_path, rows=np.array(rows, dtype=object))
-                print(f"  [{n_done}/{len(todo)}] saved {len(rows)} rows", flush=True)
+                log_info("screen", f"[{n_done}/{len(todo)}] saved {len(rows)} rows")
+    bar.close()
 
     rows = [done[t] for t in ids if t in done]
     bad = [r for r in rows if "error" in r]

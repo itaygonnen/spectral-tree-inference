@@ -5,6 +5,8 @@ runs/<timestamp>-<name>/     ONE directory per run -- every cohort that run cove
     config.json              what was asked for: cohorts, gate, p-grid, reps, commit, time
     summary.json             headline numbers per cohort
     run.log                  everything the run printed
+    experiment.log           timestamped, tagged detail: per-tree reference splits, eta,
+                             k-means warnings, per-tree timing and ETA
     screening.csv            every tree of every cohort: eta and validity per operator
     per_tree.csv             every tree x every p: all metrics, both arms
     curves.csv               per cohort x p: median and std across trees  <- plot from this
