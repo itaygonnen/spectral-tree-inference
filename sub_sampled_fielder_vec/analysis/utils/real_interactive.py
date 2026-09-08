@@ -113,13 +113,13 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
     # Spell the counts out. A bare "2, 91" reads as a range, and even "2/66" hides that
     # the denominator a gate can act on is the SCREENED trees, not the cohort.
     print()
-    print("  Step 1 has to run before the sweep: it is what tells us, for each tree,")
-    print("  whether an operator's split of the full matrix is a real edge of the")
-    print("  true tree. Step 1 has been run on:")
+    print("  Screening is what establishes, per tree, whether an operator's split of")
+    print("  the full matrix is a real edge of the true tree, so the sweep can only use")
+    print("  trees it has covered:")
     for c in cohorts:
         n_scr = sum(1 for t in c.ids() if t in verdicts_by[c.name])
         print(f"    {c.name}: {n_scr} of {len(c.ids())} trees")
-    print("  The sweep can only use those trees; each option keeps this many of them:")
+    print("  Each option below keeps this many of them:")
     labels = [
         f"{name}  ->  "
         + ", ".join(
@@ -155,27 +155,25 @@ def _plan(cohorts, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> 
 
 
 def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
-    """Where step 1 stands on each chosen cohort, before the stage is picked."""
-    print_header("Step 1 status")
+    """Screening coverage and verdicts per chosen cohort, before anything is picked."""
+    print_header("Screening status")
+    hdr = (f"  {'cohort':<12}{'trees':>7}{'screened':>10}{'L(S) edge':>11}"
+           f"{'B edge':>8}{'both':>6}{'swept':>7}")
+    print(hdr)
+    print("  " + "-" * (len(hdr) - 2))
     for c in cohorts:
-        v = verdicts_by[c.name]
-        ids = c.ids()
+        v, ids = verdicts_by[c.name], c.ids()
         done = [t for t in ids if t in v]
-        if not done:
-            print(f"  {c.name}: not started ({len(ids)} trees)")
-            continue
         n_s = sum(1 for t in done if v[t].get("valid_S"))
         n_b = sum(1 for t in done if v[t].get("valid_B"))
-        n_both = sum(1 for t in done
-                     if v[t].get("valid_S") and v[t].get("valid_B"))
-        state = "complete" if len(done) == len(ids) else f"{len(done)} of {len(ids)} trees"
-        print(f"  {c.name}: {state} - real tree edge under L(S) on {n_s}, "
-              f"B on {n_b}, both on {n_both}")
-        n_swept = len(list(sweep_cache_dir(c.name).glob("*.npz"))) \
-            if sweep_cache_dir(c.name).is_dir() else 0
-        if n_swept:
-            print(f"  {' ' * len(c.name)}  step 2 done on {n_swept} tree(s)")
-    print()
+        n_both = sum(1 for t in done if v[t].get("valid_S") and v[t].get("valid_B"))
+        swept = (len(list(sweep_cache_dir(c.name).glob("*.npz")))
+                 if sweep_cache_dir(c.name).is_dir() else 0)
+        print(f"  {c.name:<12}{len(ids):>7}{len(done):>10}{n_s:>11}"
+              f"{n_b:>8}{n_both:>6}{swept:>7}")
+    print("\n  'L(S) edge' / 'B edge': trees where that operator's split of the full "
+          "matrix\n  is a real edge of the true tree. 'swept': trees the recovery sweep "
+          "has done.\n")
 
 
 def run_real_data_menu() -> None:
@@ -201,18 +199,18 @@ def run_real_data_menu() -> None:
     _print_status(chosen, verdicts_by)
 
     stage = get_menu_choice(
-        "Stage:", ["step 1 - screen: which split each operator reads off the full "
-                   "matrix, and is it a real tree edge",
-                   "step 2 - sweep: how much of that split survives sub-sampling "
-                   "(needs step 1)"], default_index=0)
-    is_screen = stage.startswith("step 1")
+        "Run:", ["screening - read a split off each operator on the full matrix and "
+                 "check it against the true tree",
+                 "recovery sweep - re-read that split from sub-sampled matrices and "
+                 "score what survives (needs screening)"], default_index=0)
+    is_screen = stage.startswith("screening")
 
     for c in chosen:
         n_screened = sum(1 for t in c.ids() if t in verdicts_by[c.name])
         if not is_screen and n_screened < len(c.ids()):
-            print_warning(f"{c.name}: step 1 has only run on {n_screened} of "
-                          f"{len(c.ids())} trees, and the sweep can only use trees "
-                          "step 1 has covered -- run step 1 on this cohort first")
+            print_warning(f"{c.name}: screening covers only {n_screened} of "
+                          f"{len(c.ids())} trees, and the sweep can only use screened "
+                          "trees -- screen this cohort first")
 
     cfg = _ask_config(chosen, is_screen, verdicts_by)
     plan = _plan(chosen, cfg, is_screen, verdicts_by)
@@ -234,7 +232,7 @@ def run_real_data_menu() -> None:
         print_warning("Cancelled")
         return
 
-    stage_name = "screen" if is_screen else "sweep"
+    stage_name = "screen" if is_screen else "sweep"   # log file name
     for k, r in enumerate(plan, 1):
         cohort, ids = r["cohort"], r["ids"]
         print_divider()
