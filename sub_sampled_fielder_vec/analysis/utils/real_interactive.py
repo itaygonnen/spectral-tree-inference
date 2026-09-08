@@ -112,16 +112,17 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
     # Spell the counts out. A bare "2, 91" reads as a range, and even "2/66" hides that
     # the denominator a gate can act on is the SCREENED trees, not the cohort.
     print()
-    print("  The sweep can only judge trees the screen has already looked at:")
+    print("  Step 1 has to run before the sweep: it is what tells us, for each tree,")
+    print("  whether an operator's split of the full matrix is a real edge of the")
+    print("  true tree. Step 1 has been run on:")
     for c in cohorts:
         n_scr = sum(1 for t in c.ids() if t in verdicts_by[c.name])
-        print(f"    {c.name}: {n_scr} of {len(c.ids())} trees screened")
-    print("  Each option below shows how many of those screened trees it keeps.")
+        print(f"    {c.name}: {n_scr} of {len(c.ids())} trees")
+    print("  The sweep can only use those trees; each option keeps this many of them:")
     labels = [
         f"{name}  ->  "
         + ", ".join(
-            f"{c.name}: keeps {len(_select_ids(c.ids(), verdicts_by[c.name], name))} "
-            f"of {sum(1 for t in c.ids() if t in verdicts_by[c.name])} screened"
+            f"{c.name}: {len(_select_ids(c.ids(), verdicts_by[c.name], name))} tree(s)"
             for c in cohorts)
         for name in RULES]
     chosen = get_menu_choice("Reference partition must be a real tree edge under:",
@@ -172,17 +173,19 @@ def run_real_data_menu() -> None:
     chosen = [cohorts[int(i) - 1] for i in picks]
 
     stage = get_menu_choice(
-        "Stage:", ["screen (eta + validity per operator)",
-                   "sweep (recovery NMI vs p)"], default_index=0)
-    is_screen = stage.startswith("screen")
+        "Stage:", ["step 1 - screen: which split each operator reads off the full "
+                   "matrix, and is it a real tree edge",
+                   "step 2 - sweep: how much of that split survives sub-sampling "
+                   "(needs step 1)"], default_index=0)
+    is_screen = stage.startswith("step 1")
 
     verdicts_by = {c.name: _verdicts(c) for c in chosen}
     for c in chosen:
         n_screened = sum(1 for t in c.ids() if t in verdicts_by[c.name])
         if not is_screen and n_screened < len(c.ids()):
-            print_warning(f"{c.name}: only {n_screened} of {len(c.ids())} trees are "
-                          "screened, and the sweep can only gate on screened trees -- "
-                          "run the screen stage on it first")
+            print_warning(f"{c.name}: step 1 has only run on {n_screened} of "
+                          f"{len(c.ids())} trees, and the sweep can only use trees "
+                          "step 1 has covered -- run step 1 on this cohort first")
 
     cfg = _ask_config(chosen, is_screen, verdicts_by)
     plan = _plan(chosen, cfg, is_screen, verdicts_by)
