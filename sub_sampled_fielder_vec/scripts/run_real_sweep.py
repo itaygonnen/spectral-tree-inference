@@ -33,7 +33,9 @@ for _p in (str(_ROOT), str(_REPO)):
         sys.path.insert(0, _p)
 
 from analysis.utils.real_cohorts import (                       # noqa: E402
-    get_cohort, list_cohorts, screen_cache_path, sweep_cache_dir)
+    cohort_results_dir, get_cohort, list_cohorts, log_path, screen_cache_path,
+    sweep_cache_dir)
+from analysis.utils.real_results import Tee, export_all         # noqa: E402
 from analysis.utils.real_eta_screen import run_real_eta_screen  # noqa: E402
 from analysis.utils.real_recovery_sweep import run_sweep        # noqa: E402
 
@@ -105,6 +107,19 @@ def main() -> None:
 
 
 def _run_cohort(cohort, args) -> None:
+    stage_log = log_path(cohort.name, "screen" if args.stage == "screen" else "sweep")
+    tee = Tee(stage_log)
+    sys.stdout = tee
+    try:
+        _run_stages(cohort, args)
+    finally:
+        tee.close()
+    for f in export_all(cohort.name):
+        print(f"  wrote {f}")
+    print(f"results -> {cohort_results_dir(cohort.name)}  (log: {stage_log.name})")
+
+
+def _run_stages(cohort, args) -> None:
     ids = cohort.ids(args.limit or None)
     m, seq_len = cohort.shape()
     print(f"cohort {cohort.name!r}: {len(ids)} trees, m={m}, L={seq_len}", flush=True)

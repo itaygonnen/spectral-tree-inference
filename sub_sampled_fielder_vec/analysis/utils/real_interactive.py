@@ -32,10 +32,11 @@ from src.utils.interactive_ui import (                       # noqa: E402
     confirm, get_input, get_menu_choice, get_multi_choice, print_divider, print_error,
     print_header, print_option, print_success, print_warning)
 
-from .real_cohorts import (list_cohorts, screen_cache_path,  # noqa: E402
-                           sweep_cache_dir)
+from .real_cohorts import (cohort_results_dir, list_cohorts,  # noqa: E402
+                           log_path, screen_cache_path, sweep_cache_dir)
 from .real_eta_screen import run_real_eta_screen             # noqa: E402
 from .real_recovery_sweep import run_sweep                   # noqa: E402
+from .real_results import Tee, export_all                    # noqa: E402
 
 # Defaults, shared by every cohort in one run. The p-grid and reps match the notebook's
 # figure, so a run left on defaults extends the caches the notebook plots from. p starts
@@ -207,6 +208,7 @@ def run_real_data_menu() -> None:
         print_warning("Cancelled")
         return
 
+    stage_name = "screen" if is_screen else "sweep"
     for k, r in enumerate(plan, 1):
         cohort, ids = r["cohort"], r["ids"]
         print_divider()
@@ -214,17 +216,28 @@ def run_real_data_menu() -> None:
         if not ids:
             print_warning(f"no tree passes [{cfg['rule']}] -- skipped")
             continue
-        if is_screen:
-            run_real_eta_screen(ids, screen_cache_path(cohort.name),
-                                cohort_name=cohort.name, workers=cfg["workers"])
-            rows = _verdicts(cohort)
-            n_s = sum(bool(v.get("valid_S")) for v in rows.values())
-            n_b = sum(bool(v.get("valid_B")) for v in rows.values())
-            print_success(f"{len(rows)} trees: L(S) cuts a real edge on {n_s}, "
-                          f"B on {n_b}  ->  {screen_cache_path(cohort.name)}")
-        else:
-            p_values = np.logspace(np.log10(cfg["p_min"]), 0, cfg["p_points"])
-            run_sweep(ids, sweep_cache_dir(cohort.name), p_values, reps=cfg["reps"],
-                      cohort_name=cohort.name, m=r["m"])
-            print_success(f"{len(ids)} .npz written (one per tree, every metric) -> "
-                          f"{sweep_cache_dir(cohort.name)}")
+        # an interactive run should leave the same record a nohup'd one does
+        tee = Tee(log_path(cohort.name, stage_name))
+        sys.stdout = tee
+        try:
+            _run_stage(cohort, ids, cfg, is_screen, r["m"])
+        finally:
+            tee.close()
+        for f in export_all(cohort.name):
+            print(f"  wrote {f}")
+        print_success(f"results -> {cohort_results_dir(cohort.name)}")
+
+
+def _run_stage(cohort, ids, cfg: dict, is_screen: bool, m: int) -> None:
+    """One stage on one cohort, under the shared configuration."""
+    if is_screen:
+        run_real_eta_screen(ids, screen_cache_path(cohort.name),
+                            cohort_name=cohort.name, workers=cfg["workers"])
+        rows = _verdicts(cohort)
+        n_s = sum(bool(v.get("valid_S")) for v in rows.values())
+        n_b = sum(bool(v.get("valid_B")) for v in rows.values())
+        print_success(f"{len(rows)} trees: L(S) cuts a real edge on {n_s}, B on {n_b}")
+    else:
+        p_values = np.logspace(np.log10(cfg["p_min"]), 0, cfg["p_points"])
+        run_sweep(ids, sweep_cache_dir(cohort.name), p_values, reps=cfg["reps"],
+                  cohort_name=cohort.name, m=m)

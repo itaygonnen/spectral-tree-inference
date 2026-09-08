@@ -154,22 +154,33 @@ def get_cohort(name: str) -> Cohort:
         f"(have: {[x.name for x in list_cohorts()]})")
 
 
-CACHE_ROOT = (_ROOT / "analysis" / "notebooks_cache" / "distance_vs_similarity_real")
-
-# The m=6000 caches were written before cohorts were a parameter; keep their paths so the
-# 100-tree screen already on disk is not orphaned by the rename.
-_LEGACY = {"6000 taxa": ("eta_screen_6000.npz", "sweep6000")}
+# Results live in ONE place at the top of the repo -- <repo>/results/real_data/<cohort>/ --
+# not under analysis/notebooks_cache/. It is the directory a collaborator running this on a
+# cluster has to find, and it is small (a screen is ~10 KB, a swept tree ~3 KB) and NOT
+# gitignored, so a cluster run can be committed and pushed back rather than rsynced.
+# $STR_RESULTS_DIR overrides the location.
+def results_root() -> Path:
+    env = os.environ.get("STR_RESULTS_DIR")
+    return Path(env).expanduser() if env else _REPO / "results" / "real_data"
 
 
 def _slug(name: str) -> str:
     return name.replace(" ", "_").lower()
 
 
+def cohort_results_dir(name: str) -> Path:
+    return results_root() / _slug(name)
+
+
 def screen_cache_path(name: str) -> Path:
-    legacy = _LEGACY.get(name)
-    return CACHE_ROOT / (legacy[0] if legacy else f"eta_screen_{_slug(name)}.npz")
+    """Step 1 output: one row per tree (eta + validity per operator)."""
+    return cohort_results_dir(name) / "screen.npz"
 
 
 def sweep_cache_dir(name: str) -> Path:
-    legacy = _LEGACY.get(name)
-    return CACHE_ROOT / (legacy[1] if legacy else f"sweep_{_slug(name)}")
+    """Step 2 output: one .npz per tree, every metric for both arms."""
+    return cohort_results_dir(name) / "sweep"
+
+
+def log_path(name: str, stage: str) -> Path:
+    return cohort_results_dir(name) / f"{stage}.log"

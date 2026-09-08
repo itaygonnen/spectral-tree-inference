@@ -1,0 +1,4 @@
+# 1 tree(s) swept on a different p-grid are not included
+p,n_trees,nmi_L_median,nmi_B_median,ari_L_median,ari_B_median,agreement_L_median,agreement_B_median,dot_L_median,dot_B_median,sign_L_median,nmi_L_std,nmi_B_std,ari_L_std,ari_B_std,agreement_L_std,agreement_B_std,dot_L_std,dot_B_std,sign_L_std
+0.01,1,0.000127,0.076631,-0.001001,0.036828,99.800000,60.300000,0.000078,0.342554,13.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000
+1,1,1.000000,1.000000,1.000000,1.000000,100.000000,100.000000,1.000000,1.000000,100.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000
