@@ -167,9 +167,18 @@ def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Lis
     return written
 
 
-def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Path:
-    """Headline numbers per cohort: screening verdicts and the median NMI curve."""
-    summary: dict = {"cohorts": {}}
+def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
+                  status: str = "completed", note: str = "") -> Path:
+    """Headline numbers per cohort, plus how the run ended.
+
+    ``status`` matters: an interrupted run still exports every tree that finished, so its
+    CSVs look exactly like a complete run's, only shorter. Without this the difference is
+    invisible.
+    """
+    summary: dict = {"status": status, "cohorts": {}}
+    if note:
+        summary["note"] = note
+    summary["finished"] = datetime.now().isoformat(timespec="seconds")
     for cohort, ids in cohort_ids.items():
         rows = _screen_rows(cohort)
         p_values, trees = _sweep_arrays(cohort, ids)
@@ -183,7 +192,8 @@ def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Path:
                 median_eta_L=float(np.median([r["eta_S"] for r in rows])),
                 median_eta_B=float(np.median([r["eta_B"] for r in rows])))
         if p_values is not None and trees:
-            entry["sweep"] = {"trees": len(trees),
+            entry["sweep"] = {"trees_requested": len(list(ids)),
+                              "trees_done": len(trees),
                               "p_values": [float(x) for x in p_values]}
             for key in ("nmi_L", "nmi_B", "nmi_gt_L", "nmi_gt_B"):
                 arr = [v[key] for v in trees.values() if key in v]
@@ -242,11 +252,12 @@ def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Path |
     return out
 
 
-def export_run(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> List[Path]:
+def export_run(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
+               status: str = "completed", note: str = "") -> List[Path]:
     """Everything readable for a finished run. Returns the files written."""
     written = [p for p in [write_screening_csv(run_dir, list(cohort_ids))] if p]
     written += write_curve_csvs(run_dir, cohort_ids)
-    written.append(write_summary(run_dir, cohort_ids))
+    written.append(write_summary(run_dir, cohort_ids, status, note))
     plot = plot_recovery(run_dir, cohort_ids)
     if plot:
         written.append(plot)

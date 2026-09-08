@@ -245,7 +245,7 @@ def run_real_data_menu() -> None:
     # one log for the whole run, beside its results
     tee = Tee(run_dir / "run.log")
     sys.stdout = tee
-    selected, failures = {}, []
+    selected, failures, status = {}, [], "completed"
     try:
         for k, r in enumerate(plan, 1):
             cohort, ids = r["cohort"], r["ids"]
@@ -258,8 +258,9 @@ def run_real_data_menu() -> None:
                 _run_stage(cohort, ids, cfg, is_screen, r["m"])
                 selected[cohort.name] = list(ids)
             except KeyboardInterrupt:
-                print_warning(f"{cohort.name}: interrupted -- cached trees are kept")
+                print_warning(f"{cohort.name}: interrupted -- finished trees are kept")
                 selected[cohort.name] = list(ids)
+                status = "interrupted"
                 break
             except Exception:
                 # the per-tree cache holds whatever finished, and the other cohorts are
@@ -272,11 +273,17 @@ def run_real_data_menu() -> None:
         tee.close()
         close_log_file()
 
-    for f in export_run(run_dir, selected or {c.name: c.ids() for c in chosen}):
+    if failures:
+        status = "failed"
+    for f in export_run(run_dir, selected or {c.name: c.ids() for c in chosen}, status,
+                        ", ".join(failures)):
         print(f"  {f.name}")
     if failures:
         print_error(f"{len(failures)} cohort(s) failed: {', '.join(failures)} "
                     f"-- traceback in {run_dir / 'run.log'}")
+    if status != "completed":
+        print_warning(f"run marked {status!r} in summary.json -- re-run the same command "
+                      "to continue from the cache")
     print_success(f"everything for this run is in {run_dir}")
 
 

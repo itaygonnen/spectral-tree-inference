@@ -116,7 +116,7 @@ def main() -> None:
 
     tee = Tee(run_dir / "run.log")
     sys.stdout = tee
-    selected, failures = {}, []
+    selected, failures, status = {}, [], "completed"
     try:
         for i, name in enumerate(names, 1):
             if len(names) > 1:
@@ -124,7 +124,8 @@ def main() -> None:
             try:
                 selected[name] = _run_cohort(get_cohort(name), args)
             except KeyboardInterrupt:
-                print(f"{name}: interrupted -- cached trees are kept", flush=True)
+                print(f"{name}: interrupted -- finished trees are kept", flush=True)
+                status = "interrupted"
                 break
             except Exception:
                 # keep the other cohorts and the export; the cache holds what finished
@@ -135,11 +136,16 @@ def main() -> None:
         tee.close()
         close_log_file()
 
-    for f in export_run(run_dir, selected):
+    if failures:
+        status = "failed"
+    for f in export_run(run_dir, selected, status, ", ".join(failures)):
         print(f"  {f.name}")
     if failures:
         print(f"ERROR: {len(failures)} cohort(s) failed: {', '.join(failures)} "
               f"-- traceback in {run_dir / 'run.log'}")
+    if status != "completed":
+        print(f"run marked {status!r} in summary.json -- re-run the same command to "
+              "continue from the cache")
     print(f"everything for this run is in {run_dir}")
     if failures:
         sys.exit(1)

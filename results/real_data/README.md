@@ -3,7 +3,9 @@
 ```
 runs/<timestamp>-<name>/     ONE directory per run -- every cohort that run covered
     config.json              what was asked for: cohorts, gate, p-grid, reps, commit, time
-    summary.json             headline numbers per cohort
+    summary.json             headline numbers per cohort, and how the run ended:
+                             status = completed | interrupted | failed, plus
+                             trees_requested vs trees_done per cohort
     run.log                  everything the run printed
     experiment.log           timestamped, tagged detail: per-tree reference splits, eta,
                              k-means warnings, per-tree timing and ETA
@@ -19,6 +21,14 @@ _cache/<cohort>/             machine state, not a deliverable: screen.npz and on
 
 Download or mail a whole run by taking its directory: a few hundred KB, no other file is
 needed. `$STR_RESULTS_DIR` moves the parent of both roots (a scratch filesystem, say).
+
+## Interrupting a run
+
+Safe at any point. Trees are cached one at a time, so every tree that finished is kept and
+the run still exports the CSVs and the plot for those trees. The tree in flight is
+discarded -- nothing partial is ever written. Re-run the same command and it continues
+from the cache. `summary.json` records `status: "interrupted"`, which is the only thing
+distinguishing that run's CSVs from a complete run's shorter ones.
 
 ## Plotting from a run
 
