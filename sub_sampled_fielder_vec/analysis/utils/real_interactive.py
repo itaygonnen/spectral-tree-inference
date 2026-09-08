@@ -112,20 +112,10 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
 
     # Spell the counts out. A bare "2, 91" reads as a range, and even "2/66" hides that
     # the denominator a gate can act on is the SCREENED trees, not the cohort.
-    print()
-    print("  Screening is what establishes, per tree, whether an operator's split of")
-    print("  the full matrix is a real edge of the true tree, so the sweep can only use")
-    print("  trees it has covered:")
-    for c in cohorts:
-        n_scr = sum(1 for t in c.ids() if t in verdicts_by[c.name])
-        print(f"    {c.name}: {n_scr} of {len(c.ids())} trees")
-    print("  Each option below keeps this many of them:")
-    labels = [
-        f"{name}  ->  "
-        + ", ".join(
-            f"{c.name}: {len(_select_ids(c.ids(), verdicts_by[c.name], name))} tree(s)"
-            for c in cohorts)
-        for name in RULES]
+    # No counts on the options: the Screening status table above already gives coverage
+    # and verdicts, and the plan printed after this shows what the choice actually selects
+    # (these labels were also counting the whole cohort, ignoring the cap asked for above).
+    labels = list(RULES)
     chosen = get_menu_choice("Reference partition must be a real tree edge under:",
                              labels, default_index=list(RULES).index(cfg["rule"]))
     cfg["rule"] = list(RULES)[labels.index(chosen)]
