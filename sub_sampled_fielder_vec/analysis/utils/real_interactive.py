@@ -109,12 +109,20 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
         cfg["workers"] = int(get_input("Workers", default=str(cfg["workers"])))
         return cfg
 
-    # one count per chosen cohort, named -- "2, 91" alone reads as a range or a tuple
+    # Spell the counts out. A bare "2, 91" reads as a range, and even "2/66" hides that
+    # the denominator a gate can act on is the SCREENED trees, not the cohort.
+    print()
+    print("  The sweep can only judge trees the screen has already looked at:")
+    for c in cohorts:
+        n_scr = sum(1 for t in c.ids() if t in verdicts_by[c.name])
+        print(f"    {c.name}: {n_scr} of {len(c.ids())} trees screened")
+    print("  Each option below shows how many of those screened trees it keeps.")
     labels = [
-        f"{name}  ["
-        + "; ".join(f"{c.name}: {len(_select_ids(c.ids(), verdicts_by[c.name], name))}"
-                    f"/{len(c.ids())}" for c in cohorts)
-        + "]"
+        f"{name}  ->  "
+        + ", ".join(
+            f"{c.name}: keeps {len(_select_ids(c.ids(), verdicts_by[c.name], name))} "
+            f"of {sum(1 for t in c.ids() if t in verdicts_by[c.name])} screened"
+            for c in cohorts)
         for name in RULES]
     chosen = get_menu_choice("Reference partition must be a real tree edge under:",
                              labels, default_index=list(RULES).index(cfg["rule"]))
