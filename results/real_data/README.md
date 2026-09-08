@@ -38,6 +38,13 @@ k-means, `_B` is the leading-|λ| eigenvector of `B = HDH` cut by sign.
 `sign_L`. NMI is what the paper figure plots; the rest are there so a follow-up question
 does not need a re-run.
 
+**Two references, as in the earlier `results/runs/real_data_benchmark` run.** Bare names
+(`nmi_L`) score the sub-sampled split against that arm's own **full-matrix** split: did
+sub-sampling keep what the full matrix saw? The `_gt` names (`nmi_gt_L`) score it against
+the **true tree's top bipartition**: was the full matrix seeing the right thing? They can
+disagree sharply -- 0.68 against the full matrix beside 0.013 against the tree on the
+m=1000 run -- and the second is the harder question.
+
 ## Producing it
 
 ```bash

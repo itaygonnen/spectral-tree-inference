@@ -35,7 +35,8 @@ for _p in (str(_ROOT), str(_REPO)):
 from analysis.utils.real_cohorts import (                       # noqa: E402
     cohort_results_dir, get_cohort, list_cohorts, log_path, screen_cache_path,
     sweep_cache_dir)
-from analysis.utils.real_results import Tee, export_all         # noqa: E402
+from analysis.utils.real_results import (Tee, export_all,        # noqa: E402
+                                         write_config_json)
 from analysis.utils.real_eta_screen import run_real_eta_screen  # noqa: E402
 from analysis.utils.real_recovery_sweep import run_sweep        # noqa: E402
 
@@ -112,6 +113,7 @@ def _run_cohort(cohort, args) -> None:
     prefix = "" if args.stage == "screen" else args.prefix
     stage_log = log_path(cohort.name, "screen" if args.stage == "screen" else "sweep",
                          prefix)
+    write_config_json(cohort.name, dict(vars(args), m=cohort.shape()[0]), prefix)
     tee = Tee(stage_log)
     sys.stdout = tee
     try:

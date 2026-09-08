@@ -7,6 +7,9 @@ carries both machine-readable and readable forms of the same numbers:
     screen.csv        the same, openable in anything
     sweep/<tree>.npz  per tree: every metric, both arms, one value per p
     sweep_summary.csv median and std across trees, per p, per metric, per arm
+    summary.json      headline numbers: screening verdicts, median curve per p
+    config.json       cohort, gate, p-grid, reps, git commit, timestamp
+    recovery_curve.png  median NMI vs p, both arms, both references
     screen.log        what the run printed
     sweep.log
 
@@ -17,12 +20,14 @@ from __future__ import annotations
 
 import csv
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import List, Sequence
 
 import numpy as np
 
-from .real_cohorts import cohort_results_dir, screen_cache_path, sweep_cache_dir
+from .real_cohorts import (_slug, cohort_results_dir, screen_cache_path,
+                           sweep_cache_dir)
 from .real_recovery_sweep import METRICS
 
 
@@ -116,7 +121,125 @@ def export_sweep_summary_csv(cohort_name: str, tree_ids: Sequence[str] | None = 
 
 
 def export_all(cohort_name: str, prefix: str = "") -> List[Path]:
-    """Both CSVs for one cohort; returns the files actually written."""
+    """Every readable artefact for one cohort; returns the files actually written."""
     return [p for p in (export_screen_csv(cohort_name),
-                        export_sweep_summary_csv(cohort_name, prefix=prefix))
+                        export_sweep_summary_csv(cohort_name, prefix=prefix),
+                        write_summary_json(cohort_name, prefix),
+                        plot_recovery_curve(cohort_name, prefix))
             if p is not None]
+
+
+def write_config_json(cohort_name: str, cfg: dict, prefix: str = "") -> Path:
+    """Record what produced a run, the way ``results/runs/*/config.json`` does."""
+    import json
+    import subprocess
+
+    try:
+        commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
+                                capture_output=True, text=True, timeout=5).stdout.strip()
+    except Exception:
+        commit = ""
+    out = cohort_results_dir(cohort_name) / (
+        f"config_{_slug(prefix)}.json" if prefix else "config.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    payload = dict(cfg, cohort=cohort_name, prefix=prefix, commit=commit,
+                   written=datetime.now().isoformat(timespec="seconds"))
+    out.write_text(json.dumps(payload, indent=2, default=str) + "\n")
+    return out
+
+
+def write_summary_json(cohort_name: str, prefix: str = "") -> Path | None:
+    """Headline numbers: screening verdicts, and the median curve per p for both arms."""
+    import json
+
+    npz = screen_cache_path(cohort_name)
+    summary: dict = {"cohort": cohort_name}
+    if npz.exists():
+        rows = [r for r in np.load(npz, allow_pickle=True)["rows"] if "error" not in r]
+        summary["screening"] = dict(
+            trees=len(rows),
+            m=int(rows[0]["m"]) if rows else 0,
+            valid_L=sum(bool(r["valid_S"]) for r in rows),
+            valid_B=sum(bool(r["valid_B"]) for r in rows),
+            valid_both=sum(bool(r["valid_S"] and r["valid_B"]) for r in rows),
+            median_eta_L=float(np.median([r["eta_S"] for r in rows])) if rows else None,
+            median_eta_B=float(np.median([r["eta_B"] for r in rows])) if rows else None,
+        )
+
+    sweep_dir = sweep_cache_dir(cohort_name, prefix)
+    files = sorted(sweep_dir.glob("*.npz")) if sweep_dir.is_dir() else []
+    if files:
+        stacks, p_values = {}, None
+        for f in files:
+            z = np.load(f, allow_pickle=True)
+            pv = np.asarray(z["p_values"], float)
+            if p_values is None:
+                p_values = pv
+            elif pv.shape != p_values.shape or not np.allclose(pv, p_values):
+                continue
+            for k in z.files:
+                if k not in ("meta", "p_values"):
+                    stacks.setdefault(k, []).append(np.asarray(z[k], float))
+        summary["sweep"] = dict(
+            trees=len(files), p_values=[float(x) for x in p_values],
+            median={k: [float(x) for x in np.nanmedian(np.vstack(v), axis=0)]
+                    for k, v in stacks.items()})
+
+    out = cohort_results_dir(cohort_name) / (
+        f"summary_{_slug(prefix)}.json" if prefix else "summary.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(summary, indent=2) + "\n")
+    return out
+
+
+def plot_recovery_curve(cohort_name: str, prefix: str = "") -> Path | None:
+    """``recovery_curve.png``: median NMI vs p, both arms, both references."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    sweep_dir = sweep_cache_dir(cohort_name, prefix)
+    files = sorted(sweep_dir.glob("*.npz")) if sweep_dir.is_dir() else []
+    if not files:
+        return None
+    stacks, p_values = {}, None
+    for f in files:
+        z = np.load(f, allow_pickle=True)
+        pv = np.asarray(z["p_values"], float)
+        if p_values is None:
+            p_values = pv
+        elif pv.shape != p_values.shape or not np.allclose(pv, p_values):
+            continue
+        for k in ("nmi_L", "nmi_B", "nmi_gt_L", "nmi_gt_B"):
+            if k in z.files:
+                stacks.setdefault(k, []).append(np.asarray(z[k], float))
+
+    fig, ax = plt.subplots(figsize=(7, 7))
+    style = {"nmi_L": ("#4b5563", "-", r"$L(S)$ vs full matrix"),
+             "nmi_B": ("#065f46", "-", r"$B=H\mathcal{D}H$ vs full matrix"),
+             "nmi_gt_L": ("#4b5563", "--", r"$L(S)$ vs true tree"),
+             "nmi_gt_B": ("#065f46", "--", r"$B=H\mathcal{D}H$ vs true tree")}
+    n_trees = 0
+    for key, (color, ls, label) in style.items():
+        if key not in stacks:
+            continue
+        arr = np.vstack(stacks[key])
+        n_trees = arr.shape[0]
+        med, sd = np.nanmedian(arr, 0), np.nanstd(arr, 0)
+        ax.plot(p_values, med, color=color, ls=ls, lw=2, marker="o", ms=3, label=label)
+        if ls == "-":
+            ax.fill_between(p_values, med - sd, med + sd, color=color, alpha=0.12)
+    ax.set_xscale("log")
+    ax.set_xlabel(r"sub-sampling fraction $p$ (log)", fontsize=12)
+    ax.set_ylabel("NMI", fontsize=12)
+    ax.set_ylim(-0.05, 1.05)
+    ax.grid(alpha=0.25)
+    ax.legend(fontsize=10, loc="upper left")
+    ax.set_title(f"{cohort_name}: recovery over {n_trees} tree(s)"
+                 + (f" [{prefix}]" if prefix else ""), fontsize=12)
+    fig.tight_layout()
+    out = cohort_results_dir(cohort_name) / (
+        f"recovery_curve_{_slug(prefix)}.png" if prefix else "recovery_curve.png")
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out

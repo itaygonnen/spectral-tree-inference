@@ -43,6 +43,13 @@ META_KEYS = ("reps", "num_gaps", "min_split", "partition_method",
 # clan-label match (%) and the dot product with the reference vector.
 METRICS = ("nmi", "ari", "agreement", "dot")
 
+# The same three scores against a SECOND reference: the true tree's own top bipartition
+# (its root's two leaf sets), which is what the earlier real-data benchmark reported as
+# ``*_gt``. Recovery towards the full matrix says the sub-sample kept what the full matrix
+# saw; recovery towards the tree says the full matrix was seeing the right thing. They can
+# disagree sharply -- 0.68 vs 0.013 on the m=1000 run -- so both are stored.
+GT_METRICS = ("nmi_gt", "ari_gt", "agreement_gt")
+
 # L-only extra: ``bootstrap_p_sweep_simple`` reports sign agreement separately, while on the
 # B arm the sign pattern IS the partition, so its ``agreement`` already is that number.
 EXTRA_L = ("sign",)
@@ -51,7 +58,41 @@ EXTRA_L = ("sign",)
 def sweep_meta(reps: int, num_gaps: int, min_split: int, m: int = 6000) -> Dict:
     return dict(reps=int(reps), num_gaps=int(num_gaps), min_split=int(min_split),
                 partition_method="kmeans", eigsolver="lm_k1",
-                aggregation="avg_vector", m=int(m), metrics=",".join(METRICS))
+                aggregation="avg_vector", m=int(m),
+                metrics=",".join(METRICS + GT_METRICS))
+
+
+def _gt_partition(tree, labels) -> np.ndarray:
+    """The true tree's top bipartition, in ``labels`` order.
+
+    The root's two child subtrees, matching ``src.runners.real_data_bpart`` so the numbers
+    are comparable with the earlier benchmark. Falls back to the first internal node with
+    two children when the seed node is degenerate.
+    """
+    root = tree.seed_node
+    children = list(root.child_nodes())
+    if len(children) < 2:
+        for node in tree.preorder_node_iter():
+            if len(list(node.child_nodes())) >= 2:
+                children = list(node.child_nodes())
+                break
+    left = {str(leaf.taxon.label) for leaf in children[0].leaf_iter()}
+    part = np.array([l in left for l in labels], dtype=bool)
+    n_left = int(part.sum())
+    if n_left in (0, part.size):            # degenerate: keep NMI defined
+        part[:part.size // 2] = True
+    return part
+
+
+def _score(ref: np.ndarray, pred) -> Dict[str, float]:
+    """NMI, ARI and clan agreement of one partition against a reference."""
+    from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
+    if pred is None:
+        return dict(nmi=float("nan"), ari=float("nan"), agreement=float("nan"))
+    a, b = np.asarray(ref).astype(int), np.asarray(pred).astype(int)
+    agr = max((a == b).mean(), (a != b).mean()) * 100.0   # orientation-invariant
+    return dict(nmi=float(normalized_mutual_info_score(a, b)),
+                ari=float(adjusted_rand_score(a, b)), agreement=float(agr))
 
 
 def _cache_file(cache_dir: Path, tid: str) -> Path:
@@ -95,7 +136,8 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
     loaded = get_cohort(cohort_name).load_all(tid)
     if loaded is None:
         raise FileNotFoundError(f"{tid}: alignment or tree missing")
-    S, _labels, _tree, D = loaded
+    S, labels, tree, D = loaded
+    gt = _gt_partition(tree, labels)
 
     fr_L = compute_fiedler_from_laplacian(compute_laplacian(S))
     out_L = bootstrap_p_sweep_simple(
@@ -113,6 +155,14 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
     for met in METRICS:
         out[f"{met}_B"] = np.array(
             [float(np.mean(pp[met])) for pp in raw["per_p"]], float)
+
+    # second reference: the true tree's own split, scored from the partitions the two
+    # sweeps just produced -- no extra eigensolve
+    for arm, parts in (("L", out_L["partitions"]),
+                       ("B", [pp["partitions"][0] for pp in raw["per_p"]])):
+        scored = [_score(gt, part) for part in parts]
+        for met in ("nmi", "ari", "agreement"):
+            out[f"{met}_gt_{arm}"] = np.array([sc[met] for sc in scored], float)
     return out
 
 
@@ -152,8 +202,8 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
 def collect(ids: Sequence[str], cache_dir, p_values: Sequence[float], meta: Dict,
             metric: str = "nmi") -> Tuple[np.ndarray, np.ndarray, List[str], List[str]]:
     """Stack one metric's cached curves. Returns ``(arr_L, arr_B, have, pending)``."""
-    if metric not in METRICS:
-        raise ValueError(f"metric must be one of {METRICS}, got {metric!r}")
+    if metric not in METRICS + GT_METRICS:
+        raise ValueError(f"metric must be one of {METRICS + GT_METRICS}, got {metric!r}")
     pv = np.round(np.asarray(p_values, float), 6)
     have, pending, L, B = [], [], [], []
     for tid in ids:

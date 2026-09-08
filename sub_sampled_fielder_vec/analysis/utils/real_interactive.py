@@ -36,7 +36,7 @@ from .real_cohorts import (cohort_results_dir, list_cohorts,  # noqa: E402
                            log_path, screen_cache_path, sweep_cache_dir)
 from .real_eta_screen import run_real_eta_screen             # noqa: E402
 from .real_recovery_sweep import run_sweep                   # noqa: E402
-from .real_results import Tee, export_all                    # noqa: E402
+from .real_results import Tee, export_all, write_config_json  # noqa: E402
 
 # Defaults, shared by every cohort in one run. The p-grid and reps match the notebook's
 # figure, so a run left on defaults extends the caches the notebook plots from. p starts
@@ -236,6 +236,8 @@ def run_real_data_menu() -> None:
             print_warning(f"no tree passes [{cfg['rule']}] -- skipped")
             continue
         # an interactive run should leave the same record a nohup'd one does
+        write_config_json(cohort.name, dict(cfg, stage=stage_name, m=r["m"],
+                                            trees=len(ids)), prefix)
         tee = Tee(log_path(cohort.name, stage_name, prefix))
         sys.stdout = tee
         try:

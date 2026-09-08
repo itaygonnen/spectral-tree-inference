@@ -161,6 +161,9 @@ def bootstrap_p_sweep_simple(
     partition_agreement_M: List[float] = []
     partition_ari_M: List[float] = []
     partition_nmi_M: List[float] = []
+    # the bootstrap-averaged partition per p, so a caller can score it against another
+    # reference (e.g. the true tree's split) without paying for the sweep twice
+    partitions: List[Optional[np.ndarray]] = []
     sign_agreement: List[float] = []
     dot_product: List[float] = []
     consecutive_100 = 0
@@ -173,6 +176,7 @@ def bootstrap_p_sweep_simple(
             partition_nmi_M.extend([1.0] * remaining)
             sign_agreement.extend([100.0] * remaining)
             dot_product.extend([1.0] * remaining)
+            partitions.extend([partition_ref.copy()] * remaining)
             break
 
         if p >= 0.9999:
@@ -181,6 +185,7 @@ def bootstrap_p_sweep_simple(
             partition_nmi_M.append(1.0)
             sign_agreement.append(100.0)
             dot_product.append(1.0)
+            partitions.append(partition_ref.copy())
             consecutive_100 += 1
             continue
 
@@ -202,6 +207,7 @@ def bootstrap_p_sweep_simple(
             partition_nmi_M.append(float('nan'))
             sign_agreement.append(float('nan'))
             dot_product.append(float('nan'))
+            partitions.append(None)
             continue
 
         try:
@@ -224,6 +230,9 @@ def bootstrap_p_sweep_simple(
             agr_M = float('nan')
             ari_M = float('nan')
             nmi_M = float('nan')
+            partition_avg = None
+        partitions.append(None if partition_avg is None
+                          else np.asarray(partition_avg).astype(bool))
         partition_agreement_M.append(float(agr_M))
         partition_ari_M.append(ari_M)
         partition_nmi_M.append(nmi_M)
@@ -244,4 +253,5 @@ def bootstrap_p_sweep_simple(
         "dot_product": dot_product,
         "partition_split_ref": ref_split,
         "reference_partition_quality": ref_quality,
+        "partitions": partitions,
     }

@@ -180,6 +180,9 @@ def bpart_sweep_raw(
             "dot": [float(np.abs(np.dot(v, v_ref))) for v in scored],
             "ari": [_binary_ari(v_ref, v) for v in scored],
             "nmi": [_binary_nmi(v_ref, v) for v in scored],
+            # the split itself, so a caller can score it against another reference
+            # (e.g. the true tree's own split) without re-running the sweep
+            "partitions": [np.asarray(v) >= 0 for v in scored],
         })
 
     return {
