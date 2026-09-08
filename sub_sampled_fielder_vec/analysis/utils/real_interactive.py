@@ -220,9 +220,11 @@ def run_real_data_menu() -> None:
             rows = _verdicts(cohort)
             n_s = sum(bool(v.get("valid_S")) for v in rows.values())
             n_b = sum(bool(v.get("valid_B")) for v in rows.values())
-            print_success(f"{len(rows)} trees screened: L(S) valid {n_s}, B valid {n_b}")
+            print_success(f"{len(rows)} trees: L(S) cuts a real edge on {n_s}, "
+                          f"B on {n_b}  ->  {screen_cache_path(cohort.name)}")
         else:
             p_values = np.logspace(np.log10(cfg["p_min"]), 0, cfg["p_points"])
             run_sweep(ids, sweep_cache_dir(cohort.name), p_values, reps=cfg["reps"],
                       cohort_name=cohort.name, m=r["m"])
-            print_success(f"sweep cached -> {sweep_cache_dir(cohort.name)}")
+            print_success(f"{len(ids)} .npz written (one per tree, every metric) -> "
+                          f"{sweep_cache_dir(cohort.name)}")
