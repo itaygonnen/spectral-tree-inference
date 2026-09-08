@@ -28,8 +28,8 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from src.utils.interactive_ui import (                       # noqa: E402
-    confirm, get_input, get_menu_choice, print_divider, print_error, print_header,
-    print_success, print_warning)
+    confirm, get_input, get_menu_choice, get_multi_choice, print_divider, print_error,
+    print_header, print_option, print_success, print_warning)
 
 from .real_cohorts import (list_cohorts, screen_cache_path,  # noqa: E402
                            sweep_cache_dir)
@@ -102,24 +102,39 @@ def _defaults(cohort, ids, verdicts: dict, is_screen: bool) -> dict:
 
 
 def run_real_data_menu() -> None:
-    """Ask for a cohort and a stage, then run it. Returns when the stage finishes."""
+    """Pick cohorts and a stage, then run the stage on each. One prompt set for all."""
     cohorts = list_cohorts()
     if not cohorts:
-        print_error("No real cohorts found under data/real_datasets/Datasets/")
+        print_error("No real cohorts found under data/cohorts/")
         print_warning("Expected <name>/fasta/*.fasta beside <name>/newick/*.nwk")
         return
 
     print_header("Real data")
-    labels = [f"{c.name}  ({len(c.ids())} trees, m={m}, L={seq_len})"
-              for c, (m, seq_len) in ((c, c.shape()) for c in cohorts)]
-    choice = get_menu_choice("Cohort:", labels, default_index=len(labels) - 1)
-    cohort = cohorts[labels.index(choice)]
-    m, _seq_len = cohort.shape()
-    all_ids = cohort.ids()
+    print("  Tip: select several with commas (e.g. '1,2') to run every size in turn")
+    print()
+    for i, c in enumerate(cohorts, 1):
+        m, seq_len = c.shape()
+        print_option(str(i), f"{c.name}  ({len(c.ids())} trees, m={m}, L={seq_len})",
+                     highlight=(i == len(cohorts)))
+    print()
+    picks = get_multi_choice("Cohort(s)", [str(i) for i in range(1, len(cohorts) + 1)])
+    chosen = [cohorts[int(i) - 1] for i in picks]
 
     stage = get_menu_choice(
         "Stage:", ["screen (eta + validity per operator)",
                    "sweep (recovery NMI vs p)"], default_index=0)
+
+    for k, cohort in enumerate(chosen, 1):
+        if len(chosen) > 1:
+            print_divider()
+            print_header(f"[{k}/{len(chosen)}] {cohort.name}")
+        _run_one(cohort, stage)
+
+
+def _run_one(cohort, stage: str) -> None:
+    """One cohort, one stage: defaults, optional tuning, then run."""
+    m, _seq_len = cohort.shape()
+    all_ids = cohort.ids()
 
     screen_cache = screen_cache_path(cohort.name)
     verdicts = _screen_verdicts(screen_cache)

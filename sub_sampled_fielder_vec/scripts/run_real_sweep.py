@@ -11,7 +11,7 @@ nohup and safe to kill. The interactive launcher (``scripts/interactive_run.py``
 "real data") calls the same functions.
 
     python scripts/run_real_sweep.py --list
-    python scripts/run_real_sweep.py --cohort "6000 taxa" --stage screen --workers 8
+    python scripts/run_real_sweep.py --cohort "1000 taxa,6000 taxa" --stage screen --workers 8
     nohup python scripts/run_real_sweep.py --cohort "6000 taxa" --stage sweep \
         > logs/real_sweep.log 2>&1 &
 
@@ -72,7 +72,9 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--list", action="store_true", help="show cohorts on disk and exit")
-    ap.add_argument("--cohort", default="6000 taxa", help="dataset directory name")
+    ap.add_argument("--cohort", default="6000 taxa",
+                    help="dataset directory name; comma-separate to run several sizes "
+                         "in turn, or 'all' for every cohort on disk")
     ap.add_argument("--stage", choices=("screen", "sweep", "both"), default="both")
     ap.add_argument("--limit", type=int, default=0, help="first N trees only")
     ap.add_argument("--workers", type=int, default=4, help="screen workers")
@@ -93,7 +95,16 @@ def main() -> None:
             print(f"  {c.name!r}: {len(c.ids())} trees, m={m}, L={L}  -> {c.dir}")
         return
 
-    cohort = get_cohort(args.cohort)
+    names = ([c.name for c in list_cohorts()] if args.cohort.strip() == "all"
+             else [n.strip() for n in args.cohort.split(",") if n.strip()])
+    for name in names:
+        if len(names) > 1:
+            print(f"\n=== {name} ({names.index(name) + 1}/{len(names)})", flush=True)
+        _run_cohort(get_cohort(name), args)
+    print("done.")
+
+
+def _run_cohort(cohort, args) -> None:
     ids = cohort.ids(args.limit or None)
     m, seq_len = cohort.shape()
     print(f"cohort {cohort.name!r}: {len(ids)} trees, m={m}, L={seq_len}", flush=True)
@@ -117,7 +128,6 @@ def main() -> None:
         run_sweep(sweep_ids, cache_dir, p_values, reps=args.reps,
                   num_gaps=args.num_gaps, min_split=args.min_split,
                   cohort_name=cohort.name, m=m)
-    print("done.")
 
 
 if __name__ == "__main__":
