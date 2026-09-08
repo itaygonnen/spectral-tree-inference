@@ -76,7 +76,9 @@ def main() -> None:
     ap.add_argument("--stage", choices=("screen", "sweep", "both"), default="both")
     ap.add_argument("--limit", type=int, default=0, help="first N trees only")
     ap.add_argument("--workers", type=int, default=4, help="screen workers")
-    ap.add_argument("--p-points", type=int, default=20, help="log-spaced p in [0.01, 1]")
+    ap.add_argument("--p-min", type=float, default=0.01,
+                    help="smallest sub-sampling rate; the grid always ends at 1.0")
+    ap.add_argument("--p-points", type=int, default=20, help="log-spaced p in [p-min, 1]")
     ap.add_argument("--reps", type=int, default=10, help="bootstrap reps per p")
     ap.add_argument("--num-gaps", type=int, default=10)
     ap.add_argument("--min-split", type=int, default=5)
@@ -109,7 +111,7 @@ def main() -> None:
         cache_dir = sweep_cache_dir(cohort.name)
         if args.cache_suffix:
             cache_dir = cache_dir.with_name(f"{cache_dir.name}_{args.cache_suffix}")
-        p_values = np.logspace(-2, 0, args.p_points)
+        p_values = np.logspace(np.log10(args.p_min), 0, args.p_points)
         print(f"sweep: {len(p_values)} p x {args.reps} reps over {len(sweep_ids)} trees "
               f"-> {cache_dir}", flush=True)
         run_sweep(sweep_ids, cache_dir, p_values, reps=args.reps,

@@ -44,15 +44,61 @@ def _screen_verdicts(screen_cache: Path) -> dict:
             if "error" not in r}
 
 
+# Which screened trees a sweep may use. The gate is whether that operator's partition of
+# the FULL matrix is a real single-edge split of the true tree -- sub-sampling recovery
+# towards a reference that is not a tree edge measures stability, not correctness.
+RULES = {
+    "L(S) and B both cut a real tree edge": lambda r: r.get("valid_S") and r.get("valid_B"),
+    "L(S) cuts a real tree edge": lambda r: r.get("valid_S"),
+    "B cuts a real tree edge": lambda r: r.get("valid_B"),
+    "every tree, valid or not": lambda r: True,
+}
+
+
 def _select_ids(ids, verdicts: dict, rule: str) -> list:
-    if rule == "all" or not verdicts:
+    if not verdicts:
         return list(ids)
-    keep = {
-        "both valid": lambda r: r.get("valid_S") and r.get("valid_B"),
-        "L(S) valid": lambda r: r.get("valid_S"),
-        "B valid": lambda r: r.get("valid_B"),
-    }[rule]
+    keep = RULES[rule]
     return [t for t in ids if t in verdicts and keep(verdicts[t])]
+
+
+ALL_TREES = "every tree, valid or not"
+
+# Defaults for a real-cohort run. The p-grid and reps match the notebook's figure, so a
+# run left on defaults extends the same caches the notebook plots from.
+P_MIN, P_POINTS, REPS = 0.01, 20, 10
+
+
+def _default_rule(ids, verdicts: dict) -> str:
+    """Strictest gate that still selects a tree: both arms, else one, else no gate."""
+    for name, fn in RULES.items():
+        if any(t in verdicts and fn(verdicts[t]) for t in ids):
+            return name
+    return ALL_TREES
+
+
+def _defaults(cohort, ids, verdicts: dict, is_screen: bool) -> dict:
+    d = dict(n_trees=len(ids), workers=max(1, min(8, (os.cpu_count() or 4) // 2)),
+             rule=_default_rule(ids, verdicts) if verdicts else ALL_TREES,
+             p_min=P_MIN, p_points=P_POINTS, reps=REPS)
+    if is_screen:
+        d["summary"] = [f"trees      {d['n_trees']} (all)",
+                        f"workers    {d['workers']}",
+                        "arms       L(S)+k-means and B=HDH+sign, min_split=5"]
+    else:
+        # A tree can only be gated on if it was screened. Say so out loud: a cohort with
+        # 66 trees and 2 screened rows otherwise reports "1 of 66" with no hint why.
+        n_screened = sum(1 for t in ids if t in verdicts)
+        n_sel = len(_select_ids(ids, verdicts, d["rule"])) if verdicts else len(ids)
+        d["n_screened"] = n_screened
+        d["summary"] = [f"trees      {n_sel} of {n_screened} screened "
+                        f"({d['n_trees']} in cohort)  [{d['rule']}]",
+                        f"p-grid     {d['p_points']} log-spaced points, "
+                        f"{d['p_min']:g} .. 1.0",
+                        f"reps       {d['reps']} bootstrap replicates per p",
+                        "metrics    NMI, ARI, agreement, sign agreement, dot "
+                        "(NMI is what the figure plots)"]
+    return d
 
 
 def run_real_data_menu() -> None:
@@ -63,14 +109,9 @@ def run_real_data_menu() -> None:
         print_warning("Expected <name>/fasta/*.fasta beside <name>/newick/*.nwk")
         return
 
-    print_header("Real-data cohorts")
-    labels = []
-    for c in cohorts:
-        m, seq_len = c.shape()
-        labels.append(f"{c.name}  ({len(c.ids())} trees, m={m}, L={seq_len})")
-        print(f"  • {labels[-1]}")
-    print()
-
+    print_header("Real data")
+    labels = [f"{c.name}  ({len(c.ids())} trees, m={m}, L={seq_len})"
+              for c, (m, seq_len) in ((c, c.shape()) for c in cohorts)]
     choice = get_menu_choice("Cohort:", labels, default_index=len(labels) - 1)
     cohort = cohorts[labels.index(choice)]
     m, _seq_len = cohort.shape()
@@ -79,16 +120,30 @@ def run_real_data_menu() -> None:
     stage = get_menu_choice(
         "Stage:", ["screen (eta + validity per operator)",
                    "sweep (recovery NMI vs p)"], default_index=0)
-    n_trees = int(get_input(f"How many trees (max {len(all_ids)})",
-                            default=str(len(all_ids))))
-    ids = all_ids[:max(1, min(n_trees, len(all_ids)))]
 
     screen_cache = screen_cache_path(cohort.name)
-    print_divider()
+    verdicts = _screen_verdicts(screen_cache)
+    is_screen = stage.startswith("screen")
+    d = _defaults(cohort, all_ids, verdicts, is_screen)
 
-    if stage.startswith("screen"):
-        default_workers = str(max(1, min(8, (os.cpu_count() or 4) // 2)))
-        workers = int(get_input("Workers", default=default_workers))
+    print_divider()
+    if not is_screen and d.get("n_screened", 0) < len(all_ids):
+        print_warning(f"only {d.get('n_screened', 0)} of {len(all_ids)} trees are "
+                      "screened, and the sweep can only gate on screened trees -- "
+                      "run the screen stage first to use the whole cohort")
+    print("defaults:")
+    for line in d["summary"]:
+        print(f"  {line}")
+    print()
+    tune = confirm("Edit these defaults?", default=False)
+
+    n_trees = int(get_input(f"How many trees (max {len(all_ids)})",
+                            default=str(d["n_trees"]))) if tune else d["n_trees"]
+    ids = all_ids[:max(1, min(n_trees, len(all_ids)))]
+
+    if is_screen:
+        workers = int(get_input("Workers", default=str(d["workers"]))) if tune \
+            else d["workers"]
         print(f"~{'75 s' if m >= 6000 else '10 s'} per tree; cached and resumable.")
         if not confirm(f"Screen {len(ids)} trees of {cohort.name!r}?", default=True):
             print_warning("Cancelled")
@@ -103,23 +158,34 @@ def run_real_data_menu() -> None:
         return
 
     # ---- sweep -------------------------------------------------------------
-    verdicts = _screen_verdicts(screen_cache)
     if not verdicts:
         print_warning("No screen cache for this cohort -- run the screen stage first "
                       "to gate the sweep on valid partitions. Sweeping all trees.")
-        rule = "all"
+        rule = ALL_TREES
+    elif tune:
+        # show the size of each option, so a rule that selects nothing is visible up front
+        n_screened = sum(1 for t in ids if t in verdicts)
+        labels = [f"{name}  ({sum(1 for t in ids if t in verdicts and fn(verdicts[t]))} "
+                  f"of {n_screened} screened)" for name, fn in RULES.items()]
+        chosen = get_menu_choice("Reference partition must be a real tree edge under:",
+                                 labels, default_index=list(RULES).index(d["rule"]))
+        rule = list(RULES)[labels.index(chosen)]
     else:
-        rule = get_menu_choice(
-            "Which trees:", ["both valid", "L(S) valid", "B valid", "all"],
-            default_index=0)
+        rule = d["rule"]
     ids = _select_ids(ids, verdicts, rule)
     if not ids:
         print_error(f"No tree passes {rule!r}. Pick a wider rule.")
         return
 
-    p_points = int(get_input("p-grid points (log-spaced, 0.01..1)", default="20"))
-    reps = int(get_input("Bootstrap reps per p", default="10"))
-    p_values = np.logspace(-2, 0, p_points)
+    if tune:
+        p_min = float(get_input("Smallest sub-sampling rate p (largest is always 1.0)",
+                                default=str(d["p_min"])))
+        p_points = int(get_input(f"p-grid points (log-spaced, {p_min:g}..1)",
+                                 default=str(d["p_points"])))
+        reps = int(get_input("Bootstrap reps per p", default=str(d["reps"])))
+    else:
+        p_min, p_points, reps = d["p_min"], d["p_points"], d["reps"]
+    p_values = np.logspace(np.log10(p_min), 0, p_points)
 
     # one sub-sampled Fiedler solve is ~9 s at m=6000 and scales as O(m^3)
     per_solve = 9.0 * (m / 6000.0) ** 3

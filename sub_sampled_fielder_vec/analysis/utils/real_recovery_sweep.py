@@ -7,6 +7,11 @@ Both arms are scored by NMI against their OWN full-matrix reference:
     L   Fiedler of Deg(S) - S, k-means cut      (``bootstrap_p_sweep_simple``)
     B   leading-|lambda| of H D H, sign cut     (``bpart_sweep_raw``)
 
+Every metric both arms produce is stored per tree -- NMI, ARI, partition agreement, sign
+agreement and the dot product with the reference vector. NMI is what the recovery figure
+plots; the others are free once the eigenvector exists and answer the next question
+without a 50 h recompute.
+
 Two settings are not the library defaults and both are load-bearing here:
 
 * ``eigsolver="lm_k1"`` -- ARPACK for the single eigenpair B needs. Same vector as the
@@ -27,15 +32,26 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import numpy as np
 
 # Cache-key fields. A tree whose stored meta differs is recomputed rather than mixed
-# into a figure with a different grid.
+# into a figure with a different grid. ``metrics`` is part of the key so caches written
+# before every metric was stored are recomputed instead of read back half-empty.
 META_KEYS = ("reps", "num_gaps", "min_split", "partition_method",
-             "eigsolver", "aggregation", "m")
+             "eigsolver", "aggregation", "m", "metrics")
+
+# Metrics BOTH arms produce per p, so a figure can be drawn on any of them. NMI is what the
+# recovery figure plots; the rest cost nothing once the eigenvector is in hand, so they are
+# stored rather than thrown away. ``agreement`` and ``dot`` are the orientation-invariant
+# clan-label match (%) and the dot product with the reference vector.
+METRICS = ("nmi", "ari", "agreement", "dot")
+
+# L-only extra: ``bootstrap_p_sweep_simple`` reports sign agreement separately, while on the
+# B arm the sign pattern IS the partition, so its ``agreement`` already is that number.
+EXTRA_L = ("sign",)
 
 
 def sweep_meta(reps: int, num_gaps: int, min_split: int, m: int = 6000) -> Dict:
     return dict(reps=int(reps), num_gaps=int(num_gaps), min_split=int(min_split),
                 partition_method="kmeans", eigsolver="lm_k1",
-                aggregation="avg_vector", m=int(m))
+                aggregation="avg_vector", m=int(m), metrics=",".join(METRICS))
 
 
 def _cache_file(cache_dir: Path, tid: str) -> Path:
@@ -48,9 +64,9 @@ def seed_for(tid: str, stride: int = 1000) -> int:
     return stride * int(tid.rsplit("_", 1)[-1])
 
 
-def load_tree_sweep(cache_dir, tid: str, p_values: Sequence[float],
-                    meta: Dict) -> Optional[Tuple[np.ndarray, np.ndarray]]:
-    """Return ``(nmi_L, nmi_B)`` for one tree if a matching cache exists, else None."""
+def load_tree_sweep(cache_dir, tid: str, p_values: Sequence[float], meta: Dict,
+                    metric: str = "nmi") -> Optional[Tuple[np.ndarray, np.ndarray]]:
+    """Return ``(<metric>_L, <metric>_B)`` for one tree if a matching cache exists."""
     path = _cache_file(Path(cache_dir), tid)
     if not path.exists():
         return None
@@ -58,17 +74,19 @@ def load_tree_sweep(cache_dir, tid: str, p_values: Sequence[float],
         z = np.load(path, allow_pickle=True)
         if list(np.round(z["p_values"], 6)) != list(np.round(p_values, 6)):
             return None
-        if {k: dict(z["meta"].item())[k] for k in META_KEYS} != {k: meta[k] for k in META_KEYS}:
+        stored = dict(z["meta"].item())
+        if any(stored.get(k) != meta[k] for k in META_KEYS):
             return None
-        return np.asarray(z["nmi_L"], float), np.asarray(z["nmi_B"], float)
+        return (np.asarray(z[f"{metric}_L"], float),
+                np.asarray(z[f"{metric}_B"], float))
     except Exception:
         return None
 
 
 def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
                    num_gaps: int, min_split: int,
-                   cohort_name: str = "6000 taxa") -> Tuple[np.ndarray, np.ndarray]:
-    """Run both arms on one tree. Returns ``(nmi_L, nmi_B)``, one value per ``p``."""
+                   cohort_name: str = "6000 taxa") -> Dict[str, np.ndarray]:
+    """Run both arms on one tree. Returns ``{"<metric>_L"/"_B": one value per p}``."""
     from analysis.utils.real_cohorts import get_cohort
     from src.core.utils import compute_fiedler_from_laplacian, compute_laplacian
     from src.runners.p_sweep_inner import bootstrap_p_sweep_simple
@@ -84,12 +102,18 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
         S, fr_L, list(p_values), bootstrap_reps=reps, seed=seed,
         num_gaps=num_gaps, min_split=min_split,
         partition_method="kmeans", laplacian="unnormalized")
-    nmi_L = np.asarray(out_L["partition_nmi_M"], float)
+    # the two arms name the same quantities differently; map both onto METRICS
+    out = {f"{m}_L": np.asarray(out_L[k], float) for m, k in (
+        ("nmi", "partition_nmi_M"), ("ari", "partition_ari_M"),
+        ("agreement", "partition_agreement_M"), ("dot", "dot_product"),
+        ("sign", "sign_agreement"))}
 
     raw = bpart_sweep_raw(D, list(p_values), reps=reps, seed_base=seed,
                           eigsolver="lm_k1", aggregation="avg_vector")
-    nmi_B = np.array([float(np.mean(pp["nmi"])) for pp in raw["per_p"]], float)
-    return nmi_L, nmi_B
+    for met in METRICS:
+        out[f"{met}_B"] = np.array(
+            [float(np.mean(pp[met])) for pp in raw["per_p"]], float)
+    return out
 
 
 def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
@@ -112,12 +136,12 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
     t0 = time.time()
     for k, tid in enumerate(todo, 1):
         t_tree = time.time()
-        nmi_L, nmi_B = sweep_one_tree(
+        curves = sweep_one_tree(
             tid, seed=seed_for(tid, seed_stride), p_values=pv,
             reps=reps, num_gaps=num_gaps, min_split=min_split,
             cohort_name=cohort_name)
-        np.savez(_cache_file(cache_dir, tid), p_values=pv, nmi_L=nmi_L, nmi_B=nmi_B,
-                 meta=np.array(meta, dtype=object))
+        np.savez(_cache_file(cache_dir, tid), p_values=pv,
+                 meta=np.array(meta, dtype=object), **curves)
         finished.append(tid)
         el, per = time.time() - t0, (time.time() - t0) / k
         print(f"  [{k}/{len(todo)}] {tid}  {time.time() - t_tree:.0f} s  "
@@ -125,19 +149,21 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
     return finished
 
 
-def collect(ids: Sequence[str], cache_dir, p_values: Sequence[float],
-            meta: Dict) -> Tuple[np.ndarray, np.ndarray, List[str], List[str]]:
-    """Stack the cached curves. Returns ``(nmi_L, nmi_B, have, pending)``."""
+def collect(ids: Sequence[str], cache_dir, p_values: Sequence[float], meta: Dict,
+            metric: str = "nmi") -> Tuple[np.ndarray, np.ndarray, List[str], List[str]]:
+    """Stack one metric's cached curves. Returns ``(arr_L, arr_B, have, pending)``."""
+    if metric not in METRICS:
+        raise ValueError(f"metric must be one of {METRICS}, got {metric!r}")
     pv = np.round(np.asarray(p_values, float), 6)
     have, pending, L, B = [], [], [], []
     for tid in ids:
-        got = load_tree_sweep(cache_dir, tid, pv, meta)
+        got = load_tree_sweep(cache_dir, tid, pv, meta, metric)
         if got is None:
             pending.append(tid)
             continue
         have.append(tid)
         L.append(got[0])
         B.append(got[1])
-    nmi_L = np.vstack(L) if L else np.empty((0, len(pv)))
-    nmi_B = np.vstack(B) if B else np.empty((0, len(pv)))
-    return nmi_L, nmi_B, have, pending
+    arr_L = np.vstack(L) if L else np.empty((0, len(pv)))
+    arr_B = np.vstack(B) if B else np.empty((0, len(pv)))
+    return arr_L, arr_B, have, pending
