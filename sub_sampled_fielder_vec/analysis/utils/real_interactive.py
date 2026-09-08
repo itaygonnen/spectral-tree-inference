@@ -154,6 +154,30 @@ def _plan(cohorts, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> 
     return rows
 
 
+def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
+    """Where step 1 stands on each chosen cohort, before the stage is picked."""
+    print_header("Step 1 status")
+    for c in cohorts:
+        v = verdicts_by[c.name]
+        ids = c.ids()
+        done = [t for t in ids if t in v]
+        if not done:
+            print(f"  {c.name}: not started ({len(ids)} trees)")
+            continue
+        n_s = sum(1 for t in done if v[t].get("valid_S"))
+        n_b = sum(1 for t in done if v[t].get("valid_B"))
+        n_both = sum(1 for t in done
+                     if v[t].get("valid_S") and v[t].get("valid_B"))
+        state = "complete" if len(done) == len(ids) else f"{len(done)} of {len(ids)} trees"
+        print(f"  {c.name}: {state} - real tree edge under L(S) on {n_s}, "
+              f"B on {n_b}, both on {n_both}")
+        n_swept = len(list(sweep_cache_dir(c.name).glob("*.npz"))) \
+            if sweep_cache_dir(c.name).is_dir() else 0
+        if n_swept:
+            print(f"  {' ' * len(c.name)}  step 2 done on {n_swept} tree(s)")
+    print()
+
+
 def run_real_data_menu() -> None:
     """Pick cohorts and a stage, configure once, then run the stage on each."""
     cohorts = list_cohorts()
@@ -173,6 +197,9 @@ def run_real_data_menu() -> None:
     picks = get_multi_choice("Cohort(s)", [str(i) for i in range(1, len(cohorts) + 1)])
     chosen = [cohorts[int(i) - 1] for i in picks]
 
+    verdicts_by = {c.name: _verdicts(c) for c in chosen}
+    _print_status(chosen, verdicts_by)
+
     stage = get_menu_choice(
         "Stage:", ["step 1 - screen: which split each operator reads off the full "
                    "matrix, and is it a real tree edge",
@@ -180,7 +207,6 @@ def run_real_data_menu() -> None:
                    "(needs step 1)"], default_index=0)
     is_screen = stage.startswith("step 1")
 
-    verdicts_by = {c.name: _verdicts(c) for c in chosen}
     for c in chosen:
         n_screened = sum(1 for t in c.ids() if t in verdicts_by[c.name])
         if not is_screen and n_screened < len(c.ids()):
