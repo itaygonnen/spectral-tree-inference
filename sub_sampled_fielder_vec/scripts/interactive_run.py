@@ -130,7 +130,7 @@ def show_main_menu() -> tuple[List[str], List[Dict[str, Any]]]:
 
     # New matrix option
     print_option("n", "Create new matrix configuration")
-    print_option("d", "Real data (FASTA cohorts): screen / recovery sweep")
+    print_option("d", "Switch to real data (FASTA cohorts)")
     print_option("q", "Quit")
     print()
 
@@ -480,6 +480,21 @@ def run_experiment(config: Dict[str, Any]):
     return multi_run_results
 
 
+DATA_SOURCES = [
+    "real data - FASTA cohorts with their true trees (data/cohorts/)",
+    "generated data - simulated trees and sequences (cached matrices)",
+]
+
+
+def choose_data_source() -> str:
+    """First question: which kind of data. The two branches share no parameters."""
+    print_header("Data source")
+    print("  Tip: inside either branch, select several entries with commas "
+          "(e.g. '1,2') to run them in turn")
+    print()
+    return get_menu_choice("Data:", DATA_SOURCES, default_index=0)
+
+
 def main():
     """Main entry point for interactive launcher."""
     # Print logo
@@ -487,6 +502,13 @@ def main():
 
     # Clean up incomplete cache entries from interrupted experiments
     clean_incomplete_caches()
+
+    if choose_data_source() == DATA_SOURCES[0]:
+        from analysis.utils.real_interactive import run_real_data_menu
+        run_real_data_menu()
+        if not confirm("Run another experiment?", default=False):
+            print_success("Goodbye!")
+            return
 
     while True:
         # Show main menu
