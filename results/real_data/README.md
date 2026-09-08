@@ -11,7 +11,8 @@ runs/<timestamp>-<name>/     ONE directory per run -- every cohort that run cove
                              k-means warnings, per-tree timing and ETA
     screening.csv            every tree of every cohort: eta and validity per operator
     per_tree.csv             every tree x every p: all metrics, both arms
-    curves.csv               per cohort x p: median and std across trees  <- plot from this
+    curves.csv               per cohort x p: median, std, quartiles and a bootstrap
+                             interval for the median, across trees  <- plot from this
     recovery_curve.png       median NMI vs p, every cohort, both arms, both references
 
 _cache/<cohort>/             machine state, not a deliverable: screen.npz and one .npz per
@@ -33,7 +34,13 @@ distinguishing that run's CSVs from a complete run's shorter ones.
 ## Plotting from a run
 
 `curves.csv` is already aggregated: one row per (cohort, p), one column per
-`<metric>_<arm>_{median,std}`.
+`<metric>_<arm>_<stat>` with `stat` in `median, std, q25, q75, lo95, hi95, n`.
+
+`q25`/`q75` bound the middle half of the **trees** — the spread of the cohort, which does
+not shrink as trees are added. `lo95`/`hi95` are a bootstrap interval for the **median**
+itself — how firmly this cohort pins the curve down, and that does shrink. `std` is kept
+for continuity but is the weakest of the three here: NMI is bounded and often bimodal (a
+tree either recovers its split or does not), so a mean ± std band leaves [0, 1].
 
 ```python
 import pandas as pd, matplotlib.pyplot as plt

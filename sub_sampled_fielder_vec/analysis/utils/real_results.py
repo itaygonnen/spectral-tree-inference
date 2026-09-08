@@ -6,7 +6,8 @@
         run.log             everything the run printed
         screening.csv       every tree of every cohort: eta and validity per operator
         per_tree.csv        every tree x every p: all metrics, both arms   (long format)
-        curves.csv          per cohort x p: median and std across trees    (plot-ready)
+        curves.csv          per cohort x p: median, std, quartiles and a bootstrap
+                            interval for the median, across trees          (plot-ready)
         recovery_curve.png  median NMI vs p, every cohort, both arms, both references
 
 ``curves.csv`` is the file to plot from: one row per (cohort, p), one column per
@@ -28,11 +29,31 @@ from typing import Dict, List, Sequence
 
 import numpy as np
 
+from src.plots.plot_operator_threshold import _median_ci
+
 from .real_cohorts import screen_cache_path, sweep_cache_dir
 from .real_recovery_sweep import GT_METRICS, METRICS
 
 ARMS = ("L", "B")
 ALL_METRICS = tuple(f"{m}_{a}" for m in METRICS + GT_METRICS for a in ARMS) + ("sign_L",)
+
+# Spread across TREES, per p. std alone is a poor summary here: NMI is bounded and often
+# bimodal (a tree either recovers its split or does not), so the mean +- std band leaves
+# the data and hides the split. Quartiles say where the middle half of the trees sit;
+# lo95/hi95 are a bootstrap interval for the median itself, i.e. how well this cohort
+# pins the curve down, and they narrow as trees are added while the quartiles do not.
+STATS = ("median", "std", "q25", "q75", "lo95", "hi95", "n")
+
+
+def _stats(vals: np.ndarray, rng) -> Dict[str, float]:
+    vals = np.asarray(vals, float)
+    vals = vals[~np.isnan(vals)]
+    if vals.size == 0:
+        return {k: float("nan") for k in STATS}
+    med, lo, hi = _median_ci(vals, rng)
+    return dict(median=med, std=float(np.std(vals)),
+                q25=float(np.percentile(vals, 25)), q75=float(np.percentile(vals, 75)),
+                lo95=lo, hi95=hi, n=float(vals.size))
 
 
 class Tee:
@@ -141,12 +162,13 @@ def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Lis
                 per_tree_rows.append(
                     [cohort, tree, f"{p:.6g}"]
                     + [f"{arrays[k][i]:.6f}" if k in arrays else "" for k in cols])
+        rng = np.random.default_rng(0)      # fixed, so re-exporting a run is stable
         for i, p in enumerate(p_values):
             row: list = [cohort, f"{p:.6g}", len(trees)]
             for k in cols:
                 vals = np.array([v[k][i] for v in trees.values() if k in v], float)
-                row += ([f"{np.nanmedian(vals):.6f}", f"{np.nanstd(vals):.6f}"]
-                        if vals.size else ["", ""])
+                st = _stats(vals, rng)
+                row += [f"{st[stat]:.6f}" for stat in STATS]
             curve_rows.append(row)
 
     if per_tree_rows:
@@ -161,7 +183,7 @@ def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Lis
         with open(out, "w", newline="") as fh:
             w = csv.writer(fh)
             w.writerow(["cohort", "p", "n_trees"]
-                       + [f"{k}_{stat}" for k in cols for stat in ("median", "std")])
+                       + [f"{k}_{stat}" for k in cols for stat in STATS])
             w.writerows(curve_rows)
         written.append(out)
     return written
@@ -232,18 +254,22 @@ def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Path |
                 if not arr:
                     continue
                 arr = np.vstack(arr)
-                med, sd = np.nanmedian(arr, 0), np.nanstd(arr, 0)
+                med = np.nanmedian(arr, 0)
+                q25, q75 = (np.nanpercentile(arr, 25, axis=0),
+                            np.nanpercentile(arr, 75, axis=0))
                 ax.plot(p_values, med, color=color, ls=ls, lw=2, marker="o", ms=3,
                         label=f"{cohort} - {'L(S)' if arm == 'L' else 'B=HDH'} "
                               f"({arr.shape[0]} trees)")
-                if arm == "L":
-                    ax.fill_between(p_values, med - sd, med + sd, color=color, alpha=0.10)
+                # the middle half of the trees; a +-std band would leave [0, 1]
+                ax.fill_between(p_values, q25, q75, color=color,
+                                alpha=0.16 if arm == "L" else 0.08)
         ax.set_xscale("log")
         ax.set_xlabel(r"sub-sampling fraction $p$ (log)", fontsize=12)
         ax.set_title(ttl, fontsize=12)
         ax.set_ylim(-0.05, 1.05)
         ax.grid(alpha=0.25)
-    axes[0].set_ylabel("median NMI", fontsize=12)
+    axes[0].set_ylabel("median NMI across trees (band: interquartile range)",
+                       fontsize=11)
     axes[0].legend(fontsize=9, loc="upper left")
     fig.tight_layout()
     out = run_dir / "recovery_curve.png"
