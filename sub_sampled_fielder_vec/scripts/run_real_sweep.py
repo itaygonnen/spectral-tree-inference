@@ -88,7 +88,9 @@ def main() -> None:
     ap.add_argument("--min-split", type=int, default=5)
     ap.add_argument("--cohort-rule", choices=COHORT_RULES, default="both",
                     help="which screened trees enter the sweep")
-    ap.add_argument("--cache-suffix", default="", help="write the sweep to <dir>_<suffix>/")
+    ap.add_argument("--prefix", default="",
+                    help="name this run: the sweep goes to <cohort>/sweep_<prefix>/ so "
+                         "two grids or gates can sit side by side")
     args = ap.parse_args()
 
     if args.list:
@@ -107,14 +109,16 @@ def main() -> None:
 
 
 def _run_cohort(cohort, args) -> None:
-    stage_log = log_path(cohort.name, "screen" if args.stage == "screen" else "sweep")
+    prefix = "" if args.stage == "screen" else args.prefix
+    stage_log = log_path(cohort.name, "screen" if args.stage == "screen" else "sweep",
+                         prefix)
     tee = Tee(stage_log)
     sys.stdout = tee
     try:
         _run_stages(cohort, args)
     finally:
         tee.close()
-    for f in export_all(cohort.name):
+    for f in export_all(cohort.name, prefix):
         print(f"  wrote {f}")
     print(f"results -> {cohort_results_dir(cohort.name)}  (log: {stage_log.name})")
 
@@ -134,9 +138,7 @@ def _run_stages(cohort, args) -> None:
             print("nothing to sweep -- no tree passes the cohort rule "
                   f"{args.cohort_rule!r}. Try --cohort-rule valid_S or all.")
             return
-        cache_dir = sweep_cache_dir(cohort.name)
-        if args.cache_suffix:
-            cache_dir = cache_dir.with_name(f"{cache_dir.name}_{args.cache_suffix}")
+        cache_dir = sweep_cache_dir(cohort.name, args.prefix)
         p_values = np.logspace(np.log10(args.p_min), 0, args.p_points)
         print(f"sweep: {len(p_values)} p x {args.reps} reps over {len(sweep_ids)} trees "
               f"-> {cache_dir}", flush=True)

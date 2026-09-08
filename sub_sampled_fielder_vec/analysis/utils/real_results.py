@@ -67,10 +67,10 @@ def export_screen_csv(cohort_name: str) -> Path | None:
     return out
 
 
-def export_sweep_summary_csv(cohort_name: str, tree_ids: Sequence[str] | None = None
-                             ) -> Path | None:
+def export_sweep_summary_csv(cohort_name: str, tree_ids: Sequence[str] | None = None,
+                             prefix: str = "") -> Path | None:
     """Write ``sweep_summary.csv``: per p, the median and std across trees, every metric."""
-    sweep_dir = sweep_cache_dir(cohort_name)
+    sweep_dir = sweep_cache_dir(cohort_name, prefix)
     files = sorted(sweep_dir.glob("*.npz")) if sweep_dir.is_dir() else []
     if tree_ids is not None:
         keep = set(tree_ids)
@@ -98,7 +98,9 @@ def export_sweep_summary_csv(cohort_name: str, tree_ids: Sequence[str] | None = 
 
     p_values = np.asarray(grid, float)
     cols = [k for k, v in per_metric.items() if v]
-    out = cohort_results_dir(cohort_name) / "sweep_summary.csv"
+    out = cohort_results_dir(cohort_name) / (
+        f"sweep_summary_{prefix.replace(' ', '_').lower()}.csv" if prefix
+        else "sweep_summary.csv")
     with open(out, "w", newline="") as fh:
         w = csv.writer(fh)
         if others:
@@ -113,7 +115,8 @@ def export_sweep_summary_csv(cohort_name: str, tree_ids: Sequence[str] | None = 
     return out
 
 
-def export_all(cohort_name: str) -> List[Path]:
+def export_all(cohort_name: str, prefix: str = "") -> List[Path]:
     """Both CSVs for one cohort; returns the files actually written."""
     return [p for p in (export_screen_csv(cohort_name),
-                        export_sweep_summary_csv(cohort_name)) if p is not None]
+                        export_sweep_summary_csv(cohort_name, prefix=prefix))
+            if p is not None]

@@ -6,13 +6,18 @@ collected from a cluster run.
 
 ```
 results/real_data/<cohort>/          e.g. 6000_taxa/
-    screen.npz          step 1, machine-readable: one row per tree
-    screen.csv          step 1, readable: tree, m, eta_L, valid_L, eta_B, valid_B
-    screen.log          what the step-1 run printed
-    sweep/<tree>.npz    step 2, per tree: every metric, both arms, one value per p
-    sweep_summary.csv    step 2, readable: per p, median and std across trees
-    sweep.log           what the step-2 run printed
+    screen.npz          screening, machine-readable: one row per tree
+    screen.csv          screening, readable: tree, m, eta_L, valid_L, eta_B, valid_B
+    screen.log          what the screening run printed
+    sweep/<tree>.npz    recovery sweep, per tree: every metric, both arms, per p
+    sweep_summary.csv   recovery sweep, readable: per p, median and std across trees
+    sweep.log           what the sweep run printed
 ```
+
+Naming a run (the launcher's "Name for this run", or `--prefix`) puts its sweep in
+`sweep_<name>/` with `sweep_summary_<name>.csv` and `sweep_<name>.log`, so two grids or
+two validity gates sit side by side instead of one invalidating the other. Screening
+takes no name: it has no free parameters, so there is one per cohort.
 
 Small by design — a screen is ~10 KB and a swept tree ~3 KB, so the whole thing is a few
 hundred KB and **is tracked by git**. A run on another machine therefore comes back with

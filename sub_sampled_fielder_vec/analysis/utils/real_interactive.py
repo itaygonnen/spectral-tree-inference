@@ -86,7 +86,7 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
     cfg = dict(max_trees=0,                       # 0 = every tree in each cohort
                workers=max(1, min(8, (os.cpu_count() or 4) // 2)),
                rule=_default_rule(cohorts, verdicts_by),
-               p_min=P_MIN, p_points=P_POINTS, reps=REPS)
+               p_min=P_MIN, p_points=P_POINTS, reps=REPS, prefix="")
 
     print_divider()
     print("configuration (applies to every cohort chosen):")
@@ -100,6 +100,7 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
         print(f"  reps       {cfg['reps']} bootstrap replicates per p")
         print("  metrics    NMI, ARI, agreement, sign agreement, dot "
               "(NMI is what the figure plots)")
+        print("  output     <cohort>/sweep/  (name it below to keep runs side by side)")
     print()
     if not confirm("Edit this configuration?", default=False):
         return cfg
@@ -107,6 +108,7 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
     cap = get_input("Max trees per cohort (blank = all)", default="")
     cfg["max_trees"] = int(cap) if cap and cap.strip() else 0
     if is_screen:
+        # screening has no free parameters, so it has one canonical output per cohort
         cfg["workers"] = int(get_input("Workers", default=str(cfg["workers"])))
         return cfg
 
@@ -124,6 +126,8 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
     cfg["p_points"] = int(get_input(
         f"p-grid points (log-spaced, {cfg['p_min']:g}..1)", default=str(cfg["p_points"])))
     cfg["reps"] = int(get_input("Bootstrap reps per p", default=str(cfg["reps"])))
+    name = get_input("Name for this run (blank = default 'sweep' dir)", default="")
+    cfg["prefix"] = (name or "").strip()
     return cfg
 
 
@@ -223,6 +227,7 @@ def run_real_data_menu() -> None:
         return
 
     stage_name = "screen" if is_screen else "sweep"   # log file name
+    prefix = "" if is_screen else cfg["prefix"]
     for k, r in enumerate(plan, 1):
         cohort, ids = r["cohort"], r["ids"]
         print_divider()
@@ -231,13 +236,13 @@ def run_real_data_menu() -> None:
             print_warning(f"no tree passes [{cfg['rule']}] -- skipped")
             continue
         # an interactive run should leave the same record a nohup'd one does
-        tee = Tee(log_path(cohort.name, stage_name))
+        tee = Tee(log_path(cohort.name, stage_name, prefix))
         sys.stdout = tee
         try:
             _run_stage(cohort, ids, cfg, is_screen, r["m"])
         finally:
             tee.close()
-        for f in export_all(cohort.name):
+        for f in export_all(cohort.name, prefix):
             print(f"  wrote {f}")
         print_success(f"results -> {cohort_results_dir(cohort.name)}")
 
@@ -253,5 +258,5 @@ def _run_stage(cohort, ids, cfg: dict, is_screen: bool, m: int) -> None:
         print_success(f"{len(rows)} trees: L(S) cuts a real edge on {n_s}, B on {n_b}")
     else:
         p_values = np.logspace(np.log10(cfg["p_min"]), 0, cfg["p_points"])
-        run_sweep(ids, sweep_cache_dir(cohort.name), p_values, reps=cfg["reps"],
-                  cohort_name=cohort.name, m=m)
+        run_sweep(ids, sweep_cache_dir(cohort.name, cfg["prefix"]), p_values,
+                  reps=cfg["reps"], cohort_name=cohort.name, m=m)

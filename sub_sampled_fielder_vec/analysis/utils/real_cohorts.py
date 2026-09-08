@@ -177,10 +177,16 @@ def screen_cache_path(name: str) -> Path:
     return cohort_results_dir(name) / "screen.npz"
 
 
-def sweep_cache_dir(name: str) -> Path:
-    """Step 2 output: one .npz per tree, every metric for both arms."""
-    return cohort_results_dir(name) / "sweep"
+def sweep_cache_dir(name: str, prefix: str = "") -> Path:
+    """Sweep output: one .npz per tree, every metric for both arms.
+
+    ``prefix`` names the run, so two grids or two validity gates can live side by side
+    (``sweep_lowp/`` beside ``sweep/``) instead of one invalidating the other's cache.
+    Screening takes no prefix: it has no free parameters to vary, one per cohort.
+    """
+    return cohort_results_dir(name) / (f"sweep_{_slug(prefix)}" if prefix else "sweep")
 
 
-def log_path(name: str, stage: str) -> Path:
-    return cohort_results_dir(name) / f"{stage}.log"
+def log_path(name: str, stage: str, prefix: str = "") -> Path:
+    stem = f"{stage}_{_slug(prefix)}" if prefix else stage
+    return cohort_results_dir(name) / f"{stem}.log"
