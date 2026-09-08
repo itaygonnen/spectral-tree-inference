@@ -138,7 +138,9 @@ def main() -> None:
 
     if failures:
         status = "failed"
-    for f in export_run(run_dir, selected, status, ", ".join(failures)):
+    run_grid = (None if args.stage == "screen"
+                else np.logspace(np.log10(args.p_min), 0, args.p_points))
+    for f in export_run(run_dir, selected, status, ", ".join(failures), run_grid):
         print(f"  {f.name}")
     if failures:
         print(f"ERROR: {len(failures)} cohort(s) failed: {', '.join(failures)} "

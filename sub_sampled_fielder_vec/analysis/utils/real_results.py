@@ -106,8 +106,16 @@ def _screen_rows(cohort_name: str) -> List[dict]:
     return [r for r in np.load(npz, allow_pickle=True)["rows"] if "error" not in r]
 
 
-def _sweep_arrays(cohort_name: str, tree_ids: Sequence[str] | None = None):
-    """``(p_values, {tree: {key: array}})`` for the p-grid most trees share."""
+def _sweep_arrays(cohort_name: str, tree_ids: Sequence[str] | None = None,
+                  p_values: Sequence[float] | None = None):
+    """``(p_values, {tree: {key: array}})`` for one p-grid.
+
+    ``p_values`` is THE grid this run swept: the cache is shared across runs, so without
+    it an export can pick up trees another run left behind on a different grid and plot
+    them instead -- which is how a run asked for p>=0.01 produced a curve starting at
+    1e-4. Only when no grid is given (a screening-only export) does it fall back to the
+    grid most cached trees share.
+    """
     d = sweep_cache_dir(cohort_name)
     files = sorted(d.glob("*.npz")) if d.is_dir() else []
     if tree_ids is not None:
@@ -120,7 +128,13 @@ def _sweep_arrays(cohort_name: str, tree_ids: Sequence[str] | None = None):
         z = np.load(f, allow_pickle=True)
         by_grid.setdefault(tuple(np.round(np.asarray(z["p_values"], float), 6)),
                            []).append(f)
-    grid = max(by_grid, key=lambda k: len(by_grid[k]))
+    if p_values is not None:
+        want = tuple(np.round(np.asarray(p_values, float), 6))
+        if want not in by_grid:
+            return None, {}
+        grid = want
+    else:
+        grid = max(by_grid, key=lambda k: len(by_grid[k]))
     out = {}
     for f in by_grid[grid]:
         z = np.load(f, allow_pickle=True)
@@ -144,7 +158,8 @@ def write_screening_csv(run_dir: Path, cohorts: Sequence[str]) -> Path | None:
     return out
 
 
-def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> List[Path]:
+def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
+                     p_values: Sequence[float] | None = None) -> List[Path]:
     """``per_tree.csv`` (raw) and ``curves.csv`` (median/std), all cohorts in one file."""
     written: List[Path] = []
     per_tree_rows: List[list] = []
@@ -152,18 +167,18 @@ def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Lis
     cols: List[str] = []
 
     for cohort, ids in cohort_ids.items():
-        p_values, trees = _sweep_arrays(cohort, ids)
-        if p_values is None:
+        grid, trees = _sweep_arrays(cohort, ids, p_values)
+        if grid is None:
             continue
         keys = [k for k in ALL_METRICS if any(k in v for v in trees.values())]
         cols = cols or keys
         for tree, arrays in sorted(trees.items()):
-            for i, p in enumerate(p_values):
+            for i, p in enumerate(grid):
                 per_tree_rows.append(
                     [cohort, tree, f"{p:.6g}"]
                     + [f"{arrays[k][i]:.6f}" if k in arrays else "" for k in cols])
         rng = np.random.default_rng(0)      # fixed, so re-exporting a run is stable
-        for i, p in enumerate(p_values):
+        for i, p in enumerate(grid):
             row: list = [cohort, f"{p:.6g}", len(trees)]
             for k in cols:
                 vals = np.array([v[k][i] for v in trees.values() if k in v], float)
@@ -190,7 +205,8 @@ def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Lis
 
 
 def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
-                  status: str = "completed", note: str = "") -> Path:
+                  status: str = "completed", note: str = "",
+                  p_values: Sequence[float] | None = None) -> Path:
     """Headline numbers per cohort, plus how the run ended.
 
     ``status`` matters: an interrupted run still exports every tree that finished, so its
@@ -203,7 +219,7 @@ def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
     summary["finished"] = datetime.now().isoformat(timespec="seconds")
     for cohort, ids in cohort_ids.items():
         rows = _screen_rows(cohort)
-        p_values, trees = _sweep_arrays(cohort, ids)
+        grid, trees = _sweep_arrays(cohort, ids, p_values)
         entry: dict = {"trees_selected": len(list(ids))}
         if rows:
             entry["screening"] = dict(
@@ -213,10 +229,10 @@ def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
                 valid_both=sum(bool(r["valid_S"] and r["valid_B"]) for r in rows),
                 median_eta_L=float(np.median([r["eta_S"] for r in rows])),
                 median_eta_B=float(np.median([r["eta_B"] for r in rows])))
-        if p_values is not None and trees:
+        if grid is not None and trees:
             entry["sweep"] = {"trees_requested": len(list(ids)),
                               "trees_done": len(trees),
-                              "p_values": [float(x) for x in p_values]}
+                              "p_values": [float(x) for x in grid]}
             for key in ("nmi_L", "nmi_B", "nmi_gt_L", "nmi_gt_B"):
                 arr = [v[key] for v in trees.values() if key in v]
                 if arr:
@@ -228,7 +244,8 @@ def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
     return out
 
 
-def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Path | None:
+def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
+                  p_values: Sequence[float] | None = None) -> Path | None:
     """One figure for the whole run: median NMI vs p, every cohort, both references."""
     import matplotlib
     matplotlib.use("Agg")
@@ -236,9 +253,9 @@ def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Path |
 
     series = []
     for cohort, ids in cohort_ids.items():
-        p_values, trees = _sweep_arrays(cohort, ids)
-        if p_values is not None and trees:
-            series.append((cohort, p_values, trees))
+        grid, trees = _sweep_arrays(cohort, ids, p_values)
+        if grid is not None and trees:
+            series.append((cohort, grid, trees))
     if not series:
         return None
 
@@ -265,7 +282,8 @@ def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Path |
                                 alpha=0.16 if arm == "L" else 0.08)
         ax.set_xscale("log")
         ax.set_xlabel(r"sub-sampling fraction $p$ (log)", fontsize=12)
-        ax.set_title(ttl, fontsize=12)
+        ax.set_title(f"{ttl}   (solid: $L(S)$, dashed: $B=H\\mathcal{{D}}H$)",
+                     fontsize=11)
         ax.set_ylim(-0.05, 1.05)
         ax.grid(alpha=0.25)
     axes[0].set_ylabel("median NMI across trees (band: interquartile range)",
@@ -279,12 +297,17 @@ def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]]) -> Path |
 
 
 def export_run(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
-               status: str = "completed", note: str = "") -> List[Path]:
-    """Everything readable for a finished run. Returns the files written."""
+               status: str = "completed", note: str = "",
+               p_values: Sequence[float] | None = None) -> List[Path]:
+    """Everything readable for a finished run. Returns the files written.
+
+    ``p_values`` pins the export to the grid THIS run swept; without it the shared cache
+    can contribute another run's trees.
+    """
     written = [p for p in [write_screening_csv(run_dir, list(cohort_ids))] if p]
-    written += write_curve_csvs(run_dir, cohort_ids)
-    written.append(write_summary(run_dir, cohort_ids, status, note))
-    plot = plot_recovery(run_dir, cohort_ids)
+    written += write_curve_csvs(run_dir, cohort_ids, p_values)
+    written.append(write_summary(run_dir, cohort_ids, status, note, p_values))
+    plot = plot_recovery(run_dir, cohort_ids, p_values)
     if plot:
         written.append(plot)
     return written

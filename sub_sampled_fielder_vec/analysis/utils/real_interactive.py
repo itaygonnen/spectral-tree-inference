@@ -275,8 +275,10 @@ def run_real_data_menu() -> None:
 
     if failures:
         status = "failed"
+    run_grid = (None if is_screen
+                else np.logspace(np.log10(cfg["p_min"]), 0, cfg["p_points"]))
     for f in export_run(run_dir, selected or {c.name: c.ids() for c in chosen}, status,
-                        ", ".join(failures)):
+                        ", ".join(failures), run_grid):
         print(f"  {f.name}")
     if failures:
         print_error(f"{len(failures)} cohort(s) failed: {', '.join(failures)} "
