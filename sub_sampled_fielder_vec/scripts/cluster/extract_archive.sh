@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
-# Turn a sim_trees_*.tar.gz archive into a cohort this code can read.
+# Unpack the dataset file (sim_trees_*.tar.gz) into a cohort this code can read.
 #
-#   bash scripts/cluster/extract_archive.sh sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz
-#   bash scripts/cluster/extract_archive.sh <tarball> --name "6000 taxa" --pattern 'random_tree_0[0-4]*.fasta'
+#   bash scripts/cluster/extract_archive.sh ~/sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz
+#   bash scripts/cluster/extract_archive.sh <path to .tar.gz> --name "6000 taxa" \
+#        --pattern 'random_tree_0[0-4]*.fasta'
 #
-# The archive holds every alignment (~90 GB unpacked) beside its true tree (~600 MB), laid
-# out as <archive>/MSAs/*.fasta and <archive>/trees/*.nwk. This extracts ALL the trees and
-# only the alignments you ask for, into the layout the experiments expect:
+# The file holds every alignment (~90 GB unpacked) beside its true tree (~600 MB), laid
+# out as <dataset>/MSAs/*.fasta and <dataset>/trees/*.nwk. This writes ALL the trees and
+# only the alignments you ask for, into the folders the experiments expect:
 #
 #   data/cohorts/<name>/fasta/random_tree_0001.fasta   ...
 #   data/cohorts/<name>/newick/random_tree_0001.nwk    ...
 #
-# Default: alignments 0001-0100, about 3 GB at m=6000. One pass over the archive either
-# way -- tar has to decompress the whole stream to find the members, so expect a few
-# minutes and run it once with the pattern you actually want.
+# Default: alignments 0001-0100, about 3 GB at m=6000. It reads the whole compressed file
+# once either way -- tar has to decompress the entire stream to find the members -- so
+# expect a few minutes, and run it once with the pattern you actually want.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -23,7 +24,7 @@ usage() { sed -n '2,20p' "$0"; exit "${1:-0}"; }
 [[ $# -ge 1 ]] || usage 1
 case "$1" in -h|--help) usage 0 ;; esac
 
-TARBALL="$1"; shift
+DATASET_FILE="$1"; shift
 NAME=""
 PATTERNS=()
 while [[ $# -gt 0 ]]; do
@@ -35,26 +36,26 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -f "$TARBALL" ]] || { echo "no such file: $TARBALL" >&2; exit 1; }
+[[ -f "$DATASET_FILE" ]] || { echo "no such file: $DATASET_FILE" >&2; exit 1; }
 if [[ ${#PATTERNS[@]} -eq 0 ]]; then
   PATTERNS=('random_tree_00[0-9][0-9].fasta' 'random_tree_0100.fasta')   # 0001-0100
 fi
 
 # The archive's own top-level directory name, e.g. sim_trees_3000x6000sp_5k_JC_nohet_noindels
-TOP="$(tar tzf "$TARBALL" | head -1 | cut -d/ -f1)"
+TOP="$(tar tzf "$DATASET_FILE" | head -1 | cut -d/ -f1)"
 [[ -n "$NAME" ]] || NAME="$TOP"
 DEST="$DEST_ROOT/$NAME"
 STAGE="$DEST_ROOT/.staging_$$"
 
-echo "==> archive root : $TOP"
+echo "==> dataset root : $TOP"
 echo "==> cohort       : $DEST"
 echo "==> alignments   : ${PATTERNS[*]}"
-echo "    (one pass over the archive; a few minutes)"
+echo "    (reads the whole compressed file once; a few minutes)"
 
 mkdir -p "$STAGE"
 MEMBERS=("$TOP/trees")
 for pat in "${PATTERNS[@]}"; do MEMBERS+=("$TOP/MSAs/$pat"); done
-tar -xzf "$TARBALL" -C "$STAGE" "${MEMBERS[@]}"
+tar -xzf "$DATASET_FILE" -C "$STAGE" "${MEMBERS[@]}"
 
 mkdir -p "$DEST"
 [[ -d "$STAGE/$TOP/trees" ]] && mv "$STAGE/$TOP/trees" "$DEST/newick"

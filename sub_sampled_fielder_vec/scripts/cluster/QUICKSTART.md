@@ -15,48 +15,48 @@ Builds `.venv`, installs the dependencies, checks every import. Needs Python ≥
 
 ## 2. Get the data (once per dataset)
 
-### 2a. Put the archive on the cluster
+### 2a. Copy the dataset file to your home directory on the cluster
 
-The dataset ships as one file, `sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz`
-(24 GB), which lives in the shared Google Drive folder — **<FILL IN: Drive folder link>**.
-Put it anywhere with room; `~/` or a scratch filesystem are both fine, and nothing below
-depends on where.
+The dataset is one compressed file, `sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz`
+(24 GB), in the shared Google Drive folder — **<FILL IN: Drive folder link>**.
+
+Put it in your home directory, `~/` (any folder works, the next command just needs the
+path):
 
 ```bash
-# from a laptop that has the file
+# from a computer that already has the file
 scp sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz user@cluster:~/
 
-# or download it on the cluster, if rclone is configured (see get_data.sh --help)
-rclone copy gdrive:"<FILL IN: path in Drive>" ~/ -P
-
-# or, from a direct download link
-wget -O sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz "<FILL IN: url>"
+# or download it on the cluster from a direct link
+cd ~ && wget -O sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz "<FILL IN: url>"
 ```
 
-Check the file arrived whole before unpacking — a truncated transfer fails silently until
-tar hits the end:
+It should be ~24 GB and pass this check — a transfer that stopped early looks fine until
+you try to open it:
 
 ```bash
-ls -lh sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz   # expect ~24 GB
-gzip -t sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz && echo "archive intact"
+ls -lh ~/sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz
+gzip -t ~/sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz && echo "file is intact"
 ```
 
-### 2b. Unpack it into a cohort
+### 2b. Unpack it
 
-Unpack it into the layout the code reads:
+Unpack it into the folder layout the code reads:
 
 ```bash
+cd ~/spectral-tree-inference        # the repo you cloned in step 1
 bash sub_sampled_fielder_vec/scripts/cluster/extract_archive.sh \
-    sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz --name "6000 taxa"
+    ~/sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz --name "6000 taxa"
 ```
 
-That pulls out **all 3000 true trees** and, by default, **alignments 0001-0100** (~3 GB;
-the full set is ~90 GB). More: `--pattern 'random_tree_0[0-4]*.fasta'` for 0001-0499.
-One pass over the archive, a few minutes — `tar` must decompress the whole stream to find
-the members, so choose the pattern before running it, not after.
+That writes **all 3000 true trees** and, by default, **alignments 0001-0100** into
+`data/cohorts/6000 taxa/` inside the repo (~3 GB; unpacking everything would be ~90 GB).
+For more alignments: `--pattern 'random_tree_0[0-4]*.fasta'` gives 0001-0499. It reads the
+whole compressed file once, so it takes a few minutes and it is worth choosing how many
+alignments you want before running it.
 
-**If the data is in Google Drive instead**, pull it straight onto the cluster with
-`rclone`:
+**Shortcut if `rclone` is set up on the cluster**: this downloads from Drive and lays out
+the folders in one step, no manual copying:
 
 ```bash
 bash sub_sampled_fielder_vec/scripts/cluster/get_data.sh "6000 taxa" --shared
