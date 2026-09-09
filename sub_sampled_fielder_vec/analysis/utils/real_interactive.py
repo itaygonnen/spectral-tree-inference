@@ -173,13 +173,23 @@ def _plan(cohorts, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> 
     return rows
 
 
+def _framed(lines: List[str], rule_after: int = -1) -> None:
+    """Draw ``lines`` inside a box, so a status panel is not mistaken for a menu."""
+    width = max(len(x) for x in lines)
+    print("┌" + "─" * (width + 2) + "┐")
+    for i, line in enumerate(lines):
+        print(f"│ {line.ljust(width)} │")
+        if i == rule_after:
+            print("├" + "─" * (width + 2) + "┤")
+    print("└" + "─" * (width + 2) + "┘")
+    print()
+
+
 def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
     """Screening coverage, verdicts and median imbalance, before anything is picked."""
     print_header("Screening status")
-    hdr = (f"  {'cohort':<12}{'trees':>7}{'screened':>10}{'L(S) edge':>11}"
-           f"{'B edge':>8}{'both':>6}{'med eta_L':>11}{'med eta_B':>11}{'swept':>7}")
-    print(hdr)
-    print("  " + "-" * (len(hdr) - 2))
+    lines = [f"{'cohort':<12}{'trees':>7}{'screened':>10}{'L(S) edge':>11}"
+             f"{'B edge':>8}{'both':>6}{'med eta_L':>11}{'med eta_B':>11}{'swept':>7}"]
     for c in cohorts:
         v, ids = verdicts_by[c.name], c.ids()
         done = [t for t in ids if t in v]
@@ -192,12 +202,16 @@ def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
                  if done else float("nan"))
         swept = (len(list(sweep_cache_dir(c.name).glob("*.npz")))
                  if sweep_cache_dir(c.name).is_dir() else 0)
-        print(f"  {c.name:<12}{len(ids):>7}{len(done):>10}{n_s:>11}"
-              f"{n_b:>8}{n_both:>6}{med_l:>11.1f}{med_b:>11.1f}{swept:>7}")
-    print("\n  'L(S) edge' / 'B edge': trees where that operator's split of the full "
-          "matrix\n  is a real edge of the true tree. 'med eta': median imbalance of "
-          "that split\n  (larger clan / smaller clan; 1 is perfectly even). 'swept': "
-          "trees the recovery\n  sweep has done.\n")
+        lines.append(f"{c.name:<12}{len(ids):>7}{len(done):>10}{n_s:>11}"
+                     f"{n_b:>8}{n_both:>6}{med_l:>11.1f}{med_b:>11.1f}{swept:>7}")
+    lines += [
+        "• L(S) edge / B edge - trees whose split of the full matrix is a real edge",
+        "                       of the true tree",
+        "• med eta            - median imbalance of that split: larger clan / smaller",
+        "                       clan, so 1 is a perfectly even cut",
+        "• swept              - trees the recovery sweep has already covered",
+    ]
+    _framed(lines, rule_after=len(cohorts))
 
 
 def run_real_data_menu() -> None:
