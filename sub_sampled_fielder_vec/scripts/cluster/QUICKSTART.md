@@ -15,13 +15,35 @@ Builds `.venv`, installs the dependencies, checks every import. Needs Python ≥
 
 ## 2. Get the data (once per dataset)
 
+**If you have the `.tar.gz`** (copy it to the cluster, or `wget` it there), unpack it into
+the right layout with:
+
+```bash
+bash sub_sampled_fielder_vec/scripts/cluster/extract_archive.sh \
+    sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz --name "6000 taxa"
+```
+
+That pulls out **all 3000 true trees** and, by default, **alignments 0001-0100** (~3 GB;
+the full set is ~90 GB). More: `--pattern 'random_tree_0[0-4]*.fasta'` for 0001-0499.
+One pass over the archive, a few minutes — `tar` must decompress the whole stream to find
+the members, so choose the pattern before running it, not after.
+
+**If the data is in Google Drive instead**, pull it straight onto the cluster with
+`rclone`:
+
 ```bash
 bash sub_sampled_fielder_vec/scripts/cluster/get_data.sh "6000 taxa" --shared
 ```
 
-Pulls it from Google Drive with `rclone`, straight onto the cluster. `--help` walks
-through the one-time `rclone config`, including the headless case (authorise on any
-machine with a browser, paste the token back). Data lands in `data/cohorts/`.
+`--help` walks through the one-time `rclone config`, including the headless case
+(authorise on any machine with a browser, paste the token back).
+
+Either way the result is `data/cohorts/<name>/{fasta,newick}/`, which is all the code
+looks for. Confirm with:
+
+```bash
+python sub_sampled_fielder_vec/scripts/run_real_sweep.py --list
+```
 
 ## 3. Check it works
 

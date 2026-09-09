@@ -46,6 +46,11 @@ data/cohorts/6000 taxa/newick/random_tree_0001.nwk    ...
 matched by filename stem. Lay the Drive folder out that way once and every later fetch is
 correct. `$STR_DATA_DIR` overrides the location if the data belongs on scratch.
 
+`extract_archive.sh <tarball> --name "6000 taxa"` is the third route, and the usual one
+when someone hands over the raw archive: it pulls every true tree plus a chosen slice of
+the alignments (default 0001-0100, `--pattern` for more) out of `sim_trees_*.tar.gz`
+straight into the cohort layout, in one pass.
+
 `push.sh user@host --data "6000 taxa"` is the alternative when the data is only on a
 laptop: it rsyncs the repo and the cohort over ssh, excluding caches, results and `.git`.
 
