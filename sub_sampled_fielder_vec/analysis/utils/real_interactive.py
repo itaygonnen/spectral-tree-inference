@@ -237,8 +237,7 @@ def run_real_data_menu() -> None:
     _print_status(chosen, verdicts_by)
 
     stage = get_menu_choice(
-        "Run:", ["screening - read a split off each operator on the full matrix and "
-                 "check it against the true tree",
+        "Run:", ["screening - split the full matrix, check eta and validity",
                  "recovery sweep - sweep trees over p for NMI curve "
                  "(needs screening)"], default_index=0)
     is_screen = stage.startswith("screening")
