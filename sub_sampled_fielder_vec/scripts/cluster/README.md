@@ -1,5 +1,8 @@
 # Running on a Linux box over ssh
 
+**Handing this to someone else? Send them [QUICKSTART.md](QUICKSTART.md)** — the same
+workflow, copy-paste only. This file is the reference behind it.
+
 Onboarding is three commands. No scheduler is assumed — this is a plain ssh machine; under
 SLURM, put the same `run_real_sweep.py` line in an `sbatch` script.
 
