@@ -15,42 +15,45 @@ Builds `.venv`, installs the dependencies, checks every import. Needs Python ≥
 
 ## 2. Get the data (once per dataset)
 
-### 2a. Copy the dataset file to your home directory on the cluster
+### 2a. Copy the dataset file into the repo's `data/` folder
 
 The dataset is one compressed file, `sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz`
 (24 GB), in the shared Google Drive folder — **<FILL IN: Drive folder link>**.
 
-Put it in your home directory, `~/` (any folder works, the next command just needs the
-path):
+Put it in `spectral-tree-inference/data/` — the same folder the unpacked data will live
+in:
 
 ```bash
 # from a computer that already has the file
-scp sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz user@cluster:~/
+scp sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz \
+    user@cluster:~/spectral-tree-inference/data/
 
 # or download it on the cluster from a direct link
-cd ~ && wget -O sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz "<FILL IN: url>"
+cd ~/spectral-tree-inference/data
+wget -O sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz "<FILL IN: url>"
 ```
 
 It should be ~24 GB and pass this check — a transfer that stopped early looks fine until
 you try to open it:
 
 ```bash
-ls -lh ~/sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz
-gzip -t ~/sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz && echo "file is intact"
+cd ~/spectral-tree-inference
+ls -lh data/*.tar.gz
+gzip -t data/*.tar.gz && echo "file is intact"
 ```
 
 ### 2b. Unpack it
 
-Unpack it into the folder layout the code reads:
+From the repo, with no path needed — it takes the file sitting in `data/`:
 
 ```bash
-cd ~/spectral-tree-inference        # the repo you cloned in step 1
-bash sub_sampled_fielder_vec/scripts/cluster/extract_archive.sh \
-    ~/sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz --name "6000 taxa"
+cd ~/spectral-tree-inference
+bash sub_sampled_fielder_vec/scripts/cluster/extract_archive.sh --name "6000 taxa"
 ```
 
 That writes **all 3000 true trees** and, by default, **alignments 0001-0100** into
-`data/cohorts/6000 taxa/` inside the repo (~3 GB; unpacking everything would be ~90 GB).
+`data/cohorts/6000 taxa/` (~3 GB; unpacking everything would be ~90 GB). The compressed
+file can stay where it is, or be deleted once you have what you need.
 For more alignments: `--pattern 'random_tree_0[0-4]*.fasta'` gives 0001-0499. It reads the
 whole compressed file once, so it takes a few minutes and it is worth choosing how many
 alignments you want before running it.

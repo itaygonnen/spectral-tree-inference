@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Unpack the dataset file (sim_trees_*.tar.gz) into a cohort this code can read.
 #
-#   bash scripts/cluster/extract_archive.sh ~/sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz
+#   bash scripts/cluster/extract_archive.sh --name "6000 taxa"
 #   bash scripts/cluster/extract_archive.sh <path to .tar.gz> --name "6000 taxa" \
 #        --pattern 'random_tree_0[0-4]*.fasta'
+#
+# With no path it takes the single .tar.gz sitting in the repo's data/ folder, which is
+# where the dataset file is meant to be dropped -- the unpacked cohort lands beside it.
 #
 # The file holds every alignment (~90 GB unpacked) beside its true tree (~600 MB), laid
 # out as <dataset>/MSAs/*.fasta and <dataset>/trees/*.nwk. This writes ALL the trees and
@@ -20,11 +23,13 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 DEST_ROOT="${STR_DATA_DIR:-$REPO_ROOT/data/cohorts}"
 
-usage() { sed -n '2,20p' "$0"; exit "${1:-0}"; }
-[[ $# -ge 1 ]] || usage 1
-case "$1" in -h|--help) usage 0 ;; esac
+usage() { sed -n '2,24p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help) usage 0 ;; esac
 
-DATASET_FILE="$1"; shift
+DATASET_FILE=""
+if [[ $# -ge 1 && "$1" != --* ]]; then
+  DATASET_FILE="$1"; shift
+fi
 NAME=""
 PATTERNS=()
 while [[ $# -gt 0 ]]; do
@@ -36,7 +41,25 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+DATA_DIR="$REPO_ROOT/data"
+if [[ -z "$DATASET_FILE" ]]; then
+  # no path given: the one .tar.gz in data/
+  shopt -s nullglob
+  found=("$DATA_DIR"/*.tar.gz)
+  shopt -u nullglob
+  case ${#found[@]} in
+    0) echo "no .tar.gz in $DATA_DIR -- copy the dataset file there, or pass its path" >&2
+       exit 1 ;;
+    1) DATASET_FILE="${found[0]}" ;;
+    *) echo "several .tar.gz files in $DATA_DIR; name the one you want:" >&2
+       printf '  %s\n' "${found[@]}" >&2
+       exit 1 ;;
+  esac
+elif [[ ! -f "$DATASET_FILE" && -f "$DATA_DIR/$DATASET_FILE" ]]; then
+  DATASET_FILE="$DATA_DIR/$DATASET_FILE"      # a bare filename, relative to data/
+fi
 [[ -f "$DATASET_FILE" ]] || { echo "no such file: $DATASET_FILE" >&2; exit 1; }
+echo "==> dataset file : $DATASET_FILE"
 if [[ ${#PATTERNS[@]} -eq 0 ]]; then
   PATTERNS=('random_tree_00[0-9][0-9].fasta' 'random_tree_0100.fasta')   # 0001-0100
 fi
