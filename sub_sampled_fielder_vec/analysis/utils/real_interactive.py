@@ -165,7 +165,8 @@ def _plan(cohorts, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> 
         if is_screen:
             secs = len(ids) * (75.0 if m >= 6000 else 10.0) / max(1, cfg["workers"])
         else:
-            ids = _select_ids(ids, verdicts_by[c.name], cfg["rule"], cfg["max_eta"])
+            ids = _select_ids(ids, verdicts_by[c.name], cfg["rule"],
+                              cfg.get("max_eta", 0.0))
             # one sub-sampled Fiedler solve is ~9 s at m=6000 and scales as O(m^3)
             secs = len(ids) * cfg["p_points"] * cfg["reps"] * 9.0 * (m / 6000.0) ** 3
         rows.append(dict(cohort=c, m=m, ids=ids, hours=secs / 3600.0,

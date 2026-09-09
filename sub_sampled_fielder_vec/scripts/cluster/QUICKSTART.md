@@ -74,10 +74,18 @@ python sub_sampled_fielder_vec/scripts/run_real_sweep.py --list
 
 ## 3. Check it works
 
+From the repo root (the directory holding `setup.py`):
+
 ```bash
-source .venv/bin/activate && cd sub_sampled_fielder_vec
+cd ~/spectral-tree-inference        # wherever you cloned it
+source .venv/bin/activate
+cd sub_sampled_fielder_vec
 python -m analysis.utils.real_selftest      # ~1 min, writes only to a temp dir
 ```
+
+Expect four `ok` lines and `all 4 checks passed`. It screens and sweeps two trees for
+real, so it proves the data, the environment and the output writers all work together
+before you start anything long.
 
 ## 4. Run
 

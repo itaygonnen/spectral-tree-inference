@@ -13,6 +13,8 @@ Exits non-zero on the first failure, so it is usable in a pre-run hook or CI.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import os
 import sys
 import tempfile
@@ -105,8 +107,17 @@ def menu_config_helpers() -> str:
         return "skipped: no cohorts on disk"
     verdicts_by = {c.name: _verdicts(c) for c in cohorts}
     rule = _default_rule(cohorts, verdicts_by)
+    # the same keys _ask_config produces, so a missing one shows up here not mid-run
+    from analysis.utils.real_interactive import _ask_config
+    import inspect
     cfg = dict(max_trees=1, workers=1, rule=rule, p_min=0.01, p_points=2, reps=1,
-               prefix="selftest")
+               prefix="selftest", display_mode="progress", max_eta=20.0)
+    src = inspect.getsource(_ask_config)
+    missing = [k for k in ("max_trees", "workers", "rule", "p_min", "p_points", "reps",
+                           "prefix", "display_mode", "max_eta")
+               if f'"{k}"' not in src and f"'{k}'" not in src]
+    if missing:
+        raise AssertionError(f"_ask_config no longer sets {missing}")
     for is_screen in (True, False):
         rows = _plan(cohorts, cfg, is_screen, verdicts_by)
         if len(rows) != len(cohorts):
@@ -124,12 +135,23 @@ def main() -> None:
 
     failed = 0
     for fn in CHECKS:
+        # the checks run real screens and sweeps; their progress output is noise here,
+        # so it is captured and only replayed when something fails
+        buf = io.StringIO()
         try:
-            note = fn()
+            # stderr too: that is where tqdm draws, and a half-drawn bar between two
+            # "ok" lines is exactly the noise this check should not add
+            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                note = fn()
             print(f"  ok    {fn.__name__}: {note}")
         except Exception:
             failed += 1
             print(f"  FAIL  {fn.__name__}")
+            out = buf.getvalue().strip()
+            if out:
+                print("        --- output before the failure ---")
+                for line in out.splitlines()[-8:]:
+                    print(f"        {line}")
             traceback.print_exc(file=sys.stdout)
     print()
     if failed:

@@ -138,8 +138,15 @@ def _sweep_arrays(cohort_name: str, tree_ids: Sequence[str] | None = None,
     out = {}
     for f in by_grid[grid]:
         z = np.load(f, allow_pickle=True)
-        out[f.stem] = {k: np.asarray(z[k], float) for k in z.files
-                       if k not in ("meta", "p_values")}
+        arrays = {}
+        for k in z.files:
+            if k in ("meta", "p_values"):
+                continue
+            a = z[k]
+            # rule_L is a string; everything else is numeric. Keep it as it is rather
+            # than forcing float on the whole archive.
+            arrays[k] = a if a.dtype.kind in "OUS" else np.asarray(a, float)
+        out[f.stem] = arrays
     return np.asarray(grid, float), out
 
 
@@ -179,7 +186,8 @@ def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
         if grid is None:
             continue
         keys = [k for k in ALL_METRICS
-                if any(k in v and v[k].size == len(grid) for v in trees.values())]
+                if any(k in v and v[k].dtype.kind == "f" and v[k].size == len(grid)
+                       for v in trees.values())]
         cols = cols or keys
         for tree, arrays in sorted(trees.items()):
             rule = str(arrays.get("rule_L", [""])[0]) if "rule_L" in arrays else ""
