@@ -1,0 +1,5 @@
+cohort '1000 taxa': 2 trees, m=1000, L=8675
+cohort rule 'any': 2/2 trees
+sweep: 3 p x 1 reps over 2 trees -> /Users/itayg/PythonRepo/spectral-tree-inference/results/real_data/_cache/1000_taxa/sweep
+  0/2 trees cached, 2 to run (3 p x 1 reps, p=0.01..1)
+  2 tree(s) swept in 0.00 h

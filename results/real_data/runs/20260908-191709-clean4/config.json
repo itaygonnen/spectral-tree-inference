@@ -1,0 +1,20 @@
+{
+  "list": false,
+  "cohort": "1000 taxa",
+  "stage": "sweep",
+  "limit": 3,
+  "workers": 4,
+  "p_min": 0.0001,
+  "p_points": 5,
+  "reps": 2,
+  "num_gaps": 10,
+  "min_split": 5,
+  "cohort_rule": "any",
+  "prefix": "clean4",
+  "display_mode": "progress",
+  "cohorts": [
+    "1000 taxa"
+  ],
+  "commit": "5a93a9b",
+  "started": "2026-09-08T19:17:09"
+}

@@ -1,0 +1,20 @@
+{
+  "list": false,
+  "cohort": "1000 taxa",
+  "stage": "sweep",
+  "limit": 2,
+  "workers": 4,
+  "p_min": 0.01,
+  "p_points": 3,
+  "reps": 1,
+  "num_gaps": 10,
+  "min_split": 5,
+  "cohort_rule": "any",
+  "prefix": "gridfix",
+  "display_mode": "progress",
+  "cohorts": [
+    "1000 taxa"
+  ],
+  "commit": "7920ba5",
+  "started": "2026-09-08T19:32:23"
+}

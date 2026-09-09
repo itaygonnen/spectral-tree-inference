@@ -1,0 +1,23 @@
+================================================================================
+Experiment Log Started: 2026-09-08 19:16:20
+================================================================================
+
+[19:16:20] BOOTSTRAP_SWEEP | INFO | 1000 taxa: 0/2 cached, 2 to run, p=0.0001..1, reps=1
+[19:16:25] BOOTSTRAP_SWEEP | INFO | random_tree_001: loaded m=1000, true-tree top split 998/2
+[19:16:25] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[19:16:25] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[19:16:25] BOOTSTRAP_SWEEP | INFO | random_tree_001: L(S) reference split 1/999 (eta=999.00)
+[19:16:25] BOOTSTRAP_SWEEP | INFO | random_tree_001: B reference split 690/310 (eta=2.23)
+[19:16:25] BOOTSTRAP_SWEEP | INFO | [1/2] random_tree_001 done in 5 s (elapsed 0.00 h, ETA 0.00 h)
+[19:16:30] BOOTSTRAP_SWEEP | INFO | random_tree_002: loaded m=1000, true-tree top split 997/3
+[19:16:30] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[19:16:30] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[19:16:30] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[19:16:31] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[19:16:31] BOOTSTRAP_SWEEP | INFO | random_tree_002: L(S) reference split 1/999 (eta=999.00)
+[19:16:31] BOOTSTRAP_SWEEP | INFO | random_tree_002: B reference split 696/304 (eta=2.29)
+[19:16:31] BOOTSTRAP_SWEEP | INFO | [2/2] random_tree_002 done in 5 s (elapsed 0.00 h, ETA 0.00 h)
+
+================================================================================
+Experiment Log Ended: 2026-09-08 19:16:31
+================================================================================

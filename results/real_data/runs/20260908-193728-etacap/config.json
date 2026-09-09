@@ -1,0 +1,21 @@
+{
+  "list": false,
+  "cohort": "1000 taxa",
+  "stage": "sweep",
+  "limit": 8,
+  "workers": 4,
+  "p_min": 0.01,
+  "p_points": 4,
+  "reps": 1,
+  "num_gaps": 10,
+  "min_split": 5,
+  "cohort_rule": "valid_S",
+  "max_eta": 20.0,
+  "prefix": "etacap",
+  "display_mode": "progress",
+  "cohorts": [
+    "1000 taxa"
+  ],
+  "commit": "a666123",
+  "started": "2026-09-08T19:37:28"
+}

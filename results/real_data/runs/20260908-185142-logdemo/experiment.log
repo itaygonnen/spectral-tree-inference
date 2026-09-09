@@ -1,0 +1,30 @@
+================================================================================
+Experiment Log Started: 2026-09-08 18:51:42
+================================================================================
+
+[18:51:42] BOOTSTRAP_SWEEP | INFO | 1000 taxa: 0/3 trees already cached; 3 to run (5 p x 2 reps, p=0.0001..1)
+[18:51:47] BOOTSTRAP_SWEEP | INFO | random_tree_001: loaded m=1000, true-tree top split 998/2
+[18:51:47] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[18:51:48] P_SWEEP_INNER | WARNING | k-means split smaller side 2 < min_split 5
+[18:51:48] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[18:51:48] BOOTSTRAP_SWEEP | INFO | random_tree_001: L(S) reference split 1/999 (eta=999.00)
+[18:51:48] BOOTSTRAP_SWEEP | INFO | random_tree_001: B reference split 690/310 (eta=2.23)
+[18:51:48] BOOTSTRAP_SWEEP | INFO | [1/3] random_tree_001 done in 6 s (elapsed 0.00 h, ETA 0.00 h)
+[18:51:53] BOOTSTRAP_SWEEP | INFO | random_tree_002: loaded m=1000, true-tree top split 997/3
+[18:51:53] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[18:51:54] P_SWEEP_INNER | WARNING | k-means split smaller side 2 < min_split 5
+[18:51:54] P_SWEEP_INNER | WARNING | k-means split smaller side 2 < min_split 5
+[18:51:54] BOOTSTRAP_SWEEP | INFO | random_tree_002: L(S) reference split 1/999 (eta=999.00)
+[18:51:54] BOOTSTRAP_SWEEP | INFO | random_tree_002: B reference split 304/696 (eta=2.29)
+[18:51:54] BOOTSTRAP_SWEEP | INFO | [2/3] random_tree_002 done in 6 s (elapsed 0.00 h, ETA 0.00 h)
+[18:51:59] BOOTSTRAP_SWEEP | INFO | random_tree_003: loaded m=1000, true-tree top split 992/8
+[18:51:59] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[18:52:00] P_SWEEP_INNER | WARNING | k-means split smaller side 2 < min_split 5
+[18:52:00] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[18:52:00] BOOTSTRAP_SWEEP | INFO | random_tree_003: L(S) reference split 1/999 (eta=999.00)
+[18:52:00] BOOTSTRAP_SWEEP | INFO | random_tree_003: B reference split 255/745 (eta=2.92)
+[18:52:00] BOOTSTRAP_SWEEP | INFO | [3/3] random_tree_003 done in 6 s (elapsed 0.00 h, ETA 0.00 h)
+
+================================================================================
+Experiment Log Ended: 2026-09-08 18:52:00
+================================================================================

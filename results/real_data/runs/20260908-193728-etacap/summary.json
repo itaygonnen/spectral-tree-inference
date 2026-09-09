@@ -1,0 +1,18 @@
+{
+  "status": "completed",
+  "cohorts": {
+    "1000 taxa": {
+      "trees_selected": 0,
+      "screening": {
+        "trees": 66,
+        "m": 1000,
+        "valid_L": 65,
+        "valid_B": 28,
+        "valid_both": 28,
+        "median_eta_L": 999.0,
+        "median_eta_B": 1.7363929025978888
+      }
+    }
+  },
+  "finished": "2026-09-08T19:37:28"
+}

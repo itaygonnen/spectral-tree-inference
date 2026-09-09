@@ -1,0 +1,3 @@
+cohort '1000 taxa': 8 trees, m=1000, L=8675
+cohort rule 'valid_S': 8/8 trees, 0 after eta<=20
+nothing to sweep -- no tree passes the cohort rule 'valid_S'. Try --cohort-rule valid_S or all.

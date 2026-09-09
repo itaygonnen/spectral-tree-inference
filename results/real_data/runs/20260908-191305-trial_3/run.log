@@ -1,0 +1,15 @@
+[96m════════════════════════════════════════════════════════════[0m
+
+[1m[93m[1/2] 1000 taxa[0m
+───────────────
+BOOTSTRAP_SWEEP | INFO | 1000 taxa: 0/3 trees already cached; 3 to run (10 p x 3 reps, p=0.01..1)
+BOOTSTRAP_SWEEP | INFO | [1/3] random_tree_001 done in 6 s (elapsed 0.00 h, ETA 0.00 h)
+BOOTSTRAP_SWEEP | INFO | [2/3] random_tree_002 done in 6 s (elapsed 0.00 h, ETA 0.00 h)
+BOOTSTRAP_SWEEP | INFO | [3/3] random_tree_003 done in 6 s (elapsed 0.00 h, ETA 0.00 h)
+[96m════════════════════════════════════════════════════════════[0m
+
+[1m[93m[2/2] 6000 taxa[0m
+───────────────
+BOOTSTRAP_SWEEP | INFO | 6000 taxa: 1/3 trees already cached; 2 to run (10 p x 3 reps, p=0.01..1)
+BOOTSTRAP_SWEEP | INFO | [1/2] random_tree_0002 done in 345 s (elapsed 0.10 h, ETA 0.10 h)
+[93m⚠ 6000 taxa: interrupted -- cached trees are kept[0m
