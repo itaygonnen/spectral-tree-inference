@@ -15,8 +15,35 @@ Builds `.venv`, installs the dependencies, checks every import. Needs Python ≥
 
 ## 2. Get the data (once per dataset)
 
-**If you have the `.tar.gz`** (copy it to the cluster, or `wget` it there), unpack it into
-the right layout with:
+### 2a. Put the archive on the cluster
+
+The dataset ships as one file, `sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz`
+(24 GB), which lives in the shared Google Drive folder — **<FILL IN: Drive folder link>**.
+Put it anywhere with room; `~/` or a scratch filesystem are both fine, and nothing below
+depends on where.
+
+```bash
+# from a laptop that has the file
+scp sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz user@cluster:~/
+
+# or download it on the cluster, if rclone is configured (see get_data.sh --help)
+rclone copy gdrive:"<FILL IN: path in Drive>" ~/ -P
+
+# or, from a direct download link
+wget -O sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz "<FILL IN: url>"
+```
+
+Check the file arrived whole before unpacking — a truncated transfer fails silently until
+tar hits the end:
+
+```bash
+ls -lh sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz   # expect ~24 GB
+gzip -t sim_trees_3000x6000sp_5k_JC_nohet_noindels.tar.gz && echo "archive intact"
+```
+
+### 2b. Unpack it into a cohort
+
+Unpack it into the layout the code reads:
 
 ```bash
 bash sub_sampled_fielder_vec/scripts/cluster/extract_archive.sh \
