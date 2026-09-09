@@ -84,14 +84,22 @@ Two stages: **screening** first (per tree: which split each operator reads off t
 matrix, and is it a real edge of the true tree), then the **recovery sweep** (re-read
 that split from sub-sampled matrices, NMI vs `p`).
 
-Interactive — answer a few questions, the defaults are sensible:
+**Use the launcher.** It asks a handful of questions with sensible defaults, shows what
+is already done, prints the estimated cost, and runs both stages:
 
 ```bash
-tmux new -s str            # so a dropped connection does not kill the run
+tmux new -s str                     # keeps running if the connection drops
+source ~/spectral-tree-inference/.venv/bin/activate
+cd ~/spectral-tree-inference/sub_sampled_fielder_vec
 python scripts/interactive_run.py
 ```
 
-Unattended, survives logout:
+Pick `real data` → the cohorts (`1,2` runs both) → `screening`, and afterwards the same
+launcher again for `recovery sweep`. Detach from tmux with `ctrl-b d`, come back with
+`tmux attach -t str`.
+
+The same thing without any questions, if you would rather queue it and log out — every
+option above has a flag, and both share the same cache:
 
 ```bash
 nohup python scripts/run_real_sweep.py --cohort "1000 taxa,6000 taxa" \
