@@ -96,12 +96,17 @@ def run_real_eta_screen(
     cohort_name: str = "6000 taxa",
     workers: int = 4,
     force: bool = False,
-    progress: int = 5,
+    progress: int = 1,
 ) -> List[Dict]:
     """Screen ``ids``, caching to ``cache_path``. Resumable: only missing ids are run.
 
     ``workers`` defaults to 4: each worker holds the (6000, 5000) alignment plus S, D
-    and L at 288 MB apiece, so ~1.2 GB of resident memory per process.
+    and L at 288 MB apiece, so ~1.2 GB of resident memory per process -- drop to 2 on a
+    machine with other work on it, or the OS starts killing workers.
+
+    ``progress`` is how many completed trees to accumulate before rewriting the cache.
+    It is 1 because the cost of a rewrite (a few KB) is nothing beside a tree, and a run
+    killed for memory otherwise loses everything since the last checkpoint.
     """
     cache_path = Path(cache_path)
     cache_path.parent.mkdir(parents=True, exist_ok=True)
