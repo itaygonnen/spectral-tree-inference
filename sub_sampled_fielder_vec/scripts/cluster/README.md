@@ -54,16 +54,13 @@ straight into the cohort layout, in one pass.
 `push.sh user@host --data "6000 taxa"` is the alternative when the data is only on a
 laptop: it rsyncs the repo and the cohort over ssh, excluding caches, results and `.git`.
 
-## 3. Check, then run
+## 3. Run
 
-```bash
-python -m analysis.utils.real_selftest   # ~1 min, writes to a scratch dir
-```
-
-Confirms the data is readable and the whole pipeline runs end to end before you start
-anything long.
-
-## 3b. Run
+`python scripts/run_real_sweep.py --list` is the readiness check: a cohort listed with the
+right tree count means the data, the layout and the environment are all fine.
+`python -m analysis.utils.real_selftest` (~1 min, scratch dir) goes further and screens
+and sweeps two trees for real — worth running after changing the code, not before every
+run.
 
 Interactive — the same launcher as on a laptop, option `d`:
 
