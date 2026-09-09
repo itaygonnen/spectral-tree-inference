@@ -174,10 +174,10 @@ def _plan(cohorts, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> 
 
 
 def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
-    """Screening coverage and verdicts per chosen cohort, before anything is picked."""
+    """Screening coverage, verdicts and median imbalance, before anything is picked."""
     print_header("Screening status")
     hdr = (f"  {'cohort':<12}{'trees':>7}{'screened':>10}{'L(S) edge':>11}"
-           f"{'B edge':>8}{'both':>6}{'swept':>7}")
+           f"{'B edge':>8}{'both':>6}{'med eta_L':>11}{'med eta_B':>11}{'swept':>7}")
     print(hdr)
     print("  " + "-" * (len(hdr) - 2))
     for c in cohorts:
@@ -186,13 +186,18 @@ def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
         n_s = sum(1 for t in done if v[t].get("valid_S"))
         n_b = sum(1 for t in done if v[t].get("valid_B"))
         n_both = sum(1 for t in done if v[t].get("valid_S") and v[t].get("valid_B"))
+        med_l = (float(np.median([v[t].get("eta_S", np.nan) for t in done]))
+                 if done else float("nan"))
+        med_b = (float(np.median([v[t].get("eta_B", np.nan) for t in done]))
+                 if done else float("nan"))
         swept = (len(list(sweep_cache_dir(c.name).glob("*.npz")))
                  if sweep_cache_dir(c.name).is_dir() else 0)
         print(f"  {c.name:<12}{len(ids):>7}{len(done):>10}{n_s:>11}"
-              f"{n_b:>8}{n_both:>6}{swept:>7}")
+              f"{n_b:>8}{n_both:>6}{med_l:>11.1f}{med_b:>11.1f}{swept:>7}")
     print("\n  'L(S) edge' / 'B edge': trees where that operator's split of the full "
-          "matrix\n  is a real edge of the true tree. 'swept': trees the recovery sweep "
-          "has done.\n")
+          "matrix\n  is a real edge of the true tree. 'med eta': median imbalance of "
+          "that split\n  (larger clan / smaller clan; 1 is perfectly even). 'swept': "
+          "trees the recovery\n  sweep has done.\n")
 
 
 def run_real_data_menu() -> None:
