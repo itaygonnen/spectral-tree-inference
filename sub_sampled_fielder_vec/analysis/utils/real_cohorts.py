@@ -145,13 +145,53 @@ def list_cohorts() -> List[Cohort]:
     return out
 
 
+def _key(name: str) -> str:
+    """Compare cohort names ignoring case, spaces and underscores."""
+    return "".join(str(name).lower().split()).replace("_", "").replace("-", "")
+
+
 def get_cohort(name: str) -> Cohort:
-    for c in list_cohorts():
+    """Find a cohort by name, forgiving case and spacing ("6000 taxa" == "6000_Taxa")."""
+    cohorts = list_cohorts()
+    for c in cohorts:
         if c.name == name:
             return c
+    for c in cohorts:                       # then the forgiving match
+        if _key(c.name) == _key(name):
+            return c
     raise FileNotFoundError(
-        f"no cohort {name!r} in {[str(r) for r in search_roots()]} "
-        f"(have: {[x.name for x in list_cohorts()]})")
+        f"no cohort {name!r}.\n" + describe_search())
+
+
+def describe_search() -> str:
+    """Where cohorts were looked for, what was found, and why a folder was rejected.
+
+    A cohort is a directory with BOTH a fasta/ and a newick/ subdirectory; the usual
+    failure is data unpacked one level too deep, or the two halves side by side under
+    different names.
+    """
+    lines = []
+    for root in search_roots():
+        if not root.is_dir():
+            lines.append(f"  {root}  (does not exist)")
+            continue
+        entries = sorted(d for d in root.iterdir() if d.is_dir())
+        if not entries:
+            lines.append(f"  {root}  (empty)")
+            continue
+        lines.append(f"  {root}")
+        for d in entries:
+            has_f, has_n = (d / "fasta").is_dir(), (d / "newick").is_dir()
+            if has_f and has_n:
+                lines.append(f"    ok       {d.name!r}")
+            else:
+                missing = ", ".join(x for x, ok in (("fasta/", has_f),
+                                                    ("newick/", has_n)) if not ok)
+                inner = ", ".join(sorted(x.name for x in d.iterdir() if x.is_dir())[:6])
+                lines.append(f"    skipped  {d.name!r}: no {missing}"
+                             + (f" (contains: {inner})" if inner else ""))
+    return ("a cohort is <root>/<name>/fasta/*.fasta beside <name>/newick/*.nwk\n"
+            "looked in:\n" + "\n".join(lines))
 
 
 # Two roots under <repo>/results/real_data/, and the distinction matters:

@@ -33,8 +33,8 @@ from src.utils.interactive_ui import (                       # noqa: E402
     confirm, get_input, get_menu_choice, get_multi_choice, print_divider, print_error,
     print_header, print_option, print_success, print_warning)
 
-from .real_cohorts import (list_cohorts, new_run_dir,         # noqa: E402
-                           screen_cache_path, sweep_cache_dir)
+from .real_cohorts import (describe_search, list_cohorts,     # noqa: E402
+                           new_run_dir, screen_cache_path, sweep_cache_dir)
 from .real_eta_screen import run_real_eta_screen             # noqa: E402
 from .real_recovery_sweep import run_sweep                   # noqa: E402
 from .real_results import Tee, export_run, write_config      # noqa: E402
@@ -219,8 +219,8 @@ def run_real_data_menu() -> None:
     """Pick cohorts and a stage, configure once, then run the stage on each."""
     cohorts = list_cohorts()
     if not cohorts:
-        print_error("No real cohorts found under data/cohorts/")
-        print_warning("Expected <name>/fasta/*.fasta beside <name>/newick/*.nwk")
+        print_error("No real cohorts found.")
+        print(describe_search())
         return
 
     print_header("Real data")

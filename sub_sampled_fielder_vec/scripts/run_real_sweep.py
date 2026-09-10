@@ -34,7 +34,8 @@ for _p in (str(_ROOT), str(_REPO)):
         sys.path.insert(0, _p)
 
 from analysis.utils.real_cohorts import (                       # noqa: E402
-    get_cohort, list_cohorts, new_run_dir, screen_cache_path, sweep_cache_dir)
+    describe_search, get_cohort, list_cohorts, new_run_dir, screen_cache_path,
+    sweep_cache_dir)
 from analysis.utils.real_results import (Tee, export_run,        # noqa: E402
                                          write_config)
 from src.utils.logging import (close_log_file, set_display_mode,  # noqa: E402
@@ -108,9 +109,12 @@ def main() -> None:
     args = ap.parse_args()
 
     if args.list:
-        for c in list_cohorts():
+        cohorts = list_cohorts()
+        for c in cohorts:
             m, L = c.shape()
             print(f"  {c.name!r}: {len(c.ids())} trees, m={m}, L={L}  -> {c.dir}")
+        if not cohorts:
+            print("no cohorts found.\n" + describe_search())
         return
 
     names = ([c.name for c in list_cohorts()] if args.cohort.strip() == "all"
