@@ -173,14 +173,24 @@ def run_real_eta_screen(
     bar.close()
 
     rows = [done[t] for t in ids if t in done]
-    n_s = sum(1 for r in rows if r.get("valid_S"))
-    n_b = sum(1 for r in rows if r.get("valid_B"))
-    print(f"  {len(rows)} tree(s) screened: L(S) cuts a real edge on {n_s}, B on {n_b}",
-          flush=True)
     bad = [r for r in rows if "error" in r]
+    ok = [r for r in rows if "error" not in r]
+    n_s = sum(1 for r in ok if r.get("valid_S"))
+    n_b = sum(1 for r in ok if r.get("valid_B"))
+    if ok:
+        print(f"  {len(ok)} tree(s) screened: L(S) cuts a real edge on {n_s}, "
+              f"B on {n_b}", flush=True)
     if bad:
-        print(f"  WARNING: {len(bad)} trees failed, e.g. {bad[0]['error'][:120]}")
-        log_warning("screen", f"{len(bad)} trees failed")
+        # one full message, not a truncated one repeated per tree: these failures are
+        # nearly always one cause (unaligned FASTA, missing tree) shared by every tree
+        print(f"  {len(bad)} of {len(rows)} tree(s) FAILED. First error in full:",
+              flush=True)
+        print(f"    {bad[0]['tree']}: {bad[0]['error']}", flush=True)
+        log_warning("screen", f"{len(bad)}/{len(rows)} trees failed: "
+                              f"{bad[0]['error']}", force=True)
+        if not ok:
+            print("  nothing was screened -- fix the cause above before sweeping",
+                  flush=True)
     return rows
 
 

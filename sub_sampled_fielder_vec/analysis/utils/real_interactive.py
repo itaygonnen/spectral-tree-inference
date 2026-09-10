@@ -331,6 +331,10 @@ def _run_stage(cohort, ids, cfg: dict, is_screen: bool, m: int) -> None:
         run_real_eta_screen(ids, screen_cache_path(cohort.name),
                             cohort_name=cohort.name, workers=cfg["workers"])
         rows = _verdicts(cohort)
+        if not rows:
+            raise RuntimeError(
+                f"{cohort.name}: screening produced nothing usable -- see the errors "
+                f"above and failures.csv in the run directory")
         n_s = sum(bool(v.get("valid_S")) for v in rows.values())
         n_b = sum(bool(v.get("valid_B")) for v in rows.values())
         print_success(f"{len(rows)} trees: L(S) cuts a real edge on {n_s}, B on {n_b}")

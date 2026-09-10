@@ -111,8 +111,10 @@ def main() -> None:
     if args.list:
         cohorts = list_cohorts()
         for c in cohorts:
-            m, L = c.shape()
-            print(f"  {c.name!r}: {len(c.ids())} trees, m={m}, L={L}  -> {c.dir}")
+            pr = c.probe()
+            L = (f"L={pr['L_min']}" if pr["L_min"] == pr["L_max"]
+                 else f"L={pr['L_min']}..{pr['L_max']}  NOT ALIGNED")
+            print(f"  {c.name!r}: {len(c.ids())} trees, m={pr['m']}, {L}  -> {c.dir}")
         if not cohorts:
             print("no cohorts found.\n" + describe_search())
         return

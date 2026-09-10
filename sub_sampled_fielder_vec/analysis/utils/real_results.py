@@ -150,6 +150,25 @@ def _sweep_arrays(cohort_name: str, tree_ids: Sequence[str] | None = None,
     return np.asarray(grid, float), out
 
 
+def write_failures_csv(run_dir: Path, cohorts: Sequence[str]) -> Path | None:
+    """Trees the screen could not process, with the error. None when there are none."""
+    bad = []
+    for c in cohorts:
+        npz = screen_cache_path(c)
+        if not npz.exists():
+            continue
+        bad += [(c, r) for r in np.load(npz, allow_pickle=True)["rows"] if "error" in r]
+    if not bad:
+        return None
+    out = run_dir / "failures.csv"
+    with open(out, "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["cohort", "tree", "error"])
+        for c, r in bad:
+            w.writerow([c, r["tree"], r["error"]])
+    return out
+
+
 def write_screening_csv(run_dir: Path, cohorts: Sequence[str]) -> Path | None:
     """Every tree of every cohort, one row: eta and validity per operator."""
     rows = [(c, r) for c in cohorts for r in _screen_rows(c)]
@@ -331,7 +350,8 @@ def export_run(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
     ``p_values`` pins the export to the grid THIS run swept; without it the shared cache
     can contribute another run's trees.
     """
-    written = [p for p in [write_screening_csv(run_dir, list(cohort_ids))] if p]
+    written = [p for p in (write_screening_csv(run_dir, list(cohort_ids)),
+                           write_failures_csv(run_dir, list(cohort_ids))) if p]
     written += write_curve_csvs(run_dir, cohort_ids, p_values)
     written.append(write_summary(run_dir, cohort_ids, status, note, p_values))
     plot = plot_recovery(run_dir, cohort_ids, p_values)

@@ -82,21 +82,40 @@ class Cohort:
                      if (self.newick_dir / f"{p.stem}.nwk").exists())
         return ids[:limit] if limit else ids
 
-    def shape(self) -> Tuple[int, int]:
-        """``(m, L)`` read from the first alignment's header block, without parsing it."""
+    def probe(self) -> dict:
+        """Scan the first alignment: ``{m, L_min, L_max, path}``, without parsing it.
+
+        ``L_min != L_max`` means the file is NOT aligned -- the records have different
+        lengths, which no similarity or distance matrix can be built from. Reporting only
+        the first record's length (what this used to do) hid exactly that.
+        """
         first = next(iter(sorted(self.fasta_dir.glob("*.fasta"))), None)
         if first is None:
-            return (0, 0)
-        m, seq_len, cur = 0, 0, 0
+            return dict(m=0, L_min=0, L_max=0, path=None)
+        lengths: List[int] = []
+        cur = 0
         with open(first) as fh:
             for line in fh:
                 if line.startswith(">"):
-                    m += 1
-                    if m == 2:
-                        seq_len = cur
-                elif m == 1:
+                    if lengths or cur:
+                        lengths.append(cur)
+                    cur = 0
+                else:
                     cur += len(line.strip())
-        return m, seq_len or cur
+        if cur:
+            lengths.append(cur)
+        return dict(m=len(lengths), L_min=min(lengths) if lengths else 0,
+                    L_max=max(lengths) if lengths else 0, path=first)
+
+    def shape(self) -> Tuple[int, int]:
+        """``(m, L)`` of the first alignment; ``L`` is its longest record."""
+        pr = self.probe()
+        return pr["m"], pr["L_max"]
+
+    def is_ragged(self) -> bool:
+        """True when the first alignment's records differ in length (not an alignment)."""
+        pr = self.probe()
+        return pr["L_min"] != pr["L_max"]
 
     def load_all(self, tree_id: str):
         """Return ``(S, labels, tree, D)`` for one tree, or ``None`` if files are missing.
@@ -114,6 +133,13 @@ class Cohort:
             return None
 
         cm = dendropy.DnaCharacterMatrix.get(path=str(fpath), schema="fasta")
+        lengths = {len(cm[t]) for t in cm.taxon_namespace}
+        if len(lengths) > 1:
+            raise ValueError(
+                f"{fpath.name} is not aligned: {len(cm.taxon_namespace)} sequences with "
+                f"lengths {min(lengths)}..{max(lengths)}. Every operator here needs one "
+                f"column set shared by all taxa, so the sequences have to be aligned "
+                f"(or the alignment re-exported) before this cohort can be used.")
         obs, meta = spectraltree.charmatrix2array(cm)
         labels = [str(t.label) for t in list(meta)]
         S = spectraltree.JC_similarity_matrix(obs)
