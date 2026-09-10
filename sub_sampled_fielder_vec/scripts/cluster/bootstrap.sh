@@ -60,6 +60,11 @@ for mod in ("numpy", "scipy", "pandas", "sklearn", "dendropy", "igraph",
     importlib.import_module(mod)
     print(f"  ok  {mod}")
 
+# the two entry points, imported for real: this is where a missing optional dependency
+# (toytree, PIL) or a stale call site shows up, not in the module list above
+importlib.import_module("analysis.utils.real_interactive")
+print("  ok  analysis.utils.real_interactive (the launcher's real-data branch)")
+
 from analysis.utils.real_cohorts import list_cohorts
 cohorts = list_cohorts()
 print(f"  ok  analysis.utils.real_cohorts -> {len(cohorts)} cohort(s)")

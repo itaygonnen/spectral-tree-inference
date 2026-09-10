@@ -39,13 +39,10 @@ from src.utils.interactive_ui import (
     print_error, print_success, print_warning, print_divider
 )
 from src.utils.persistent_cache import list_cached_experiments, clean_incomplete_caches
-from src.runners.experiment_runner_utils import (
-    extract_config_values,
-    generate_run_prefix,
-    setup_experiment_directory,
-    run_single_experiment,
-    auto_generate_plots,
-)
+
+# experiment_runner_utils pulls in the tree plotting stack (toytree, toyplot, PIL), which
+# the real-data branch never touches and a slim cluster install does not have. Import it
+# where the generated-data branch actually runs, not at module level.
 
 
 # Paths
@@ -429,6 +426,14 @@ def create_new_config() -> Dict[str, Any]:
 
 def run_experiment(config: Dict[str, Any]):
     """Run experiment with given configuration."""
+    from src.runners.experiment_runner_utils import (
+        auto_generate_plots,
+        extract_config_values,
+        generate_run_prefix,
+        run_single_experiment,
+        setup_experiment_directory,
+    )
+
     print_divider()
     print_header("Starting Experiment")
     print_config_summary(config)
