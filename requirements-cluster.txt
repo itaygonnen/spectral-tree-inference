@@ -9,7 +9,8 @@
 #     pip install -r requirements-cluster.txt
 #     pip install -e . --no-deps
 #
-# python-igraph IS required: spectraltree/utils.py imports it at module level.
+# python-igraph IS required: spectraltree/utils.py imports it at module level. sphinx is
+# not: its import in setup.py is guarded, so installing the package no longer needs it.
 numpy>=1.24
 scipy>=1.9
 pandas>=2.0

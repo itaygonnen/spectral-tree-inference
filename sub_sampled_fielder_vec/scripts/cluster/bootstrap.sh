@@ -36,7 +36,15 @@ source .venv/bin/activate
 echo "==> installing dependencies"
 python -m pip install --upgrade pip wheel
 python -m pip install -r requirements-cluster.txt
-python -m pip install -e . --no-deps
+if ! python -m pip install -e . --no-deps; then
+  cat >&2 <<'EOF'
+
+Installing the package failed. If the error mentions a missing module (sphinx, say),
+setup.py wants a build-time import this branch should already have made optional --
+make sure the checkout is up to date (git pull), then re-run this script.
+EOF
+  exit 1
+fi
 
 echo "==> verifying"
 python - <<'PY'

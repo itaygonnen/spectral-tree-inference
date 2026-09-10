@@ -1,5 +1,14 @@
 from setuptools import setup
-from sphinx.setup_command import BuildDoc
+
+# Sphinx is needed only to BUILD THE DOCS, and importing it here made every install of
+# this package depend on it -- `pip install -e . --no-deps` on a machine without sphinx
+# failed before setup() was even reached. Register the command when it is available.
+try:
+    from sphinx.setup_command import BuildDoc
+    _cmdclass = {'build_sphinx': BuildDoc}
+except ImportError:
+    BuildDoc = None
+    _cmdclass = {}
 
 name = 'spectral-tree-inference'
 version = '0.1'
@@ -31,7 +40,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     test_suite="tests",
-    cmdclass={'build_sphinx': BuildDoc},
+    cmdclass=_cmdclass,
     command_options={
         'build_sphinx': {
             'project': ('setup.py', name),
