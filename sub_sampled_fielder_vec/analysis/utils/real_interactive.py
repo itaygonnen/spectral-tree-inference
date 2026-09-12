@@ -192,8 +192,10 @@ def _framed(lines: List[str], rule_after: int = -1) -> None:
 def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
     """Screening coverage, verdicts and median imbalance, before anything is picked."""
     print_header("Screening status")
+    cap = f"eta<={MAX_ETA:g}"
     lines = [f"{'cohort':<12}{'trees':>7}{'screened':>10}{'L(S) edge':>11}"
-             f"{'B edge':>8}{'both':>6}{'med eta_L':>11}{'med eta_B':>11}{'swept':>7}"]
+             f"{'B edge':>8}{'both':>6}{'med eta_L':>11}{'med eta_B':>11}"
+             f"{cap:>10}{'swept':>7}"]
     for c in cohorts:
         v, ids = verdicts_by[c.name], c.ids()
         done = [t for t in ids if t in v]
@@ -204,15 +206,20 @@ def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
                  if done else float("nan"))
         med_b = (float(np.median([v[t].get("eta_B", np.nan) for t in done]))
                  if done else float("nan"))
+        n_cap = sum(1 for t in done
+                    if max(v[t].get("eta_S", 0.0), v[t].get("eta_B", 0.0)) <= MAX_ETA)
         swept = (len(list(sweep_cache_dir(c.name).glob("*.npz")))
                  if sweep_cache_dir(c.name).is_dir() else 0)
         lines.append(f"{c.name:<12}{len(ids):>7}{len(done):>10}{n_s:>11}"
-                     f"{n_b:>8}{n_both:>6}{med_l:>11.1f}{med_b:>11.1f}{swept:>7}")
+                     f"{n_b:>8}{n_both:>6}{med_l:>11.1f}{med_b:>11.1f}"
+                     f"{n_cap:>10}{swept:>7}")
     lines += [
         "• L(S) edge / B edge - trees whose split of the full matrix is a real edge",
         "                       of the true tree",
         "• med eta            - median imbalance of that split: larger clan / smaller",
         "                       clan, so 1 is a perfectly even cut",
+        f"• eta<={MAX_ETA:<14g}- trees even enough on BOTH operators to carry a",
+        "                       recovery signal; this is what the sweep starts from",
         "• swept              - trees the recovery sweep has already covered",
     ]
     _framed(lines, rule_after=len(cohorts))

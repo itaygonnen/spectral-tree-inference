@@ -312,11 +312,16 @@ def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
     if not series:
         return None
 
-    palette = ["#065f46", "#1d4ed8", "#b45309", "#991b1b"]
+    # Colour distinguishes the OPERATORS -- the comparison the figure exists for -- and
+    # line style distinguishes cohorts. The old figure did the opposite, so both arms of a
+    # single cohort came out the same colour and only solid-vs-dashed told them apart.
+    ARM = {"L": ("#4b5563", r"$L(S)$ Fiedler"),
+           "B": ("#065f46", r"$B = H\mathcal{D}H$")}
+    STYLES = ["-", "--", ":", "-."]
     fig, ax = plt.subplots(figsize=(7.5, 6.5))
     for i, (cohort, p_values, trees) in enumerate(series):
-        color = palette[i % len(palette)]
-        for arm, ls in (("L", "-"), ("B", "--")):
+        ls = STYLES[i % len(STYLES)]
+        for arm, (color, arm_label) in ARM.items():
             key = f"nmi_{arm}"
             arr = [v[key] for v in trees.values() if key in v]
             if not arr:
@@ -325,20 +330,21 @@ def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
             med = np.nanmedian(arr, 0)
             q25, q75 = (np.nanpercentile(arr, 25, axis=0),
                         np.nanpercentile(arr, 75, axis=0))
+            rules = {str(v["rule_L"][0]) for v in trees.values() if "rule_L" in v}
+            cut = (f", {rules.pop()} cut" if arm == "L" and len(rules) == 1
+                   else (", per-tree cut" if arm == "L" and rules else ", sign cut"))
             ax.plot(p_values, med, color=color, ls=ls, lw=2, marker="o", ms=3,
-                    label=f"{cohort} - {'L(S)' if arm == 'L' else 'B=HDH'} "
-                          f"({arr.shape[0]} trees)")
+                    label=f"{arm_label}{cut} - {cohort}, {arr.shape[0]} trees")
             # the middle half of the trees; a +-std band would leave [0, 1]
-            ax.fill_between(p_values, q25, q75, color=color,
-                            alpha=0.16 if arm == "L" else 0.08)
+            ax.fill_between(p_values, q25, q75, color=color, alpha=0.13)
     ax.set_xscale("log")
     ax.set_xlabel(r"sub-sampling fraction $p$ (log)", fontsize=12)
-    ax.set_ylabel("median NMI vs full-matrix split (band: IQR over trees)", fontsize=11)
-    ax.set_title(r"solid: $L(S)$ + k-means     dashed: $B=H\mathcal{D}H$ + sign",
-                 fontsize=11)
+    ax.set_ylabel("median NMI vs that operator's own full-matrix split", fontsize=11)
+    ax.set_title("colour = operator, line style = cohort; band = middle half of trees",
+                 fontsize=10)
     ax.set_ylim(-0.05, 1.05)
     ax.grid(alpha=0.25)
-    ax.legend(fontsize=9, loc="upper left")
+    ax.legend(fontsize=9, loc="upper left", framealpha=0.95)
     fig.tight_layout()
     out = run_dir / "recovery_curve.png"
     fig.savefig(out, dpi=150)
