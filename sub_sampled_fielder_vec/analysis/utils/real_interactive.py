@@ -165,11 +165,14 @@ def _plan(cohorts, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> 
         if is_screen:
             secs = len(ids) * (75.0 if m >= 6000 else 10.0) / max(1, cfg["workers"])
         else:
+            after_rule = _select_ids(ids, verdicts_by[c.name], cfg["rule"])
             ids = _select_ids(ids, verdicts_by[c.name], cfg["rule"],
                               cfg.get("max_eta", 0.0))
+            n_rule = len(after_rule)
             # one sub-sampled Fiedler solve is ~9 s at m=6000 and scales as O(m^3)
             secs = len(ids) * cfg["p_points"] * cfg["reps"] * 9.0 * (m / 6000.0) ** 3
         rows.append(dict(cohort=c, m=m, ids=ids, hours=secs / 3600.0,
+                         n_rule=None if is_screen else n_rule,
                          screened=sum(1 for t in c.ids() if t in verdicts_by[c.name])))
     return rows
 
@@ -256,9 +259,13 @@ def run_real_data_menu() -> None:
     print_divider()
     total = sum(r["hours"] for r in plan)
     for r in plan:
-        gate = "" if is_screen else f", gated on [{cfg['rule']}]"
         print(f"  {r['cohort'].name:<12} m={r['m']:<5} {len(r['ids']):>4} trees"
-              f"  ~{r['hours']:.1f} h{gate}")
+              f"  ~{r['hours']:.1f} h")
+        if not is_screen:
+            # where the trees went: the two filters, in the order they are applied
+            print(f"  {'':<12} {r['screened']} screened -> {r['n_rule']} "
+                  f"[{cfg['rule']}] -> {len(r['ids'])} with eta <= "
+                  f"{cfg.get('max_eta', 0.0):g}")
     print(f"\ntotal ~{total:.1f} h. Every tree is cached on its own, so this is safe to "
           "interrupt and resume.")
     if total > 1.0:
@@ -313,8 +320,13 @@ def run_real_data_menu() -> None:
         status = "failed"
     run_grid = (None if is_screen
                 else np.logspace(np.log10(cfg["p_min"]), 0, cfg["p_points"]))
+    selection = (None if is_screen else
+                 {"rule": cfg["rule"], "max_eta": cfg.get("max_eta", 0.0),
+                  "per_cohort": {r["cohort"].name:
+                                 {"screened": r["screened"], "after_rule": r["n_rule"],
+                                  "after_max_eta": len(r["ids"])} for r in plan}})
     for f in export_run(run_dir, selected or {c.name: c.ids() for c in chosen}, status,
-                        ", ".join(failures), run_grid):
+                        ", ".join(failures), run_grid, selection):
         print(f"  {f.name}")
     if failures:
         print_error(f"{len(failures)} cohort(s) failed: {', '.join(failures)} "

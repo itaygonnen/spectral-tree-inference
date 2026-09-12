@@ -155,7 +155,12 @@ def main() -> None:
         status = "failed"
     run_grid = (None if args.stage == "screen"
                 else np.logspace(np.log10(args.p_min), 0, args.p_points))
-    for f in export_run(run_dir, selected, status, ", ".join(failures), run_grid):
+    selection = (None if args.stage == "screen"
+                 else {"rule": args.cohort_rule, "max_eta": args.max_eta,
+                       "per_cohort": {n: {"selected": len(v)}
+                                      for n, v in selected.items()}})
+    for f in export_run(run_dir, selected, status, ", ".join(failures), run_grid,
+                        selection):
         print(f"  {f.name}")
     if failures:
         print(f"ERROR: {len(failures)} cohort(s) failed: {', '.join(failures)} "

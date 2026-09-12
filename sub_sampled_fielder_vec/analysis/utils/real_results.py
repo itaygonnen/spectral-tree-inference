@@ -249,7 +249,8 @@ def write_curve_csvs(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
 
 def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
                   status: str = "completed", note: str = "",
-                  p_values: Sequence[float] | None = None) -> Path:
+                  p_values: Sequence[float] | None = None,
+                  selection: Dict | None = None) -> Path:
     """Headline numbers per cohort, plus how the run ended.
 
     ``status`` matters: an interrupted run still exports every tree that finished, so its
@@ -257,6 +258,9 @@ def write_summary(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
     invisible.
     """
     summary: dict = {"status": status, "cohorts": {}}
+    if selection:
+        # why trees_selected is what it is: the gate and the imbalance cap that produced it
+        summary["selection"] = selection
     if note:
         summary["note"] = note
     summary["finished"] = datetime.now().isoformat(timespec="seconds")
@@ -344,7 +348,8 @@ def plot_recovery(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
 
 def export_run(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
                status: str = "completed", note: str = "",
-               p_values: Sequence[float] | None = None) -> List[Path]:
+               p_values: Sequence[float] | None = None,
+               selection: Dict | None = None) -> List[Path]:
     """Everything readable for a finished run. Returns the files written.
 
     ``p_values`` pins the export to the grid THIS run swept; without it the shared cache
@@ -353,7 +358,7 @@ def export_run(run_dir: Path, cohort_ids: Dict[str, Sequence[str]],
     written = [p for p in (write_screening_csv(run_dir, list(cohort_ids)),
                            write_failures_csv(run_dir, list(cohort_ids))) if p]
     written += write_curve_csvs(run_dir, cohort_ids, p_values)
-    written.append(write_summary(run_dir, cohort_ids, status, note, p_values))
+    written.append(write_summary(run_dir, cohort_ids, status, note, p_values, selection))
     plot = plot_recovery(run_dir, cohort_ids, p_values)
     if plot:
         written.append(plot)
