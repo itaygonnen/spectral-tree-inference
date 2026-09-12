@@ -1,4 +1,4 @@
-"""Sub-sampling recovery sweep on a real cohort, two operators.
+"""Sub-sampling recovery sweep on a real dataset, two operators.
 
 For one tree the sweep asks: replace the full matrix by a uniform sub-sample at rate
 ``p`` and re-read the bipartition -- how much of the full-matrix partition survives?
@@ -45,14 +45,18 @@ META_KEYS = ("reps", "num_gaps", "min_split", "partition_method",
 # recovery figure plots; the rest cost nothing once the eigenvector is in hand, so they are
 # stored rather than thrown away. ``agreement`` and ``dot`` are the orientation-invariant
 # clan-label match (%) and the dot product with the reference vector.
+# Column names spell out WHAT is compared to WHAT: <metric>_<operator>_vs_<reference>.
+# "gt" meant the true tree and nobody could tell.
 METRICS = ("nmi", "ari", "agreement", "dot")
+REF_FULL = "vs_fullmatrix"      # that operator's own split of the complete matrix
+REF_TREE = "vs_truetree"        # the true tree's own top bipartition
 
 # The same three scores against a SECOND reference: the true tree's own top bipartition
 # (its root's two leaf sets), which is what the earlier real-data benchmark reported as
 # ``*_gt``. Recovery towards the full matrix says the sub-sample kept what the full matrix
 # saw; recovery towards the tree says the full matrix was seeing the right thing. They can
 # disagree sharply -- 0.68 vs 0.013 on the m=1000 run -- so both are stored.
-GT_METRICS = ("nmi_gt", "ari_gt", "agreement_gt")
+GT_METRICS = tuple(f"{m}_{REF_TREE}" for m in ("nmi", "ari", "agreement"))
 
 # L-only extra: ``bootstrap_p_sweep_simple`` reports sign agreement separately, while on the
 # B arm the sign pattern IS the partition, so its ``agreement`` already is that number.
@@ -63,7 +67,8 @@ def sweep_meta(reps: int, num_gaps: int, min_split: int, m: int = 6000) -> Dict:
     return dict(reps=int(reps), num_gaps=int(num_gaps), min_split=int(min_split),
                 partition_method="kmeans_or_sign", eigsolver="lm_k1",
                 aggregation="avg_vector", m=int(m),
-                metrics=",".join(METRICS + GT_METRICS))
+                metrics=",".join(tuple(f"{m}_{REF_FULL}" for m in METRICS)
+                                 + GT_METRICS + ("split", "eta")))
 
 
 def _gt_partition(tree, labels) -> np.ndarray:
@@ -111,7 +116,7 @@ def _cache_file(cache_dir: Path, tid: str) -> Path:
 
 
 def seed_for(tid: str, stride: int = 1000) -> int:
-    """Seed from the tree's own number, not its position in some cohort list, so a
+    """Seed from the tree's own number, not its position in some dataset list, so a
     pilot run, a partial run and the full run all produce the same curve for a tree."""
     return stride * int(tid.rsplit("_", 1)[-1])
 
@@ -129,27 +134,29 @@ def load_tree_sweep(cache_dir, tid: str, p_values: Sequence[float], meta: Dict,
         stored = dict(z["meta"].item())
         if any(stored.get(k) != meta[k] for k in META_KEYS):
             return None
-        return (np.asarray(z[f"{metric}_L"], float),
-                np.asarray(z[f"{metric}_B"], float))
+        # metric already carries its reference, e.g. "nmi_vs_fullmatrix"
+        met, ref = metric.rsplit("_vs_", 1)
+        return (np.asarray(z[f"{met}_L_vs_{ref}"], float),
+                np.asarray(z[f"{met}_B_vs_{ref}"], float))
     except Exception:
         return None
 
 
 def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
                    num_gaps: int, min_split: int,
-                   cohort_name: str = "6000 taxa",
+                   dataset: str = "6000 taxa",
                    progress_cb=None) -> Dict[str, np.ndarray]:
     """Run both arms on one tree. Returns ``{"<metric>_L"/"_B": one value per p}``.
 
     ``progress_cb(stage, p_index, p)`` is called after every p of every arm, so a caller
     can show movement inside a tree that takes half an hour.
     """
-    from analysis.utils.real_cohorts import get_cohort
+    from analysis.utils.real_datasets import get_dataset
     from src.core.utils import compute_fiedler_from_laplacian, compute_laplacian
     from src.runners.p_sweep_inner import bootstrap_p_sweep_simple
     from src.utils.bpart_sweep_cache import bpart_sweep_raw
 
-    loaded = get_cohort(cohort_name).load_all(tid)
+    loaded = get_dataset(dataset).load_all(tid)
     if loaded is None:
         raise FileNotFoundError(f"{tid}: alignment or tree missing")
     S, labels, tree, D = loaded
@@ -182,10 +189,10 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
     n1, n2 = out_L["partition_split_ref"]
     log_info("bootstrap", f"{tid}: L(S) reference split {n1}/{n2} ({rule_L})")
     # the two arms name the same quantities differently; map both onto METRICS
-    out = {f"{m}_L": np.asarray(out_L[k], float) for m, k in (
+    out = {f"{m}_L_{REF_FULL}": np.asarray(out_L[k], float) for m, k in (
         ("nmi", "partition_nmi_M"), ("ari", "partition_ari_M"),
         ("agreement", "partition_agreement_M"), ("dot", "dot_product"),
-        ("sign", "sign_agreement"))}
+        ("signagreement", "sign_agreement"))}
 
     raw = bpart_sweep_raw(D, list(p_values), reps=reps, seed_base=seed,
                           eigsolver="lm_k1", aggregation="avg_vector",
@@ -193,7 +200,7 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
     log_info("bootstrap", f"{tid}: B reference split {raw['n1']}/{raw['n2']} "
                           f"(eta={raw['eta']:.2f})")
     for met in METRICS:
-        out[f"{met}_B"] = np.array(
+        out[f"{met}_B_{REF_FULL}"] = np.array(
             [float(np.mean(pp[met])) for pp in raw["per_p"]], float)
 
     # second reference: the true tree's own split, scored from the partitions the two
@@ -202,7 +209,15 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
                        ("B", [pp["partitions"][0] for pp in raw["per_p"]])):
         scored = [_score(gt, part) for part in parts]
         for met in ("nmi", "ari", "agreement"):
-            out[f"{met}_gt_{arm}"] = np.array([sc[met] for sc in scored], float)
+            out[f"{met}_{arm}_{REF_TREE}"] = np.array([sc[met] for sc in scored], float)
+        # the split the sweep actually recovered at each p, not just its score
+        out[f"split_small_{arm}"] = np.array(
+            [np.nan if part is None else min(int(np.sum(part)),
+                                             int(part.size - np.sum(part)))
+             for part in parts], float)
+        out[f"eta_{arm}"] = np.array(
+            [np.nan if part is None else _eta_of(np.asarray(part))
+             for part in parts], float)
 
     # provenance of the L arm's threshold choice, per tree
     out["eta_ref_L_kmeans"] = np.array([etas["kmeans"]], float)
@@ -214,7 +229,7 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
 
 def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
               reps: int = 10, num_gaps: int = 10, min_split: int = 5,
-              cohort_name: str = "6000 taxa", m: int = 6000,
+              dataset: str = "6000 taxa", m: int = 6000,
               seed_stride: int = 1000) -> List[str]:
     """Sweep every id in ``ids``, skipping trees already cached. Returns ids done."""
     import time
@@ -228,7 +243,7 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
     todo = [t for t in ids if load_tree_sweep(cache_dir, t, pv, meta) is None]
     print(f"  {len(ids) - len(todo)}/{len(ids)} trees cached, {len(todo)} to run "
           f"({len(pv)} p x {reps} reps, p={pv[0]:g}..{pv[-1]:g})", flush=True)
-    log_info("bootstrap", f"{cohort_name}: {len(ids) - len(todo)}/{len(ids)} cached, "
+    log_info("bootstrap", f"{dataset}: {len(ids) - len(todo)}/{len(ids)} cached, "
                           f"{len(todo)} to run, p={pv[0]:g}..{pv[-1]:g}, reps={reps}")
 
     t0 = time.time()
@@ -243,7 +258,7 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
         curves = sweep_one_tree(
             tid, seed=seed_for(tid, seed_stride), p_values=pv,
             reps=reps, num_gaps=num_gaps, min_split=min_split,
-            cohort_name=cohort_name,
+            dataset=dataset,
             progress_cb=lambda stage, i, p: inner.update(1))
         inner.close()
         np.savez(_cache_file(cache_dir, tid), p_values=pv,
@@ -265,8 +280,9 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
 def collect(ids: Sequence[str], cache_dir, p_values: Sequence[float], meta: Dict,
             metric: str = "nmi") -> Tuple[np.ndarray, np.ndarray, List[str], List[str]]:
     """Stack one metric's cached curves. Returns ``(arr_L, arr_B, have, pending)``."""
-    if metric not in METRICS + GT_METRICS:
-        raise ValueError(f"metric must be one of {METRICS + GT_METRICS}, got {metric!r}")
+    known = tuple(f"{m}_{REF_FULL}" for m in METRICS) + GT_METRICS
+    if metric not in known:
+        raise ValueError(f"metric must be one of {known}, got {metric!r}")
     pv = np.round(np.asarray(p_values, float), 6)
     have, pending, L, B = [], [], [], []
     for tid in ids:

@@ -1,18 +1,18 @@
 """Interactive real-data menu for ``scripts/interactive_run.py``.
 
 The launcher's other branch configures a *simulated* sweep (tree model, mutation rate,
-sequence length). Real cohorts have none of those knobs -- the alignment and the true
+sequence length). Real datasets have none of those knobs -- the alignment and the true
 tree are given -- so this asks a different, shorter set of questions:
 
-    which cohorts  any <name>/{fasta,newick} under data/cohorts/, several at a time
+    which datasets  any <name>/{fasta,newick} under data/datasets/, several at a time
     which stage    screen (eta + validity per operator) or sweep (recovery vs p)
-    parameters     asked ONCE and applied to every chosen cohort, so sizes stay
+    parameters     asked ONCE and applied to every chosen dataset, so sizes stay
                    comparable -- the whole point of running m=1000 beside m=6000
 
 Everything it runs is the same code path as ``scripts/run_real_sweep.py``, so an
 interactive session on a login node and a nohup'd batch run share one cache.
 
-Lives beside the cohort helpers in ``analysis/utils/`` -- ``src/`` must never import
+Lives beside the dataset helpers in ``analysis/utils/`` -- ``src/`` must never import
 from ``analysis/``, so the dependency runs launcher -> analysis -> src, never back.
 """
 from __future__ import annotations
@@ -33,7 +33,7 @@ from src.utils.interactive_ui import (                       # noqa: E402
     confirm, get_input, get_menu_choice, get_multi_choice, print_divider, print_error,
     print_header, print_option, print_success, print_warning)
 
-from .real_cohorts import (describe_search, list_cohorts,     # noqa: E402
+from .real_datasets import (describe_search, list_datasets,     # noqa: E402
                            new_run_dir, screen_cache_path, sweep_cache_dir)
 from .real_eta_screen import run_real_eta_screen             # noqa: E402
 from .real_recovery_sweep import run_sweep                   # noqa: E402
@@ -41,7 +41,7 @@ from .real_results import Tee, export_run, write_config      # noqa: E402
 from src.utils.logging import (close_log_file, set_display_mode,  # noqa: E402
                                setup_log_file)
 
-# Defaults, shared by every cohort in one run. The p-grid and reps match the notebook's
+# Defaults, shared by every dataset in one run. The p-grid and reps match the notebook's
 # figure, so a run left on defaults extends the caches the notebook plots from. p starts
 # at 1e-4: the transition sits near log n / n, which is 1.4e-3 at m=6000, so the grid has
 # to reach below that for the curve to show a floor rather than start on the ramp.
@@ -66,9 +66,9 @@ RULES = {
 }
 
 
-def _verdicts(cohort) -> dict:
-    """Screen rows for a cohort, keyed by tree id. Empty when it has not been screened."""
-    path = screen_cache_path(cohort.name)
+def _verdicts(dataset) -> dict:
+    """Screen rows for a dataset, keyed by tree id. Empty when it has not been screened."""
+    path = screen_cache_path(dataset.name)
     if not path.exists():
         return {}
     return {r["tree"]: r for r in np.load(path, allow_pickle=True)["rows"]
@@ -88,25 +88,25 @@ def _select_ids(ids, verdicts: dict, rule: str, max_eta: float = 0.0) -> list:
     return out
 
 
-def _default_rule(cohorts, verdicts_by: Dict[str, dict]) -> str:
-    """Strictest gate that still selects a tree in EVERY chosen cohort."""
+def _default_rule(datasets, verdicts_by: Dict[str, dict]) -> str:
+    """Strictest gate that still selects a tree in EVERY chosen dataset."""
     for name, fn in RULES.items():
         if all(any(t in verdicts_by[c.name] and fn(verdicts_by[c.name][t])
-                   for t in c.ids()) for c in cohorts):
+                   for t in c.ids()) for c in datasets):
             return name
     return ALL_TREES
 
 
-def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
-    """One parameter set for all cohorts: show the defaults, edit them only on request."""
-    cfg = dict(max_trees=0,                       # 0 = every tree in each cohort
+def _ask_config(datasets, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
+    """One parameter set for all datasets: show the defaults, edit them only on request."""
+    cfg = dict(max_trees=0,                       # 0 = every tree in each dataset
                workers=max(1, min(8, (os.cpu_count() or 4) // 2)),
-               rule=_default_rule(cohorts, verdicts_by),
+               rule=_default_rule(datasets, verdicts_by),
                p_min=P_MIN, p_points=P_POINTS, reps=REPS, prefix="",
                display_mode="progress", max_eta=MAX_ETA)
 
     print_divider()
-    print("configuration (applies to every cohort chosen):")
+    print("configuration (applies to every dataset chosen):")
     if is_screen:
         print("  trees      all")
         print(f"  workers    {cfg['workers']}")
@@ -118,23 +118,23 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
         print(f"  reps       {cfg['reps']} bootstrap replicates per p")
         print("  metrics    NMI, ARI, agreement, sign agreement, dot "
               "(NMI is what the figure plots)")
-        print("  output     <cohort>/sweep/  (name it below to keep runs side by side)")
+        print("  output     <dataset>/sweep/  (name it below to keep runs side by side)")
     print()
     if not confirm("Edit this configuration?", default=False):
         return cfg
 
-    cap = get_input("Max trees per cohort (blank = all)", default="")
+    cap = get_input("Max trees per dataset (blank = all)", default="")
     cfg["max_trees"] = int(cap) if cap and cap.strip() else 0
     if is_screen:
-        # screening has no free parameters, so it has one canonical output per cohort
+        # screening has no free parameters, so it has one canonical output per dataset
         cfg["workers"] = int(get_input("Workers", default=str(cfg["workers"])))
         return cfg
 
     # Spell the counts out. A bare "2, 91" reads as a range, and even "2/66" hides that
-    # the denominator a gate can act on is the SCREENED trees, not the cohort.
+    # the denominator a gate can act on is the SCREENED trees, not the dataset.
     # No counts on the options: the Screening status table above already gives coverage
     # and verdicts, and the plan printed after this shows what the choice actually selects
-    # (these labels were also counting the whole cohort, ignoring the cap asked for above).
+    # (these labels were also counting the whole dataset, ignoring the cap asked for above).
     labels = list(RULES)
     chosen = get_menu_choice("Reference partition must be a real tree edge under:",
                              labels, default_index=list(RULES).index(cfg["rule"]))
@@ -156,10 +156,10 @@ def _ask_config(cohorts, is_screen: bool, verdicts_by: Dict[str, dict]) -> dict:
     return cfg
 
 
-def _plan(cohorts, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> List[dict]:
-    """Per-cohort tree lists and cost, under the shared configuration."""
+def _plan(datasets, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> List[dict]:
+    """Per-dataset tree lists and cost, under the shared configuration."""
     rows = []
-    for c in cohorts:
+    for c in datasets:
         m, _ = c.shape()
         ids = c.ids(cfg["max_trees"] or None)
         if is_screen:
@@ -171,7 +171,7 @@ def _plan(cohorts, cfg: dict, is_screen: bool, verdicts_by: Dict[str, dict]) -> 
             n_rule = len(after_rule)
             # one sub-sampled Fiedler solve is ~9 s at m=6000 and scales as O(m^3)
             secs = len(ids) * cfg["p_points"] * cfg["reps"] * 9.0 * (m / 6000.0) ** 3
-        rows.append(dict(cohort=c, m=m, ids=ids, hours=secs / 3600.0,
+        rows.append(dict(dataset=c, m=m, ids=ids, hours=secs / 3600.0,
                          n_rule=None if is_screen else n_rule,
                          screened=sum(1 for t in c.ids() if t in verdicts_by[c.name])))
     return rows
@@ -189,14 +189,14 @@ def _framed(lines: List[str], rule_after: int = -1) -> None:
     print()
 
 
-def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
+def _print_status(datasets, verdicts_by: Dict[str, dict]) -> None:
     """Screening coverage, verdicts and median imbalance, before anything is picked."""
     print_header("Screening status")
     cap = f"eta<={MAX_ETA:g}"
-    lines = [f"{'cohort':<12}{'trees':>7}{'screened':>10}{'L(S) edge':>11}"
+    lines = [f"{'dataset':<12}{'trees':>7}{'screened':>10}{'L(S) edge':>11}"
              f"{'B edge':>8}{'both':>6}{'med eta_L':>11}{'med eta_B':>11}"
              f"{cap:>10}{'swept':>7}"]
-    for c in cohorts:
+    for c in datasets:
         v, ids = verdicts_by[c.name], c.ids()
         done = [t for t in ids if t in v]
         n_s = sum(1 for t in done if v[t].get("valid_S"))
@@ -222,27 +222,27 @@ def _print_status(cohorts, verdicts_by: Dict[str, dict]) -> None:
         "                       recovery signal; this is what the sweep starts from",
         "• swept              - trees the recovery sweep has already covered",
     ]
-    _framed(lines, rule_after=len(cohorts))
+    _framed(lines, rule_after=len(datasets))
 
 
 def run_real_data_menu() -> None:
-    """Pick cohorts and a stage, configure once, then run the stage on each."""
-    cohorts = list_cohorts()
-    if not cohorts:
-        print_error("No real cohorts found.")
+    """Pick datasets and a stage, configure once, then run the stage on each."""
+    datasets = list_datasets()
+    if not datasets:
+        print_error("No real datasets found.")
         print(describe_search())
         return
 
     print_header("Real data")
     print("  Tip: select several with commas (e.g. '1,2') to run every size in turn")
     print()
-    for i, c in enumerate(cohorts, 1):
+    for i, c in enumerate(datasets, 1):
         m, seq_len = c.shape()
         print_option(str(i), f"{c.name}  ({len(c.ids())} trees, m={m}, L={seq_len})",
-                     highlight=(i == len(cohorts)))
+                     highlight=(i == len(datasets)))
     print()
-    picks = get_multi_choice("Cohort(s)", [str(i) for i in range(1, len(cohorts) + 1)])
-    chosen = [cohorts[int(i) - 1] for i in picks]
+    picks = get_multi_choice("Dataset(s)", [str(i) for i in range(1, len(datasets) + 1)])
+    chosen = [datasets[int(i) - 1] for i in picks]
 
     verdicts_by = {c.name: _verdicts(c) for c in chosen}
     _print_status(chosen, verdicts_by)
@@ -258,7 +258,7 @@ def run_real_data_menu() -> None:
         if not is_screen and n_screened < len(c.ids()):
             print_warning(f"{c.name}: screening covers only {n_screened} of "
                           f"{len(c.ids())} trees, and the sweep can only use screened "
-                          "trees -- screen this cohort first")
+                          "trees -- screen this dataset first")
 
     cfg = _ask_config(chosen, is_screen, verdicts_by)
     plan = _plan(chosen, cfg, is_screen, verdicts_by)
@@ -266,7 +266,7 @@ def run_real_data_menu() -> None:
     print_divider()
     total = sum(r["hours"] for r in plan)
     for r in plan:
-        print(f"  {r['cohort'].name:<12} m={r['m']:<5} {len(r['ids']):>4} trees"
+        print(f"  {r['dataset'].name:<12} m={r['m']:<5} {len(r['ids']):>4} trees"
               f"  ~{r['hours']:.1f} h")
         if not is_screen:
             # where the trees went: the two filters, in the order they are applied
@@ -277,7 +277,7 @@ def run_real_data_menu() -> None:
           "interrupt and resume.")
     if total > 1.0:
         print("for anything this long prefer:\n  nohup python scripts/run_real_sweep.py "
-              f"--cohort \"{','.join(c.name for c in chosen)}\" "
+              f"--dataset \"{','.join(c.name for c in chosen)}\" "
               f"--stage {'screen' if is_screen else 'sweep'} "
               f"> logs/real_{'screen' if is_screen else 'sweep'}.log 2>&1 &")
     if not confirm("Run it here?", default=total <= 1.0):
@@ -298,27 +298,27 @@ def run_real_data_menu() -> None:
     selected, failures, status = {}, [], "completed"
     try:
         for k, r in enumerate(plan, 1):
-            cohort, ids = r["cohort"], r["ids"]
+            dataset, ids = r["dataset"], r["ids"]
             print_divider()
-            print_header(f"[{k}/{len(plan)}] {cohort.name}")
+            print_header(f"[{k}/{len(plan)}] {dataset.name}")
             if not ids:
                 print_warning(f"no tree passes [{cfg['rule']}] -- skipped")
                 continue
             try:
-                _run_stage(cohort, ids, cfg, is_screen, r["m"])
-                selected[cohort.name] = list(ids)
+                _run_stage(dataset, ids, cfg, is_screen, r["m"])
+                selected[dataset.name] = list(ids)
             except KeyboardInterrupt:
-                print_warning(f"{cohort.name}: interrupted -- finished trees are kept")
-                selected[cohort.name] = list(ids)
+                print_warning(f"{dataset.name}: interrupted -- finished trees are kept")
+                selected[dataset.name] = list(ids)
                 status = "interrupted"
                 break
             except Exception:
-                # the per-tree cache holds whatever finished, and the other cohorts are
+                # the per-tree cache holds whatever finished, and the other datasets are
                 # still worth running, so record the failure and carry on
-                failures.append(cohort.name)
-                print_error(f"{cohort.name} failed:")
+                failures.append(dataset.name)
+                print_error(f"{dataset.name} failed:")
                 traceback.print_exc(file=sys.stdout)
-                selected[cohort.name] = list(ids)
+                selected[dataset.name] = list(ids)
     finally:
         tee.close()
         close_log_file()
@@ -329,14 +329,14 @@ def run_real_data_menu() -> None:
                 else np.logspace(np.log10(cfg["p_min"]), 0, cfg["p_points"]))
     selection = (None if is_screen else
                  {"rule": cfg["rule"], "max_eta": cfg.get("max_eta", 0.0),
-                  "per_cohort": {r["cohort"].name:
+                  "per_dataset": {r["dataset"].name:
                                  {"screened": r["screened"], "after_rule": r["n_rule"],
                                   "after_max_eta": len(r["ids"])} for r in plan}})
     for f in export_run(run_dir, selected or {c.name: c.ids() for c in chosen}, status,
                         ", ".join(failures), run_grid, selection):
         print(f"  {f.name}")
     if failures:
-        print_error(f"{len(failures)} cohort(s) failed: {', '.join(failures)} "
+        print_error(f"{len(failures)} dataset(s) failed: {', '.join(failures)} "
                     f"-- traceback in {run_dir / 'run.log'}")
     if status != "completed":
         print_warning(f"run marked {status!r} in summary.json -- re-run the same command "
@@ -344,20 +344,20 @@ def run_real_data_menu() -> None:
     print_success(f"everything for this run is in {run_dir}")
 
 
-def _run_stage(cohort, ids, cfg: dict, is_screen: bool, m: int) -> None:
-    """One stage on one cohort, under the shared configuration."""
+def _run_stage(dataset, ids, cfg: dict, is_screen: bool, m: int) -> None:
+    """One stage on one dataset, under the shared configuration."""
     if is_screen:
-        run_real_eta_screen(ids, screen_cache_path(cohort.name),
-                            cohort_name=cohort.name, workers=cfg["workers"])
-        rows = _verdicts(cohort)
+        run_real_eta_screen(ids, screen_cache_path(dataset.name),
+                            dataset=dataset.name, workers=cfg["workers"])
+        rows = _verdicts(dataset)
         if not rows:
             raise RuntimeError(
-                f"{cohort.name}: screening produced nothing usable -- see the errors "
+                f"{dataset.name}: screening produced nothing usable -- see the errors "
                 f"above and failures.csv in the run directory")
         n_s = sum(bool(v.get("valid_S")) for v in rows.values())
         n_b = sum(bool(v.get("valid_B")) for v in rows.values())
         print_success(f"{len(rows)} trees: L(S) cuts a real edge on {n_s}, B on {n_b}")
     else:
         p_values = np.logspace(np.log10(cfg["p_min"]), 0, cfg["p_points"])
-        run_sweep(ids, sweep_cache_dir(cohort.name), p_values,
-                  reps=cfg["reps"], cohort_name=cohort.name, m=m)
+        run_sweep(ids, sweep_cache_dir(dataset.name), p_values,
+                  reps=cfg["reps"], dataset=dataset.name, m=m)

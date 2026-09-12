@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fetch a cohort into <repo>/data/cohorts/ from Google Drive, straight onto the machine
+# Fetch a dataset into <repo>/data/tree_sets/ from Google Drive, straight onto the machine
 # that will compute on it. No laptop in the middle, resumable, works from Linux, macOS or
 # Windows (Git Bash / WSL).
 #
@@ -7,25 +7,25 @@
 #   bash .../get_data.sh "6000 taxa" --remote gdrive --shared
 #
 # First run only: authorise rclone (see --help output below). Everything after that is one
-# command per cohort.
+# command per dataset.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-DEST_ROOT="${STR_DATA_DIR:-$REPO_ROOT/data/cohorts}"
+DEST_ROOT="${STR_DATA_DIR:-$REPO_ROOT/data/tree_sets}"
 
 REMOTE="gdrive"
 DRIVE_PATH=""
 SHARED=0
-COHORT=""
+DATASET=""
 
 help() {
   cat <<'EOF'
-usage: get_data.sh <cohort name> [--remote NAME] [--path "Drive/sub/dir"] [--shared]
+usage: get_data.sh <dataset name> [--remote NAME] [--path "Drive/sub/dir"] [--shared]
 
-  <cohort name>   directory to create under data/cohorts/, e.g. "6000 taxa".
+  <dataset name>   directory to create under data/tree_sets/, e.g. "6000 taxa".
                   Also the folder name looked for in Drive unless --path is given.
   --remote NAME   rclone remote (default: gdrive)
-  --path P        folder inside the remote, if it is not just <cohort name>
+  --path P        folder inside the remote, if it is not just <dataset name>
   --shared        the folder was shared with you and is not in My Drive
                   (adds --drive-shared-with-me)
 
@@ -82,7 +82,7 @@ echo "==> $n_fa alignments, $n_nw trees under $DEST"
 if [[ ! -d "$DEST/fasta" || ! -d "$DEST/newick" ]]; then
   cat >&2 <<EOF
 
-NOTE: a cohort must look like
+NOTE: a dataset must look like
     $DEST/fasta/*.fasta
     $DEST/newick/*.nwk
 Move what you downloaded into those two subdirectories (or lay the Drive folder out that

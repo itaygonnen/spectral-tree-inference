@@ -65,14 +65,14 @@ for mod in ("numpy", "scipy", "pandas", "sklearn", "dendropy", "igraph",
 importlib.import_module("analysis.utils.real_interactive")
 print("  ok  analysis.utils.real_interactive (the launcher's real-data branch)")
 
-from analysis.utils.real_cohorts import list_cohorts
-cohorts = list_cohorts()
-print(f"  ok  analysis.utils.real_cohorts -> {len(cohorts)} cohort(s)")
-for c in cohorts:
+from analysis.utils.real_datasets import list_datasets
+datasets = list_datasets()
+print(f"  ok  analysis.utils.real_datasets -> {len(datasets)} dataset(s)")
+for c in datasets:
     m, L = c.shape()
     print(f"      {c.name!r}: {len(c.ids())} trees, m={m}, L={L}")
-if not cohorts:
-    print("      (no cohorts yet -- fetch one:")
+if not datasets:
+    print("      (no datasets yet -- fetch one:")
     print("       bash sub_sampled_fielder_vec/scripts/cluster/get_data.sh '6000 taxa')")
 PY
 
@@ -86,11 +86,11 @@ ready. Every session:
 Interactive (needs the ssh session to stay open -- use tmux):
   python scripts/interactive_run.py        # "d" = real data
 
-Data (once per cohort, straight from Google Drive):
+Data (once per dataset, straight from Google Drive):
   bash sub_sampled_fielder_vec/scripts/cluster/get_data.sh "6000 taxa" --shared
 
 Long jobs (survive logout):
-  nohup python scripts/run_real_sweep.py --cohort "6000 taxa" --stage sweep \
-      --cohort-rule valid_S > logs/real_sweep.log 2>&1 &
+  nohup python scripts/run_real_sweep.py --dataset "6000 taxa" --stage sweep \
+      --dataset-rule valid_S > logs/real_sweep.log 2>&1 &
   tail -f logs/real_sweep.log
 EOF

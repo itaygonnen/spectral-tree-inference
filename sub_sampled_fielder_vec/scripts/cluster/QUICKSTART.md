@@ -52,7 +52,7 @@ bash sub_sampled_fielder_vec/scripts/cluster/extract_archive.sh --name "6000 tax
 ```
 
 That writes **all 3000 true trees** and, by default, **alignments 0001-0100** into
-`data/cohorts/6000 taxa/` (~3 GB; unpacking everything would be ~90 GB). The compressed
+`data/tree_sets/6000 taxa/` (~3 GB; unpacking everything would be ~90 GB). The compressed
 file can stay where it is, or be deleted once you have what you need.
 For more alignments: `--pattern 'random_tree_0[0-4]*.fasta'` gives 0001-0499. It reads the
 whole compressed file once, so it takes a few minutes and it is worth choosing how many
@@ -68,14 +68,14 @@ bash sub_sampled_fielder_vec/scripts/cluster/get_data.sh "6000 taxa" --shared
 `--help` walks through the one-time `rclone config`, including the headless case
 (authorise on any machine with a browser, paste the token back).
 
-Either way the result is `data/cohorts/<name>/{fasta,newick}/`, which is all the code
-looks for. This is also the readiness check — if the cohort is listed with the right tree
+Either way the result is `data/tree_sets/<name>/{fasta,newick}/`, which is all the code
+looks for. This is also the readiness check — if the dataset is listed with the right tree
 count, everything is in place:
 
 ```bash
 source .venv/bin/activate && cd sub_sampled_fielder_vec
 python scripts/run_real_sweep.py --list
-#   '6000 taxa': 100 trees, m=6000, L=5000  -> .../data/cohorts/6000 taxa
+#   '6000 taxa': 100 trees, m=6000, L=5000  -> .../data/tree_sets/6000 taxa
 ```
 
 ## 3. Run
@@ -94,7 +94,7 @@ cd ~/spectral-tree-inference/sub_sampled_fielder_vec
 python scripts/interactive_run.py
 ```
 
-Pick `real data` → the cohorts (`1,2` runs both) → `screening`, and afterwards the same
+Pick `real data` → the datasets (`1,2` runs both) → `screening`, and afterwards the same
 launcher again for `recovery sweep`. Detach from tmux with `ctrl-b d`, come back with
 `tmux attach -t str`.
 
@@ -102,11 +102,11 @@ The same thing without any questions, if you would rather queue it and log out �
 option above has a flag, and both share the same cache:
 
 ```bash
-nohup python scripts/run_real_sweep.py --cohort "1000 taxa,6000 taxa" \
+nohup python scripts/run_real_sweep.py --dataset "1000 taxa,6000 taxa" \
     --stage screen --workers 16 > logs/screen.log 2>&1 &
 
-nohup python scripts/run_real_sweep.py --cohort "1000 taxa,6000 taxa" \
-    --stage sweep --cohort-rule valid_S --max-eta 20 > logs/sweep.log 2>&1 &
+nohup python scripts/run_real_sweep.py --dataset "1000 taxa,6000 taxa" \
+    --stage sweep --dataset-rule valid_S --max-eta 20 > logs/sweep.log 2>&1 &
 
 tail -f logs/sweep.log
 ```
@@ -125,10 +125,10 @@ Everything from one run is in a single directory:
 
 ```
 results/real_data/runs/<timestamp>-<name>/
-    curves.csv          median, quartiles and a bootstrap CI per cohort and p  <- plot from this
+    curves.csv          median, quartiles and a bootstrap CI per dataset and p  <- plot from this
     per_tree.csv        the same numbers per tree, unaggregated
     screening.csv       every tree: eta and validity under each operator
-    recovery_curve.png  median NMI vs p, every cohort, both operators
+    recovery_curve.png  median NMI vs p, every dataset, both operators
     config.json  summary.json  run.log  experiment.log
 ```
 

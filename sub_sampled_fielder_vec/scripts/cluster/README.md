@@ -18,7 +18,7 @@ python scripts/run_real_sweep.py --list                                        #
 ## 1. `bootstrap.sh` — environment
 
 Creates `.venv`, installs `requirements-cluster.txt`, then `pip install -e . --no-deps`,
-then verifies every import and lists the cohorts it found. Run it from the repo root.
+then verifies every import and lists the datasets it found. Run it from the repo root.
 
 `--no-deps` matters: `setup.py` lists `oct2py` (needs a system Octave), `toytree`,
 `seaborn` and `sphinx`, none of which are on the import path of these experiments —
@@ -30,17 +30,17 @@ Needs Python ≥ 3.10 (pydantic v2). If the default is older: `module avail pyth
 
 ## 2. `get_data.sh` — data, from Google Drive to the machine that computes
 
-Pulls a cohort with `rclone` directly onto the cluster: resumable, no laptop in the
+Pulls a dataset with `rclone` directly onto the cluster: resumable, no laptop in the
 middle, and the one-time authorisation works from Windows, macOS or Linux. `--help` prints
 the `rclone config` walkthrough, including the headless case (`rclone authorize "drive"`
 on any machine with a browser, paste the token back). `--shared` is for a folder shared
 with your account rather than sitting in My Drive.
 
-Data lands in `<repo>/data/cohorts/<name>/`, and a cohort is exactly:
+Data lands in `<repo>/data/tree_sets/<name>/`, and a dataset is exactly:
 
 ```
-data/cohorts/6000 taxa/fasta/random_tree_0001.fasta   ...
-data/cohorts/6000 taxa/newick/random_tree_0001.nwk    ...
+data/tree_sets/6000 taxa/fasta/random_tree_0001.fasta   ...
+data/tree_sets/6000 taxa/newick/random_tree_0001.nwk    ...
 ```
 
 matched by filename stem. Lay the Drive folder out that way once and every later fetch is
@@ -49,14 +49,14 @@ correct. `$STR_DATA_DIR` overrides the location if the data belongs on scratch.
 `extract_archive.sh <tarball> --name "6000 taxa"` is the third route, and the usual one
 when someone hands over the raw archive: it pulls every true tree plus a chosen slice of
 the alignments (default 0001-0100, `--pattern` for more) out of `sim_trees_*.tar.gz`
-straight into the cohort layout, in one pass.
+straight into the dataset layout, in one pass.
 
 `push.sh user@host --data "6000 taxa"` is the alternative when the data is only on a
-laptop: it rsyncs the repo and the cohort over ssh, excluding caches, results and `.git`.
+laptop: it rsyncs the repo and the dataset over ssh, excluding caches, results and `.git`.
 
 ## 3. Run
 
-`python scripts/run_real_sweep.py --list` is the readiness check: a cohort listed with the
+`python scripts/run_real_sweep.py --list` is the readiness check: a dataset listed with the
 right tree count means the data, the layout and the environment are all fine.
 `python -m analysis.utils.real_selftest` (~1 min, scratch dir) goes further and screens
 and sweeps two trees for real — worth running after changing the code, not before every
@@ -73,10 +73,10 @@ Long jobs — the non-interactive twin, which asks nothing and survives logout:
 
 ```bash
 nohup python scripts/run_real_sweep.py \
-    --cohort "6000 taxa" --stage screen --workers 16 > logs/real_screen.log 2>&1 &
+    --dataset "6000 taxa" --stage screen --workers 16 > logs/real_screen.log 2>&1 &
 
 nohup python scripts/run_real_sweep.py \
-    --cohort "6000 taxa" --stage sweep --cohort-rule valid_S > logs/real_sweep.log 2>&1 &
+    --dataset "6000 taxa" --stage sweep --dataset-rule valid_S > logs/real_sweep.log 2>&1 &
 tail -f logs/real_sweep.log
 ```
 

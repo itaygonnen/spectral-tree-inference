@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# Unpack the dataset file (sim_trees_*.tar.gz) into a cohort this code can read.
+# Unpack the dataset file (sim_trees_*.tar.gz) into a dataset this code can read.
 #
 #   bash scripts/cluster/extract_archive.sh --name "6000 taxa"
 #   bash scripts/cluster/extract_archive.sh <path to .tar.gz> --name "6000 taxa" \
 #        --pattern 'random_tree_0[0-4]*.fasta'
 #
 # With no path it takes the single .tar.gz sitting in the repo's data/ folder, which is
-# where the dataset file is meant to be dropped -- the unpacked cohort lands beside it.
+# where the dataset file is meant to be dropped -- the unpacked dataset lands beside it.
 #
 # The file holds every alignment (~90 GB unpacked) beside its true tree (~600 MB), laid
 # out as <dataset>/MSAs/*.fasta and <dataset>/trees/*.nwk. This writes ALL the trees and
 # only the alignments you ask for, into the folders the experiments expect:
 #
-#   data/cohorts/<name>/fasta/random_tree_0001.fasta   ...
-#   data/cohorts/<name>/newick/random_tree_0001.nwk    ...
+#   data/tree_sets/<name>/fasta/random_tree_0001.fasta   ...
+#   data/tree_sets/<name>/newick/random_tree_0001.nwk    ...
 #
 # Default: alignments 0001-0100, about 3 GB at m=6000. It reads the whole compressed file
 # once either way -- tar has to decompress the entire stream to find the members -- so
@@ -21,7 +21,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-DEST_ROOT="${STR_DATA_DIR:-$REPO_ROOT/data/cohorts}"
+DEST_ROOT="${STR_DATA_DIR:-$REPO_ROOT/data/tree_sets}"
 
 usage() { sed -n '2,24p' "$0"; exit "${1:-0}"; }
 case "${1:-}" in -h|--help) usage 0 ;; esac
@@ -71,7 +71,7 @@ DEST="$DEST_ROOT/$NAME"
 STAGE="$DEST_ROOT/.staging_$$"
 
 echo "==> dataset root : $TOP"
-echo "==> cohort       : $DEST"
+echo "==> dataset       : $DEST"
 echo "==> alignments   : ${PATTERNS[*]}"
 echo "    (reads the whole compressed file once; a few minutes)"
 

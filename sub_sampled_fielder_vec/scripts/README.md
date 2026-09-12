@@ -23,13 +23,13 @@ so it is recorded here. Every file has a `__main__` guard, so "it has one" prove
 | `plot_fiedler_overlay.py` | **`<run_dir>`** positionally | PNGs in the run dir | — (see note) |
 | `plot_griffing_overlay.py` | **`<run_dir>`** positionally | `results/notebooks/05_nj_distance/…` | griffing |
 | `plot_distance_vs_similarity_grid.py` | **no args** (paths hardcoded) | PNG under `results/runs/balanced_binary/` | exploratory |
-| `interactive_run.py` | **interactive menu** (`d` = real FASTA cohorts) | `results/runs/…`, `cache/experiment_data`, real-cohort caches | pipeline A + real data |
+| `interactive_run.py` | **interactive menu** (`d` = real FASTA datasets) | `results/runs/…`, `cache/experiment_data`, real-dataset caches | pipeline A + real data |
 | `run_benchmark.py` | **interactive menu** — see [docs/BENCHMARK_GUIDE.md](../docs/BENCHMARK_GUIDE.md) | `results/runs/…` + `results.json`, `screen_table.csv` | operator comparison |
 | `run_experiment.py` | **edit `SWEEP_CONFIG` at the top, then run** — no CLI | `results/runs/…` | **Fig 7's prerequisite** |
 | `run_nj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…`, `cache/distance_matrix` | NJ notebooks |
 | `run_snj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…` | SNJ notebook |
 | `run_griffing_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…` | griffing |
-| `run_real_sweep.py` | `--cohort --stage --workers --p-min --p-points --reps --prefix` (`--list` to see cohorts) | `results/real_data/runs/<ts>-<name>/` + `_cache/` | real-cohort screening + sweep |
+| `run_real_sweep.py` | `--dataset --stage --workers --p-min --p-points --reps --prefix` (`--list` to see datasets) | `results/real_data/runs/<ts>-<name>/` + `_cache/` | real-dataset screening + sweep |
 
 The four "edit-the-dict" scripts take **no arguments at all**. An earlier version of this
 table wrongly listed three of them as `argparse`, and `nj_recompute_normalized_metrics.py`
@@ -41,7 +41,7 @@ too — it uses `sys.argv` directly.
 runner was kept rather than deleted precisely because it is the only producer of data
 those two modules read.
 
-Validate the real-cohort path after touching it — it walks every call site and runs a
+Validate the real-dataset path after touching it — it walks every call site and runs a
 two-tree sweep in a scratch results root, in about a minute:
 
 ```bash
@@ -49,7 +49,7 @@ python -m analysis.utils.real_selftest
 ```
 
 ## `cluster/`
-Not a script but a kit: `push.sh` (rsync the repo and a cohort to a Linux
+Not a script but a kit: `push.sh` (rsync the repo and a dataset to a Linux
 box), `bootstrap.sh` (venv + `requirements-cluster.txt` + `pip install -e . --no-deps`)
 and a README with the ssh workflow. `run_real_sweep.py` is the non-interactive twin of
 `interactive_run.py`'s real-data branch and is what runs there under `nohup`.

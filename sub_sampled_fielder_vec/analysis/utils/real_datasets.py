@@ -1,8 +1,8 @@
-"""Real benchmark cohorts: any ``<name>/{fasta,newick}`` directory pair.
+"""Real benchmark datasets: any ``<name>/{fasta,newick}`` directory pair.
 
-A cohort holds aligned FASTA files and the true tree for each of them, matched by stem
+A dataset holds aligned FASTA files and the true tree for each of them, matched by stem
 (``random_tree_0007.fasta`` <-> ``random_tree_0007.nwk``). Cohorts live in the repo-level
-``data/cohorts/`` so both projects in this repo -- and the cluster copy -- point at one
+``data/datasets/`` so both projects in this repo -- and the cluster copy -- point at one
 place; ``$STR_DATA_DIR`` overrides it (a scratch filesystem, a shared mount). Two are on
 disk today, ``1000 taxa`` and ``6000 taxa``, and anything copied in the same shape is
 discovered without a code change.
@@ -35,7 +35,7 @@ for _p in (str(_ROOT), str(_REPO)):
         sys.path.insert(0, _p)
 
 def search_roots() -> List[Path]:
-    """Where cohorts are looked for, most specific first.
+    """Where datasets are looked for, most specific first.
 
     ``$STR_DATA_DIR`` wins so a cluster can keep the data on scratch without editing code;
     the package-local path is the pre-2026-09 location, kept so an old checkout still works.
@@ -44,16 +44,17 @@ def search_roots() -> List[Path]:
     env = os.environ.get("STR_DATA_DIR")
     if env:
         roots.append(Path(env).expanduser())
-    roots.append(_REPO / "data" / "cohorts")
-    roots.append(_ROOT / "data" / "real_datasets" / "Datasets")
+    roots.append(_REPO / "data" / "tree_sets")     # canonical
+    roots.append(_REPO / "data" / "cohorts")       # what the first installs used
+    roots.append(_ROOT / "data" / "real_datasets" / "Datasets")   # pre-2026-09 layout
     return roots
 
 
-DATASETS_ROOT = _REPO / "data" / "cohorts"
+DATASETS_ROOT = _REPO / "data" / "tree_sets"
 
 
 @dataclass(frozen=True)
-class Cohort:
+class Dataset:
     """One real dataset: ``<root>/<name>/{fasta,newick}``."""
 
     name: str
@@ -139,7 +140,7 @@ class Cohort:
                 f"{fpath.name} is not aligned: {len(cm.taxon_namespace)} sequences with "
                 f"lengths {min(lengths)}..{max(lengths)}. Every operator here needs one "
                 f"column set shared by all taxa, so the sequences have to be aligned "
-                f"(or the alignment re-exported) before this cohort can be used.")
+                f"(or the alignment re-exported) before this dataset can be used.")
         obs, meta = spectraltree.charmatrix2array(cm)
         labels = [str(t.label) for t in list(meta)]
         S = spectraltree.JC_similarity_matrix(obs)
@@ -156,7 +157,7 @@ class Cohort:
         return S, labels, tree, D
 
 
-def list_cohorts() -> List[Cohort]:
+def list_datasets() -> List[Dataset]:
     """Every dataset dir with both a ``fasta/`` and a ``newick/``, first root to define it."""
     out, seen = [], set()
     for root in search_roots():
@@ -166,33 +167,33 @@ def list_cohorts() -> List[Cohort]:
             if d.name in seen:
                 continue
             if (d / "fasta").is_dir() and (d / "newick").is_dir():
-                out.append(Cohort(d.name, root))
+                out.append(Dataset(d.name, root))
                 seen.add(d.name)
     return out
 
 
 def _key(name: str) -> str:
-    """Compare cohort names ignoring case, spaces and underscores."""
+    """Compare dataset names ignoring case, spaces and underscores."""
     return "".join(str(name).lower().split()).replace("_", "").replace("-", "")
 
 
-def get_cohort(name: str) -> Cohort:
-    """Find a cohort by name, forgiving case and spacing ("6000 taxa" == "6000_Taxa")."""
-    cohorts = list_cohorts()
-    for c in cohorts:
+def get_dataset(name: str) -> Dataset:
+    """Find a dataset by name, forgiving case and spacing ("6000 taxa" == "6000_Taxa")."""
+    datasets = list_datasets()
+    for c in datasets:
         if c.name == name:
             return c
-    for c in cohorts:                       # then the forgiving match
+    for c in datasets:                       # then the forgiving match
         if _key(c.name) == _key(name):
             return c
     raise FileNotFoundError(
-        f"no cohort {name!r}.\n" + describe_search())
+        f"no dataset {name!r}.\n" + describe_search())
 
 
 def describe_search() -> str:
-    """Where cohorts were looked for, what was found, and why a folder was rejected.
+    """Where datasets were looked for, what was found, and why a folder was rejected.
 
-    A cohort is a directory with BOTH a fasta/ and a newick/ subdirectory; the usual
+    A dataset is a directory with BOTH a fasta/ and a newick/ subdirectory; the usual
     failure is data unpacked one level too deep, or the two halves side by side under
     different names.
     """
@@ -216,18 +217,18 @@ def describe_search() -> str:
                 inner = ", ".join(sorted(x.name for x in d.iterdir() if x.is_dir())[:6])
                 lines.append(f"    skipped  {d.name!r}: no {missing}"
                              + (f" (contains: {inner})" if inner else ""))
-    return ("a cohort is <root>/<name>/fasta/*.fasta beside <name>/newick/*.nwk\n"
+    return ("a dataset is <root>/<name>/fasta/*.fasta beside <name>/newick/*.nwk\n"
             "looked in:\n" + "\n".join(lines))
 
 
 # Two roots under <repo>/results/real_data/, and the distinction matters:
 #
-#   runs/<timestamp>-<name>/   ONE directory per run, holding every cohort that run
+#   runs/<timestamp>-<name>/   ONE directory per run, holding every dataset that run
 #                              covered -- config, CSVs, plot, log. This is what you
 #                              download, mail or plot from, and it never changes once the
 #                              run finishes.
-#   _cache/<cohort>/           machine state so a killed run resumes: the screen rows and
-#                              one .npz per swept tree, per cohort, reused across runs.
+#   _cache/<dataset>/           machine state so a killed run resumes: the screen rows and
+#                              one .npz per swept tree, per dataset, reused across runs.
 #
 # $STR_RESULTS_DIR overrides the parent of both.
 def results_root() -> Path:
@@ -239,18 +240,18 @@ def _slug(name: str) -> str:
     return "_".join(str(name).lower().split())
 
 
-def cache_dir(cohort_name: str) -> Path:
-    return results_root() / "_cache" / _slug(cohort_name)
+def cache_dir(dataset: str) -> Path:
+    return results_root() / "_cache" / _slug(dataset)
 
 
-def screen_cache_path(cohort_name: str) -> Path:
-    """Resumable screen state for one cohort: one row per tree."""
-    return cache_dir(cohort_name) / "screen.npz"
+def screen_cache_path(dataset: str) -> Path:
+    """Resumable screen state for one dataset: one row per tree."""
+    return cache_dir(dataset) / "screen.npz"
 
 
-def sweep_cache_dir(cohort_name: str) -> Path:
-    """Resumable sweep state for one cohort: one .npz per tree."""
-    return cache_dir(cohort_name) / "sweep"
+def sweep_cache_dir(dataset: str) -> Path:
+    """Resumable sweep state for one dataset: one .npz per tree."""
+    return cache_dir(dataset) / "sweep"
 
 
 def new_run_dir(name: str = "") -> Path:

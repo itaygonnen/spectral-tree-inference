@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Copy the repo (and optionally a cohort from data/cohorts/) to a Linux box over ssh.
+# Copy the repo (and optionally a dataset from data/tree_sets/) to a Linux box over ssh.
 # Prefer scripts/cluster/get_data.sh when the data is already in Google Drive -- it pulls
 # straight onto the cluster instead of routing GBs through a laptop.
 #
 #   ./scripts/cluster/push.sh user@host                      # code only
-#   ./scripts/cluster/push.sh user@host --data "6000 taxa"   # code + that cohort
+#   ./scripts/cluster/push.sh user@host --data "6000 taxa"   # code + that dataset
 #   ./scripts/cluster/push.sh user@host --dest /scratch/itay/str --data all
 #
 # rsync is resumable: re-run it after a dropped connection and it continues.
@@ -45,15 +45,15 @@ rsync -avzP --human-readable \
   "$REPO_ROOT/" "$HOST:$DEST/"
 
 if [[ -n "$DATA" ]]; then
-  SRC_ROOT="$REPO_ROOT/data/cohorts"
+  SRC_ROOT="$REPO_ROOT/data/tree_sets"
   if [[ "$DATA" == "all" ]]; then
-    echo "==> data (all cohorts, this is GBs)  ->  $HOST:$DEST"
-    rsync -avzP --human-readable "$SRC_ROOT/" "$HOST:$DEST/data/cohorts/"
+    echo "==> data (all datasets, this is GBs)  ->  $HOST:$DEST"
+    rsync -avzP --human-readable "$SRC_ROOT/" "$HOST:$DEST/data/tree_sets/"
   else
-    [[ -d "$SRC_ROOT/$DATA" ]] || { echo "no cohort '$DATA' under $SRC_ROOT" >&2; exit 1; }
+    [[ -d "$SRC_ROOT/$DATA" ]] || { echo "no dataset '$DATA' under $SRC_ROOT" >&2; exit 1; }
     echo "==> data ('$DATA')  ->  $HOST:$DEST"
-    ssh "$HOST" "mkdir -p '$DEST/data/cohorts'"
-    rsync -avzP --human-readable "$SRC_ROOT/$DATA" "$HOST:$DEST/data/cohorts/"
+    ssh "$HOST" "mkdir -p '$DEST/data/tree_sets'"
+    rsync -avzP --human-readable "$SRC_ROOT/$DATA" "$HOST:$DEST/data/tree_sets/"
   fi
 fi
 

@@ -1,7 +1,7 @@
-"""Per-tree partition imbalance eta, for two operators, on a real cohort.
+"""Per-tree partition imbalance eta, for two operators, on a real dataset.
 
 Same screen as :mod:`analysis.utils.eta_screen`, and the same record schema, but the
-trees are the real FASTA/newick pairs of a :class:`analysis.utils.real_cohorts.Cohort`
+trees are the real FASTA/newick pairs of a :class:`analysis.utils.real_datasets.Dataset`
 rather than simulated ones. For each tree: load once, read a bipartition off each of two operators
 and record its imbalance eta = larger clan / smaller clan together with whether the
 partition is a genuine single-edge bipartition of the true tree.
@@ -44,17 +44,17 @@ def _eta(part: np.ndarray) -> float:
     return float(max(n1, n2)) / float(max(min(n1, n2), 1))
 
 
-def screen_one(tid: str, cohort_name: str) -> Optional[Dict]:
+def screen_one(tid: str, dataset: str) -> Optional[Dict]:
     """Both operators on one tree. Returns None when the tree cannot be loaded."""
     # imported here so each worker process pays the import once, not the parent
-    from analysis.utils.real_cohorts import get_cohort
+    from analysis.utils.real_datasets import get_dataset
     from src.core.utils import (compute_fiedler_from_laplacian, compute_laplacian)
     from src.runners.p_sweep_inner import _kmeans_bipartition
     from src.utils.griffing import griffing_leading_eigvec
     from src.utils.partition_validity import check_partition_valid_in_tree
     from src.utils.screening import _tree_leaf_index
 
-    out = get_cohort(cohort_name).load_all(tid)
+    out = get_dataset(dataset).load_all(tid)
     if out is None:
         return None
     S, labels, tree, D = out
@@ -82,9 +82,9 @@ def screen_one(tid: str, cohort_name: str) -> Optional[Dict]:
 
 
 def _worker(args):
-    tid, cohort_name = args
+    tid, dataset = args
     try:
-        return screen_one(tid, cohort_name)
+        return screen_one(tid, dataset)
     except Exception as exc:                       # one bad tree must not kill the run
         return {"tree": tid, "error": repr(exc)}
 
@@ -93,7 +93,7 @@ def run_real_eta_screen(
     ids: Sequence[str],
     cache_path,
     *,
-    cohort_name: str = "6000 taxa",
+    dataset: str = "6000 taxa",
     workers: int = 4,
     force: bool = False,
     progress: int = 1,
@@ -128,12 +128,12 @@ def run_real_eta_screen(
     todo = [t for t in ids if t not in done]
     if not todo:
         print(f"  all {len(ids)} trees already cached", flush=True)
-        log_info("screen", f"{cohort_name}: nothing to do, all {len(ids)} ids cached")
+        log_info("screen", f"{dataset}: nothing to do, all {len(ids)} ids cached")
         return [done[t] for t in ids]
 
     print(f"  {len(done)}/{len(ids)} trees cached, {len(todo)} to run "
           f"on {workers} workers", flush=True)
-    log_info("screen", f"{cohort_name}: computing {len(todo)} trees on {workers} "
+    log_info("screen", f"{dataset}: computing {len(todo)} trees on {workers} "
                        f"workers ({len(done)} already cached)")
     # One BLAS thread per worker: the per-tree work is already parallel across trees, and
     # on a many-core Linux box the default (every worker opening a full thread pool)
@@ -144,11 +144,11 @@ def run_real_eta_screen(
                "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
         os.environ.setdefault(_v, "1")
     n_done = 0
-    bar = create_progress_bar(len(todo), f"  screening {cohort_name}", unit="tree",
+    bar = create_progress_bar(len(todo), f"  screening {dataset}", unit="tree",
                               leave=False)
     with ProcessPoolExecutor(max_workers=workers,
                              mp_context=mp.get_context("spawn")) as ex:
-        futs = {ex.submit(_worker, (t, cohort_name)): t for t in todo}
+        futs = {ex.submit(_worker, (t, dataset)): t for t in todo}
         for f in as_completed(futs):
             rec = f.result()
             if rec is not None:
@@ -198,15 +198,15 @@ def main() -> None:
     import sys
     root = Path(__file__).resolve().parents[2]
     sys.path.insert(0, str(root))
-    from analysis.utils.real_cohorts import get_cohort, screen_cache_path
+    from analysis.utils.real_datasets import get_dataset, screen_cache_path
 
     name = os.environ.get("REAL_COHORT", "6000 taxa")
     workers = int(os.environ.get("REAL_WORKERS", "4"))
     limit = int(os.environ.get("REAL_LIMIT", "0")) or None
-    cohort = get_cohort(name)
+    dataset = get_dataset(name)
     cache = screen_cache_path(name)
-    run_real_eta_screen(cohort.ids(limit), cache,
-                        cohort_name=name, workers=workers)
+    run_real_eta_screen(dataset.ids(limit), cache,
+                        dataset=name, workers=workers)
     print("done ->", cache)
 
 
