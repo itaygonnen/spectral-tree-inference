@@ -199,6 +199,9 @@ def run_real_data_menu() -> None:
     rows = plan(spec, sources, verdicts_by)
 
     print_divider()
+    if not is_screen:
+        pv = spec.p_values()
+        print(f"  p-grid     {len(pv)} log-spaced points, {pv[0]:.4g} .. {pv[-1]:.4g}")
     total = sum(r.hours for r in rows)
     for r in rows:
         print(f"  {r.name:<12} m={r.m:<5} {len(r.selected):>4} trees  ~{r.hours:.1f} h")

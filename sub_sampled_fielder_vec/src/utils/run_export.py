@@ -292,7 +292,9 @@ def write_summary(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
     invisible.
     """
     ops = resolve(operators)
-    summary: dict = {"status": status, "datasets": {}}
+    # the commit too: summary.json is the file that gets mailed around on its own, and
+    # "which version produced this" was not answerable from it
+    summary: dict = {"status": status, "commit": _commit(), "datasets": {}}
     if selection:
         # why trees_selected is what it is: the gate and the cap that produced it
         summary["selection"] = selection

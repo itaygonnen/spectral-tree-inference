@@ -38,6 +38,7 @@ from src.runners.experiment_run import (GATE_ALIASES, GATES, MAX_ETA,     # noqa
                                         P_MIN, P_POINTS, REPS, RunSpec,
                                         execute, gate_label, plan)
 from src.runners.operators import ALL_OPERATORS                           # noqa: E402
+from src.utils.run_export import _commit                                  # noqa: E402
 
 
 def _list() -> None:
@@ -120,6 +121,14 @@ def main() -> None:
     spec = spec_from_args(args)
     sources = sources_from_args(args)
     rows = plan(spec, sources)
+    # Print the grid, not just the knobs. A checkout from before --p-min existed sweeps
+    # 0.01..1 and says nothing about it, which is how a run asked for 1e-4 came back
+    # starting at 0.01 and nobody noticed until the plot.
+    pv = spec.p_values()
+    if pv is not None:
+        print(f"p-grid: {len(pv)} log-spaced points, {pv[0]:.4g} .. {pv[-1]:.4g}",
+              flush=True)
+    print(f"operators: {', '.join(spec.operators)}   commit: {_commit()}", flush=True)
     for r in rows:
         print(f"dataset {r.name!r}: {len(r.ids)} trees, m={r.m}  ~{r.hours:.1f} h",
               flush=True)
