@@ -33,13 +33,19 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
+from src.runners.p_sweep_inner import EXTRA_METRIC_KEYS
 from src.utils.logging import create_progress_bar, log_info
+from src.utils.partition_metrics import eta as _eta_of
+from src.utils.partition_metrics import score as _score
 
-# Cache-key fields. A tree whose stored meta differs is recomputed rather than mixed
-# into a figure with a different grid. ``metrics`` is part of the key so caches written
-# before every metric was stored are recomputed instead of read back half-empty.
+# Cache-key fields: a tree whose stored meta differs on one of these is recomputed rather
+# than mixed into a figure with a different grid. The column list is deliberately NOT here.
+# It used to be ("metrics" in the key), which meant adding one column made every cached
+# tree a miss -- a 50 h recompute at m=6000 to gain a diagnostic. Columns are additive
+# instead: a reader asking for one a cached tree does not carry gets NaN, and curves.csv
+# reports a per-metric ``n`` so a mixed export is visible rather than silent.
 META_KEYS = ("reps", "num_gaps", "min_split", "partition_method",
-             "eigsolver", "aggregation", "m", "metrics")
+             "eigsolver", "aggregation", "m")
 
 # Metrics BOTH arms produce per p, so a figure can be drawn on any of them. NMI is what the
 # recovery figure plots; the rest cost nothing once the eigenvector is in hand, so they are
@@ -61,6 +67,45 @@ GT_METRICS = tuple(f"{m}_{REF_TREE}" for m in ("nmi", "ari", "agreement"))
 # L-only extra: ``bootstrap_p_sweep_simple`` reports sign agreement separately, while on the
 # B arm the sign pattern IS the partition, so its ``agreement`` already is that number.
 EXTRA_L = ("sign",)
+
+# The linear-algebra diagnostics the original pipeline-A runs recorded, collected only
+# when ``extra_metrics=True``. The sweep keeps the original's quantities but not its
+# column names: "empirical_rank_L_S" says nothing about which arm or which matrix once
+# both operators are in one table. Here "full" is the complete matrix an arm reads
+# (S on the L arm, D on the B arm), "sub" is its bootstrap-averaged sub-sample, and "op"
+# is the operator built from it -- L(S) = Deg(S) - S, or B = HDH.
+DIAGNOSTICS = {
+    "sigma2_avg_M":               "sigma2_full",       # sigma2 of the cross-clan block
+    "sigma2_avg_S":               "sigma2_sub",
+    "mean_operator_norm_error":   "opnorm_err_mean",   # ||sub - full||_2 over reps
+    "median_operator_norm_error": "opnorm_err_median",
+    "std_operator_norm_error":    "opnorm_err_std",
+    "mean_empirical_rank_S":      "rank_sub_mean",     # ||A||_F^2 / ||A||_2^2
+    "median_empirical_rank_S":    "rank_sub_median",
+    "std_empirical_rank_S":       "rank_sub_std",
+    "mean_empirical_rank_L_S":    "rank_op_sub_mean",
+    "median_empirical_rank_L_S":  "rank_op_sub_median",
+    "std_empirical_rank_L_S":     "rank_op_sub_std",
+    "empirical_rank_M":           "rank_full",         # constant in p
+    "empirical_rank_L_M":         "rank_op_full",
+}
+DIAGNOSTIC_COLUMNS = tuple(f"{name}_{a}" for name in DIAGNOSTICS.values()
+                           for a in ("L", "B"))
+# a key added to the sweep but never mapped to a column name would be collected and then
+# silently dropped on the way to the CSV, so fail here instead
+assert tuple(DIAGNOSTICS) == tuple(EXTRA_METRIC_KEYS), (
+    "DIAGNOSTICS is out of step with p_sweep_inner.EXTRA_METRIC_KEYS: "
+    f"{set(EXTRA_METRIC_KEYS) ^ set(DIAGNOSTICS)}")
+
+# Every per-p column a tree's .npz can hold, in the order the CSVs print them. Declared
+# once, here, beside the code that writes them -- ``real_results`` imports this rather
+# than rebuilding the names by string surgery.
+COLUMNS = (tuple(f"{m}_{a}_{REF_FULL}" for m in METRICS for a in ("L", "B"))
+           + tuple(f"{m.split('_vs_')[0]}_{a}_{REF_TREE}"
+                   for m in GT_METRICS for a in ("L", "B"))
+           + tuple(f"{x}_{a}" for x in ("eta", "split_small") for a in ("L", "B"))
+           + (f"signagreement_L_{REF_FULL}",)
+           + DIAGNOSTIC_COLUMNS)
 
 
 def sweep_meta(reps: int, num_gaps: int, min_split: int, m: int = 6000) -> Dict:
@@ -93,24 +138,6 @@ def _gt_partition(tree, labels) -> np.ndarray:
     return part
 
 
-def _eta_of(part: np.ndarray) -> float:
-    """Imbalance of a boolean bipartition: larger clan / smaller clan."""
-    n1 = int(np.sum(part))
-    n2 = int(part.size) - n1
-    return float(max(n1, n2)) / float(max(min(n1, n2), 1))
-
-
-def _score(ref: np.ndarray, pred) -> Dict[str, float]:
-    """NMI, ARI and clan agreement of one partition against a reference."""
-    from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
-    if pred is None:
-        return dict(nmi=float("nan"), ari=float("nan"), agreement=float("nan"))
-    a, b = np.asarray(ref).astype(int), np.asarray(pred).astype(int)
-    agr = max((a == b).mean(), (a != b).mean()) * 100.0   # orientation-invariant
-    return dict(nmi=float(normalized_mutual_info_score(a, b)),
-                ari=float(adjusted_rand_score(a, b)), agreement=float(agr))
-
-
 def _cache_file(cache_dir: Path, tid: str) -> Path:
     return Path(cache_dir) / f"{tid}.npz"
 
@@ -122,8 +149,17 @@ def seed_for(tid: str, stride: int = 1000) -> int:
 
 
 def load_tree_sweep(cache_dir, tid: str, p_values: Sequence[float], meta: Dict,
-                    metric: str = "nmi") -> Optional[Tuple[np.ndarray, np.ndarray]]:
-    """Return ``(<metric>_L, <metric>_B)`` for one tree if a matching cache exists."""
+                    metric: str = f"nmi_{REF_FULL}"
+                    ) -> Optional[Tuple[np.ndarray, np.ndarray]]:
+    """Return ``(<metric>_L, <metric>_B)`` for one tree if a matching cache exists.
+
+    ``metric`` names its reference, e.g. ``"nmi_vs_fullmatrix"``; a bare ``"nmi"`` is
+    read as the full-matrix reference. (The default used to be that bare name, which
+    every call then failed to parse -- so the resume test in ``run_sweep`` reported
+    every cached tree as missing and re-swept it.)
+    """
+    if "_vs_" not in metric:
+        metric = f"{metric}_{REF_FULL}"
     path = _cache_file(Path(cache_dir), tid)
     if not path.exists():
         return None
@@ -136,15 +172,20 @@ def load_tree_sweep(cache_dir, tid: str, p_values: Sequence[float], meta: Dict,
             return None
         # metric already carries its reference, e.g. "nmi_vs_fullmatrix"
         met, ref = metric.rsplit("_vs_", 1)
-        return (np.asarray(z[f"{met}_L_vs_{ref}"], float),
-                np.asarray(z[f"{met}_B_vs_{ref}"], float))
+        nan = np.full(len(z["p_values"]), np.nan)
+        # a column this tree predates is NaN, not a miss: the tree IS swept, it just
+        # does not carry that diagnostic, and recomputing it costs ~30 min at m=6000
+        return (np.asarray(z[f"{met}_L_vs_{ref}"], float)
+                if f"{met}_L_vs_{ref}" in z.files else nan,
+                np.asarray(z[f"{met}_B_vs_{ref}"], float)
+                if f"{met}_B_vs_{ref}" in z.files else nan)
     except Exception:
         return None
 
 
 def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
                    num_gaps: int, min_split: int,
-                   dataset: str = "6000 taxa",
+                   dataset: str = "6000 taxa", extra_metrics: bool = False,
                    progress_cb=None) -> Dict[str, np.ndarray]:
     """Run both arms on one tree. Returns ``{"<metric>_L"/"_B": one value per p}``.
 
@@ -185,7 +226,7 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
         S, fr_L, list(p_values), bootstrap_reps=reps, seed=seed,
         num_gaps=num_gaps, min_split=min_split,
         partition_method=rule_L, laplacian="unnormalized",
-        progress_cb=_cb("L"))
+        extra_metrics=extra_metrics, progress_cb=_cb("L"))
     n1, n2 = out_L["partition_split_ref"]
     log_info("bootstrap", f"{tid}: L(S) reference split {n1}/{n2} ({rule_L})")
     # the two arms name the same quantities differently; map both onto METRICS
@@ -196,7 +237,7 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
 
     raw = bpart_sweep_raw(D, list(p_values), reps=reps, seed_base=seed,
                           eigsolver="lm_k1", aggregation="avg_vector",
-                          progress_cb=_cb("B"))
+                          extra_metrics=extra_metrics, progress_cb=_cb("B"))
     log_info("bootstrap", f"{tid}: B reference split {raw['n1']}/{raw['n2']} "
                           f"(eta={raw['eta']:.2f})")
     for met in METRICS:
@@ -219,6 +260,14 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
             [np.nan if part is None else _eta_of(np.asarray(part))
              for part in parts], float)
 
+    if extra_metrics:
+        # the L arm returns one list per key, the B arm one value per p entry
+        for key, name in DIAGNOSTICS.items():
+            out[f"{name}_L"] = np.asarray(
+                out_L.get(key, [np.nan] * len(p_values)), float)
+            out[f"{name}_B"] = np.array([float(pp.get(key, np.nan))
+                                         for pp in raw["per_p"]], float)
+
     # provenance of the L arm's threshold choice, per tree
     out["eta_ref_L_kmeans"] = np.array([etas["kmeans"]], float)
     out["eta_ref_L_sign"] = np.array([etas["sign"]], float)
@@ -230,7 +279,7 @@ def sweep_one_tree(tid: str, seed: int, p_values: Sequence[float], *, reps: int,
 def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
               reps: int = 10, num_gaps: int = 10, min_split: int = 5,
               dataset: str = "6000 taxa", m: int = 6000,
-              seed_stride: int = 1000) -> List[str]:
+              extra_metrics: bool = False, seed_stride: int = 1000) -> List[str]:
     """Sweep every id in ``ids``, skipping trees already cached. Returns ids done."""
     import time
 
@@ -258,7 +307,7 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
         curves = sweep_one_tree(
             tid, seed=seed_for(tid, seed_stride), p_values=pv,
             reps=reps, num_gaps=num_gaps, min_split=min_split,
-            dataset=dataset,
+            dataset=dataset, extra_metrics=extra_metrics,
             progress_cb=lambda stage, i, p: inner.update(1))
         inner.close()
         np.savez(_cache_file(cache_dir, tid), p_values=pv,
@@ -278,9 +327,13 @@ def run_sweep(ids: Sequence[str], cache_dir, p_values: Sequence[float], *,
 
 
 def collect(ids: Sequence[str], cache_dir, p_values: Sequence[float], meta: Dict,
-            metric: str = "nmi") -> Tuple[np.ndarray, np.ndarray, List[str], List[str]]:
+            metric: str = f"nmi_{REF_FULL}"
+            ) -> Tuple[np.ndarray, np.ndarray, List[str], List[str]]:
     """Stack one metric's cached curves. Returns ``(arr_L, arr_B, have, pending)``."""
-    known = tuple(f"{m}_{REF_FULL}" for m in METRICS) + GT_METRICS
+    known = (tuple(f"{m}_{REF_FULL}" for m in METRICS) + GT_METRICS
+             + tuple(f"{n}_{REF_FULL}" for n in DIAGNOSTICS.values()))
+    if "_vs_" not in metric:
+        metric = f"{metric}_{REF_FULL}"
     if metric not in known:
         raise ValueError(f"metric must be one of {known}, got {metric!r}")
     pv = np.round(np.asarray(p_values, float), 6)

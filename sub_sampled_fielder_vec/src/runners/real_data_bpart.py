@@ -24,6 +24,10 @@ import scipy.spatial.distance
 from ..core.similarity_builder import SimilarityMatrixBuilder
 from ..utils.griffing import griffing_leading_eigvec
 from ..utils.logging import log_info
+from ..utils.partition_metrics import agreement as _agreement
+from ..utils.partition_metrics import ari as _ari
+from ..utils.partition_metrics import eta as _eta_from_partition
+from ..utils.partition_metrics import nmi as _nmi
 from ..utils.summaries import save_json
 from .nj_sweep import _impute_mean
 
@@ -112,32 +116,6 @@ def newick_top_bipartition(newick_path: str, names: List[str]) -> np.ndarray:
 # ---------------------------------------------------------------------------
 # Per-tree metrics
 # ---------------------------------------------------------------------------
-
-def _nmi(labels_true: np.ndarray, labels_pred: np.ndarray) -> float:
-    from sklearn.metrics import normalized_mutual_info_score
-    return float(normalized_mutual_info_score(labels_true.astype(int),
-                                              labels_pred.astype(int)))
-
-
-def _ari(labels_true: np.ndarray, labels_pred: np.ndarray) -> float:
-    from sklearn.metrics import adjusted_rand_score
-    return float(adjusted_rand_score(labels_true.astype(int),
-                                     labels_pred.astype(int)))
-
-
-def _agreement(a: np.ndarray, b: np.ndarray) -> float:
-    """Orientation-invariant % matching clan labels."""
-    matches = int(np.sum(a == b))
-    matches = max(matches, len(a) - matches)
-    return 100.0 * matches / len(a)
-
-
-def _eta_from_partition(partition: np.ndarray) -> float:
-    """Imbalance ratio max/min of the two clan sizes."""
-    n1 = int(partition.sum())
-    n2 = len(partition) - n1
-    return float(max(n1, n2)) / float(max(min(n1, n2), 1))
-
 
 def _sweep_one_tree(
     D: np.ndarray,

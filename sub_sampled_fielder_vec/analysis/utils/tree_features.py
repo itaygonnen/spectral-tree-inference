@@ -10,7 +10,8 @@ import numpy as np
 
 def imbalance_eta(n1: int, n2: int) -> float:
     """η = max(n1, n2) / min(n1, n2) ∈ [1, ∞)."""
-    return float(max(n1, n2)) / float(min(n1, n2))
+    from src.utils.partition_metrics import eta_from_sizes
+    return eta_from_sizes(n1, n2)
 
 
 def n_min(n1: int, n2: int) -> int:

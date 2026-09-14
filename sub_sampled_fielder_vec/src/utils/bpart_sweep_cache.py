@@ -129,6 +129,7 @@ def bpart_sweep_raw(
     D: np.ndarray, p_values: Sequence[float], reps: int,
     seed_base: int = 0, imputation: str = "mean",
     eigsolver: str = DEFAULT_SOLVER, aggregation: str = DEFAULT_AGGREGATION,
+    extra_metrics: bool = False,
     progress_cb: Optional[Callable[[int, float], None]] = None,
 ) -> Dict[str, Any]:
     """Run one B-method subsampling sweep on a single distance matrix ``D``.
@@ -145,6 +146,13 @@ def bpart_sweep_raw(
     ``eigsolver`` is used for the reference vector **and** every sub-sampled one,
     so a sweep never compares across two implementations.
 
+    ``extra_metrics`` adds the distance-route twin of the L arm's linear-algebra
+    diagnostics to every ``per_p`` entry -- ``sigma2_avg_M``/``_S`` on the double-centred
+    operator, and mean/median/std of ``||D_hat - D||_2`` and of the numerical ranks of
+    ``D_hat`` and ``B_hat`` (see ``src.runners.p_sweep_inner.EXTRA_METRIC_KEYS``, whose
+    ``_M``/``_S`` roles are played here by ``D`` and ``D_hat``). Off by default; when off
+    the arithmetic is unchanged.
+
     ``progress_cb`` is called ``f(p_index, p)`` after each p, for a caller's progress bar.
     """
     if imputation not in ("mean", "zero"):
@@ -156,15 +164,35 @@ def bpart_sweep_raw(
     n2 = int(v_ref.size - n1)
     eta = float(max(n1, n2)) / float(max(min(n1, n2), 1))
 
+    rank_M = rank_L_M = float('nan')
+    if extra_metrics:
+        from ..utils.metrics import numerical_rank
+        from ..utils.griffing import griffing_centered
+        rank_M = numerical_rank(D)
+        B_full = griffing_centered(D)
+        rank_L_M = numerical_rank(B_full)
+        del B_full
+
     per_p: List[Dict[str, Any]] = []
     for p_idx, p in enumerate(p_values):
         aligned: List[np.ndarray] = []
+        op_errs: List[float] = []
+        rank_S_vals: List[float] = []
+        rank_LS_vals: List[float] = []
+        D_sum = None
         for rep in range(reps):
             seed = int(seed_base + 10_000 * p_idx + rep)
             D_hat = _SAMPLER.sample(D, float(p), seed=seed)
             if imputation == "mean":
                 D_hat = _impute_mean(D_hat)
             aligned.append(_align_sign(griffing_leading_eigvec(D_hat, eigsolver), v_ref))
+            if extra_metrics:
+                from ..utils.metrics import numerical_rank, operator_norm_error
+                from ..utils.griffing import griffing_centered
+                op_errs.append(operator_norm_error(D_hat, D))
+                rank_S_vals.append(numerical_rank(D_hat))
+                rank_LS_vals.append(numerical_rank(griffing_centered(D_hat)))
+                D_sum = D_hat.astype(float).copy() if D_sum is None else D_sum + D_hat
 
         if aggregation == "avg_vector":
             # Average the sign-aligned eigenvectors, THEN partition once, exactly
@@ -187,6 +215,23 @@ def bpart_sweep_raw(
             # (e.g. the true tree's own split) without re-running the sweep
             "partitions": [np.asarray(v) >= 0 for v in scored],
         })
+        if extra_metrics:
+            from ..utils.metrics import sigma2_of_partition
+            part = np.asarray(scored[0]) >= 0
+            d_avg = D_sum / max(len(aligned), 1) if D_sum is not None else None
+            row = {"sigma2_avg_M": sigma2_of_partition(D, part),
+                   "sigma2_avg_S": (float('nan') if d_avg is None
+                                    else sigma2_of_partition(d_avg, part)),
+                   "empirical_rank_M": rank_M, "empirical_rank_L_M": rank_L_M}
+            for name, vals in (("operator_norm_error", op_errs),
+                               ("empirical_rank_S", rank_S_vals),
+                               ("empirical_rank_L_S", rank_LS_vals)):
+                arr = np.asarray(vals, dtype=float)
+                for stat, fn in (("mean", np.mean), ("median", np.median),
+                                 ("std", np.std)):
+                    row[f"{stat}_{name}"] = (float(fn(arr)) if arr.size
+                                             else float('nan'))
+            per_p[-1].update(row)
         if progress_cb is not None:
             progress_cb(p_idx, float(p))
 

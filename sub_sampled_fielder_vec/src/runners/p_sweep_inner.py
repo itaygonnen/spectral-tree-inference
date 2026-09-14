@@ -24,8 +24,23 @@ from ..utils.metrics import (
     compute_fiedler_dot_product,
     compute_reference_partition_and_quality,
     compute_sign_agreement,
+    numerical_rank,
+    operator_norm_error,
+    sigma2_of_partition,
 )
 from ..utils.random_entries import _subsample_matrix_entries, compute_fiedler_from_laplacian
+
+
+# The linear-algebra diagnostics the original pipeline-A ``results.json`` carried beside
+# the partition metrics. Collected only when ``extra_metrics=True``; every one is O(n^2)
+# per replicate (Lanczos / power iteration / randomised SVD), never a dense factorisation.
+EXTRA_METRIC_KEYS = (
+    "sigma2_avg_M", "sigma2_avg_S",
+    "mean_operator_norm_error", "median_operator_norm_error", "std_operator_norm_error",
+    "mean_empirical_rank_S", "median_empirical_rank_S", "std_empirical_rank_S",
+    "mean_empirical_rank_L_S", "median_empirical_rank_L_S", "std_empirical_rank_L_S",
+    "empirical_rank_M", "empirical_rank_L_M",
+)
 
 
 def _bipartition_agreement(partition_ref: np.ndarray, partition_avg: np.ndarray) -> float:
@@ -87,6 +102,7 @@ def bootstrap_p_sweep_simple(
     early_stop_consecutive_100: int = 0,
     partition_method: str = "sigma2",
     laplacian: str = "unnormalized",
+    extra_metrics: bool = False,
     progress_cb: Optional[Callable[[int, float], None]] = None,
 ) -> Dict[str, Any]:
     """Bootstrap p-sweep with precomputed (M, fiedler_ref). Uniform sampling.
@@ -114,6 +130,13 @@ def bootstrap_p_sweep_simple(
         - ``"kmeans"``: data-driven τ via k-means(k=2) on the Fiedler
           entries (Ng-Jordan-Weiss); splits at the variance-minimizing
           natural break, ``min_split`` guards tiny clusters.
+    extra_metrics : also record the linear-algebra diagnostics the original
+        pipeline-A runs kept -- ``sigma2_avg_M``/``_S``, mean/median/std of
+        ``||S - M||_2`` and of the numerical ranks of ``S`` and ``L(S)``, plus the
+        constant ranks of ``M`` and ``L(M)`` (see ``EXTRA_METRIC_KEYS``). Off by
+        default, and when off this function's arithmetic is unchanged -- it backs a
+        published figure. Costs one extra n x n accumulator and O(n^2) work per
+        replicate.
     progress_cb : optional ``f(p_index, p)`` called after each p value, so a caller can
         drive a progress bar over a sweep that otherwise runs silently for minutes.
     laplacian : which Laplacian the per-bootstrap Fiedler is taken from.
@@ -161,6 +184,35 @@ def bootstrap_p_sweep_simple(
 
     partition_ref_int = partition_ref.astype(int)
 
+    # constants of the run: the ranks of M and of its Laplacian do not depend on p
+    extra: Dict[str, List[float]] = ({k: [] for k in EXTRA_METRIC_KEYS}
+                                     if extra_metrics else {})
+    rank_M = rank_L_M = float('nan')
+    sigma2_ref_M = float('nan')
+    if extra_metrics:
+        L_M_full = (compute_normalized_laplacian(M) if laplacian == "normalized"
+                    else compute_laplacian(M))
+        rank_M = numerical_rank(M)
+        rank_L_M = numerical_rank(L_M_full)
+        sigma2_ref_M = sigma2_of_partition(M, partition_ref)
+        del L_M_full                       # n x n; nothing below needs it
+
+    def _push_extra(sigma2_M, sigma2_S, op_errs, rank_S, rank_LS):
+        """One row of diagnostics for one p. Lists may be empty (every rep failed)."""
+        if not extra_metrics:
+            return
+        extra["sigma2_avg_M"].append(float(sigma2_M))
+        extra["sigma2_avg_S"].append(float(sigma2_S))
+        for name, vals in (("operator_norm_error", op_errs),
+                           ("empirical_rank_S", rank_S),
+                           ("empirical_rank_L_S", rank_LS)):
+            arr = np.asarray(vals, dtype=float)
+            for stat, fn in (("mean", np.mean), ("median", np.median), ("std", np.std)):
+                extra[f"{stat}_{name}"].append(
+                    float(fn(arr)) if arr.size else float('nan'))
+        extra["empirical_rank_M"].append(rank_M)
+        extra["empirical_rank_L_M"].append(rank_L_M)
+
     partition_agreement_M: List[float] = []
     partition_ari_M: List[float] = []
     partition_nmi_M: List[float] = []
@@ -180,6 +232,10 @@ def bootstrap_p_sweep_simple(
             sign_agreement.extend([100.0] * remaining)
             dot_product.extend([1.0] * remaining)
             partitions.extend([partition_ref.copy()] * remaining)
+            for _ in range(remaining):
+                # the fill asserts perfect recovery, so the diagnostics take their p=1
+                # values: no sampling error, S is M
+                _push_extra(sigma2_ref_M, sigma2_ref_M, [0.0], [rank_M], [rank_L_M])
             if progress_cb is not None:
                 for j in range(idx, len(p_values)):
                     progress_cb(j, float(p_values[j]))
@@ -192,12 +248,17 @@ def bootstrap_p_sweep_simple(
             sign_agreement.append(100.0)
             dot_product.append(1.0)
             partitions.append(partition_ref.copy())
+            _push_extra(sigma2_ref_M, sigma2_ref_M, [0.0], [rank_M], [rank_L_M])
             consecutive_100 += 1
             if progress_cb is not None:
                 progress_cb(idx, float(p))
             continue
 
         aligned: List[np.ndarray] = []
+        op_errs: List[float] = []
+        rank_S_vals: List[float] = []
+        rank_LS_vals: List[float] = []
+        S_sum = None
         for i in range(bootstrap_reps):
             S = _subsample_matrix_entries(M, p, seed=seed + i, builder=None)
             try:
@@ -208,6 +269,12 @@ def bootstrap_p_sweep_simple(
                 log_warning('p_sweep_inner', f"Fiedler failed at p={p:.4g}, rep={i}: {e}")
                 continue
             aligned.append(align_fiedler_by_dot_product(f_est, fiedler_ref))
+            if extra_metrics:
+                op_errs.append(operator_norm_error(S, M))
+                rank_S_vals.append(numerical_rank(S))
+                rank_LS_vals.append(numerical_rank(L_S))
+                # sigma2_avg_S is read off the AVERAGED sub-sample, as in the original
+                S_sum = S.astype(float).copy() if S_sum is None else S_sum + S
 
         if not aligned:
             partition_agreement_M.append(float('nan'))
@@ -216,6 +283,7 @@ def bootstrap_p_sweep_simple(
             sign_agreement.append(float('nan'))
             dot_product.append(float('nan'))
             partitions.append(None)
+            _push_extra(float('nan'), float('nan'), [], [], [])
             continue
 
         try:
@@ -250,6 +318,17 @@ def bootstrap_p_sweep_simple(
         except ValueError as e:
             log_warning('p_sweep_inner', f"dot_product failed at p={p:.4g}: {e}")
             dot_product.append(float('nan'))
+        if extra_metrics:
+            if partition_avg is None:
+                _push_extra(float('nan'), float('nan'), op_errs,
+                            rank_S_vals, rank_LS_vals)
+            else:
+                part = np.asarray(partition_avg).astype(bool)
+                s_avg = S_sum / max(len(aligned), 1) if S_sum is not None else None
+                _push_extra(sigma2_of_partition(M, part),
+                            float('nan') if s_avg is None
+                            else sigma2_of_partition(s_avg, part),
+                            op_errs, rank_S_vals, rank_LS_vals)
         consecutive_100 = consecutive_100 + 1 if agr_M == 100.0 else 0
         if progress_cb is not None:
             progress_cb(idx, float(p))
@@ -264,4 +343,5 @@ def bootstrap_p_sweep_simple(
         "partition_split_ref": ref_split,
         "reference_partition_quality": ref_quality,
         "partitions": partitions,
+        **extra,
     }

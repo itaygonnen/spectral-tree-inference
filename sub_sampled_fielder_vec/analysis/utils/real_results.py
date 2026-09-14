@@ -32,15 +32,10 @@ import numpy as np
 from src.plots.plot_operator_threshold import _median_ci
 
 from .real_datasets import screen_cache_path, sweep_cache_dir
-from .real_recovery_sweep import GT_METRICS, METRICS, REF_FULL
+from .real_recovery_sweep import COLUMNS as ALL_METRICS
+from .real_recovery_sweep import REF_FULL
 
 ARMS = ("L", "B")
-# every per-p column a tree's .npz can hold, in the order they appear in the CSVs
-ALL_METRICS = (tuple(f"{m}_{a}_{REF_FULL}" for m in METRICS for a in ARMS)
-               + tuple(f"{m.split('_vs_')[0]}_{a}_vs_truetree"
-                       for m in GT_METRICS for a in ARMS)
-               + tuple(f"{x}_{a}" for x in ("eta", "split_small") for a in ARMS)
-               + ("signagreement_L_vs_fullmatrix",))
 
 # Spread across TREES, per p. std alone is a poor summary here: NMI is bounded and often
 # bimodal (a tree either recovers its split or does not), so the mean +- std band leaves
@@ -128,20 +123,11 @@ def _sweep_arrays(dataset: str, tree_ids: Sequence[str] | None = None,
         files = [f for f in files if f.stem in keep]
     if not files:
         return None, {}
-    by_grid: Dict[tuple, list] = {}
+    # one pass: each archive is opened once, and its arrays are kept keyed by the grid
+    # they were swept on. (This used to open every file twice -- once to read the grid,
+    # once for the arrays -- on every export.)
+    by_grid: Dict[tuple, Dict[str, dict]] = {}
     for f in files:
-        z = np.load(f, allow_pickle=True)
-        by_grid.setdefault(tuple(np.round(np.asarray(z["p_values"], float), 6)),
-                           []).append(f)
-    if p_values is not None:
-        want = tuple(np.round(np.asarray(p_values, float), 6))
-        if want not in by_grid:
-            return None, {}
-        grid = want
-    else:
-        grid = max(by_grid, key=lambda k: len(by_grid[k]))
-    out = {}
-    for f in by_grid[grid]:
         z = np.load(f, allow_pickle=True)
         arrays = {}
         for k in z.files:
@@ -151,8 +137,16 @@ def _sweep_arrays(dataset: str, tree_ids: Sequence[str] | None = None,
             # rule_L is a string; everything else is numeric. Keep it as it is rather
             # than forcing float on the whole archive.
             arrays[k] = a if a.dtype.kind in "OUS" else np.asarray(a, float)
-        out[f.stem] = arrays
-    return np.asarray(grid, float), out
+        key = tuple(np.round(np.asarray(z["p_values"], float), 6))
+        by_grid.setdefault(key, {})[f.stem] = arrays
+    if p_values is not None:
+        want = tuple(np.round(np.asarray(p_values, float), 6))
+        if want not in by_grid:
+            return None, {}
+        grid = want
+    else:
+        grid = max(by_grid, key=lambda k: len(by_grid[k]))
+    return np.asarray(grid, float), by_grid[grid]
 
 
 def write_failures_csv(run_dir: Path, datasets: Sequence[str]) -> Path | None:

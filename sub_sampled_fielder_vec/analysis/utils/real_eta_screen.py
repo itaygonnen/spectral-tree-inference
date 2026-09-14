@@ -33,15 +33,9 @@ from typing import Dict, List, Optional, Sequence
 import numpy as np
 
 from src.utils.logging import create_progress_bar, log_info, log_warning
+from src.utils.partition_metrics import eta as _eta
 
 MIN_SPLIT = 5  # matches the STDR/test convention used throughout the repo
-
-
-def _eta(part: np.ndarray) -> float:
-    """Imbalance of a boolean bipartition: larger clan / smaller clan."""
-    n1 = int(np.sum(part))
-    n2 = int(part.size) - n1
-    return float(max(n1, n2)) / float(max(min(n1, n2), 1))
 
 
 def screen_one(tid: str, dataset: str) -> Optional[Dict]:
@@ -200,7 +194,8 @@ def main() -> None:
     sys.path.insert(0, str(root))
     from analysis.utils.real_datasets import get_dataset, screen_cache_path
 
-    name = os.environ.get("REAL_COHORT", "6000 taxa")
+    # REAL_COHORT is the pre-rename name, still read so an existing job script works
+    name = os.environ.get("REAL_DATASET") or os.environ.get("REAL_COHORT", "6000 taxa")
     workers = int(os.environ.get("REAL_WORKERS", "4"))
     limit = int(os.environ.get("REAL_LIMIT", "0")) or None
     dataset = get_dataset(name)

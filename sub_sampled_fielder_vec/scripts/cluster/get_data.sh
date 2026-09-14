@@ -50,7 +50,7 @@ EOF
 
 [[ $# -ge 1 ]] || { help; exit 1; }
 case "$1" in -h|--help) help; exit 0 ;; esac
-COHORT="$1"; shift
+DATASET="$1"; shift
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --remote) REMOTE="$2"; shift 2 ;;
@@ -60,7 +60,7 @@ while [[ $# -gt 0 ]]; do
     *) echo "unknown argument: $1" >&2; help; exit 1 ;;
   esac
 done
-: "${DRIVE_PATH:=$COHORT}"
+: "${DRIVE_PATH:=$DATASET}"
 
 command -v rclone >/dev/null 2>&1 || {
   echo "rclone not found -- see 'get_data.sh --help' for the one-time setup" >&2; exit 1; }
@@ -70,7 +70,7 @@ rclone listremotes | grep -qx "${REMOTE}:" || {
 FLAGS=(--progress --transfers 8 --checkers 16 --drive-acknowledge-abuse)
 [[ $SHARED -eq 1 ]] && FLAGS+=(--drive-shared-with-me)
 
-DEST="$DEST_ROOT/$COHORT"
+DEST="$DEST_ROOT/$DATASET"
 mkdir -p "$DEST"
 echo "==> ${REMOTE}:${DRIVE_PATH}  ->  $DEST"
 rclone copy "${REMOTE}:${DRIVE_PATH}" "$DEST" "${FLAGS[@]}"

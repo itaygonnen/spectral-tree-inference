@@ -46,8 +46,8 @@ tree either recovers its split or does not), so a mean ± std band leaves [0, 1]
 import pandas as pd, matplotlib.pyplot as plt
 df = pd.read_csv("curves.csv")
 for dataset, g in df.groupby("dataset"):
-    plt.plot(g.p, g.nmi_L_median, label=f"{dataset} L(S)")
-    plt.plot(g.p, g.nmi_B_median, "--", label=f"{dataset} B=HDH")
+    plt.plot(g.p, g.nmi_L_vs_fullmatrix_median, label=f"{dataset} L(S)")
+    plt.plot(g.p, g.nmi_B_vs_fullmatrix_median, "--", label=f"{dataset} B=HDH")
 plt.xscale("log"); plt.legend()
 ```
 
@@ -57,8 +57,10 @@ plt.xscale("log"); plt.legend()
 
 `screening.csv` — one row per tree. `eta` is the partition imbalance (larger clan /
 smaller clan) of that operator's split of the full matrix; `valid` is 1 when that split is
-a real single-edge bipartition of the true tree. `_L` is the Fiedler vector of `L(S)` cut
-by k-means, `_B` the leading-|λ| eigenvector of `B = HDH` cut by sign.
+a real single-edge bipartition of the true tree. `_L` is the Fiedler vector of `L(S)`, cut
+by k-means **or** by sign — whichever cuts that tree's reference more evenly, recorded per
+tree in `rule_L` with both candidates' `eta_L_kmeans`/`eta_L_sign` beside it. `_B` is the
+leading-|λ| eigenvector of `B = HDH`, cut by sign.
 
 ### Column names
 
@@ -78,6 +80,30 @@ arm used), `eta_ref_L`, `eta_ref_B`.
 NMI is what the paper figure plots; the rest are stored so a follow-up question needs no
 re-run.
 
+### Linear-algebra diagnostics
+
+The quantities the original pipeline-A `results.json` carried beside the partition
+metrics, recorded at every p on both arms. "full" is the complete matrix an arm reads
+(`S` on the L arm, `D` on the B arm), "sub" is its bootstrap-averaged sub-sample, and
+"op" is the operator built from it (`L(S) = Deg(S) - S`, or `B = HDH`):
+
+| column | what it is | original name |
+|---|---|---|
+| `sigma2_full_<op>` | σ₂ of the cross-clan block of the full matrix | `sigma2_avg_M` |
+| `sigma2_sub_<op>` | the same on the averaged sub-sample | `sigma2_avg_S` |
+| `opnorm_err_{mean,median,std}_<op>` | ‖sub − full‖₂ over the replicates | `*_operator_norm_error` |
+| `rank_full_<op>`, `rank_sub_{mean,median,std}_<op>` | numerical rank ‖A‖²_F / ‖A‖²₂ | `empirical_rank_M`, `_S` |
+| `rank_op_full_<op>`, `rank_op_sub_{mean,median,std}_<op>` | the same for the operator | `empirical_rank_L_M`, `_L_S` |
+
+Every one is O(m²) per replicate — Lanczos for ‖·‖₂, power iteration for the error norm,
+a randomised rank-2 SVD for σ₂ — never a dense factorisation. Measured cost on the L arm
+at m=1000: +21% (0.48 s → 0.58 s for 4 p × 5 reps); the share falls as 1/m against the
+O(m³) eigensolve, so about 4% at m=6000. On by default; `--no-extra-metrics` skips them.
+
+A column is **additive**: it is not part of the cache key, so a tree swept before these
+existed still counts as swept and its cells are simply blank. `curves.csv` carries an `n`
+per metric, so a mixed export says how many trees actually contributed to each column.
+
 **Why two references.** `vs_fullmatrix` asks whether sub-sampling kept what the complete
 matrix saw; `vs_truetree` asks whether the complete matrix was seeing the right thing.
 They can disagree sharply -- 0.68 against the full matrix beside 0.013 against the tree on
@@ -90,9 +116,15 @@ cd sub_sampled_fielder_vec
 python scripts/interactive_run.py          # real data -> datasets -> screening, then sweep
 # or unattended, both sizes in one run:
 nohup python scripts/run_real_sweep.py --dataset "1000 taxa,6000 taxa" \
-    --stage sweep --dataset-rule valid_S --prefix overnight &
+    --stage sweep --dataset-rule both --prefix overnight &
 ```
 
 Screening has to run before a sweep can be gated on it. Both are cached per tree and
 resumable: interrupt either and re-run the same command. See
 `sub_sampled_fielder_vec/scripts/cluster/README.md` for the ssh workflow.
+
+The menu and the command line are two ways of filling in the same `RunSpec`
+(`analysis/utils/real_run.py`) and both then call one `execute()`, so they produce
+identical run directories from identical answers. `--dataset-rule` takes `both`,
+`valid_L`, `valid_B`, `any` or `all`; `valid_S` is still accepted as the old name for
+`valid_L`.

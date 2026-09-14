@@ -98,33 +98,88 @@ def screen_and_sweep_two_trees() -> str:
 
 @check
 def menu_config_helpers() -> str:
-    """The interactive layer's pure helpers, which the prompts sit on top of."""
+    """The shared runner's pure helpers, which both front-ends sit on top of."""
+    import dataclasses
+    import inspect
+
     from analysis.utils.real_datasets import list_datasets
-    from analysis.utils.real_interactive import (RULES, _default_rule, _plan,
-                                                 _select_ids, _verdicts)
+    from analysis.utils.real_interactive import _ask_config
+    from analysis.utils.real_run import (GATES, RunSpec, default_gate, gate_key, plan,
+                                         select_ids, verdicts)
     datasets = list_datasets()[:2]
     if not datasets:
         return "skipped: no datasets on disk"
-    verdicts_by = {c.name: _verdicts(c) for c in datasets}
-    rule = _default_rule(datasets, verdicts_by)
-    # the same keys _ask_config produces, so a missing one shows up here not mid-run
-    from analysis.utils.real_interactive import _ask_config
-    import inspect
-    cfg = dict(max_trees=1, workers=1, rule=rule, p_min=0.01, p_points=2, reps=1,
-               prefix="selftest", display_mode="progress", max_eta=20.0)
+    names = [c.name for c in datasets]
+    verdicts_by = {n: verdicts(n) for n in names}
+    gate = default_gate(names, verdicts_by)
+
+    # every RunSpec field the prompts are supposed to set must appear in _ask_config,
+    # so a field added to the spec and forgotten in the menu shows up here, not mid-run
     src = inspect.getsource(_ask_config)
-    missing = [k for k in ("max_trees", "workers", "rule", "p_min", "p_points", "reps",
-                           "prefix", "display_mode", "max_eta")
-               if f'"{k}"' not in src and f"'{k}'" not in src]
+    asked = {f.name for f in dataclasses.fields(RunSpec)} - {"datasets", "stage",
+                                                             "num_gaps", "min_split"}
+    missing = [k for k in sorted(asked) if k not in src]
     if missing:
         raise AssertionError(f"_ask_config no longer sets {missing}")
-    for is_screen in (True, False):
-        rows = _plan(datasets, cfg, is_screen, verdicts_by)
+
+    for stage in ("screen", "sweep"):
+        spec = RunSpec(datasets=names, stage=stage, max_trees=1, workers=1, gate=gate,
+                       p_min=0.01, p_points=2, reps=1, prefix="selftest")
+        rows = plan(spec, verdicts_by)
         if len(rows) != len(datasets):
             raise AssertionError("plan lost a dataset")
-    for name in RULES:
-        _select_ids(datasets[0].ids(3), verdicts_by[datasets[0].name], name)
-    return f"default gate: {rule!r}"
+    for name in GATES:
+        select_ids(datasets[0].ids(3), verdicts_by[names[0]], name)
+    if gate_key("valid_S") != "valid_L":
+        raise AssertionError("the deprecated --dataset-rule valid_S alias is broken")
+    return f"default gate: {gate!r}"
+
+
+@check
+def both_front_ends_agree() -> str:
+    """The menu and the command line must build the SAME run out of the same answers.
+
+    This is the check the merge exists for: the two used to carry a selection
+    implementation each, and wrote different vocabularies into the same summary.json
+    field. Anything that drifts again fails here rather than on the professor's cluster.
+    """
+    import dataclasses
+    import importlib.util
+
+    from analysis.utils.real_datasets import list_datasets
+    from analysis.utils.real_run import RunSpec, plan, verdicts
+    datasets = list_datasets()[:1]
+    if not datasets:
+        return "skipped: no datasets on disk"
+    name = datasets[0].name
+
+    path = _ROOT / "scripts" / "run_real_sweep.py"
+    loader = importlib.util.spec_from_file_location("_run_real_sweep", path)
+    cli = importlib.util.module_from_spec(loader)
+    loader.loader.exec_module(cli)
+
+    # the command line the professor would type (with the deprecated gate alias), and
+    # the menu's equivalent answers
+    args = cli.build_parser().parse_args(
+        ["--dataset", name, "--stage", "sweep", "--limit", "3",
+         "--dataset-rule", "valid_S", "--max-eta", "20", "--p-points", "2",
+         "--reps", "1"])
+    from_cli = cli.spec_from_args(args)
+    from_menu = RunSpec(datasets=[name], stage="sweep", max_trees=3, gate="valid_L",
+                        max_eta=20.0, p_points=2, reps=1, workers=from_cli.workers,
+                        p_min=from_cli.p_min)
+    if dataclasses.asdict(from_cli) != dataclasses.asdict(from_menu):
+        diff = {k: (v, dataclasses.asdict(from_menu)[k])
+                for k, v in dataclasses.asdict(from_cli).items()
+                if v != dataclasses.asdict(from_menu)[k]}
+        raise AssertionError(f"the two front-ends build different runs: {diff}")
+    v = {name: verdicts(name)}
+    a, b = plan(from_cli, v), plan(from_menu, v)
+    if [r.selected for r in a] != [r.selected for r in b]:
+        raise AssertionError("the two front-ends select different trees")
+    if list(from_cli.p_values()) != list(from_menu.p_values()):
+        raise AssertionError("the two front-ends build different p-grids")
+    return f"{name}: same gate, same {len(a[0].selected)} trees, same grid"
 
 
 def main() -> None:

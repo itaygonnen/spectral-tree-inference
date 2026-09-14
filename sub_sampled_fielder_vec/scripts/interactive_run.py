@@ -12,7 +12,7 @@ Features:
 - Single selection: Type "1" to run one cached matrix
 - Batch selection: Type "1,3,5" to run multiple matrices in one sweep
 - Batch mode requires compatible parameters (same tree_model, seq_len, mutation_rate)
-- "d": real FASTA cohorts (screen / recovery sweep) instead of simulated matrices
+- "d": real FASTA datasets (screen / recovery sweep) instead of simulated matrices
 
 No more editing SWEEP_CONFIG - everything is interactive!
 
@@ -127,7 +127,7 @@ def show_main_menu() -> tuple[List[str], List[Dict[str, Any]]]:
 
     # New matrix option
     print_option("n", "Create new matrix configuration")
-    print_option("d", "Switch to real data (FASTA cohorts)")
+    print_option("d", "Switch to real data (FASTA datasets)")
     print_option("q", "Quit")
     print()
 
@@ -486,7 +486,7 @@ def run_experiment(config: Dict[str, Any]):
 
 
 DATA_SOURCES = [
-    "real data - FASTA cohorts with their true trees (data/cohorts/)",
+    "real data - FASTA alignments with their true trees (data/tree_sets/)",
     "generated data - simulated trees and sequences (cached matrices)",
 ]
 
@@ -508,7 +508,7 @@ def main():
     # Clean up incomplete cache entries from interrupted experiments
     clean_incomplete_caches()
 
-    # The real branch runs one stage and exits: it already asked for every cohort at
+    # The real branch runs one stage and exits: it already asked for every dataset at
     # once, so there is nothing left to offer.
     if choose_data_source() == DATA_SOURCES[0]:
         from analysis.utils.real_interactive import run_real_data_menu
@@ -540,7 +540,7 @@ def main():
             run_experiment(config)
 
         elif len(choices) == 1 and choices[0] == 'd':
-            # Real FASTA cohorts - a different question set, see the module docstring
+            # Real FASTA datasets - a different question set, see the module docstring
             from analysis.utils.real_interactive import run_real_data_menu
             run_real_data_menu()
 

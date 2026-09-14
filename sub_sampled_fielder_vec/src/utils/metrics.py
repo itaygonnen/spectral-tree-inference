@@ -491,3 +491,85 @@ def compute_final_partition_agreement(
         "n_bipartitions_S": len(B_S),
         "n_bipartitions_shared": len(B_M & B_S),
     }
+
+
+# ============================================================================
+# Sweep diagnostics: the linear-algebra columns the original pipeline-A runs
+# recorded beside the partition metrics (sigma2_avg_*, operator_norm_error,
+# empirical_rank_*). Collected here so the real-data sweep reports the same
+# quantities as `results.json` did, and every one of them is O(m^2) -- no dense
+# SVD, which at m=6000 would cost more than the eigensolve they annotate.
+# ============================================================================
+
+def top_singular_value(matrix: np.ndarray, n_iter: int = 40, seed: int = 0) -> float:
+    """||A||_2 of a SYMMETRIC A (its largest |eigenvalue|), without a dense factorisation.
+
+    Lanczos (``eigsh(k=1, which='LM')``) -- O(n^2) per matrix-vector product against the
+    O(n^3) of ``eigh``/``svd``, and it converges in a handful of products where plain
+    power iteration needs hundreds on a flat spectrum (measured: 2.8% low after 60 power
+    steps on a Gaussian symmetric matrix). Falls back to power iteration if ARPACK fails
+    to converge, which it can on a tiny or degenerate matrix.
+    """
+    a = np.asarray(matrix, dtype=float)
+    n = a.shape[0]
+    if n == 0:
+        return 0.0
+    if n <= 32:                                    # dense is cheaper than ARPACK here
+        return float(np.linalg.norm(a, 2))
+    try:
+        from scipy.sparse.linalg import eigsh
+        val = eigsh(a, k=1, which='LM', return_eigenvectors=False,
+                    maxiter=5000, tol=1e-6)
+        return float(abs(val[0]))
+    except Exception as exc:
+        log_warning('metrics', f"eigsh failed for ||A||_2 ({exc}); power-iterating")
+    x = np.random.default_rng(seed).standard_normal(n)
+    nrm = np.linalg.norm(x)
+    if nrm == 0:
+        return 0.0
+    x /= nrm
+    lam = 0.0
+    for _ in range(n_iter):
+        y = a @ x
+        lam = float(np.linalg.norm(y))
+        if lam <= 1e-300:
+            return 0.0
+        x = y / lam
+    return lam
+
+
+def numerical_rank(matrix: np.ndarray, top_sv: float | None = None) -> float:
+    """NumRank(A) = ||A||_F^2 / ||A||_2^2 -- the stable-rank form used by
+    :meth:`src.core.metric_computer.MetricComputer._compute_numerical_rank`, so the
+    numbers are comparable with the generated-data runs."""
+    sv = top_singular_value(matrix) if top_sv is None else float(top_sv)
+    if sv < 1e-14:
+        return 0.0
+    fro = float(np.linalg.norm(matrix, 'fro'))
+    return float(fro * fro / (sv * sv))
+
+
+def operator_norm_error(S: np.ndarray, M: np.ndarray) -> float:
+    """||S - M||_2, power-iterated. ``S`` is already 1/p-scaled by the sampler."""
+    from ..core.metric_computer import MetricComputer
+    return float(MetricComputer.estimate_operator_norm_diff(S, M))
+
+
+def sigma2_of_partition(matrix: np.ndarray, partition: np.ndarray) -> float:
+    """Second singular value of the cross-partition block of ``matrix``.
+
+    The same quantity ``compute_partition_agreement`` reports as ``sigma2``, but for the
+    partition the caller actually used, rather than one re-derived by the sigma2 gap
+    search. A sweep that cuts by k-means or by sign would otherwise be annotated with the
+    quality score of a different split.
+    """
+    from spectraltree.spectral_tree_reconstruction import svd2
+    part = np.asarray(partition, dtype=bool)
+    if part.all() or not part.any():
+        return float('nan')
+    block = matrix[part, :][:, ~part]
+    try:
+        return float(svd2(block))
+    except Exception as exc:                       # degenerate block: diagnostic only
+        log_warning('metrics', f"sigma2 failed on a {block.shape} block: {exc}")
+        return float('nan')
