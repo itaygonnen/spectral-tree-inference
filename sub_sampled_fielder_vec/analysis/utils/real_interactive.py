@@ -10,9 +10,11 @@ tree are given -- so this asks a different, shorter set of questions:
                    comparable -- the whole point of running m=1000 beside m=6000
 
 This module is only the questions and the status panel. Selecting trees, planning,
-running and exporting all live in :mod:`analysis.utils.real_run`, which
-``scripts/run_real_sweep.py`` calls too -- so a menu session on a login node and a
-nohup'd batch run produce the same run directory from the same cache.
+running and exporting all live in :mod:`src.runners.experiment_run`, which
+``scripts/run_sweep.py`` calls too -- so a menu session on a login node and a nohup'd
+batch run produce the same run directory from the same cache. That runner knows nothing
+about FASTA: this module's real job is turning the answers into a ``RunSpec`` and a list
+of ``Source`` objects.
 
 Lives beside the dataset helpers in ``analysis/utils/`` -- ``src/`` must never import
 from ``analysis/``, so the dependency runs launcher -> analysis -> src, never back.
@@ -35,15 +37,16 @@ from src.utils.interactive_ui import (                       # noqa: E402
     print_header, print_option, print_success, print_warning)
 
 from .real_datasets import describe_search, list_datasets, sweep_cache_dir  # noqa: E402
-from .real_run import (GATES, MAX_ETA, P_MIN, P_POINTS, REPS,  # noqa: E402
-                       RunSpec, default_gate, execute, gate_label, plan, verdicts)
+from src.runners.experiment_run import (GATES, MAX_ETA, P_MIN,  # noqa: E402
+                                        P_POINTS, REPS, RunSpec, default_gate, execute,
+                                        gate_label, plan, verdicts)
+from src.runners.operators import ALL_OPERATORS, ARM_OF, OPERATORS  # noqa: E402
 
 
 def _ask_config(datasets, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec:
     """One parameter set for all datasets: show the defaults, edit them only on request."""
     names = [c.name for c in datasets]
-    spec = RunSpec(datasets=names,
-                   stage="screen" if is_screen else "sweep",
+    spec = RunSpec(stage="screen" if is_screen else "sweep",
                    max_trees=0,                   # 0 = every tree in each dataset
                    workers=max(1, min(8, (os.cpu_count() or 4) // 2)),
                    gate=default_gate(names, verdicts_by),
@@ -55,12 +58,14 @@ def _ask_config(datasets, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunS
     if is_screen:
         print("  trees      all")
         print(f"  workers    {spec.workers}")
-        print("  arms       L(S)+k-means and B=HDH+sign, min_split=5")
+        print(f"  operators  {', '.join(OPERATORS[k].key for k in spec.operators)}"
+              "  (each Fiedler arm cut by k-means or sign, whichever is more even)")
     else:
         print(f"  trees      all, gated on [{gate_label(spec.gate)}], "
               f"eta <= {spec.max_eta:g}")
         print(f"  p-grid     {spec.p_points} log-spaced points, {spec.p_min:g} .. 1.0")
         print(f"  reps       {spec.reps} bootstrap replicates per p")
+        print(f"  operators  {', '.join(spec.operators)}")
         print("  metrics    NMI, ARI, agreement, sign agreement, dot "
               "(NMI is what the figure plots)")
         print("  extras     on  - sigma2, ||sub-full||_2 and the numerical ranks,\n                       recorded at every p (~4% of the run at m=6000)")
@@ -93,6 +98,9 @@ def _ask_config(datasets, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunS
     spec.p_points = int(get_input(
         f"p-grid points (log-spaced, {spec.p_min:g}..1)", default=str(spec.p_points)))
     spec.reps = int(get_input("Bootstrap reps per p", default=str(spec.reps)))
+    ops = get_input("Operators (comma-separated: " + ",".join(ALL_OPERATORS) + ")",
+                    default=",".join(spec.operators))
+    spec.operators = tuple(o.strip() for o in ops.split(",") if o.strip())
     spec.extra_metrics = confirm(
         "Also record sigma2, ||sub-full||_2 and the numerical ranks at every p?",
         default=True)
@@ -121,34 +129,39 @@ def _print_status(datasets, verdicts_by: Dict[str, dict]) -> None:
     """Screening coverage, verdicts and median imbalance, before anything is picked."""
     print_header("Screening status")
     cap = f"eta<={MAX_ETA:g}"
-    lines = [f"{'dataset':<12}{'trees':>7}{'screened':>10}{'L(S) edge':>11}"
-             f"{'B edge':>8}{'both':>6}{'med eta_L':>11}{'med eta_B':>11}"
-             f"{cap:>10}{'swept':>7}"]
+    head = f"{'dataset':<12}{'trees':>7}{'screened':>10}"
+    for k in ALL_OPERATORS:
+        head += f"{ARM_OF[k] + ' edge':>11}{'med eta':>9}"
+    head += f"{'L+B':>6}{cap:>10}{'swept':>7}"
+    lines = [head]
     for c in datasets:
         v, ids = verdicts_by[c.name], c.ids()
         done = [t for t in ids if t in v]
-        n_s = sum(1 for t in done if v[t].get("valid_S"))
-        n_b = sum(1 for t in done if v[t].get("valid_B"))
+        line = f"{c.name:<12}{len(ids):>7}{len(done):>10}"
+        for k in ALL_OPERATORS:
+            n_ok = sum(1 for t in done if v[t].get(f"valid_{k}"))
+            etas = [v[t][f"eta_{k}"] for t in done if f"eta_{k}" in v[t]]
+            med = float(np.median(etas)) if etas else float("nan")
+            line += (f"{n_ok:>11}{med:>9.1f}" if etas
+                     else f"{'-':>11}{'-':>9}")
         n_both = sum(1 for t in done if v[t].get("valid_S") and v[t].get("valid_B"))
-        med_l = (float(np.median([v[t].get("eta_S", np.nan) for t in done]))
-                 if done else float("nan"))
-        med_b = (float(np.median([v[t].get("eta_B", np.nan) for t in done]))
-                 if done else float("nan"))
         n_cap = sum(1 for t in done
-                    if max(v[t].get("eta_S", 0.0), v[t].get("eta_B", 0.0)) <= MAX_ETA)
+                    if max((v[t].get(f"eta_{k}", 0.0) for k in ALL_OPERATORS),
+                           default=0.0) <= MAX_ETA)
         swept = (len(list(sweep_cache_dir(c.name).glob("*.npz")))
                  if sweep_cache_dir(c.name).is_dir() else 0)
-        lines.append(f"{c.name:<12}{len(ids):>7}{len(done):>10}{n_s:>11}"
-                     f"{n_b:>8}{n_both:>6}{med_l:>11.1f}{med_b:>11.1f}"
-                     f"{n_cap:>10}{swept:>7}")
+        lines.append(line + f"{n_both:>6}{n_cap:>10}{swept:>7}")
     lines += [
-        "• L(S) edge / B edge - trees whose split of the full matrix is a real edge",
-        "                       of the true tree",
+        "• <arm> edge         - trees whose split of the full matrix is a real edge",
+        "                       of the true tree, per operator (L, Lsym, B)",
         "• med eta            - median imbalance of that split: larger clan / smaller",
         "                       clan, so 1 is a perfectly even cut",
-        f"• eta<={MAX_ETA:<14g}- trees even enough on BOTH operators to carry a",
+        "• L+B                - trees valid under both L(S) and B, the pair the",
+        "                       recovery figure compares",
+        f"• eta<={MAX_ETA:<14g}- trees even enough on every operator to carry a",
         "                       recovery signal; this is what the sweep starts from",
         "• swept              - trees the recovery sweep has already covered",
+        "• a '-' means that operator has not been screened yet on this dataset",
     ]
     _framed(lines, rule_after=len(datasets))
 
@@ -182,7 +195,8 @@ def run_real_data_menu() -> None:
     is_screen = stage.startswith("screening")
 
     spec = _ask_config(chosen, is_screen, verdicts_by)
-    rows = plan(spec, verdicts_by)
+    sources = [c.source(spec.max_trees or None) for c in chosen]
+    rows = plan(spec, sources, verdicts_by)
 
     print_divider()
     total = sum(r.hours for r in rows)
@@ -198,7 +212,7 @@ def run_real_data_menu() -> None:
     print(f"\ntotal ~{total:.1f} h. Every tree is cached on its own, so this is safe to "
           "interrupt and resume.")
     if total > 1.0:
-        print("for anything this long prefer:\n  nohup python scripts/run_real_sweep.py "
+        print("for anything this long prefer:\n  nohup python scripts/run_sweep.py "
               f"--dataset \"{','.join(c.name for c in chosen)}\" "
               f"--stage {spec.stage} "
               f"> logs/real_{spec.stage}.log 2>&1 &")
@@ -210,5 +224,5 @@ def run_real_data_menu() -> None:
         print_divider()
         print_header(f"[{k}/{n}] {row.name}")
 
-    execute(spec, rows, on_dataset=_announce)
+    execute(spec, sources, rows, on_source=_announce)
     print_success("done")

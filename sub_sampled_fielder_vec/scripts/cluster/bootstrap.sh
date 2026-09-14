@@ -90,7 +90,7 @@ Data (once per dataset, straight from Google Drive):
   bash sub_sampled_fielder_vec/scripts/cluster/get_data.sh "6000 taxa" --shared
 
 Long jobs (survive logout):
-  nohup python scripts/run_real_sweep.py --dataset "6000 taxa" --stage sweep \
+  nohup python scripts/run_sweep.py --dataset "6000 taxa" --stage sweep \
       --dataset-rule valid_S > logs/real_sweep.log 2>&1 &
   tail -f logs/real_sweep.log
 EOF

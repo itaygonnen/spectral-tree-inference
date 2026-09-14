@@ -1,6 +1,6 @@
 """One generated tree, drawn: its two operators, their spectra, their vectors.
 
-The screens (``eta_screen``, ``real_eta_screen``) keep scalars only. This module
+The screens (``eta_screen``, ``src.runners.operator_screen``) keep scalars only. This module
 rebuilds a single tree from its id and exposes the objects behind those scalars --
 ``S``, ``L(S)``, ``D``, ``B = HDH``, the Fiedler vector and the leading-|lambda|
 vector -- plus the three drawing routines the notebooks use to look at them.

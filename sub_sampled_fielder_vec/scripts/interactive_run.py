@@ -17,7 +17,7 @@ Features:
 No more editing SWEEP_CONFIG - everything is interactive!
 
 Runs on Linux over ssh as-is; for jobs longer than the session, use the non-interactive
-twin `scripts/run_real_sweep.py` under nohup. See `scripts/cluster/README.md`.
+twin `scripts/run_sweep.py` under nohup. See `scripts/cluster/README.md`.
 """
 import os
 import sys

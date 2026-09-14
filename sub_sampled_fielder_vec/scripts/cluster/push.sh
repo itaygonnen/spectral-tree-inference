@@ -64,5 +64,5 @@ done. Next, on the cluster:
   ssh $HOST
   cd $DEST && bash $PKG/scripts/cluster/bootstrap.sh
   source .venv/bin/activate
-  cd $PKG && python scripts/run_real_sweep.py --list
+  cd $PKG && python scripts/run_sweep.py --list
 EOF

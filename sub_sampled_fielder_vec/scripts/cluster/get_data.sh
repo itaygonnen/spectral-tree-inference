@@ -87,8 +87,8 @@ NOTE: a dataset must look like
     $DEST/newick/*.nwk
 Move what you downloaded into those two subdirectories (or lay the Drive folder out that
 way once, and every future fetch is correct). Verify with:
-    python sub_sampled_fielder_vec/scripts/run_real_sweep.py --list
+    python sub_sampled_fielder_vec/scripts/run_sweep.py --list
 EOF
   exit 2
 fi
-echo "ready:  python sub_sampled_fielder_vec/scripts/run_real_sweep.py --list"
+echo "ready:  python sub_sampled_fielder_vec/scripts/run_sweep.py --list"

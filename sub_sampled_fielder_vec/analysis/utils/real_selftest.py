@@ -1,4 +1,4 @@
-"""Smoke check for the real-dataset pipeline: every call site, no heavy compute.
+"""Smoke check for the screen/sweep pipeline: every call site, no heavy compute.
 
     python -m analysis.utils.real_selftest
 
@@ -35,9 +35,9 @@ def check(fn):
 
 @check
 def datasets_and_paths() -> str:
-    from analysis.utils.real_datasets import (cache_dir, get_dataset, list_datasets,
-                                             new_run_dir, screen_cache_path,
-                                             sweep_cache_dir)
+    from analysis.utils.real_datasets import get_dataset, list_datasets
+    from src.utils.run_paths import (cache_dir, new_run_dir, screen_cache_path,
+                                     sweep_cache_dir)
     datasets = list_datasets()
     if not datasets:
         return "no datasets on disk (data/datasets/ empty) -- path checks only"
@@ -53,8 +53,9 @@ def datasets_and_paths() -> str:
 @check
 def exports_on_an_empty_run() -> str:
     """Every writer must cope with a run that produced nothing."""
-    from analysis.utils.real_datasets import list_datasets, new_run_dir
-    from analysis.utils.real_results import export_run, write_config
+    from analysis.utils.real_datasets import list_datasets
+    from src.utils.run_export import export_run, write_config
+    from src.utils.run_paths import new_run_dir
     names = [c.name for c in list_datasets()][:1]
     run_dir = new_run_dir("selftest empty")
     write_config(run_dir, dict(reps=1, p_points=2), names, "sweep")
@@ -66,11 +67,11 @@ def exports_on_an_empty_run() -> str:
 def screen_and_sweep_two_trees() -> str:
     """The real thing, at the smallest size the data allows."""
     import numpy as np
-    from analysis.utils.real_datasets import (list_datasets, screen_cache_path,
-                                             sweep_cache_dir)
-    from analysis.utils.real_eta_screen import run_real_eta_screen
-    from analysis.utils.real_recovery_sweep import run_sweep, sweep_meta
-    from analysis.utils.real_results import export_run
+    from analysis.utils.real_datasets import list_datasets
+    from src.runners.operator_screen import run_screen
+    from src.runners.operator_sweep import run_sweep, sweep_meta
+    from src.utils.run_export import export_run
+    from src.utils.run_paths import screen_cache_path, sweep_cache_dir
 
     datasets = sorted(list_datasets(), key=lambda c: c.shape()[0])
     if not datasets:
@@ -79,14 +80,15 @@ def screen_and_sweep_two_trees() -> str:
     ids = c.ids(2)
     m, _ = c.shape()
 
-    rows = run_real_eta_screen(ids, screen_cache_path(c.name),
-                               dataset=c.name, workers=1)
+    loader = c.loader()
+    rows = run_screen(ids, screen_cache_path(c.name), loader,
+                      source=c.name, workers=1)
     p_values = np.array([0.05, 1.0])
-    run_sweep(ids, sweep_cache_dir(c.name), p_values, reps=1,
-              dataset=c.name, m=m)
+    run_sweep(ids, sweep_cache_dir(c.name), loader, p_values, reps=1,
+              source=c.name, m=m)
     sweep_meta(1, 10, 5, m)                   # keyword-free signature still valid
 
-    from analysis.utils.real_datasets import new_run_dir
+    from src.utils.run_paths import new_run_dir
     run_dir = new_run_dir("selftest sweep")
     files = export_run(run_dir, {c.name: ids})
     names = {f.name for f in files}
@@ -104,8 +106,8 @@ def menu_config_helpers() -> str:
 
     from analysis.utils.real_datasets import list_datasets
     from analysis.utils.real_interactive import _ask_config
-    from analysis.utils.real_run import (GATES, RunSpec, default_gate, gate_key, plan,
-                                         select_ids, verdicts)
+    from src.runners.experiment_run import (GATES, RunSpec, default_gate, gate_key,
+                                            plan, select_ids, verdicts)
     datasets = list_datasets()[:2]
     if not datasets:
         return "skipped: no datasets on disk"
@@ -116,16 +118,17 @@ def menu_config_helpers() -> str:
     # every RunSpec field the prompts are supposed to set must appear in _ask_config,
     # so a field added to the spec and forgotten in the menu shows up here, not mid-run
     src = inspect.getsource(_ask_config)
-    asked = {f.name for f in dataclasses.fields(RunSpec)} - {"datasets", "stage",
-                                                             "num_gaps", "min_split"}
+    asked = {f.name for f in dataclasses.fields(RunSpec)} - {"stage", "num_gaps",
+                                                             "min_split"}
     missing = [k for k in sorted(asked) if k not in src]
     if missing:
         raise AssertionError(f"_ask_config no longer sets {missing}")
 
+    sources = [c.source(1) for c in datasets]
     for stage in ("screen", "sweep"):
-        spec = RunSpec(datasets=names, stage=stage, max_trees=1, workers=1, gate=gate,
+        spec = RunSpec(stage=stage, max_trees=1, workers=1, gate=gate,
                        p_min=0.01, p_points=2, reps=1, prefix="selftest")
-        rows = plan(spec, verdicts_by)
+        rows = plan(spec, sources, verdicts_by)
         if len(rows) != len(datasets):
             raise AssertionError("plan lost a dataset")
     for name in GATES:
@@ -147,13 +150,13 @@ def both_front_ends_agree() -> str:
     import importlib.util
 
     from analysis.utils.real_datasets import list_datasets
-    from analysis.utils.real_run import RunSpec, plan, verdicts
+    from src.runners.experiment_run import RunSpec, plan, verdicts
     datasets = list_datasets()[:1]
     if not datasets:
         return "skipped: no datasets on disk"
     name = datasets[0].name
 
-    path = _ROOT / "scripts" / "run_real_sweep.py"
+    path = _ROOT / "scripts" / "run_sweep.py"
     loader = importlib.util.spec_from_file_location("_run_real_sweep", path)
     cli = importlib.util.module_from_spec(loader)
     loader.loader.exec_module(cli)
@@ -165,16 +168,17 @@ def both_front_ends_agree() -> str:
          "--dataset-rule", "valid_S", "--max-eta", "20", "--p-points", "2",
          "--reps", "1"])
     from_cli = cli.spec_from_args(args)
-    from_menu = RunSpec(datasets=[name], stage="sweep", max_trees=3, gate="valid_L",
-                        max_eta=20.0, p_points=2, reps=1, workers=from_cli.workers,
-                        p_min=from_cli.p_min)
+    from_menu = RunSpec(stage="sweep", max_trees=3, gate="valid_L", max_eta=20.0,
+                        p_points=2, reps=1, workers=from_cli.workers,
+                        p_min=from_cli.p_min, operators=from_cli.operators)
     if dataclasses.asdict(from_cli) != dataclasses.asdict(from_menu):
         diff = {k: (v, dataclasses.asdict(from_menu)[k])
                 for k, v in dataclasses.asdict(from_cli).items()
                 if v != dataclasses.asdict(from_menu)[k]}
         raise AssertionError(f"the two front-ends build different runs: {diff}")
     v = {name: verdicts(name)}
-    a, b = plan(from_cli, v), plan(from_menu, v)
+    sources = cli.sources_from_args(args)
+    a, b = plan(from_cli, sources, v), plan(from_menu, sources, v)
     if [r.selected for r in a] != [r.selected for r in b]:
         raise AssertionError("the two front-ends select different trees")
     if list(from_cli.p_values()) != list(from_menu.p_values()):

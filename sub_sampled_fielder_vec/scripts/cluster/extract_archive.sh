@@ -90,4 +90,4 @@ n_nw=$(find "$DEST/newick" -name '*.nwk' 2>/dev/null | wc -l | tr -d ' ')
 echo "==> $n_fa alignments, $n_nw trees in $DEST"
 echo
 echo "check it is visible to the code:"
-echo "  python sub_sampled_fielder_vec/scripts/run_real_sweep.py --list"
+echo "  python sub_sampled_fielder_vec/scripts/run_sweep.py --list"

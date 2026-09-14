@@ -1,4 +1,4 @@
-"""Real benchmark datasets: any ``<name>/{fasta,newick}`` directory pair.
+"""Discovering real benchmark datasets: any ``<name>/{fasta,newick}`` directory pair.
 
 A dataset holds aligned FASTA files and the true tree for each of them, matched by stem
 (``random_tree_0007.fasta`` <-> ``random_tree_0007.nwk``). Cohorts live in the repo-level
@@ -7,12 +7,15 @@ place; ``$STR_DATA_DIR`` overrides it (a scratch filesystem, a shared mount). Tw
 disk today, ``1000 taxa`` and ``6000 taxa``, and anything copied in the same shape is
 discovered without a code change.
 
-One load per tree gives every consumer both operators' inputs:
+This module is the *discovery* half of a real data source -- where the files are, which
+ids have both halves, whether the alignments are actually aligned. Loading one tree is
+:class:`src.runners.benchmark_loaders.RealLoader`'s job, and running anything on it is
+:mod:`src.runners.experiment_run`'s. :meth:`Dataset.source` joins the three:
 
-    S = JC_similarity_matrix(obs)     -> the similarity route,  L(S)
-    D = fasta_to_distance(path)       -> the distance route,    B = H D H
+    get_dataset("6000 taxa").source()  ->  Source(name, loader, ids, m)
 
-``D`` is permuted into ``labels`` order so a single leaf-index map serves both.
+which is the only thing the screen, the sweep and the exporter ever see. They do not
+know a FASTA file exists, which is why the same runner also drives simulated trees.
 
 Cost scales as O(m^2 L) for the two matrix builds and O(m^3) for every eigensolve; at
 m=6000 that is ~1 min to load a tree and ~9 s per sub-sampled Fiedler vector, so cache
@@ -118,43 +121,24 @@ class Dataset:
         pr = self.probe()
         return pr["L_min"] != pr["L_max"]
 
+    def loader(self):
+        """The callable that turns one of this dataset's ids into its matrices."""
+        from src.runners.benchmark_loaders import RealLoader
+        return RealLoader(self.fasta_dir, self.newick_dir)
+
+    def source(self, limit: Optional[int] = None):
+        """This dataset as a :class:`src.runners.experiment_run.Source`."""
+        from src.runners.experiment_run import Source
+        m, _ = self.shape()
+        return Source(name=self.name, loader=self.loader(),
+                      ids=self.ids(limit), m=m)
+
     def load_all(self, tree_id: str):
-        """Return ``(S, labels, tree, D)`` for one tree, or ``None`` if files are missing.
+        """``(S, labels, tree, D)`` for one tree, or ``None`` if files are missing.
 
-        ``D`` is aligned to ``labels`` order. ``tree`` is read into the alignment's taxon
-        namespace with bipartitions encoded, ready for the validity gate.
+        A thin pass-through to :class:`RealLoader`, kept because notebooks call it.
         """
-        import dendropy
-        import spectraltree
-        from src.runners.real_data_bpart import fasta_to_distance
-
-        fpath = self.fasta_dir / f"{tree_id}.fasta"
-        tpath = self.newick_dir / f"{tree_id}.nwk"
-        if not (fpath.exists() and tpath.exists()):
-            return None
-
-        cm = dendropy.DnaCharacterMatrix.get(path=str(fpath), schema="fasta")
-        lengths = {len(cm[t]) for t in cm.taxon_namespace}
-        if len(lengths) > 1:
-            raise ValueError(
-                f"{fpath.name} is not aligned: {len(cm.taxon_namespace)} sequences with "
-                f"lengths {min(lengths)}..{max(lengths)}. Every operator here needs one "
-                f"column set shared by all taxa, so the sequences have to be aligned "
-                f"(or the alignment re-exported) before this dataset can be used.")
-        obs, meta = spectraltree.charmatrix2array(cm)
-        labels = [str(t.label) for t in list(meta)]
-        S = spectraltree.JC_similarity_matrix(obs)
-
-        D, names = fasta_to_distance(str(fpath))
-        nidx = {n: i for i, n in enumerate(names)}
-        perm = np.array([nidx[l] for l in labels])
-        D = D[perm][:, perm]
-
-        tree = dendropy.Tree.get(path=str(tpath), schema="newick",
-                                 preserve_underscores=True,
-                                 taxon_namespace=cm.taxon_namespace)
-        tree.encode_bipartitions()
-        return S, labels, tree, D
+        return self.loader()(tree_id)
 
 
 def list_datasets() -> List[Dataset]:
@@ -221,43 +205,8 @@ def describe_search() -> str:
             "looked in:\n" + "\n".join(lines))
 
 
-# Two roots under <repo>/results/real_data/, and the distinction matters:
-#
-#   runs/<timestamp>-<name>/   ONE directory per run, holding every dataset that run
-#                              covered -- config, CSVs, plot, log. This is what you
-#                              download, mail or plot from, and it never changes once the
-#                              run finishes.
-#   _cache/<dataset>/           machine state so a killed run resumes: the screen rows and
-#                              one .npz per swept tree, per dataset, reused across runs.
-#
-# $STR_RESULTS_DIR overrides the parent of both.
-def results_root() -> Path:
-    env = os.environ.get("STR_RESULTS_DIR")
-    return Path(env).expanduser() if env else _REPO / "results" / "real_data"
-
-
-def _slug(name: str) -> str:
-    return "_".join(str(name).lower().split())
-
-
-def cache_dir(dataset: str) -> Path:
-    return results_root() / "_cache" / _slug(dataset)
-
-
-def screen_cache_path(dataset: str) -> Path:
-    """Resumable screen state for one dataset: one row per tree."""
-    return cache_dir(dataset) / "screen.npz"
-
-
-def sweep_cache_dir(dataset: str) -> Path:
-    """Resumable sweep state for one dataset: one .npz per tree."""
-    return cache_dir(dataset) / "sweep"
-
-
-def new_run_dir(name: str = "") -> Path:
-    """``runs/<timestamp>[-<name>]/`` -- created empty, then filled by the run."""
-    from datetime import datetime
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    d = results_root() / "runs" / (f"{stamp}-{_slug(name)}" if name else stamp)
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+# Where results and resumable state live is not a property of the data source, so it
+# lives in src/utils/run_paths.py now. Re-exported because notebooks and scripts import
+# these names from here.
+from src.utils.run_paths import (cache_dir, new_run_dir, results_root,   # noqa: E402,F401
+                                 screen_cache_path, sweep_cache_dir)

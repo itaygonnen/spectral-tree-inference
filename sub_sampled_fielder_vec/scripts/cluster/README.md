@@ -4,7 +4,7 @@
 workflow, copy-paste only. This file is the reference behind it.
 
 Onboarding is three commands. No scheduler is assumed — this is a plain ssh machine; under
-SLURM, put the same `run_real_sweep.py` line in an `sbatch` script.
+SLURM, put the same `run_sweep.py` line in an `sbatch` script.
 
 ```bash
 git clone -b sub_sampled_STDR https://github.com/itaygonnen/spectral-tree-inference.git
@@ -12,7 +12,7 @@ cd spectral-tree-inference
 bash sub_sampled_fielder_vec/scripts/cluster/bootstrap.sh                      # 1. environment
 bash sub_sampled_fielder_vec/scripts/cluster/get_data.sh "6000 taxa" --shared  # 2. data
 source .venv/bin/activate && cd sub_sampled_fielder_vec
-python scripts/run_real_sweep.py --list                                        # 3. check
+python scripts/run_sweep.py --list                                        # 3. check
 ```
 
 ## 1. `bootstrap.sh` — environment
@@ -56,7 +56,7 @@ laptop: it rsyncs the repo and the dataset over ssh, excluding caches, results a
 
 ## 3. Run
 
-`python scripts/run_real_sweep.py --list` is the readiness check: a dataset listed with the
+`python scripts/run_sweep.py --list` is the readiness check: a dataset listed with the
 right tree count means the data, the layout and the environment are all fine.
 `python -m analysis.utils.real_selftest` (~1 min, scratch dir) goes further and screens
 and sweeps two trees for real — worth running after changing the code, not before every
@@ -72,10 +72,10 @@ python scripts/interactive_run.py
 Long jobs — the non-interactive twin, which asks nothing and survives logout:
 
 ```bash
-nohup python scripts/run_real_sweep.py \
+nohup python scripts/run_sweep.py \
     --dataset "6000 taxa" --stage screen --workers 16 > logs/real_screen.log 2>&1 &
 
-nohup python scripts/run_real_sweep.py \
+nohup python scripts/run_sweep.py \
     --dataset "6000 taxa" --stage sweep --dataset-rule valid_S > logs/real_sweep.log 2>&1 &
 tail -f logs/real_sweep.log
 ```

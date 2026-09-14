@@ -55,12 +55,21 @@ plt.xscale("log"); plt.legend()
 
 ## Columns
 
-`screening.csv` — one row per tree. `eta` is the partition imbalance (larger clan /
-smaller clan) of that operator's split of the full matrix; `valid` is 1 when that split is
-a real single-edge bipartition of the true tree. `_L` is the Fiedler vector of `L(S)`, cut
-by k-means **or** by sign — whichever cuts that tree's reference more evenly, recorded per
-tree in `rule_L` with both candidates' `eta_L_kmeans`/`eta_L_sign` beside it. `_B` is the
-leading-|λ| eigenvector of `B = HDH`, cut by sign.
+`screening.csv` — one row per tree, one column block per operator. `eta` is the partition
+imbalance (larger clan / smaller clan) of that operator's split of the full matrix;
+`valid` is 1 when that split is a real single-edge bipartition of the true tree.
+
+| arm | operator | cut |
+|---|---|---|
+| `L` | Fiedler of `L(S) = Deg(S) − S` | k-means **or** sign |
+| `Lsym` | Fiedler of `L_sym = I − Dg^-1/2 S Dg^-1/2` | k-means **or** sign |
+| `B` | leading-\|λ\| eigenvector of `B = HDH` | sign (there the sign pattern *is* the partition) |
+
+"k-means or sign" is decided per tree, not per run: whichever cuts that tree's reference
+more evenly wins, and the choice is recorded in `rule_<arm>` with both candidates'
+`eta_<arm>_kmeans` / `eta_<arm>_sign` beside it. k-means alone routinely isolates a single
+taxon on real data (1/999) — a real pendant edge, so a validity gate passes it, but a
+split no sub-sample can recover.
 
 ### Column names
 
@@ -115,7 +124,7 @@ the m=1000 benchmark -- and the second is the harder question.
 cd sub_sampled_fielder_vec
 python scripts/interactive_run.py          # real data -> datasets -> screening, then sweep
 # or unattended, both sizes in one run:
-nohup python scripts/run_real_sweep.py --dataset "1000 taxa,6000 taxa" \
+nohup python scripts/run_sweep.py --dataset "1000 taxa,6000 taxa" \
     --stage sweep --dataset-rule both --prefix overnight &
 ```
 
@@ -124,7 +133,13 @@ resumable: interrupt either and re-run the same command. See
 `sub_sampled_fielder_vec/scripts/cluster/README.md` for the ssh workflow.
 
 The menu and the command line are two ways of filling in the same `RunSpec`
-(`analysis/utils/real_run.py`) and both then call one `execute()`, so they produce
+(`src/runners/experiment_run.py`) and both then call one `execute()`, so they produce
 identical run directories from identical answers. `--dataset-rule` takes `both`,
-`valid_L`, `valid_B`, `any` or `all`; `valid_S` is still accepted as the old name for
-`valid_L`.
+`valid_L`, `valid_Lsym`, `valid_B`, `any` or `all`; `valid_S` is still accepted as the
+old name for `valid_L`. `both` still means L(S) and B — the pair the figures compare —
+so a selection recorded before `L_sym` was screened still means what it said.
+
+The runner is not specific to real data: it takes a `Source` (a name, a loader, a list
+of tree ids, a taxon count), and `RealLoader` / `GeneratedLoader` are two ways to
+produce one. That is why `screening.csv` and `curves.csv` look the same whether the
+trees came from FASTA files or a simulator.

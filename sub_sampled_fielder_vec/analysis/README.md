@@ -1,6 +1,6 @@
 # analysis
 
-Notebooks behind the v9 manuscript (`docs/overleafs/v9/`). **The paper is the deliverable**;
+Notebooks behind the v10 manuscript (`docs/overleafs/v10/`). **The paper is the deliverable**;
 these notebooks exist to produce and defend its figures.
 
 Four things, nothing nested inside them:
@@ -8,12 +8,12 @@ Four things, nothing nested inside them:
 | | What |
 |---|---|
 | `paper/` | The notebooks that produce a figure in the manuscript. Named `figNN_*` so `ls` answers "which notebook makes Figure 3?" — except the two distance-route producers, which still sit in `supporting/` (see below). |
-| `supporting/` | 11 files: 8 that produce **no** paper figure, plus 3 figure producers that were promoted without moving (see below). Flat, one file each. |
+| `supporting/` | 13 files: 10 that produce **no** paper figure, plus 3 figure producers that were promoted without moving (see below). Flat, one file each. |
 | `utils/` | Shared code, imported as `analysis.utils`. **Do not move.** |
 | `notebooks_cache/` | Every `.npz` a notebook computes. Tracked, so re-plotting works in a fresh clone without re-running an expensive screen. |
 
 Plus `legacy/` (superseded packages, unmaintained) and `figures/` (gitignored scratch —
-paper figures go to `docs/overleafs/v9/figures/`, never here).
+paper figures go to `docs/overleafs/v10/figures/`, never here).
 
 ## paper/
 
@@ -45,7 +45,7 @@ now the last appendix.
 
 ## supporting/
 
-8 notebooks with no paper figure. Which claim each backs — or "exploratory, not cited" — is
+10 notebooks with no paper figure. Which claim each backs — or "exploratory, not cited" — is
 in [PAPER_MAP.md](PAPER_MAP.md). Two of them (`distance_vs_similarity_*`) remain the
 non-figure evidence for the **distance route**, App F / `thm:main-dist`.
 
@@ -57,6 +57,12 @@ generated twin), so their shared spine lives in `src/`, not copied into both: sc
 comparable — which is the only reason keeping both is worth anything. The operator and
 threshold callables are passed **in** from the notebooks, because the σ₂ rule is
 `spectraltree.partition_taxa` and `src/` must not import `spectraltree`.
+
+`bd_model_exploration.ipynb` is the birth-death half of `eta_by_operator` looked at
+rather than summarised: three trees across the imbalance range with their matrices,
+spectra and vectors, then the pooled 200-tree distributions. It reads the same
+`notebooks_cache/eta_by_operator/` caches, draws with
+`analysis/utils/operator_exhibit.py`, and writes no figure asset.
 
 Three files here **do** produce paper figures and are registered in `paper_figures.py`:
 `eta_by_operator.ipynb` (Fig 8 a-d, `appendix-eta.tex`), and the two distance-route p* notebooks —
@@ -85,7 +91,7 @@ notebook and the check tells you to declare it.
 ## Traps worth knowing before you re-run anything
 
 - **A trial run can overwrite a paper asset.** The `paper/` notebooks save straight into
-  `docs/overleafs/v9/figures/`. When exploring, point `FIG_DIR` / `PAPER_FIG_DIR` at a
+  `docs/overleafs/v10/figures/`. When exploring, point `FIG_DIR` / `PAPER_FIG_DIR` at a
   scratch path first.
 - **A cell that looks like setup may launch a sweep.** `pstar_flat_cbm_distance` cell 2 and
   `pstar_eta_pool_distance` cell 2 bootstrap `sys.path` *and* kick off the grid.

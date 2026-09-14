@@ -29,7 +29,7 @@ so it is recorded here. Every file has a `__main__` guard, so "it has one" prove
 | `run_nj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…`, `cache/distance_matrix` | NJ notebooks |
 | `run_snj_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…` | SNJ notebook |
 | `run_griffing_sweep.py` | **edit `SWEEP_CONFIG`, then run** — no CLI | `results/runs/…` | griffing |
-| `run_real_sweep.py` | `--dataset --stage --workers --p-min --p-points --reps --prefix` (`--list` to see datasets) | `results/real_data/runs/<ts>-<name>/` + `_cache/` | real-dataset screening + sweep |
+| `run_sweep.py` | `--dataset --stage --workers --p-min --p-points --reps --prefix` (`--list` to see datasets) | `results/real_data/runs/<ts>-<name>/` + `_cache/` | real-dataset screening + sweep |
 
 The four "edit-the-dict" scripts take **no arguments at all**. An earlier version of this
 table wrongly listed three of them as `argparse`, and `nj_recompute_normalized_metrics.py`
@@ -51,7 +51,7 @@ python -m analysis.utils.real_selftest
 ## `cluster/`
 Not a script but a kit: `push.sh` (rsync the repo and a dataset to a Linux
 box), `bootstrap.sh` (venv + `requirements-cluster.txt` + `pip install -e . --no-deps`)
-and a README with the ssh workflow. `run_real_sweep.py` is the non-interactive twin of
+and a README with the ssh workflow. `run_sweep.py` is the non-interactive twin of
 `interactive_run.py`'s real-data branch and is what runs there under `nohup`.
 
 ## `validation/`

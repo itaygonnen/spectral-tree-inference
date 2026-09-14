@@ -74,7 +74,7 @@ count, everything is in place:
 
 ```bash
 source .venv/bin/activate && cd sub_sampled_fielder_vec
-python scripts/run_real_sweep.py --list
+python scripts/run_sweep.py --list
 #   '6000 taxa': 100 trees, m=6000, L=5000  -> .../data/tree_sets/6000 taxa
 ```
 
@@ -102,10 +102,10 @@ The same thing without any questions, if you would rather queue it and log out â
 option above has a flag, and both share the same cache:
 
 ```bash
-nohup python scripts/run_real_sweep.py --dataset "1000 taxa,6000 taxa" \
+nohup python scripts/run_sweep.py --dataset "1000 taxa,6000 taxa" \
     --stage screen --workers 16 > logs/screen.log 2>&1 &
 
-nohup python scripts/run_real_sweep.py --dataset "1000 taxa,6000 taxa" \
+nohup python scripts/run_sweep.py --dataset "1000 taxa,6000 taxa" \
     --stage sweep --dataset-rule valid_S --max-eta 20 > logs/sweep.log 2>&1 &
 
 tail -f logs/sweep.log

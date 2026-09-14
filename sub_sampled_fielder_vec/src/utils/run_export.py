@@ -5,17 +5,20 @@
         summary.json        headline numbers per dataset
         run.log             everything the run printed
         screening.csv       every tree of every dataset: eta and validity per operator
-        per_tree.csv        every tree x every p: all metrics, both arms   (long format)
+        per_tree.csv        every tree x every p: all metrics, every arm   (long format)
         curves.csv          per dataset x p: median, std, quartiles and a bootstrap
                             interval for the median, across trees          (plot-ready)
-        recovery_curve.png  median NMI vs p, every dataset, both arms
+        recovery_curve.png  median NMI vs p, every dataset, every arm
 
 ``curves.csv`` is the file to plot from: one row per (dataset, p), one column per
-metric x arm x {median, std}. ``per_tree.csv`` is the same numbers before aggregation,
-for a different cut (per-tree spread, tree-by-tree outliers).
+metric x arm x {median, std, ...}. ``per_tree.csv`` is the same numbers before
+aggregation, for a different cut (per-tree spread, tree-by-tree outliers).
 
 The per-tree ``.npz`` files stay in ``_cache/<dataset>/`` so a killed run resumes; a run
 directory is an export of them and never changes after the run.
+
+Nothing here knows where the trees came from -- it reads the caches a run wrote, whether
+those trees were FASTA alignments or simulated.
 """
 from __future__ import annotations
 
@@ -29,13 +32,10 @@ from typing import Dict, List, Sequence
 
 import numpy as np
 
-from src.plots.plot_operator_threshold import _median_ci
-
-from .real_datasets import screen_cache_path, sweep_cache_dir
-from .real_recovery_sweep import COLUMNS as ALL_METRICS
-from .real_recovery_sweep import REF_FULL
-
-ARMS = ("L", "B")
+from ..plots.plot_operator_threshold import _median_ci
+from ..runners.operator_sweep import REF_FULL, columns
+from ..runners.operators import ARM_OF, OPERATORS, resolve
+from .run_paths import screen_cache_path, sweep_cache_dir
 
 # Spread across TREES, per p. std alone is a poor summary here: NMI is bounded and often
 # bimodal (a tree either recovers its split or does not), so the mean +- std band leaves
@@ -124,8 +124,7 @@ def _sweep_arrays(dataset: str, tree_ids: Sequence[str] | None = None,
     if not files:
         return None, {}
     # one pass: each archive is opened once, and its arrays are kept keyed by the grid
-    # they were swept on. (This used to open every file twice -- once to read the grid,
-    # once for the arrays -- on every export.)
+    # they were swept on
     by_grid: Dict[tuple, Dict[str, dict]] = {}
     for f in files:
         z = np.load(f, allow_pickle=True)
@@ -134,11 +133,11 @@ def _sweep_arrays(dataset: str, tree_ids: Sequence[str] | None = None,
             if k in ("meta", "p_values"):
                 continue
             a = z[k]
-            # rule_L is a string; everything else is numeric. Keep it as it is rather
-            # than forcing float on the whole archive.
+            # rule_<arm> is a string; everything else is numeric. Keep it as it is
+            # rather than forcing float on the whole archive.
             arrays[k] = a if a.dtype.kind in "OUS" else np.asarray(a, float)
-        key = tuple(np.round(np.asarray(z["p_values"], float), 6))
-        by_grid.setdefault(key, {})[f.stem] = arrays
+        by_grid.setdefault(tuple(np.round(np.asarray(z["p_values"], float), 6)),
+                           {})[f.stem] = arrays
     if p_values is not None:
         want = tuple(np.round(np.asarray(p_values, float), 6))
         if want not in by_grid:
@@ -168,55 +167,82 @@ def write_failures_csv(run_dir: Path, datasets: Sequence[str]) -> Path | None:
     return out
 
 
-def write_screening_csv(run_dir: Path, datasets: Sequence[str]) -> Path | None:
-    """Every tree of every dataset, one row: eta and validity per operator."""
+def write_screening_csv(run_dir: Path, datasets: Sequence[str],
+                        operators: Sequence[str] = ()) -> Path | None:
+    """Every tree of every dataset, one row: eta and validity per operator.
+
+    Columns are named by ARM (``L``, ``Lsym``, ``B``) while the cache stores them by
+    operator key (``S``, ``Lsym``, ``B``) -- ``eta_S`` in a table beside ``eta_B`` read
+    as two different things to everyone who saw it.
+    """
     rows = [(c, r) for c in datasets for r in _screen_rows(c)]
     if not rows:
         return None
+    ops = resolve(operators)
+    # only write an operator's columns when some row actually carries them: a screen
+    # from before L_sym existed would otherwise get a wall of blanks
+    present = [k for k in ops if any(f"eta_{k}" in r for _, r in rows)]
+    header = ["dataset", "m", "tree"]
+    for k in present:
+        a = ARM_OF[k]
+        header += [f"eta_{a}", f"valid_{a}", f"rule_{a}"]
+        header += [f"{x}_{a}_{rule}" for rule in OPERATORS[k].rules
+                   for x in ("eta", "valid")]
     out = run_dir / "screening.csv"
     with open(out, "w", newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(["dataset", "m", "tree",
-                    "eta_L", "valid_L", "rule_L",
-                    "eta_L_kmeans", "valid_L_kmeans", "eta_L_sign", "valid_L_sign",
-                    "eta_B", "valid_B"])
+        w.writerow(header)
         for c, r in sorted(rows, key=lambda x: (x[0], x[1]["tree"])):
-            w.writerow([c, r["m"], r["tree"],
-                        f"{r['eta_S']:.4f}", int(r["valid_S"]), r.get("rule_S", ""),
-                        f"{r.get('eta_S_kmeans', float('nan')):.4f}",
-                        int(r.get("valid_S_kmeans", 0)),
-                        f"{r.get('eta_S_sign', float('nan')):.4f}",
-                        int(r.get("valid_S_sign", 0)),
-                        f"{r['eta_B']:.4f}", int(r["valid_B"])])
+            line = [c, r.get("m", ""), r["tree"]]
+            for k in present:
+                line += [_fmt(r.get(f"eta_{k}")), _flag(r.get(f"valid_{k}")),
+                         r.get(f"rule_{k}", "")]
+                for rule in OPERATORS[k].rules:
+                    line += [_fmt(r.get(f"eta_{k}_{rule}")),
+                             _flag(r.get(f"valid_{k}_{rule}"))]
+            w.writerow(line)
     return out
 
 
+def _fmt(v) -> str:
+    return "" if v is None else f"{float(v):.4f}"
+
+
+def _flag(v) -> str:
+    return "" if v is None else str(int(bool(v)))
+
+
 def write_curve_csvs(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
-                     p_values: Sequence[float] | None = None) -> List[Path]:
+                     p_values: Sequence[float] | None = None,
+                     operators: Sequence[str] = ()) -> List[Path]:
     """``per_tree.csv`` (raw) and ``curves.csv`` (median/std), all datasets in one file."""
     written: List[Path] = []
     per_tree_rows: List[list] = []
     curve_rows: List[list] = []
+    arms = [ARM_OF[k] for k in resolve(operators)]
+    all_cols = columns(resolve(operators))
     cols: List[str] = []
+    per_tree_head: List[str] = []
 
     for dataset, ids in dataset_ids.items():
         grid, trees = _sweep_arrays(dataset, ids, p_values)
         if grid is None:
             continue
-        keys = [k for k in ALL_METRICS
+        keys = [k for k in all_cols
                 if any(k in v and v[k].dtype.kind == "f" and v[k].size == len(grid)
                        for v in trees.values())]
         cols = cols or keys
+        if not per_tree_head:
+            per_tree_head = (["dataset", "tree", "p"]
+                             + [f"rule_{a}" for a in arms]
+                             + [f"eta_ref_{a}" for a in arms])
         for tree, arrays in sorted(trees.items()):
-            rule = str(arrays.get("rule_L", [""])[0]) if "rule_L" in arrays else ""
-            eta_ref_L = (float(arrays["eta_ref_L_" + rule][0])
-                         if rule and f"eta_ref_L_{rule}" in arrays else float("nan"))
-            eta_ref_B = (float(arrays["eta_ref_B"][0])
-                         if "eta_ref_B" in arrays else float("nan"))
+            rules = [str(arrays["rule_" + a][0]) if f"rule_{a}" in arrays else ""
+                     for a in arms]
+            etas = [_eta_ref(arrays, a) for a in arms]
             for i, p in enumerate(grid):
                 per_tree_rows.append(
-                    [dataset, tree, f"{p:.6g}", rule,
-                     f"{eta_ref_L:.4f}", f"{eta_ref_B:.4f}"]
+                    [dataset, tree, f"{p:.6g}"] + rules + etas
                     + [f"{arrays[k][i]:.6f}" if k in arrays else "" for k in cols])
         rng = np.random.default_rng(0)      # fixed, so re-exporting a run is stable
         for i, p in enumerate(grid):
@@ -231,8 +257,7 @@ def write_curve_csvs(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
         out = run_dir / "per_tree.csv"
         with open(out, "w", newline="") as fh:
             w = csv.writer(fh)
-            w.writerow(["dataset", "tree", "p", "rule_L",
-                        "eta_ref_L", "eta_ref_B"] + cols)
+            w.writerow(per_tree_head + cols)
             w.writerows(per_tree_rows)
         written.append(out)
     if curve_rows:
@@ -246,19 +271,30 @@ def write_curve_csvs(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
     return written
 
 
+def _eta_ref(arrays: dict, arm: str) -> str:
+    """The chosen rule's reference eta, from either the new column or the old pair."""
+    if f"eta_ref_{arm}" in arrays:
+        return f"{float(arrays[f'eta_ref_{arm}'][0]):.4f}"
+    rule = str(arrays["rule_" + arm][0]) if f"rule_{arm}" in arrays else ""
+    key = f"eta_ref_{arm}_{rule}"
+    return f"{float(arrays[key][0]):.4f}" if key in arrays else ""
+
+
 def write_summary(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
                   status: str = "completed", note: str = "",
                   p_values: Sequence[float] | None = None,
-                  selection: Dict | None = None) -> Path:
+                  selection: Dict | None = None,
+                  operators: Sequence[str] = ()) -> Path:
     """Headline numbers per dataset, plus how the run ended.
 
     ``status`` matters: an interrupted run still exports every tree that finished, so its
     CSVs look exactly like a complete run's, only shorter. Without this the difference is
     invisible.
     """
+    ops = resolve(operators)
     summary: dict = {"status": status, "datasets": {}}
     if selection:
-        # why trees_selected is what it is: the gate and the imbalance cap that produced it
+        # why trees_selected is what it is: the gate and the cap that produced it
         summary["selection"] = selection
     if note:
         summary["note"] = note
@@ -268,37 +304,50 @@ def write_summary(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
         grid, trees = _sweep_arrays(dataset, ids, p_values)
         entry: dict = {"trees_selected": len(list(ids))}
         if rows:
-            entry["screening"] = dict(
-                trees=len(rows), m=int(rows[0]["m"]),
-                valid_L=sum(bool(r["valid_S"]) for r in rows),
-                valid_B=sum(bool(r["valid_B"]) for r in rows),
-                valid_both=sum(bool(r["valid_S"] and r["valid_B"]) for r in rows),
-                median_eta_L=float(np.median([r["eta_S"] for r in rows])),
-                median_eta_B=float(np.median([r["eta_B"] for r in rows])))
+            screen = {"trees": len(rows), "m": int(rows[0].get("m", 0))}
+            for k in ops:
+                if not any(f"eta_{k}" in r for r in rows):
+                    continue
+                a = ARM_OF[k]
+                screen[f"valid_{a}"] = sum(bool(r.get(f"valid_{k}")) for r in rows)
+                screen[f"median_eta_{a}"] = float(np.median(
+                    [r[f"eta_{k}"] for r in rows if f"eta_{k}" in r]))
+            screen["valid_L_and_B"] = sum(
+                bool(r.get("valid_S") and r.get("valid_B")) for r in rows)
+            entry["screening"] = screen
         if grid is not None and trees:
             entry["sweep"] = {"trees_requested": len(list(ids)),
                               "trees_done": len(trees),
                               "p_values": [float(x) for x in grid]}
-            for key in ("nmi_L_vs_fullmatrix", "nmi_B_vs_fullmatrix",
-                        "nmi_L_vs_truetree", "nmi_B_vs_truetree"):
-                arr = [v[key] for v in trees.values() if key in v]
-                if arr:
-                    entry["sweep"][f"median_{key}"] = [
-                        float(x) for x in np.nanmedian(np.vstack(arr), 0)]
+            for k in ops:
+                for ref in (REF_FULL, "vs_truetree"):
+                    key = f"nmi_{ARM_OF[k]}_{ref}"
+                    arr = [v[key] for v in trees.values() if key in v]
+                    if arr:
+                        entry["sweep"][f"median_{key}"] = [
+                            float(x) for x in np.nanmedian(np.vstack(arr), 0)]
         summary["datasets"][dataset] = entry
     out = run_dir / "summary.json"
     out.write_text(json.dumps(summary, indent=2) + "\n")
     return out
 
 
-def plot_recovery(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
-                  p_values: Sequence[float] | None = None) -> Path | None:
-    """One figure for the whole run: median NMI vs p, every dataset, both arms.
+# Colour distinguishes the OPERATORS -- the comparison the figure exists for -- and line
+# style distinguishes datasets. The old figure did the opposite, so both arms of a single
+# dataset came out the same colour and only solid-vs-dashed told them apart.
+ARM_COLOUR = {"L": "#4b5563", "Lsym": "#b45309", "B": "#065f46"}
+STYLES = ["-", "--", ":", "-."]
 
-    Scored against each arm's full-matrix split only. The ``*_gt`` columns (vs the true
-    tree's top bipartition) stay in the CSVs, but they are not plotted: that split is the
-    root's two child subtrees, which on these trees is near-degenerate (998/2, 5944/56),
-    so NMI against it is ~0 for every method at every p and the panel showed nothing.
+
+def plot_recovery(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
+                  p_values: Sequence[float] | None = None,
+                  operators: Sequence[str] = ()) -> Path | None:
+    """One figure for the whole run: median NMI vs p, every dataset, every arm.
+
+    Scored against each arm's full-matrix split only. The ``vs_truetree`` columns stay in
+    the CSVs, but they are not plotted: that split is the root's two child subtrees,
+    which on these trees is near-degenerate (998/2, 5944/56), so NMI against it is ~0 for
+    every method at every p and the panel showed nothing.
     """
     import matplotlib
     matplotlib.use("Agg")
@@ -312,31 +361,30 @@ def plot_recovery(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
     if not series:
         return None
 
-    # Colour distinguishes the OPERATORS -- the comparison the figure exists for -- and
-    # line style distinguishes datasets. The old figure did the opposite, so both arms of a
-    # single dataset came out the same colour and only solid-vs-dashed told them apart.
-    ARM = {"L": ("#4b5563", r"$L(S)$ Fiedler"),
-           "B": ("#065f46", r"$B = H\mathcal{D}H$")}
-    STYLES = ["-", "--", ":", "-."]
     fig, ax = plt.subplots(figsize=(7.5, 6.5))
-    for i, (dataset, p_values, trees) in enumerate(series):
+    for i, (dataset, grid, trees) in enumerate(series):
         ls = STYLES[i % len(STYLES)]
-        for arm, (color, arm_label) in ARM.items():
-            key = f"nmi_{arm}_{REF_FULL}"
-            arr = [v[key] for v in trees.values() if key in v]
+        for key in resolve(operators):
+            arm = ARM_OF[key]
+            col = f"nmi_{arm}_{REF_FULL}"
+            arr = [v[col] for v in trees.values() if col in v]
             if not arr:
                 continue
             arr = np.vstack(arr)
             med = np.nanmedian(arr, 0)
             q25, q75 = (np.nanpercentile(arr, 25, axis=0),
                         np.nanpercentile(arr, 75, axis=0))
-            rules = {str(v["rule_L"][0]) for v in trees.values() if "rule_L" in v}
-            cut = (f", {rules.pop()} cut" if arm == "L" and len(rules) == 1
-                   else (", per-tree cut" if arm == "L" and rules else ", sign cut"))
-            ax.plot(p_values, med, color=color, ls=ls, lw=2, marker="o", ms=3,
-                    label=f"{arm_label}{cut} - {dataset}, {arr.shape[0]} trees")
+            rules = {str(v[f"rule_{arm}"][0]) for v in trees.values()
+                     if f"rule_{arm}" in v}
+            cut = (f", {rules.pop()} cut" if len(rules) == 1
+                   else (", per-tree cut" if rules else ""))
+            ax.plot(grid, med, color=ARM_COLOUR.get(arm, "#111827"), ls=ls, lw=2,
+                    marker="o", ms=3,
+                    label=f"{OPERATORS[key].label}{cut} - {dataset}, "
+                          f"{arr.shape[0]} trees")
             # the middle half of the trees; a +-std band would leave [0, 1]
-            ax.fill_between(p_values, q25, q75, color=color, alpha=0.13)
+            ax.fill_between(grid, q25, q75, color=ARM_COLOUR.get(arm, "#111827"),
+                            alpha=0.13)
     ax.set_xscale("log")
     ax.set_xlabel(r"sub-sampling fraction $p$ (log)", fontsize=12)
     ax.set_ylabel("median NMI vs that operator's own full-matrix split", fontsize=11)
@@ -355,17 +403,20 @@ def plot_recovery(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
 def export_run(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
                status: str = "completed", note: str = "",
                p_values: Sequence[float] | None = None,
-               selection: Dict | None = None) -> List[Path]:
+               selection: Dict | None = None,
+               operators: Sequence[str] = ()) -> List[Path]:
     """Everything readable for a finished run. Returns the files written.
 
     ``p_values`` pins the export to the grid THIS run swept; without it the shared cache
     can contribute another run's trees.
     """
-    written = [p for p in (write_screening_csv(run_dir, list(dataset_ids)),
-                           write_failures_csv(run_dir, list(dataset_ids))) if p]
-    written += write_curve_csvs(run_dir, dataset_ids, p_values)
-    written.append(write_summary(run_dir, dataset_ids, status, note, p_values, selection))
-    plot = plot_recovery(run_dir, dataset_ids, p_values)
+    names = list(dataset_ids)
+    written = [p for p in (write_screening_csv(run_dir, names, operators),
+                           write_failures_csv(run_dir, names)) if p]
+    written += write_curve_csvs(run_dir, dataset_ids, p_values, operators)
+    written.append(write_summary(run_dir, dataset_ids, status, note, p_values,
+                                 selection, operators))
+    plot = plot_recovery(run_dir, dataset_ids, p_values, operators)
     if plot:
         written.append(plot)
     return written

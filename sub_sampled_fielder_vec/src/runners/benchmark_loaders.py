@@ -55,6 +55,17 @@ class RealLoader:
             return None
 
         cm = dendropy.DnaCharacterMatrix.get(path=str(fpath), schema="fasta")
+        # An unaligned FASTA is the single most common way a dataset fails, and the
+        # error it used to produce ("inhomogeneous shape after 1 dimensions", once per
+        # tree, 600 times) named neither the file nor the cause.
+        lengths = {len(cm[t]) for t in cm.taxon_namespace}
+        if len(lengths) > 1:
+            raise ValueError(
+                f"{fpath.name} is not aligned: {len(cm.taxon_namespace)} sequences "
+                f"with lengths {min(lengths)}..{max(lengths)}. Every operator here "
+                f"needs one column set shared by all taxa, so the sequences have to "
+                f"be aligned (or the alignment re-exported) before this dataset can "
+                f"be used.")
         obs, meta = spectraltree.charmatrix2array(cm)
         labels = [str(t.label) for t in list(meta)]
         S = spectraltree.JC_similarity_matrix(obs)
