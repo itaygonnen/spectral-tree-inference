@@ -1,5 +1,18 @@
 """Per-tree units of work for the benchmark, and the process pool that runs them.
 
+The *compute* is no longer here: screening a tree and sweeping a tree are
+:mod:`src.runners.operator_screen` and :mod:`src.runners.operator_sweep`, which the
+real-data pipeline also uses. This module is the adapter — it calls them with the
+settings this benchmark is fixed to, and reshapes the result into the row and curve
+schema ``benchmark_cache`` writes.
+
+Those settings are not defaults and must not drift to them:
+
+    screen   the sigma2 gap search  (``rule_policy="sigma2"``)
+    sweep    k-means on the Fiedler arms, and ``per_rep`` aggregation with the dense
+             solver on the distance arm — ``bpart_sweep_cache`` records that this
+             accounting is like-for-like with a published figure.
+
 Everything here is module level and communicates through globals set by the pool
 initializer: macOS spawns workers, so the mapped function must be importable by
 name and the per-item payload must stay small (a tree id, not a matrix).
@@ -19,23 +32,21 @@ for _v in ("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "OMP_NUM_THREADS",
 
 import multiprocessing as mp  # noqa: E402
 import traceback  # noqa: E402
-from typing import Callable, Dict, Optional, Sequence  # noqa: E402
+from typing import Callable, Optional, Sequence  # noqa: E402
 
 import numpy as np  # noqa: E402
 
-from ..core.utils import (  # noqa: E402
-    compute_fiedler_from_laplacian, compute_laplacian,
-    compute_normalized_laplacian,
-)
-from ..utils.benchmark_cache import (  # noqa: E402
-    SWEEP_METRIC_SOURCES, BenchmarkConfig, curve_key,
-)
-from ..utils.bpart_sweep_cache import bpart_sweep_raw  # noqa: E402
-from ..utils.griffing import griffing_leading_eigvec  # noqa: E402
-from ..utils.metrics import compute_reference_partition_and_quality  # noqa: E402
-from ..utils.partition_validity import check_partition_valid_in_tree  # noqa: E402
-from ..utils.screening import _eta, _tree_leaf_index  # noqa: E402
-from .p_sweep_inner import bootstrap_p_sweep_simple  # noqa: E402
+from ..utils.benchmark_cache import BenchmarkConfig, curve_key  # noqa: E402
+from ..utils.griffing import DEFAULT_SOLVER  # noqa: E402
+from .operator_screen import screen_one as _screen_one  # noqa: E402
+from .operator_sweep import sweep_one_tree as _sweep_one_tree  # noqa: E402
+from .operators import ARM_OF  # noqa: E402
+
+# This benchmark names the distance operator "D" and the similarity Fiedler arm's
+# curve "L"; the shared table calls them "B" and "L". One mapping, here.
+_OP_OF_SCREEN = {"S": "S", "Lsym": "Lsym", "D": "B"}
+_SCREEN_OF_OP = {v: k for k, v in _OP_OF_SCREEN.items()}
+_METHOD_OF_ARM = {"L": "L", "Lsym": "Lsym", "B": "G"}
 
 _LOADER: Optional[Callable] = None
 _CFG: Optional[BenchmarkConfig] = None
@@ -46,65 +57,33 @@ def init_worker(loader, cfg: BenchmarkConfig) -> None:
     _LOADER, _CFG = loader, cfg
 
 
-def canonical_partitions(S: np.ndarray, D: np.ndarray,
-                         cfg: BenchmarkConfig) -> Dict[str, np.ndarray]:
-    """The selected (operator, threshold) bipartitions of one tree.
-
-    Fiedler-on-S and Fiedler-on-L_sym are cut at the σ₂ gap; Griffing-on-D by the
-    sign of the leading eigenvector of ``B = HDH``. One failing operator must not
-    cost the whole tree, so each is guarded separately. Operators the config did
-    not select are not computed at all.
-    """
-    wanted = set(cfg.screen_ops())
-    out: Dict[str, np.ndarray] = {}
-    for key, vec_fn in (
-        ("S", lambda: compute_fiedler_from_laplacian(compute_laplacian(S))),
-        ("Lsym", lambda: compute_fiedler_from_laplacian(
-            compute_normalized_laplacian(S))),
-    ):
-        if key not in wanted:
-            continue
-        try:
-            part, _, _ = compute_reference_partition_and_quality(
-                vec_fn(), S, num_gaps=cfg.num_gaps, min_split=cfg.min_split)
-            out[key] = np.asarray(part).astype(bool)
-        except Exception:  # noqa: BLE001
-            pass
-    if "D" in wanted:
-        try:
-            out["D"] = griffing_leading_eigvec(D) >= 0
-        except Exception:  # noqa: BLE001
-            pass
-    return out
-
-
 def screen_one(tree_id: str) -> Optional[dict]:
-    """One row of ``screen_table.csv``: per-operator validity + imbalance eta."""
+    """One row of ``screen_table.csv``: per-operator validity + imbalance eta.
+
+    The shared screen keys its row by operator ("S", "Lsym", "B") and records both
+    candidate rules; this benchmark's table wants one eta and one flag per operator
+    under its own key ("S", "Lsym", "D"), from the sigma2 gap search.
+    """
     try:
-        loaded = _LOADER(tree_id)
-        if loaded is None:
+        ops = [_OP_OF_SCREEN[k] for k in _CFG.screen_ops()]
+        rec = _screen_one(tree_id, _LOADER, operators=ops,
+                          min_split=_CFG.min_split, rule_policy="sigma2",
+                          num_gaps=_CFG.num_gaps)
+        if rec is None:
             return None
-        S, labels, tree, D = loaded
-        row = {"tree": tree_id, "n_taxa": len(labels)}
-        sidx = _tree_leaf_index(tree, labels) if tree is not None else None
-        for key, part in canonical_partitions(S, D, _CFG).items():
-            row[f"eta_{key}"] = float(_eta(part))
-            if sidx is not None:
-                try:
-                    row[f"valid_{key}"] = bool(
-                        check_partition_valid_in_tree(tree, part[sidx]))
-                except Exception:  # noqa: BLE001
-                    row[f"valid_{key}"] = False
+        if "error" in rec:
+            return rec
+        row = {"tree": tree_id, "n_taxa": int(rec.get("m", 0))}
+        for op in ops:
+            key = _SCREEN_OF_OP[op]
+            if f"eta_{op}" in rec:
+                row[f"eta_{key}"] = float(rec[f"eta_{op}"])
+            if f"valid_{op}" in rec:
+                row[f"valid_{key}"] = bool(rec[f"valid_{op}"])
         return row
     except Exception as exc:  # noqa: BLE001
         return {"tree": tree_id, "error": f"{type(exc).__name__}: {exc}",
                 "traceback": traceback.format_exc(limit=3)}
-
-
-def _curves_from_sweep(method: str, out: dict) -> dict:
-    """Pull every per-p metric the Fiedler sweep returned, under canonical keys."""
-    return {curve_key(method, metric): np.asarray(out[src], float)
-            for metric, src in SWEEP_METRIC_SOURCES.items() if src in out}
 
 
 def sweep_one(item) -> dict:
@@ -116,44 +95,37 @@ def sweep_one(item) -> dict:
     everything the config selects; passing a subset matters because a tree only
     needs the operators it was found *valid* for — the others would contribute a
     curve to no figure.
+
+    The sweep itself is the shared one; this maps its arm names onto the curve keys
+    ``benchmark_cache`` stores ("G" for the distance arm) and re-reads r(T), which is
+    the scale plot's x-axis and not something a recovery sweep produces.
     """
     tree_id, ti, *rest = item
     want = set(rest[0]) if rest else set(_CFG.methods())
+    ops = [k for k, arm in ARM_OF.items() if _METHOD_OF_ARM[arm] in want]
     try:
         loaded = _LOADER(tree_id)
         if loaded is None:
             return {"tree": tree_id, "error": "loader returned None"}
-        S, _labels, _tree, D = loaded
-        cfg, seed = _CFG, 1000 * int(ti)
+        _S, _labels, _tree, D = loaded
+        cfg = _CFG
+        curves = _sweep_one_tree(
+            tree_id, _LOADER, seed=1000 * int(ti), p_values=cfg.p_values,
+            reps=cfg.bootstrap_reps, num_gaps=cfg.num_gaps,
+            min_split=cfg.min_split, operators=ops,
+            # fixed for this benchmark; see the module docstring
+            rule_policy="kmeans", eigsolver=DEFAULT_SOLVER, aggregation="per_rep")
+
         res: dict = {"tree": tree_id, "rT": float(np.max(D))}
-
-        if "G" in want:
-            raw = bpart_sweep_raw(D, cfg.p_values, reps=cfg.bootstrap_reps,
-                                  seed_base=seed)
-            # Mean over bootstrap reps, one value per p, for every metric the
-            # sweep produced — not just NMI. results.json reports all of them.
-            for metric, src in (("nmi", "nmi"), ("ari", "ari"),
-                                ("agreement", "agreement"), ("dot", "dot")):
-                if src in raw["per_p"][0]:
-                    res[curve_key("G", metric)] = np.array(
-                        [float(np.mean(pp[src])) for pp in raw["per_p"]], float)
-
-        if "L" in want:
-            out_L = bootstrap_p_sweep_simple(
-                S, compute_fiedler_from_laplacian(compute_laplacian(S)),
-                cfg.p_values, bootstrap_reps=cfg.bootstrap_reps, seed=seed,
-                num_gaps=cfg.num_gaps, min_split=cfg.min_split,
-                partition_method="kmeans", laplacian="unnormalized")
-            res.update(_curves_from_sweep("L", out_L))
-
-        if "Lsym" in want:
-            out_LS = bootstrap_p_sweep_simple(
-                S, compute_fiedler_from_laplacian(compute_normalized_laplacian(S)),
-                cfg.p_values, bootstrap_reps=cfg.bootstrap_reps, seed=seed,
-                num_gaps=cfg.num_gaps, min_split=cfg.min_split,
-                partition_method="kmeans", laplacian="normalized")
-            res.update(_curves_from_sweep("Lsym", out_LS))
-
+        for op in ops:
+            method = _METHOD_OF_ARM[ARM_OF[op]]
+            for metric in ("nmi", "ari", "agreement", "dot"):
+                col = f"{metric}_{ARM_OF[op]}_vs_fullmatrix"
+                if col in curves:
+                    res[curve_key(method, metric)] = np.asarray(curves[col], float)
+            sign_col = f"signagreement_{ARM_OF[op]}_vs_fullmatrix"
+            if sign_col in curves:
+                res[curve_key(method, "sign")] = np.asarray(curves[sign_col], float)
         return res
     except Exception as exc:  # noqa: BLE001
         return {"tree": tree_id, "error": f"{type(exc).__name__}: {exc}",

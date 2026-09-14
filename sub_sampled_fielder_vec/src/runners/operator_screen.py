@@ -29,7 +29,7 @@ from typing import Dict, List, Optional, Sequence
 import numpy as np
 
 from ..utils.logging import create_progress_bar, log_info, log_warning
-from .operators import MIN_SPLIT, OPERATORS, best_cut, resolve
+from .operators import MIN_SPLIT, OPERATORS, choose_cut, resolve
 
 _LOADER = None                     # set per worker process by _init
 
@@ -40,7 +40,8 @@ def _init(loader) -> None:
 
 
 def screen_one(tree_id: str, loader, operators: Sequence[str] = (),
-               min_split: int = MIN_SPLIT) -> Optional[Dict]:
+               min_split: int = MIN_SPLIT, rule_policy: str = "best",
+               num_gaps: int = 10) -> Optional[Dict]:
     """Every selected operator on one tree. None when the tree cannot be loaded."""
     from ..utils.partition_metrics import eta as _eta
     from ..utils.partition_validity import check_partition_valid_in_tree
@@ -61,13 +62,13 @@ def screen_one(tree_id: str, loader, operators: Sequence[str] = (),
         except Exception as exc:                  # one operator must not cost the tree
             log_warning("screen", f"{tree_id}: {key} failed: {exc!r}")
             continue
-        rule, part, etas = best_cut(op, vec, min_split)
+        rule, part, etas = choose_cut(op, vec, min_split, S, num_gaps, rule_policy)
         for r, e in etas.items():
             rec[f"eta_{key}_{r}"] = float(e)
             if sidx is not None:
                 from .operators import cut
-                rec[f"valid_{key}_{r}"] = bool(
-                    check_partition_valid_in_tree(tree, cut(vec, r, min_split)[sidx]))
+                rec[f"valid_{key}_{r}"] = bool(check_partition_valid_in_tree(
+                    tree, cut(vec, r, min_split, S, num_gaps)[sidx]))
         rec[f"rule_{key}"] = rule
         rec[f"eta_{key}"] = float(_eta(part))
         if sidx is not None:
@@ -76,9 +77,9 @@ def screen_one(tree_id: str, loader, operators: Sequence[str] = (),
 
 
 def _worker(args):
-    tree_id, operators, min_split = args
+    tree_id, operators, min_split, policy, num_gaps = args
     try:
-        return screen_one(tree_id, _LOADER, operators, min_split)
+        return screen_one(tree_id, _LOADER, operators, min_split, policy, num_gaps)
     except Exception as exc:                       # one bad tree must not kill the run
         return {"tree": tree_id, "error": repr(exc)}
 
@@ -99,6 +100,8 @@ def run_screen(
     source: str = "",
     workers: int = 4,
     min_split: int = MIN_SPLIT,
+    rule_policy: str = "best",
+    num_gaps: int = 10,
     force: bool = False,
     progress: int = 1,
 ) -> List[Dict]:
@@ -155,7 +158,8 @@ def run_screen(
                               unit="tree", leave=False)
     with ProcessPoolExecutor(max_workers=workers, mp_context=mp.get_context("spawn"),
                              initializer=_init, initargs=(loader,)) as ex:
-        futs = {ex.submit(_worker, (t, ops, min_split)): t for t in todo}
+        futs = {ex.submit(_worker, (t, ops, min_split, rule_policy, num_gaps)): t
+                for t in todo}
         for f in as_completed(futs):
             rec = f.result()
             if rec is not None:

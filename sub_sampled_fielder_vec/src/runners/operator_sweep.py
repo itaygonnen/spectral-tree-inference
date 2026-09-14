@@ -34,7 +34,7 @@ import numpy as np
 from ..utils.logging import create_progress_bar, log_info
 from ..utils.partition_metrics import eta as _eta_of
 from ..utils.partition_metrics import score as _score
-from .operators import ARM_OF, MIN_SPLIT, OPERATORS, best_cut, resolve
+from .operators import ARM_OF, MIN_SPLIT, OPERATORS, choose_cut, resolve
 from .p_sweep_inner import EXTRA_METRIC_KEYS
 
 # Cache-key fields: a tree whose stored meta differs on one of these is recomputed
@@ -168,6 +168,8 @@ def load_tree_sweep(cache_dir, tree_id: str, p_values: Sequence[float], meta: Di
 def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *,
                    reps: int, num_gaps: int = 10, min_split: int = MIN_SPLIT,
                    operators: Sequence[str] = (), extra_metrics: bool = False,
+                   rule_policy: str = "best", eigsolver: str = "lm_k1",
+                   aggregation: str = "avg_vector",
                    progress_cb=None) -> Dict[str, np.ndarray]:
     """Every selected operator on one tree. Returns ``{column: one value per p}``.
 
@@ -194,7 +196,8 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
         cb = (None if progress_cb is None
               else (lambda i, p, _a=arm: progress_cb(_a, i, p)))
         vec = op.vector(S, D)
-        rule, _part, etas = best_cut(op, vec, min_split)
+        rule, _part, etas = choose_cut(op, vec, min_split, S, num_gaps,
+                                       rule_policy)
         for r, e in etas.items():
             out[f"eta_ref_{arm}_{r}"] = np.array([e], float)
         out[f"eta_ref_{arm}"] = np.array([etas[rule]], float)
@@ -219,11 +222,14 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
                            if k in res}
         else:
             raw = bpart_sweep_raw(D, list(p_values), reps=reps, seed_base=seed,
-                                  eigsolver="lm_k1", aggregation="avg_vector",
+                                  eigsolver=eigsolver, aggregation=aggregation,
                                   extra_metrics=extra_metrics, progress_cb=cb)
             for metric in METRICS:
                 out[f"{metric}_{arm}_{REF_FULL}"] = np.array(
                     [float(np.mean(pp[metric])) for pp in raw["per_p"]], float)
+            # under per_rep aggregation each p holds one partition per replicate; the
+            # recovered-split columns describe the first, which is the only one a
+            # single column can describe
             parts = [pp["partitions"][0] for pp in raw["per_p"]]
             diagnostics = {k: np.array([float(pp[k]) for pp in raw["per_p"]], float)
                            for k in DIAGNOSTICS if k in raw["per_p"][0]}
@@ -253,7 +259,9 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
 def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], *,
               reps: int = 10, num_gaps: int = 10, min_split: int = MIN_SPLIT,
               operators: Sequence[str] = (), source: str = "", m: int = 6000,
-              extra_metrics: bool = False, seed_stride: int = 1000) -> List[str]:
+              extra_metrics: bool = False, rule_policy: str = "best",
+              eigsolver: str = "lm_k1", aggregation: str = "avg_vector",
+              seed_stride: int = 1000) -> List[str]:
     """Sweep every id in ``ids``, skipping trees already cached. Returns ids done."""
     import time
 
@@ -261,7 +269,10 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
     arms = [ARM_OF[k] for k in ops]
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
-    meta = sweep_meta(reps, num_gaps, min_split, m)
+    meta = dict(sweep_meta(reps, num_gaps, min_split, m),
+                partition_method=("kmeans_or_sign" if rule_policy == "best"
+                                  else rule_policy),
+                eigsolver=eigsolver, aggregation=aggregation)
     pv = np.round(np.asarray(p_values, float), 6)
 
     todo = [t for t in ids if load_tree_sweep(cache_dir, t, pv, meta) is None]
@@ -286,7 +297,8 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
         curves = sweep_one_tree(
             tree_id, loader, seed=seed_for(tree_id, seed_stride), p_values=pv,
             reps=reps, num_gaps=num_gaps, min_split=min_split, operators=ops,
-            extra_metrics=extra_metrics,
+            extra_metrics=extra_metrics, rule_policy=rule_policy,
+            eigsolver=eigsolver, aggregation=aggregation,
             progress_cb=lambda arm, i, p: inner.update(1))
         inner.close()
         np.savez(_cache_file(cache_dir, tree_id), p_values=pv,

@@ -6,11 +6,21 @@ Three ways to turn one tree's matrices into a two-clan split:
     Lsym   Fiedler vector of  L_sym = I - Dg^-1/2 S Dg^-1/2
     B      leading-|lambda| eigenvector of  B = H D H     (the distance route)
 
-and two ways to threshold a vector into a split: k-means (k=2) on its entries, or
-its sign. The choice is made per tree, not per run: k-means alone routinely isolates
-a single taxon on real data (1/999, eta=999) -- a real pendant edge, so a validity
-gate passes it, but a split no sub-sample can recover. Both candidates are scored
-and the more balanced one wins, with both etas recorded so the choice is auditable.
+and three ways to threshold a vector into a split: k-means (k=2) on its entries, its
+sign, or the sigma2 gap search (``partition_taxa``). Which one is used is a *policy*,
+not a constant, because the two pipelines built on this table want different answers:
+
+``"best"``     score every rule the operator allows and keep the most balanced split.
+               This is the real-data default: k-means alone routinely isolates a single
+               taxon on real data (1/999, eta=999) -- a real pendant edge, so a validity
+               gate passes it, but a split no sub-sample can recover. Both candidates'
+               etas are recorded, so the choice is auditable.
+``"kmeans"``   force k-means. What the generated operator-comparison benchmark sweeps.
+``"sigma2"``   force the gap search. What that benchmark screens with.
+
+Forcing a rule is not a fallback -- ``bpart_sweep_cache`` records that the generated
+benchmark's accounting is like-for-like with a published figure, so its rules are fixed
+and this table has to be able to express them.
 
 ``B`` is the exception: there the sign pattern *is* the partition (that is what the
 distance route claims), so it carries one rule and its ``eta_B`` stays comparable
@@ -38,7 +48,22 @@ class Operator:
     label: str          # what a figure legend says
     kind: str           # "fiedler" | "griffing"
     laplacian: str = "unnormalized"      # fiedler only
-    rules: Tuple[str, ...] = ("kmeans", "sign")
+    rules: Tuple[str, ...] = ("kmeans", "sign")        # candidates under policy "best"
+    forced: Tuple[str, ...] = ("kmeans", "sign", "sigma2")   # what a policy may force
+
+    def resolve_rule(self, policy: str) -> str:
+        """The rule this operator uses under ``policy``.
+
+        An operator with a single rule ignores a forced policy -- there is nothing to
+        choose. That is not a fallback but the definition: on ``B`` the sign pattern IS
+        the partition, so "cut B by the sigma2 gap search" names nothing.
+        """
+        if policy in self.forced:
+            return policy
+        if len(self.rules) == 1:
+            return self.rules[0]
+        raise ValueError(f"operator {self.key!r} cannot be cut by {policy!r}; "
+                         f"it allows {self.forced}")
 
     def vector(self, S: np.ndarray, D: np.ndarray) -> np.ndarray:
         """The full-matrix reference vector this operator reads its split off."""
@@ -58,7 +83,8 @@ class Operator:
 OPERATORS: Dict[str, Operator] = {
     "S":    Operator("S", "L", r"$L(S)$ Fiedler", "fiedler", "unnormalized"),
     "Lsym": Operator("Lsym", "Lsym", r"$L_{sym}$ Fiedler", "fiedler", "normalized"),
-    "B":    Operator("B", "B", r"$B = H\mathcal{D}H$", "griffing", rules=("sign",)),
+    "B":    Operator("B", "B", r"$B = H\mathcal{D}H$", "griffing", rules=("sign",),
+                     forced=("sign",)),
 }
 ALL_OPERATORS: Tuple[str, ...] = tuple(OPERATORS)
 ARM_OF = {k: op.arm for k, op in OPERATORS.items()}
@@ -76,24 +102,52 @@ def resolve(operators: Sequence[str] | None) -> Tuple[str, ...]:
     return out
 
 
-def cut(vector: np.ndarray, rule: str, min_split: int = MIN_SPLIT) -> np.ndarray:
-    """Threshold a vector into a boolean bipartition under one rule."""
+RULES = ("kmeans", "sign", "sigma2")
+
+
+def cut(vector: np.ndarray, rule: str, min_split: int = MIN_SPLIT,
+        matrix: np.ndarray | None = None, num_gaps: int = 10) -> np.ndarray:
+    """Threshold a vector into a boolean bipartition under one rule.
+
+    ``sigma2`` scores candidate thresholds by the second singular value of the
+    cross-partition block, so it needs the matrix the vector came from.
+    """
     if rule == "sign":
         return np.asarray(vector >= 0).astype(bool)
     if rule == "kmeans":
         from src.runners.p_sweep_inner import _kmeans_bipartition
         return np.asarray(_kmeans_bipartition(vector, min_split)).astype(bool)
-    raise ValueError(f"unknown cut rule {rule!r}")
+    if rule == "sigma2":
+        if matrix is None:
+            raise ValueError("the sigma2 rule needs the matrix the vector came from")
+        from src.utils.metrics import compute_reference_partition_and_quality
+        part, _, _ = compute_reference_partition_and_quality(
+            vector, matrix, num_gaps=num_gaps, min_split=min_split)
+        return np.asarray(part).astype(bool)
+    raise ValueError(f"unknown cut rule {rule!r}; expected one of {RULES}")
 
 
-def best_cut(op: Operator, vector: np.ndarray, min_split: int = MIN_SPLIT):
-    """``(rule, partition, {rule: eta})`` -- the most balanced of the operator's rules.
+def choose_cut(op: Operator, vector: np.ndarray, min_split: int = MIN_SPLIT,
+               matrix: np.ndarray | None = None, num_gaps: int = 10,
+               policy: str = "best"):
+    """``(rule, partition, {rule: eta})`` under a cut policy.
 
-    Ties go to k-means, which was the historical default, so a tree whose two rules
-    agree keeps the verdict it already has on disk.
+    ``policy="best"`` scores every rule the operator allows and keeps the most balanced
+    split; ties go to k-means, which was the historical default, so a tree whose rules
+    agree keeps the verdict it already has on disk. Any other value names a rule and
+    forces it, and then the returned eta map holds that rule alone.
     """
     from src.utils.partition_metrics import eta as _eta
-    parts = {r: cut(vector, r, min_split) for r in op.rules}
+    if policy != "best":
+        rule = op.resolve_rule(policy)
+        part = cut(vector, rule, min_split, matrix, num_gaps)
+        return rule, part, {rule: _eta(part)}
+    parts = {r: cut(vector, r, min_split, matrix, num_gaps) for r in op.rules}
     etas = {r: _eta(p) for r, p in parts.items()}
     rule = min(parts, key=lambda r: (etas[r], r != "kmeans"))
     return rule, parts[rule], etas
+
+
+def best_cut(op: Operator, vector: np.ndarray, min_split: int = MIN_SPLIT):
+    """The ``policy="best"`` case, kept as its own name because it is the common one."""
+    return choose_cut(op, vector, min_split)
