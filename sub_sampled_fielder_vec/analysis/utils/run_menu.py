@@ -256,23 +256,23 @@ def _run(sources, *, batch_hint: str) -> None:
                                 "parallelise the screen only)")
          + ". Every tree is cached on its own, so this is safe to interrupt and "
            "resume.")
-    if total > 1.0 and batch_hint:
-        # the SAME run, as a command -- not a bare skeleton that would drop every
-        # answer just given and sweep a different set of trees
-        cmd = as_command(spec, sources, width=_cmd_width(), indent="      ")
-        print("for anything this long prefer (this is the run configured above):")
-        print(f"  nohup {cmd} \\\n      > logs/{spec.stage}.log 2>&1 &")
-    if not confirm("Run it here?", default=total <= 1.0):
-        # not a dead end: declining "here" almost always means "somewhere else", and
-        # the command carrying these answers is the thing you came for
-        print_warning("Cancelled -- nothing was run and nothing was written")
-        if batch_hint:
-            print("\nto run this exact configuration elsewhere:")
-            print("  " + as_command(spec, sources, width=_cmd_width(), indent="      "))
-            print("\nor detached:")
-            print("  nohup " + as_command(spec, sources, width=_cmd_width(),
-                                          indent="      ")
-                  + f" \\\n      > logs/{spec.stage}.log 2>&1 &")
+    if not confirm("Run it here now?  (n prints the command instead)",
+                   default=total <= 1.0):
+        # "n" is not a cancellation, it is a request: the command carrying the answers
+        # just given is the whole point of having answered them. Printing a warning here
+        # made choosing "run it elsewhere" look like a failure.
+        print()
+        print_success("Not running here. This is the run you configured:")
+        print()
+        print("  " + as_command(spec, sources, width=_cmd_width(), indent="      "))
+        print()
+        print("  # detached, with a log:")
+        print("  nohup " + as_command(spec, sources, width=_cmd_width(),
+                                      indent="      ")
+              + f" \\\n      > logs/{spec.stage}.log 2>&1 &")
+        print()
+        _say("Add --dry-run to either one to see the selection without running it. "
+             "Nothing has been written.")
         return
 
     def _announce(k, n, row):
