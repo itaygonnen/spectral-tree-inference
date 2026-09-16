@@ -6,7 +6,7 @@ this file adds the *operational* detail: cost, prerequisites, and traps.
 
 ## Rule zero: never let a trial run overwrite a paper asset
 
-The paper notebooks save **straight into `docs/overleafs/v9/figures/`**. When exploring,
+The paper notebooks save **straight into `docs/overleafs/v10/figures/`**. When exploring,
 redirect the output first:
 
 - most notebooks: set `FIG_DIR` to a scratch path
@@ -53,18 +53,18 @@ contents.
 ## Build the paper PDF
 
 ```bash
-cd docs/overleafs/v9
-latexmk -pdf -interaction=nonstopmode thesis_v9.tex
-grep -c "undefined" thesis_v9.log      # expected: 0
+cd docs/overleafs/v10
+latexmk -pdf -interaction=nonstopmode thesis_v10.tex
+grep -c "undefined" thesis_v10.log     # expected: 0
 ```
 
 Expected output: **29 pages, 2,586,870 bytes, 0 undefined**. Run `latexmk` from *inside*
-`v9/` — the shell cwd is not where you think after backgrounded commands. A truncated
+`v10/` — the shell cwd is not where you think after backgrounded commands. A truncated
 `.aux`/`.out` from an interrupted run causes
 `File ended while scanning use of \@newl@bel`; fix with `latexmk -C`, then rebuild.
 
-`v9/` is self-contained: do **not** re-add `{../}` to `\graphicspath`. It previously let
-Figure 5 resolve outside the tree, so uploading `v9/` alone to Overleaf failed.
+`v10/` is self-contained: do **not** re-add `{../}` to `\graphicspath`. It previously let
+Figure 5 resolve outside the tree, so uploading `v10/` alone to Overleaf failed.
 
 ---
 
@@ -117,7 +117,7 @@ Notebook: `paper/fig05_fiedler_partitions.ipynb`
 python scripts/build_eta_pool.py --n 500     # -> cache/pool_sample
 ```
 
-Writes the four panels to `v9/figures/Fiedler_Bipartitions/` via `PAPER_FIG_DIR`. Its two
+Writes the four panels to `v10/figures/Fiedler_Bipartitions/` via `PAPER_FIG_DIR`. Its two
 coherence panels go to the scratch `analysis/.../figures/` dir and are not used by the
 paper.
 

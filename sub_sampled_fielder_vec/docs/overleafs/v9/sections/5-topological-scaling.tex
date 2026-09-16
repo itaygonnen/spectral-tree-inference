@@ -1,32 +1,66 @@
-%==============================================================================
-%  §4  Bridging Tree Topology to Linear Algebra                    [owner: A1]
-%  Source: v8 §4 (sec:bridging, v8:344-471).
-%  Moved out:  def:imbalance + eq:imbalance_ratio  -> sec:problem (inline)
-%              asm:margin    + eq:margin_assumption -> sec:problem
-%
-%  [Reviewer Note (v9 refine pass): section retitled "Topological Scaling and
-%  Spectral Gap" -- the old title named the activity rather than the content,
-%  and "bridging X to Y" reads as a lecture heading.  The three \subsection*
-%  headings ("Imbalance raises...", "Imbalance erodes...", "Two failure modes")
-%  are removed: each announced in a sentence what the proposition or lemma
-%  immediately below it states formally, so the reader was told everything
-%  twice.  Proposition 1 and Lemma 1 are now stated directly, and the two
-%  failure modes run as continuous prose rather than under \paragraph headings.]
-%==============================================================================
+% §5 Topological scaling and spectral gap.  No sampling enters.  Exact statements about
+% the population Laplacian, delivering which clan pair Pi(S) is and how eta moves the
+% coherence and the gap until recovery becomes impossible.
+% §6 consumes lem:A-decomp and lem:gap from here.
 \section{Topological Scaling and Spectral Gap}\label{sec:bridging}
 
-The reader now has the population model and the recovery problem. What remains is
-to explain \emph{why} the topology of the primary split governs recovery. We
-answer this through the single structural parameter $\eta$ of
-\eqref{eq:imbalance_ratio} and trace its effect on the two spectral quantities
-the main theorem depends on. Working with the clean population Laplacian
-$L=D-S$, both the subspace coherence $\coh$ and the spectral gap
-$\Dlam=\lambda_3-\lambda_2$ are fixed by macro-topological features alone, and
-$\eta$ moves both against recovery: it first inflates $\coh$, then erodes
-$\Dlam$.
+This section deals with how the macro-topology of $\mathcal{T}$ fixes its spectrum: the eigenpair that carries the
+primary split, the coherence of the leading invariant subspace, and the gap
+separating $\lambda_2$ from $\lambda_3$. The whole dependence runs through the single
+structural parameter $\eta$ of \Cref{def:imbalance}.
+
+\begin{lemma}[Spectral decomposition of the imbalanced Laplacian]\label{lem:A-decomp}
+Let $S$ satisfy \Cref{def:cfbm} at the primary split, as \Cref{prop:cfbm} guarantees
+under \Cref{asm:gtr,asm:clock}. Then (i) the smallest eigenvalue of $L$ is
+$\lambda_1=0$, simple, with $v^{(1)}=\tfrac1{\sqrt m}\1_m$; (ii) $m\bze$ is an
+eigenvalue of $L$ whose eigenvector is piecewise constant on the split,
+$\vv_i=+c_A$ for $i\in A$ and $\vv_i=-c_B$ for $i\in B$, with $c_A=\sqrt{b/(am)}$
+and $c_B=\sqrt{a/(bm)}$; and (iii) consequently
+\begin{equation}\label{eq:lambda2_upper}
+   \lambda_2 \le m\bze .
+\end{equation}
+If in addition \Cref{asm:margin} holds, then (iv) \eqref{eq:lambda2_upper} holds with
+equality: $\lambda_2=m\bze$ is simple and $\vv$ is the Fiedler vector of the
+similarity graph.
+\end{lemma}
+
+\noindent The proof is in \Cref{app:comp1}. Clauses (i)--(iii) are a direct
+computation, and they use only the constancy of the cross-clan block, not the floor:
+the identity $(D_A-S_A)\1_a=b\bze\1_a$ holds for an arbitrary symmetric diagonal
+block, because $D_A$ already carries the row sums of that block. Clause (iv) is where
+\Cref{asm:margin} enters, as the statement that $m_{\min}\Sin^{\min}>m\bze$: it puts
+the interlacing lower bound on $\lambda_3$ used in \Cref{lem:gap} strictly above
+$m\bze$, leaving no eigenvalue between $0$ and $m\bze$. It is what makes
+$\min_i|\vv_i|=c_B$ available to the proof of \Cref{thm:main-sim}.
+
+\subsection{Coherence and the spectral gap under imbalance}\label{sec:bridging-scaling}
+
+Two scalar quantities of the population Laplacian sit behind the constants of
+\eqref{eq:main_rate}, and $\eta$ moves both against recovery. The first is the
+spectral gap that isolates the Fiedler vector,
+\begin{equation}\label{eq:gap_definition}
+   \Dlam := \lambda_3 - \lambda_2 ,
+\end{equation}
+with $\lambda_2,\lambda_3$ as in \Cref{def:fiedler}. The second measures how evenly
+the leading invariant subspace of $L$ spreads across nodes.
+
+\begin{definition}[Subspace coherence]\label{def:coherence}
+Let $U=[v^{(1)},\vv]\in\R^{m\times2}$ span the invariant subspace of the two
+smallest eigenvalues of $L$, with $v^{(1)}=\tfrac1{\sqrt m}\1_m$ the trivial flat
+eigenvector and $\vv$ the Fiedler vector. The \emph{subspace coherence} is
+\begin{equation}\label{eq:coherence_definition}
+   \coh := \tfrac{m}{2}\max_{1\le i\le m}\norm{P_U e_i}_2^2
+         = \tfrac{m}{2}\max_{1\le i\le m}\bigl((v_i^{(1)})^2+(\vv_i)^2\bigr),
+   \qquad P_U=UU^\top.
+\end{equation}
+\end{definition}
+
+\noindent Coherence is minimal, $\coh=1$, when the subspace is spread evenly, and
+grows as it localizes onto few coordinates. Both quantities are fixed by
+ macro-topological features alone: $\eta$ first inflates $\coh$, then erodes $\Dlam$.
 
 \begin{proposition}[Topological scaling of coherence]\label{prop:coherence}
-Under \Cref{asm:cfbm}, the tree imbalance $\eta$ maps deterministically to the
+Under \Cref{def:cfbm}, the tree imbalance $\eta$ maps deterministically to the
 subspace coherence,
 \begin{equation}\label{eq:coherence_linear_growth}
    \coh=\frac{1+\eta}{2}.
@@ -43,14 +77,10 @@ from the row norms of $S$ directly (\Cref{app:comp2}), $\coh$ does not itself en
 the sampling rate, and the $\eta$-dependence of \eqref{eq:main_rate} arrives
 through the margin and the gap instead.
 
-% [Reviewer Note: the coherence-vs-eta validation figure (former Figure 2,
-%  coherence_vs_eta_by_n.png) was removed at the author's instruction.  The
-%  sentence that carried it now points forward to the generated regime in §6,
-%  where the same identity is reported as a measurement.]
 
-The second spectral quantity is the gap $\Dlam=\lambda_3-\lambda_2$ that isolates
-the Fiedler vector, and the same imbalance that raises $\coh$ drives it toward
-zero.
+The gap $\Dlam$ of \eqref{eq:gap_definition} is the quantity the perturbation
+argument of \Cref{sec:outline} divides by, and the same imbalance that raises $\coh$
+drives it toward zero.
 
 \begin{lemma}[Spectral-gap lower bound]\label{lem:gap}
 Let $L$ be the combinatorial Laplacian of a similarity matrix satisfying the
@@ -65,12 +95,9 @@ vector satisfies
 building on the eigenpairs of \Cref{lem:A-decomp}. The bound
 \eqref{eq:spectral_gap_margin} is purely a CFBM statement, controlling the gap
 through the abstract minimum intra-clan similarity $\Sin^{\min}$ of
-\eqref{eq:cfbm_floor}. Under the sufficient condition of
-\Cref{asm:hbm} that minimum stops being a free parameter and becomes
-a function of tree shape: it is pinned to the geometric floor
-$\Sin\,\alpha^{D_{\max}}$, so depth erodes the gap in the same way imbalance does,
-and the gap survives only while the decay $\alpha^{D_{\max}}$ still clears the
-imbalance-weighted boundary --- quantified in \Cref{prop:D-gap}.
+\eqref{eq:cfbm_floor}.
+
+\subsection{Two failure modes}\label{sec:bridging-failure}
 
 \Cref{prop:coherence} and \Cref{lem:gap} show that the same parameter $\eta$ acts
 on both spectral quantities at once, which produces two distinct ways for
@@ -78,7 +105,7 @@ top-down recovery to fail; together they bound the admissible region of
 $(m,\eta)$. The first is \emph{structural collapse},
 $\Dlam\to0$, which we state here as a corollary of the gap lemma; the second is
 \emph{statistical infeasibility}, $p>1$, which is a consequence of
-\Cref{thm:main-sim} below. A positive gap requires the structural margin to
+\Cref{thm:main-sim}. A positive gap requires the structural margin to
 dominate the imbalance-weighted cross-clan boundary,
 $m_{\min}\rho>\eta\,m_{\min}\Sout^{\max}$, i.e.\
 $\eta<\Sin^{\min}/\Sout^{\max}$ --- precisely what \Cref{asm:margin} records.
@@ -101,15 +128,19 @@ a model-dependent constant $c$.
 \noindent The proof sketch (substituting the diameter/depth bounds into
 $\eta<\Sin^{\min}/\Sout^{\max}$) is given in \Cref{app:comp1}.
 
-% [Reviewer Note (2026-08-04): this paragraph previously re-explained the
-%  statistical failure mode -- localisation of the signal, the coherence-limited
-%  matrix-completion barrier, the same three citations -- in wording near
-%  identical to rem:infeasible-mech in sec:main-result-dist.  Two faults, not
-%  one: the two-mode framing is already stated above (before cor:tolerance) and
-%  in the introduction, and the mechanism was narrated here before thm:main-sim
-%  and cor:infeasible had been stated at all.  The explanation now occurs once,
-%  at the bound that exhibits it; this paragraph keeps only the forward pointer.]
 So under balanced generative models the gap survives polynomial imbalance. A
 positive gap is necessary but not sufficient: even when $\Dlam>0$, the rate
-demanded by \Cref{thm:main-sim} grows with $\eta$, and \Cref{cor:infeasible}
-locates the imbalance past which that demand exceeds $p=1$.
+\eqref{eq:main_rate} grows with $\eta$, and the second failure mode is the imbalance
+past which that demand exceeds $p=1$.
+
+\begin{corollary}[Vacuity of the certificate under imbalance]\label{cor:infeasible}
+Under the hypotheses of \Cref{thm:main-sim}, with $\bze$ and the margin
+$\rho-\eta\Sout^{\max}$ held bounded away from $0$ independently of $\eta$, the
+right-hand side of \eqref{eq:main_rate} exceeds $1$ once
+$\eta=\Omega\!\bigl(\sqrt[3]{m/\log m}\bigr)$; in general the threshold is
+reached when $\eta^3\bze^2/(\rho-\eta\Sout^{\max})^2=\Omega(m/\log m)$. No admissible sampling rate
+$p\in(0,1]$ then satisfies the sufficient condition, so \Cref{thm:main-sim}
+certifies nothing in that regime. What the theorem stops certifying there is the
+sampling: \Cref{thm:stdr-split} continues to make $\Pisp{S}$ a clan pair of
+$\mathcal{T}$ whatever $\eta$ does.
+\end{corollary}

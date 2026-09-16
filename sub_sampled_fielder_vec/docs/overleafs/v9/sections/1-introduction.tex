@@ -1,10 +1,6 @@
-%==============================================================================
-%  v9 / sections/intro.tex                                        [owner: A3]
-%  Introduction and Related Work are one section as of 2026-07-31; the former
-%  sections/related.tex was deleted and its \input removed from the master.
-%  Its text is recoverable from git history at the commit before that date.
-%==============================================================================
-
+% §1 Introduction (Related Work folded in).  Point: the top split of a top-down
+% spectral method is the expensive call, and sub-sampling it is not routine -- coherence,
+% tree imbalance and the gap between 2-norm and entry-wise control all bite.
 \section{Introduction}\label{sec:intro}
 
 A latent tree graphical model relates $m$ observed leaves through unobserved
@@ -71,8 +67,8 @@ in it: the subspace coherence in closed form, and a lower bound on the Fiedler
 gap (\Cref{sec:bridging}).
 
 \item We prove that a sampling rate of order $\log m/m$ suffices, at fixed
-imbalance, for the sign pattern of the empirical Fiedler vector to recover the
-split exactly \hp, with an explicit cubic dependence on $\eta$
+imbalance, for the sign pattern of the empirical Fiedler vector to reproduce the
+full-data split exactly \hp, with an explicit cubic dependence on $\eta$
 (\Cref{sec:main}). 
 
 \item The proof works coordinate-wise rather than in Euclidean norm, through a
@@ -81,12 +77,16 @@ model the Euclidean route costs a further factor of $m$ in the required rate.
 
 \item The same programme on the double-centred \emph{distance} matrix gives a companion
 statement \cite{Griffing2012, BandeltDress1992}, and we test both in simulation,
-scoring against the planted split \cite{strehlghosh2002cluster,
-fortunato2010community} and stratifying by imbalance rather than pooling.
+scoring each sub-sampled split against the one the full matrix returns
+\cite{strehlghosh2002cluster, fortunato2010community} and stratifying by imbalance
+rather than pooling.
 \end{itemize}
 
-\Cref{sec:problem} fixes the generative model, the observation model and the
-two operators we analyse; \Cref{sec:bridging} routes tree shape into the spectrum
-through $\eta$. \Cref{sec:main} states the Laplacian rate and \Cref{app:dist} the
-distance rate, \Cref{sec:outline} assembles the proof, and \Cref{sec:empirical}
-tests them.
+\Cref{sec:model} fixes the generative model and states the recovery result that
+makes the similarity matrix the object of interest; \Cref{sec:problem} gives the
+cost that motivates sampling, the observation model and the two operators we
+analyse. \Cref{sec:main} states the Laplacian rate and \Cref{app:dist} the
+distance rate. \Cref{sec:bridging} then routes tree shape into the spectrum through
+$\eta$: it identifies which split the population Fiedler vector returns and bounds
+the two failure modes. \Cref{sec:outline} assembles the proof and
+\Cref{sec:empirical} tests the rates.

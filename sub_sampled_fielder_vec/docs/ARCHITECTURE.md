@@ -71,8 +71,19 @@ sub_sampled_fielder_vec/
 │   ├── notebooks_cache/         # every .npz a notebook computes (tracked)
 │   └── legacy/                  # superseded analysis packages, unmaintained
 └── results/                      # Auto-generated experiment artifacts (gitignored)
-    └── runs/<timestamp>-<run_name>/
-        └── n{taxa}_L{seq_len}/
+    ├── real_data/                 # what scripts/run_sweep.py and the menu produce,
+    │   ├── runs/<timestamp>-<name>/   for BOTH real and simulated sources
+    │   │   ├── config.json        # what was asked for, plus the commit
+    │   │   ├── summary.json       # headline numbers, status, the selection chain
+    │   │   ├── screening.csv      # every tree: eta + validity, per operator
+    │   │   ├── per_tree.csv       # every tree x every p, all metrics, every arm
+    │   │   ├── curves.csv         # per source x p: median, IQR, bootstrap CI
+    │   │   ├── recovery_curve.png
+    │   │   ├── run.log            # everything the run printed
+    │   │   └── experiment.log     # tagged detail, one line per (tree, arm, p)
+    │   └── _cache/<source>/       # resumable: screen.npz + one .npz per swept tree
+    └── <tree_model>/<sampling>/<timestamp>-<run_name>/   # the single-tree flow only
+        └── n{taxa}_L{seq_len}/    # (scripts/run_experiment.py, single_tree_menu)
             ├── results.json
             ├── config.json
             ├── experiment.log

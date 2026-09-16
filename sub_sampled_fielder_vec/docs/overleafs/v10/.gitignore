@@ -1,0 +1,17 @@
+# LaTeX build artifacts. thesis_v9.pdf is deliberately NOT listed -- the built
+# PDF is the deliverable and is tracked.
+#
+# A truncated .aux/.out from an interrupted run causes
+# "File ended while scanning use of \@newl@bel"; fix with `latexmk -C`, not by
+# hand-editing these.
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.lof
+*.lot

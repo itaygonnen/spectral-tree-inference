@@ -41,7 +41,7 @@ from src.utils.interactive_ui import (                       # noqa: E402
 from .real_datasets import describe_search, list_datasets, sweep_cache_dir  # noqa: E402
 from src.runners.experiment_run import (GATES, MAX_ETA, P_MIN,  # noqa: E402
                                         P_POINTS, REPS, RunSpec, default_gate, execute,
-                                        gate_label, plan, verdicts)
+                                        gate_label, gate_operators, plan, verdicts)
 from src.runners.operators import ALL_OPERATORS, ARM_OF, OPERATORS  # noqa: E402
 
 
@@ -130,6 +130,8 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
     """Screening coverage, verdicts and median imbalance, before anything is picked."""
     print_header("Screening status")
     cap = f"eta<={MAX_ETA:g}"
+    if not sources:
+        return
     width = max(12, max(len(s.name) for s in sources) + 1)
     head = f"{'source':<{width}}{'trees':>7}{'screened':>10}"
     for k in ALL_OPERATORS:
@@ -147,8 +149,11 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
             line += (f"{n_ok:>11}{med:>9.1f}" if etas
                      else f"{'-':>11}{'-':>9}")
         n_both = sum(1 for t in done if v[t].get("valid_S") and v[t].get("valid_B"))
+        # the same operators the cap will actually weigh, so the panel cannot promise
+        # a count the plan then contradicts
+        cap_ops = gate_operators("both")
         n_cap = sum(1 for t in done
-                    if max((v[t].get(f"eta_{k}", 0.0) for k in ALL_OPERATORS),
+                    if max((v[t].get(f"eta_{k}", 0.0) for k in cap_ops),
                            default=0.0) <= MAX_ETA)
         swept = (len(list(sweep_cache_dir(c.name).glob("*.npz")))
                  if sweep_cache_dir(c.name).is_dir() else 0)
@@ -160,8 +165,9 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
         "                       clan, so 1 is a perfectly even cut",
         "• L+B                - trees valid under both L(S) and B, the pair the",
         "                       recovery figure compares",
-        f"• eta<={MAX_ETA:<14g}- trees even enough on every operator to carry a",
-        "                       recovery signal; this is what the sweep starts from",
+        f"• eta<={MAX_ETA:<14g}- trees even enough on L(S) and B to carry a recovery",
+        "                       signal; this is what a 'both' sweep starts from. A gate",
+        "                       naming one operator weighs only that one.",
         "• swept              - trees the recovery sweep has already covered",
         "• a '-' means that operator has not been screened yet on this dataset",
     ]
@@ -188,7 +194,7 @@ def _run(sources, *, batch_hint: str) -> None:
     if not is_screen:
         pv = spec.p_values()
         print(f"  p-grid     {len(pv)} log-spaced points, {pv[0]:.4g} .. {pv[-1]:.4g}")
-    width = max(12, max(len(r.name) for r in rows) + 1)
+    width = max([12] + [len(r.name) + 1 for r in rows])
     total = sum(r.hours for r in rows)
     for r in rows:
         print(f"  {r.name:<{width}} m={r.m:<5} {len(r.selected):>4} trees"

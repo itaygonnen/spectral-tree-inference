@@ -131,6 +131,7 @@ def bpart_sweep_raw(
     eigsolver: str = DEFAULT_SOLVER, aggregation: str = DEFAULT_AGGREGATION,
     extra_metrics: bool = False,
     progress_cb: Optional[Callable[[int, float], None]] = None,
+    on_p_result: Optional[Callable[[int, float, Dict[str, Any]], None]] = None,
 ) -> Dict[str, Any]:
     """Run one B-method subsampling sweep on a single distance matrix ``D``.
 
@@ -154,6 +155,8 @@ def bpart_sweep_raw(
     the arithmetic is unchanged.
 
     ``progress_cb`` is called ``f(p_index, p)`` after each p, for a caller's progress bar.
+    ``on_p_result`` is called ``f(p_index, p, row)`` with that p's entry the moment it is
+    complete, so a caller can log the numbers live rather than when the whole sweep ends.
     """
     if imputation not in ("mean", "zero"):
         raise ValueError(f"imputation must be 'mean' or 'zero', got {imputation!r}")
@@ -234,6 +237,8 @@ def bpart_sweep_raw(
             per_p[-1].update(row)
         if progress_cb is not None:
             progress_cb(p_idx, float(p))
+        if on_p_result is not None:
+            on_p_result(p_idx, float(p), per_p[-1])
 
     return {
         "p_values": [float(p) for p in p_values],

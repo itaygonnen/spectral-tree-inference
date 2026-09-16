@@ -1,0 +1,147 @@
+% §5 Topological scaling and spectral gap.  No sampling enters.  Exact statements about
+% the population Laplacian, delivering which clan pair Pi(S) is and how eta moves the
+% coherence and the gap until recovery becomes impossible.
+% §6 consumes lem:A-decomp and lem:gap from here.
+\section{Topological Scaling and Spectral Gap}\label{sec:bridging}
+
+This section deals with how the macro-topology of $\mathcal{T}$ fixes its spectrum: the eigenpair that carries the
+split it carries, the coherence of the leading invariant subspace, and the gap
+separating $\lambda_2$ from $\lambda_3$. The whole dependence runs through the single
+structural parameter $\eta$ of \Cref{def:imbalance}.
+
+\begin{lemma}[Spectral decomposition of the imbalanced Laplacian]\label{lem:A-decomp}
+Let $S$ satisfy \Cref{def:cfbm} at a bipartition $\mathcal{X}=A\cup B$, as \Cref{prop:cfbm}
+guarantees at the root split
+under \Cref{asm:gtr,asm:clock}. Then (i) the smallest eigenvalue of $L$ is
+$\lambda_1=0$, simple, with $v^{(1)}=\tfrac1{\sqrt m}\1_m$; (ii) $m\bze$ is an
+eigenvalue of $L$ whose eigenvector is piecewise constant on the split,
+$\vv_i=+c_A$ for $i\in A$ and $\vv_i=-c_B$ for $i\in B$, with $c_A=\sqrt{|B|/(|A|m)}$
+and $c_B=\sqrt{|A|/(|B|m)}$; and (iii) consequently
+\begin{equation}\label{eq:lambda2_upper}
+   \lambda_2 \le m\bze .
+\end{equation}
+If in addition \Cref{asm:margin} holds, then (iv) \eqref{eq:lambda2_upper} holds with
+equality: $\lambda_2=m\bze$ is simple and $\vv$ is the Fiedler vector of the
+similarity graph.
+\end{lemma}
+
+\noindent The proof is in \Cref{app:comp1}. Clauses (i)--(iii) are a direct
+computation, and they use only the constancy of the cross-clan block, not the floor:
+the identity $(D_A-S_A)\1_{|A|}=|B|\bze\1_{|A|}$ holds for an arbitrary symmetric diagonal
+block, because $D_A$ already carries the row sums of that block. Clause (iv) is where
+\Cref{asm:margin} enters, as the statement that $m_{\min}\Sin^{\min}>m\bze$: it puts
+the interlacing lower bound on $\lambda_3$ used in \Cref{lem:gap} strictly above
+$m\bze$, leaving no eigenvalue between $0$ and $m\bze$. It is what makes
+$\min_i|\vv_i|=c_B$ available to the proof of \Cref{thm:main-sim}.
+
+\subsection{Coherence and the spectral gap under imbalance}\label{sec:bridging-scaling}
+
+Two scalar quantities of the population Laplacian sit behind the constants of
+\eqref{eq:main_rate}, and $\eta$ moves both against recovery. The first is the
+spectral gap that isolates the Fiedler vector,
+\begin{equation}\label{eq:gap_definition}
+   \Dlam := \lambda_3 - \lambda_2 ,
+\end{equation}
+with $\lambda_2,\lambda_3$ as in \Cref{def:fiedler}. The second measures how evenly
+the leading invariant subspace of $L$ spreads across nodes.
+
+\begin{definition}[Subspace coherence]\label{def:coherence}
+Let $U=[v^{(1)},\vv]\in\R^{m\times2}$ span the invariant subspace of the two
+smallest eigenvalues of $L$, with $v^{(1)}=\tfrac1{\sqrt m}\1_m$ the trivial flat
+eigenvector and $\vv$ the Fiedler vector. The \emph{subspace coherence} is
+\begin{equation}\label{eq:coherence_definition}
+   \coh := \tfrac{m}{2}\max_{1\le i\le m}\norm{P_U e_i}_2^2
+         = \tfrac{m}{2}\max_{1\le i\le m}\bigl((v_i^{(1)})^2+(\vv_i)^2\bigr),
+   \qquad P_U=UU^\top.
+\end{equation}
+\end{definition}
+
+\noindent Coherence is minimal, $\coh=1$, when the subspace is spread evenly, and
+grows as it localizes onto few coordinates. Both quantities are fixed by
+ macro-topological features alone: $\eta$ first inflates $\coh$, then erodes $\Dlam$.
+
+\begin{proposition}[Topological scaling of coherence]\label{prop:coherence}
+Under \Cref{def:cfbm}, the tree imbalance $\eta$ maps deterministically to the
+subspace coherence,
+\begin{equation}\label{eq:coherence_linear_growth}
+   \coh=\frac{1+\eta}{2}.
+\end{equation}
+\end{proposition}
+\noindent The identity follows by substituting the Fiedler coordinates of
+\Cref{lem:A-decomp} into \eqref{eq:coherence_definition}; the short computation is given in
+\Cref{app:comp1}. Thus a balanced split attains the
+optimal coherence $\coh=1$, and the signal spreads more unevenly across nodes as
+$\eta$ grows; the generated regime of \Cref{sec:empirical} confirms the identity
+on data from the full generative pipeline. The identity is reported as a
+structural diagnostic: since the noise bound of \Cref{lem:B-bernstein} is obtained
+from the row norms of $S$ directly (\Cref{app:comp2}), $\coh$ does not itself enter
+the sampling rate, and the $\eta$-dependence of \eqref{eq:main_rate} arrives
+through the margin and the gap instead.
+
+
+The gap $\Dlam$ of \eqref{eq:gap_definition} is the quantity the perturbation
+argument of \Cref{sec:outline} divides by, and the same imbalance that raises $\coh$
+drives it toward zero.
+
+\begin{lemma}[Spectral-gap lower bound]\label{lem:gap}
+Let $L$ be the combinatorial Laplacian of a similarity matrix satisfying the
+molecular clock, with structural margin $\rho=\Sin^{\min}-\Sout^{\max}$. For
+$m_{\min}=\min(|A|,|B|)$ and imbalance $\eta$, the spectral gap isolating the Fiedler
+vector satisfies
+\begin{equation}\label{eq:spectral_gap_margin}
+   \Dlam \ge m_{\min}\rho-\eta\,m_{\min}\,\Sout^{\max}.
+\end{equation}
+\end{lemma}
+\noindent The full algebraic-connectivity derivation is given in \Cref{app:comp1},
+building on the eigenpairs of \Cref{lem:A-decomp}. The bound
+\eqref{eq:spectral_gap_margin} is purely a CFBM statement, controlling the gap
+through the abstract minimum intra-clan similarity $\Sin^{\min}$ of
+\eqref{eq:cfbm_floor}.
+
+\subsection{Two failure modes}\label{sec:bridging-failure}
+
+\Cref{prop:coherence} and \Cref{lem:gap} show that the same parameter $\eta$ acts
+on both spectral quantities at once, which produces two distinct ways for
+top-down recovery to fail; together they bound the admissible region of
+$(m,\eta)$. The first is \emph{structural collapse},
+$\Dlam\to0$, which we state here as a corollary of the gap lemma; the second is
+\emph{statistical infeasibility}, $p>1$, which is a consequence of
+\Cref{thm:main-sim}. A positive gap requires the structural margin to
+dominate the imbalance-weighted cross-clan boundary,
+$m_{\min}\rho>\eta\,m_{\min}\Sout^{\max}$, i.e.\
+$\eta<\Sin^{\min}/\Sout^{\max}$ --- precisely what \Cref{asm:margin} records.
+Translating this
+ratio into tree distances bounds the imbalance the topology can sustain.
+
+\begin{corollary}[Structural imbalance tolerance]\label{cor:tolerance}
+Write similarities as distances, $S_{ij}=e^{-d(x_i,x_j)}$, and let
+$r(\mathcal T)=\max_{i,j}(-\log S_{ij})$ be the diameter and $h(\mathcal T)$ the
+depth of $\mathcal T$ \cite{aizenbud2023spectral}, with $h(\mathcal T)<r(\mathcal T)$.
+Then a positive spectral gap is possible only if
+\begin{equation}\label{eq:eta_distance_bound}
+   \eta\le\mathcal O\!\bigl(e^{\mathcal O(h(\mathcal T))-r(\mathcal T)}\bigr).
+\end{equation}
+In particular, for an average Kingman coalescent tree, where
+$r(\mathcal T),h(\mathcal T)=\mathcal O(\log m)$
+\cite{erdos1999logs, aldous2001stochastic}, this gives $\eta\le\mathcal O(m^c)$ for
+a model-dependent constant $c$.
+\end{corollary}
+\noindent The proof sketch (substituting the diameter/depth bounds into
+$\eta<\Sin^{\min}/\Sout^{\max}$) is given in \Cref{app:comp1}.
+
+So under balanced generative models the gap survives polynomial imbalance. A
+positive gap is necessary but not sufficient: even when $\Dlam>0$, the rate
+\eqref{eq:main_rate} grows with $\eta$, and the second failure mode is the imbalance
+past which that demand exceeds $p=1$.
+
+\begin{corollary}[Vacuity of the certificate under imbalance]\label{cor:infeasible}
+Under the hypotheses of \Cref{thm:main-sim}, with $\bze$ and the margin
+$\rho-\eta\Sout^{\max}$ held bounded away from $0$ independently of $\eta$, the
+right-hand side of \eqref{eq:main_rate} exceeds $1$ once
+$\eta=\Omega\!\bigl(\sqrt[3]{m/\log m}\bigr)$; in general the threshold is
+reached when $\eta^3\bze^2/(\rho-\eta\Sout^{\max})^2=\Omega(m/\log m)$. No admissible sampling rate
+$p\in(0,1]$ then satisfies the sufficient condition, so \Cref{thm:main-sim}
+certifies nothing in that regime. What the theorem stops certifying there is the
+sampling: \Cref{thm:stdr-split} continues to make $\Pisp{S}$ a clan pair of
+$\mathcal{T}$ whatever $\eta$ does.
+\end{corollary}

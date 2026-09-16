@@ -1,0 +1,109 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem} % for \sout (strikethrough)
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Relaxing the Molecular Clock Assumption: Proof Sketch}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Shift in Assumptions}
+
+To relax the ultrametric tree (molecular clock) assumption, we transition from a strictly constant block model to a bounded block model.
+
+\subsection*{Dropped Assumptions}
+\begin{itemize}
+    \item \sout{\textbf{Assumption A2 (Molecular Clock):} All terminal nodes are sampled at the same evolutionary time $\tau=0$, implying strictly equal path lengths to the root.}
+    \item \sout{\textbf{Constant Block Model:} Cross-clan similarities collapse to a single flat value $S_{ij} = \beta_0$.}
+    \item \sout{\textbf{2-Plateau Fiedler Vector:} The population Fiedler vector $v^{(2)}$ is perfectly piecewise constant ($c_A$ on clan A, $-c_B$ on clan B).}
+\end{itemize}
+
+\subsection*{New Assumptions}
+\begin{itemize}
+    \item \textcolor{blue}{\textbf{Bounded Block Model:} Cross-clan similarities fluctuate but are strictly bounded within a narrow window: $S_{\text{out}}^{\min} \le S_{ij} \le S_{\text{out}}^{\max}$.}
+    \item \textcolor{blue}{\textbf{Condition C1 (Separation Margin) Before vs. Now:}}
+    \begin{itemize}
+        \item \sout{\textbf{Old C1:}} \sout{Under the molecular clock, cross-clan similarities collapse to $\beta_0$. The margin $\rho$ simplified to $S_{\text{in}}^{\min} - \beta_0$. Condition C1 ($\rho > \eta S_{\text{out}}^{\max}$) was exactly $S_{\text{in}}^{\min} > (1+\eta)\beta_0$.}
+        \item \textcolor{blue}{\textbf{New C1:}} \textcolor{blue}{The structural margin $\rho$ includes a penalty for cross-clan variation. The new uncollapsed condition must absorb this variation: $(S_{\text{in}}^{\min} - S_{\text{out}}^{\max}) - (S_{\text{out}}^{\max} - S_{\text{out}}^{\min}) > \eta S_{\text{out}}^{\max}$.}
+    \end{itemize}
+    \item \textcolor{blue}{\textbf{Bounded Intra-Clan Fluctuation:} The departure from the molecular clock is mild enough that the Fiedler vector's intra-clan fluctuation $\epsilon = \max_{i,j \in \text{clan}} |v_i^{(2)} - v_j^{(2)}|$ is bounded by $\mathcal{O}(1/\sqrt{m})$, and in fact stays strictly below the smaller plateau, $\epsilon \le c_B/2$, so that every clan-B entry retains the sign of its plateau.}
+\end{itemize}
+
+\section{Modified Proof Outline (Annotated Changes)}
+
+The proof compares the entry-wise error $|\hat{v}_i^{(2)} - v_i^{(2)}|$ against the entry-wise margin $|v_i^{(2)}|$. It runs in four stages.
+
+\paragraph{Stage 1 (population geometry and noise budget).} 
+The imbalance $\eta$ sets both sides of the condition. It fixes the margin and the spectral gap through the \sout{piecewise-constant} \textcolor{blue}{nearly piecewise-constant} Fiedler vector and the gap bound \sout{kept positive by Condition C1} \textcolor{blue}{kept positive by the New Condition C1}. On the other side, matrix Bernstein applied to the sampling mask bounds the noise.
+
+\paragraph{Stage 2 (entry-wise reduction).} 
+\textcolor{blue}{\textbf{The mathematical mechanism of Stage 2 remains unchanged.}} Since the recovery event is in $\ell_\infty$ while Davis-Kahan controls only $\ell_2$, we use a Neumann resolvent expansion. This identically trades the operator norm for a single scalar per coordinate, $(E_L v^{(2)})_i$. \textcolor{blue}{While the algebra holds exactly as before, the population Fiedler vector $v^{(2)}$ inside this expansion is no longer perfectly piecewise constant.}
+
+\paragraph{Stage 3 (per-node concentration).} 
+The surviving scalar $(E_L v^{(2)})_i$ is a sum of independent, mean-zero increments, each carrying the factor $v_i^{(2)} - v_j^{(2)}$. 
+
+\sout{Every within-clan increment therefore vanishes exactly --- this is a cancellation, not a bound, and it rests on the clock making $v^{(2)}$ exactly piecewise constant. Only cross-clan pairs survive, and Bernstein's inequality applies node by node.}
+
+\textcolor{blue}{\textbf{Variance Before vs. Now:}}
+\begin{itemize}
+    \item \sout{\textbf{Old Variance ($\sigma^2_{old}$):}} \sout{Because $v^{(2)}$ was exactly flat on each clan, $v_i^{(2)} - v_j^{(2)} = 0$ for all same-clan pairs. Intra-clan variance was exactly $0$. The total per-node variance was entirely from cross-clan pairs: $\sigma^2_{old} = \mathcal{O}(1/p)$.}
+    \item \textcolor{blue}{\textbf{New Variance ($\sigma^2_{new}$):}} \textcolor{blue}{Because $v^{(2)}$ fluctuates, within-clan increments survive and inject $\mathcal{O}(m)$ new terms per node. Bounding the intra-clan fluctuation by $\epsilon$, the new variance is:}
+    \textcolor{blue}{$$ \sigma^2_{new} = \underbrace{\mathcal{O}\left(\frac{1}{p}\right)}_{\text{cross-clan}} + \underbrace{\mathcal{O}\left(\frac{m \epsilon^2}{p}\right)}_{\text{intra-clan}} $$}
+\end{itemize}
+\textcolor{blue}{Bernstein's inequality now applies to this much larger combined variance.}
+
+\paragraph{Stage 4 (synthesis).} 
+The per-node condition is tightest on clan B. Squaring the Bernstein deviation bound $\approx \sqrt{\sigma_{new}^2 \log m}$ against the spectral gap margin $\Delta\lambda c_B$ yields the sampling rate. 
+
+\sout{The factor $\eta$ cancels and solving for $p$ gives exactly $p = \Theta\left(\frac{\log m}{m}\right)$.}
+
+\textcolor{blue}{Substituting the updated variance $\sigma_{new}^2$ and solving for $p$ yields a degraded rate that explicitly depends on the structural deviation $\epsilon$:}
+
+\textcolor{blue}{$$ p = \Omega\left(\frac{\log m}{m} + \epsilon^2 \log m\right) $$}
+
+\textcolor{blue}{If the tree is near-ultrametric ($\epsilon \le \mathcal{O}(1/\sqrt{m})$), the $\mathcal{O}(\frac{\log m}{m})$ scaling survives. The regime is bounded above by $\epsilon \asymp c_B$: there a clan-B entry of the \emph{population} Fiedler vector crosses zero, the sign-partition is lost before any sub-sampling, and no rate $p$ restores it.}
+
+\newpage
+\appendix
+\section{Revised Proof Outline (Clean Version for Paper)}
+
+The proof of Theorem 2 compares two quantities evaluated at the same node: the entry-wise error $|\hat{v}_i^{(2)} - v_i^{(2)}|$ and the entry-wise margin $|v_i^{(2)}|$. Under the relaxed bounded block model, the population Fiedler vector is no longer exactly piecewise constant. Let $\epsilon = \max_{i,j \in \text{clan}} |v_i^{(2)} - v_j^{(2)}|$ denote the maximum intra-clan fluctuation, assumed to satisfy $\epsilon \le c_B/2$. The argument runs in four stages:
+
+\paragraph{Stage 1 (population geometry and noise budget).} 
+The tree imbalance $\eta$ fixes both the margin and the spectral gap $\Delta\lambda$. The uncollapsed structural margin $\rho = (S_{\text{in}}^{\min} - S_{\text{out}}^{\max}) - (S_{\text{out}}^{\max} - S_{\text{out}}^{\min})$, kept strictly positive by the generalized Condition C1, ensures $\Delta\lambda > 0$. Concurrently, a matrix Bernstein bound applied to the sampling mask restricts the spectral norm of the noise, $\|E_L\|_2 \le \tilde{C} \sqrt{\frac{m \log m}{p}}$.
+
+\paragraph{Stage 2 (entry-wise reduction).} 
+Since the recovery condition $\|\hat{v}^{(2)} - v^{(2)}\|_\infty < \min_i |v_i^{(2)}|$ is an $\ell_\infty$ event, standard Davis-Kahan $\ell_2$ bounds are too loose. Provided $\|E_L\|_2 < \Delta\lambda$, a Neumann resolvent expansion isolates the entry-wise error to first order. This trades the operator norm for a single scalar per coordinate, reducing the target condition to $|(E_L v^{(2)})_i| \lesssim \Delta\lambda |v_i^{(2)}|$ holding at every node $i$.
+
+\paragraph{Stage 3 (per-node concentration).}
+Target: $|(E_L v^{(2)})_i|$, at every node.
+\begin{enumerate}
+    \item \emph{Expand.} With $L = D - S$, $\;(E_L v^{(2)})_i = \sum_{j \neq i} X_{ij}$, where $X_{ij} = \left(\frac{B_{ij}}{p} - 1\right) S_{ij}(v_i^{(2)} - v_j^{(2)})$ and $B_{ij} \sim \text{Bernoulli}(p)$: independent, mean-zero, and weighted by the Fiedler gap that the clock used to annihilate.
+    \item \emph{Sum the variances.} $\operatorname{Var}(X_{ij}) = \frac{1-p}{p}S_{ij}^2(v_i^{(2)} - v_j^{(2)})^2 \asymp (v_i^{(2)} - v_j^{(2)})^2/p$; cross-clan pairs carry $\Theta(1/m)$ each, same-clan pairs at most $\epsilon^2$ each, and there are $\Theta(m)$ of both:
+    \begin{equation}
+        \sigma^2 \approx \mathcal{O}\!\left(\frac{1}{p}\right) + \mathcal{O}\!\left(\frac{m\epsilon^2}{p}\right),
+    \end{equation}
+    the two terms balancing at $\epsilon = \Theta(1/\sqrt{m})$.
+    \item \emph{Concentrate.} $|X_{ij}| \le b = \mathcal{O}(1/(p\sqrt{m}))$, so Bernstein with a union bound over the $m$ nodes gives, with probability $1 - m^{-c}$,
+    \begin{equation}
+        \left|(E_L v^{(2)})_i\right| \;\lesssim\; \sqrt{\sigma^2 \log m} + b\log m \;\asymp\; \sqrt{\sigma^2 \log m} \quad \text{for } p = \Omega(\log m/m).
+    \end{equation}
+\end{enumerate}
+
+\paragraph{Stage 4 (synthesis).}
+The per-node condition is tightest on the larger clan $B$, where the entry-wise margin is smallest. That margin is now the worst entry rather than a plateau value: $v_{\min} := \min_{i \in B} |v_i^{(2)}| \ge c_B - \epsilon \ge c_B/2 = \Theta(1/\sqrt{m})$, the last step by the bounded-fluctuation assumption. Recovery requires the Bernstein deviation to stay below the gap-weighted margin, $\sqrt{\sigma^2 \log m} \lesssim \Delta\lambda\, v_{\min}$. Both sides carry an explicit $m$-scaling. On the right, $L$ is the unnormalized Laplacian of a similarity matrix with $\Theta(1)$ entries, so its degrees --- and hence the gap separating $v^{(2)}$ --- grow with the block size: $\Delta\lambda = \Theta(\rho m)$. On the left, $\sigma^2 \approx \frac{1}{p}\left(1 + m\epsilon^2\right)$ from Stage 3. Squaring the condition gives
+\begin{equation}
+    \frac{\log m}{p}\left(1 + m \epsilon^2\right) \;\lesssim\; \Delta\lambda^2 v_{\min}^2 \;=\; \Theta\!\left(\rho^2 m\right),
+\end{equation}
+and solving for the sampling rate,
+\begin{equation}
+    p \;=\; \Omega\!\left(\frac{\log m}{\rho^2}\left(\frac{1}{m} + \epsilon^2\right)\right) \;=\; \Omega\!\left(\frac{\log m}{m} + \epsilon^2 \log m\right),
+\end{equation}
+the last equality at a fixed structural margin $\rho = \Theta(1)$. The two terms are the two variance sources of Stage 3, and the deviation $\epsilon$ decides which dominates: for near-ultrametric topologies with $\epsilon \le \mathcal{O}(1/\sqrt{m})$ the cross-clan term leads and the $\mathcal{O}(\frac{\log m}{m})$ scaling is preserved; as $\epsilon$ grows the intra-clan term takes over and drives $p$ toward $\Theta(1)$. The construction is valid up to $\epsilon \asymp c_B$, where $v_{\min}$ vanishes: there the population Fiedler vector itself stops separating the clans by sign, so the boundary is one of identifiability rather than of sampling rate.
+
+\end{document}

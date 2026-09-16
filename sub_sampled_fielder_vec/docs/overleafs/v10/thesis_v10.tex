@@ -1,0 +1,122 @@
+%==============================================================================
+%  Spectral top-down split recovery on imbalanced phylogenetic trees  --  V.10
+%
+%  Thin master: preamble, \maketitle, the \input list, bibliography and appendix
+%  switches.  All prose lives in sections/, whose filenames give the reading order.
+%==============================================================================
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning, shapes.geometric, arrows.meta, calc, fit, backgrounds}
+\usepackage{hyperref,cleveref}
+\crefname{assumption}{Assumption}{Assumptions}
+\Crefname{assumption}{Assumption}{Assumptions}
+\crefname{condition}{Condition}{Conditions}
+\Crefname{condition}{Condition}{Conditions}
+
+% Self-contained: every \includegraphics resolves inside v10/figures/.  Do NOT re-add
+% `{../}` -- it resolved figures outside this tree and broke an Overleaf upload.
+\graphicspath{{figures/}{./}}
+\bibliographystyle{plain}
+
+%------------------------------ theorem environments --------------------------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\renewcommand{\theassumption}{A\arabic{assumption}}   % => A1, A2, ...
+% C1 is on its own counter so A1/A2 count only the two modelling hypotheses; it is a
+% quantitative inequality, not an assumption about the data.  Label: asm:margin.
+\newtheorem{condition}{Condition}
+\renewcommand{\thecondition}{C\arabic{condition}}     % => C1
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+%------------------------------ notation shortcuts ----------------------------
+\newcommand{\Sin}{S_{\mathrm{in}}}
+\newcommand{\Sout}{S_{\mathrm{out}}}
+% \Smin was never used and is retired.  \Smax is defined in sec:model as
+% max_{i!=j} S_ij.  Bare \Sin (no superscript) is a DIFFERENT quantity from
+% \Sin^{\min} -- it is the per-clan top-level baseline of the HBM -- and is
+% confined to appendix-D, bridging.tex's HBM coda and the lem:gap proof.
+% It must not appear in sec:model or sec:problem.
+\newcommand{\Smax}{S_{\max}}
+\newcommand{\bze}{\beta_0}
+\newcommand{\Dlam}{\Delta\lambda}
+\newcommand{\vv}{v^{(2)}}
+\newcommand{\vvh}{\hat v^{(2)}}
+\newcommand{\EL}{E_{L}}
+\newcommand{\ES}{E_{S}}
+\newcommand{\ED}{E_{D}}
+\newcommand{\coh}{\mu(U)}
+% Fiedler sign partition: \Pisp{S} population, \Pisp{\hat S} empirical.  Introduced
+% in §2 at thm:stdr-split.  A clan pair of the tree by thm:stdr-split, unconditionally.
+\newcommand{\Pisp}[1]{\Pi(#1)}
+\newcommand{\rhotil}{\tilde\rho(\eta)}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\opnorm}[1]{\norm{#1}_{2}}
+\newcommand{\hp}{with high probability}
+\newcommand{\R}{\mathbb{R}}
+% Pairwise distance matrix D_ij = -log S_ij (§2.3).  Distinct from the degree
+% matrix D of L = D - S.
+\newcommand{\Dmat}{\mathcal{D}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\title{Spectral Tree Inference from Incomplete Matrices: Fiedler Vector Bounds under Sub-sampling}
+\author{Itay Gonnen}
+\date{}
+
+\begin{document}
+\maketitle
+
+\input{sections/0-abstract}
+
+%==============================================================================
+%  Main text
+%==============================================================================
+\input{sections/1-introduction}        % §1  Introduction (incl. Related Work as §1.1)
+\input{sections/2-background}          % §2  Background and the STDR algorithm (sec:background)
+\input{sections/3-problem-definition}  % §3  Problem definition               (sec:problem)
+\input{sections/4-assumptions}         % §4  Modelling assumptions            (sec:assumptions)
+\input{sections/5-main-result}         % §5  Main Result                      (sec:main)
+\input{sections/6-topological-scaling} % §6  Topological scaling, spectral gap (sec:bridging)
+\input{sections/7-proof-outline}       % §7  Proof outline                    (sec:outline)
+\input{sections/8-empirical-study}     % §8  Empirical study                  (sec:empirical)
+
+\newpage
+\bibliography{references}
+
+\newpage
+%==============================================================================
+%  Appendices
+%==============================================================================
+\appendix
+% Appendices are \section's, so cleveref called every \Cref{app:*} "Section A"
+% rather than "Appendix A" -- visible in the main text wherever a proof is
+% deferred.  \crefalias retargets the section counter for everything below.
+\crefalias{section}{appendix}
+\crefalias{subsection}{appendix}
+\input{sections/A-spectral-geometry}         % App A  spectral geometry
+\input{sections/B-laplacian-sampling-error}  % App B  Laplacian sampling error
+\input{sections/C-entrywise-perturbation}    % App C  entry-wise perturbation
+\input{sections/D-neumann-vs-davis-kahan}    % App D  Neumann trick vs. standard bounds
+
+\input{sections/E-split-choice}             % App E  which split the Fiedler rule picks
+
+\end{document}

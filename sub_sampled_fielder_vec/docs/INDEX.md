@@ -16,7 +16,6 @@ question — and, honestly, which ones are stale.
 | [../scripts/README.md](../scripts/README.md) | What each script does; which `plot_*` files are libraries, not scripts |
 | [../analysis/legacy/README.md](../analysis/legacy/README.md) | What the superseded analysis packages were |
 | [../tests/README.md](../tests/README.md) | Why there is no test suite, and what verification does exist |
-| [overleafs/v9/OPEN_ITEMS.md](overleafs/v9/OPEN_ITEMS.md) | Open questions and known defects in the paper (116 entries, generated) |
 
 ## Reference — accurate on the engine, predates the paper restructure
 
@@ -28,7 +27,7 @@ July-2026 reorganization. Trust the mechanism, verify the paths.
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture. Covers pipeline A only. |
 | [CONFIGURATION.md](CONFIGURATION.md) | `StructuredConfig` / Pydantic reference. Still current. |
 | [METRICS.md](METRICS.md) | Metric definitions. Predates NMI becoming the paper's score. |
-| [INTERACTIVE_GUIDE.md](INTERACTIVE_GUIDE.md) | `scripts/interactive_run.py` walkthrough — pipeline A, *not* the benchmark launcher. Still current. |
+| [INTERACTIVE_GUIDE.md](INTERACTIVE_GUIDE.md) | `scripts/interactive_run.py` walkthrough. **Rewritten 2026-09-16**: both menu branches now run one experiment (screen → gate → sweep → one run directory). The single-tree flow it used to describe is `interactive_run.single_tree_menu()` / `scripts/run_experiment.py`. |
 | [../CHANGELOG.md](../CHANGELOG.md) | Notably the 2026-02-20 LDS debiasing fix (`π_ij`, not `p_ij`). |
 
 ## Sampling methods
@@ -52,7 +51,7 @@ samplers themselves are live in `src/core/sampling/`. `deprecated/` also holds
   builds on). The other five are gitignored — they were briefly tracked by mistake
   when a `git add -A` swept 10.9 MB of them into commit `b53e2f5`.
 - `overleafs/v7/`, `v8/`, `distance approach/` — superseded manuscript versions,
-  gitignored. **Only `v9/` is tracked.**
+  gitignored. **`v9/` and `v10/` are tracked; `v10/` is the live manuscript.**
 
 ## Previously listed here and now gone
 

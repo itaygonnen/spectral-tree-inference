@@ -36,7 +36,8 @@ from analysis.utils.real_datasets import (describe_search, get_dataset,   # noqa
                                           list_datasets)
 from src.runners.experiment_run import (GATE_ALIASES, GATES, MAX_ETA,     # noqa: E402
                                         P_MIN, P_POINTS, REPS, RunSpec,
-                                        execute, gate_label, plan)
+                                        execute, gate_label, gate_operators, plan,
+                                        verdicts)
 from src.runners.operators import ALL_OPERATORS                           # noqa: E402
 from src.utils.run_export import _commit                                  # noqa: E402
 
@@ -86,6 +87,11 @@ def build_parser() -> argparse.ArgumentParser:
                     help="skip sigma2, ||sub-full||_2 and the numerical ranks at every p "
                          "(the diagnostics the original experiment kept). They cost ~4%% "
                          "of a sweep at m=6000, so this is rarely worth it")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print the plan -- grid, operators, and how many trees each "
+                         "gate step keeps -- then exit without running or writing "
+                         "anything. Use it to choose --dataset-rule before committing a "
+                         "cluster job to it")
     ap.add_argument("--prefix", default="",
                     help="name this run: results land in runs/<timestamp>-<name>/")
     ap.add_argument("--display-mode", choices=("progress", "debug"), default="progress",
@@ -112,6 +118,29 @@ def sources_from_args(args):
     return [get_dataset(n).source(args.limit or None) for n in names]
 
 
+def _warn_unscreened(spec, rows) -> None:
+    """Say so when the gate names an operator the screen does not carry.
+
+    A gate on an operator that was never screened selects nothing, and the run then looks
+    as though the argument was ignored -- which is exactly what it looks like from the
+    outside. ``valid_Lsym`` on a screen written before L_sym existed is the live case.
+    """
+    if not spec.runs_sweep:
+        return
+    wanted = set(gate_operators(spec.gate))
+    for r in rows:
+        rows_for = verdicts(r.name)
+        if not rows_for:
+            continue
+        have = {k for k in wanted if any(f"valid_{k}" in v for v in rows_for.values())}
+        missing = sorted(wanted - have)
+        if missing:
+            print(f"  WARNING: {r.name}: the screen carries no verdict for "
+                  f"{', '.join(missing)}, which the gate {spec.gate!r} requires -- it "
+                  f"will select nothing. Re-run --stage screen (it tops up in place).",
+                  flush=True)
+
+
 def main() -> None:
     args = build_parser().parse_args()
     if args.list:
@@ -121,6 +150,7 @@ def main() -> None:
     spec = spec_from_args(args)
     sources = sources_from_args(args)
     rows = plan(spec, sources)
+    _warn_unscreened(spec, rows)
     # Print the grid, not just the knobs. A checkout from before --p-min existed sweeps
     # 0.01..1 and says nothing about it, which is how a run asked for 1e-4 came back
     # starting at 0.01 and nobody noticed until the plot.
@@ -137,6 +167,9 @@ def main() -> None:
                   f"-> {len(r.selected)} with eta <= {spec.max_eta:g}", flush=True)
         if r.warning:
             print(f"  WARNING: {r.warning}", flush=True)
+    if args.dry_run:
+        print("\ndry run -- nothing was run and nothing was written", flush=True)
+        return
     sys.exit(execute(spec, sources, rows))
 
 

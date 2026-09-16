@@ -1,0 +1,159 @@
+% §4 Modelling assumptions.  A1 (GTR) and A2 (clock), the constant block model they induce at the
+% root split, and the two scalars eta and rho in which the sampling rate is stated.  C1 is on its
+% own counter: it is an inequality on the tree, not a hypothesis on the data.  The proof of
+% prop:cfbm is deferred to app:comp1; the Fiedler-vector shape belongs to lem:A-decomp, not here.
+% No subsections: assume a clock -> get the block model -> read eta and rho off it is one argument.
+\section{Modelling assumptions}\label{sec:assumptions}
+
+In this section we state the two hypotheses the analysis carries, the block model they put the
+similarity matrix in, and the two scalars in which the sampling rate of \Cref{sec:main} is
+expressed.
+
+\begin{assumption}[GTR substitution model]\label{asm:gtr}
+Sequences of length $\ell$ over a $d$-character alphabet evolve along $\mathcal{T}$ under a General
+Time-Reversible rate matrix $Q$, as in \Cref{sec:bg-model}: conditions (i)--(iv) hold, and
+consequently $\mathrm{tr}(Q)<0$.
+\end{assumption}
+
+\begin{assumption}[Molecular clock with contemporaneous terminal nodes]\label{asm:clock}
+Branch lengths measure evolutionary time: the substitution process along an edge is determined by
+$Q$ and by the time difference between its endpoints alone, with no per-lineage rate variation. All
+$m$ terminal nodes are sampled at the same time, at height $\tau_{x}=0$.
+\end{assumption}
+
+Under \Cref{asm:clock} every terminal node sits at height $0$, so the path from a terminal node up
+to any ancestor $h$ has length $\tau_h$. Both legs of the path through an MRCA are then equal, the
+tree is \emph{ultrametric}, and the path length of \eqref{eq:mrca_height} is
+\begin{equation}\label{eq:ultrametric}
+   d_{ij} = 2\,\tau_{ij}.
+\end{equation}
+The closed form \eqref{eq:similarity_gtr} accordingly reads
+\begin{equation}\label{eq:similarity_clock}
+    S_{ij} = \exp\!\bigl(2\,\mathrm{tr}(Q)\,\tau_{ij}\bigr),
+\end{equation}
+so $S$ records the coalescence heights of $\mathcal{T}$, one entry per pair.
+
+That is what places $S$ in the model on which spectral bipartitioning is analysed: the
+\emph{constant block model} of Balakrishnan et al.\ \cite{Balakrishnan2011clustering}, in the
+localized form used for latent trees by \cite{aizenbud2023spectral}.
+
+\begin{definition}[Constant block model at a bipartition]\label{def:cfbm}
+A symmetric matrix $S$ with unit diagonal satisfies the \emph{constant block model} at a
+bipartition $\mathcal{X} = A \cup B$ if the cross-clan similarities are constant at a baseline
+$\bze \in (0,1)$ while the intra-clan similarities clear that baseline from above by a floor,
+\begin{equation}\label{eq:cfbm_floor}
+   S_{ij}=\bze\quad(i\in A,\ j\in B),
+   \qquad
+   \bze<\Sin^{\min}\le S_{ij}\le\Smax<1\quad(i\ne j\ \text{in the same clan}),
+\end{equation}
+where $\Sin^{\min}$ is the weakest intra-clan similarity and $\Smax := \max_{i \ne j} S_{ij}$. The
+diagonal blocks are otherwise arbitrary.
+\end{definition}
+
+\noindent An arbitrary clan pair of $\mathcal{T}$ does not satisfy \eqref{eq:cfbm_floor}: the pairs
+it separates have MRCAs at many different heights, so \eqref{eq:similarity_clock} spreads the
+cross-clan entries over a range. The root split is the exception. Every pair it separates has the
+root itself as its most recent common ancestor, so \eqref{eq:similarity_clock} evaluates all of
+those pairs at the single height $\tau_r$ and the cross-clan block collapses to one value.
+
+\begin{proposition}[The population similarity is a constant block model at the root split]\label{prop:cfbm}
+Let $S$ be the population similarity matrix of \Cref{def:simgraph} under \Cref{asm:gtr,asm:clock},
+and suppose every branch of $\mathcal{T}$ has positive length. Then $S$ satisfies \Cref{def:cfbm} at
+the root split $\mathcal{X} = A \cup B$, with
+\begin{equation}\label{eq:cfbm_from_model}
+   \bze = \exp\bigl(2\,\mathrm{tr}(Q)\,\tau_r\bigr),
+   \qquad
+   \Sin^{\min} = \exp\bigl(2\,\mathrm{tr}(Q)\,\tau^{\max}\bigr) > \bze,
+\end{equation}
+where $\tau_r$ is the root height and $\tau^{\max} < \tau_r$ is the greatest within-clan MRCA
+height. In particular $S_{ii}=1$ and $0 < \bze \le S_{ij} \le \Smax < 1$ for every $i \ne j$, and the
+block degrees of $L = D - S$ are
+$D_A=\operatorname{diag}(S_A\1_{|A|})+|B|\bze I_{|A|}$ and
+$D_B=\operatorname{diag}(S_B\1_{|B|})+|A|\bze I_{|B|}$.
+\end{proposition}
+
+\noindent \Cref{app:comp1} proves it. With the terminal nodes ordered along the split as in
+\Cref{sec:bg-model}, the matrix and its Laplacian take the block form
+\begin{equation}\label{eq:block_forms}
+   S=\begin{pmatrix} S_A & \bze J_{|A|\times|B|}\\ \bze J_{|B|\times|A|} & S_B\end{pmatrix},
+   \qquad
+   L=\begin{pmatrix} D_A-S_A & -\bze J_{|A|\times|B|}\\ -\bze J_{|B|\times|A|} & D_B-S_B\end{pmatrix},
+\end{equation}
+with $J$ the all-ones block. The diagonal blocks are whatever the two subtrees make them; only the
+off-diagonal block is pinned, and pinning it is what the model is for --- it is the single structural
+fact the spectral analysis of \Cref{sec:bridging} runs on.
+
+Two scalars carry the split through the analysis: how unevenly it divides the terminal nodes, and
+how sharply intra-clan similarities exceed cross-clan ones.
+
+\begin{definition}[Imbalance ratio and structural margin]\label{def:imbalance}
+For clan sizes $|A| \le |B|$ with $|A|+|B|=m$, the \emph{imbalance ratio} is
+\begin{equation}\label{eq:imbalance_ratio}
+   \eta:=\frac{|B|}{|A|}\ \ge\ 1 .
+\end{equation}
+Writing $\Sout^{\max}$ and $\Sout^{\min}$ for the largest and smallest similarity across the split,
+and $\Sin^{\min}$, $\Smax$ as in \eqref{eq:cfbm_floor}, the \emph{structural margin} is
+\begin{equation}\label{eq:margin_definition}
+   \rho := (\Sin^{\min}-\Sout^{\max})-(\Sout^{\max}-\Sout^{\min}).
+\end{equation}
+\end{definition}
+
+\noindent A balanced split has $\eta=1$, while caterpillar-like lineages reach
+$\eta=\mathcal{O}(m)$; $\eta$ plays the role of the balanced-cluster constant of Balakrishnan et
+al.\ \cite{Balakrishnan2011clustering}. In $\rho$, the first bracket separates the weakest
+within-clan pair from the strongest cross-clan pair and the second penalizes variation inside the
+cross-clan block, following the range-restriction framework of the same work. Under
+\Cref{asm:clock} that variation vanishes, $\Sout^{\max}=\Sout^{\min}=\bze$ by \Cref{prop:cfbm}, and
+the penalty collapses:
+\begin{equation}\label{eq:margin_under_clock}
+   \rho=\Sin^{\min}-\bze > 0 .
+\end{equation}
+
+\Cref{fig:fiedler_partitions} shows the Fiedler split on three simulated trees spanning the range of
+$\eta$: the smaller the clan the rule cuts off, the larger the values its terminal nodes carry.
+
+\begin{figure}[t]
+\centering
+\begin{subfigure}[t]{0.30\textwidth}
+  \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+  \subcaption{$\eta=1.5$}\label{fig:fied-eta01}
+  \includegraphics[width=\textwidth]{Fiedler_Bipartitions/fiedler_tree_partition_eta01.png}
+\end{subfigure}
+\hfill{\color{black!25}\rule[-5.0cm]{0.4pt}{5.0cm}}\hfill
+\begin{subfigure}[t]{0.30\textwidth}
+  \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+  \subcaption{$\eta=4.4$}\label{fig:fied-eta05}
+  \includegraphics[width=\textwidth]{Fiedler_Bipartitions/fiedler_tree_partition_eta05.png}
+\end{subfigure}
+\hfill{\color{black!25}\rule[-5.0cm]{0.4pt}{5.0cm}}\hfill
+\begin{subfigure}[t]{0.30\textwidth}
+  \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+  \subcaption{$\eta=15.1$}\label{fig:fied-eta15}
+  \includegraphics[width=\textwidth]{Fiedler_Bipartitions/fiedler_tree_partition_eta15.png}
+\end{subfigure}
+\caption{$\Pisp{S}$ on three trees, one per panel. Each is drawn
+from a pool of simulated Kingman trees ($m=500$ terminal nodes, JC69 sequences of length
+$\ell=10^4$) binned by the imbalance its Fiedler split realises. In each panel the
+tree is on top, its branches coloured by the sign of the Fiedler vector --- grey on
+the one branch that spans both signs --- and below it the Fiedler value of each terminal node
+is plotted at that node's own horizontal position in the tree. The sign pattern cuts a single edge
+every time, as \Cref{thm:stdr-split} requires, and the smaller the clan it cuts off, the
+larger the values carried by its terminal nodes.}
+\label{fig:fiedler_partitions}
+\end{figure}
+
+\Cref{asm:gtr,asm:clock} are hypotheses on how the data are generated, and they already fix every
+quantity in \eqref{eq:margin_definition}. What they do not fix is whether those quantities stand in
+the relation the analysis needs. That relation is the following inequality. It is not an assumption
+about the data but a property checkable on any given tree, and it is what delimits the trees the
+guarantee covers; it is the only condition beyond \Cref{asm:gtr,asm:clock} that the main result
+carries.
+
+\begin{condition}[Separation margin]\label{asm:margin}
+The structural margin strictly dominates the imbalance-weighted cross-clan boundary,
+\begin{equation}\label{eq:margin_assumption}
+   \rho>\eta\,\Sout^{\max},\qquad\text{equivalently}\qquad
+   \Sin^{\min}>(1+\eta)\,\Sout^{\max},
+\end{equation}
+which under \Cref{asm:clock} reads $\Sin^{\min}>(1+\eta)\bze$.
+\end{condition}

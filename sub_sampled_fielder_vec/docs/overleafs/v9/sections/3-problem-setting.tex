@@ -1,0 +1,115 @@
+% §3 Problem setting.  Point: forming S at the root costs Theta(m^2) pairwise estimates,
+% so we observe a Bernoulli(p) subset instead.  Delivers the observation model, the second
+% (distance) operator, and the recovery criterion eq:entrywise that every bound is measured
+% against.  This file keeps \label{sec:problem}; §2 is \label{sec:model}.
+\section{Problem setting}\label{sec:problem}
+
+\subsection{Why a sampled similarity}\label{sec:problem-cost}
+
+\Cref{thm:stdr-split} makes divide-and-conquer over the similarity matrix a viable
+strategy for large trees: partition the leaves by the sign of the Fiedler vector,
+solve each side independently by any reconstruction method, and merge the two
+subtrees. The recursion is attractive because the expensive part of tree
+reconstruction is superlinear in the number of leaves, so cutting the problem in
+half repeatedly reduces the total work sharply, while \Cref{thm:stdr-split}
+guarantees that each cut is a genuine split and the merge is therefore well-posed
+\cite{aizenbud2023spectral}.
+
+The top-level call is the one that governs both the error and the cost. It is the
+only call that sees all $m$ leaves, and no parent call corrects it: a wrong split at
+the root cannot be repaired further down. It is also where the similarity matrix is
+largest.
+
+That is the bottleneck. An entry of $S$ is not a table lookup but a statistic of a
+pair of sequences: the log-det similarity of \Cref{def:similarity} is estimated
+from the joint character counts of leaves $i$ and $j$ over a length-$\ell$
+alignment. Forming the full matrix at the top level therefore costs
+\begin{equation}\label{eq:cost}
+   \binom{m}{2} = \Theta(m^2) \ \text{pairwise estimates},
+   \qquad \Theta(m^2\ell) \ \text{character comparisons},
+\end{equation}
+which for $m \sim 10^5$ leaves is on the order of $10^{10}$ pairwise estimates
+before the recursion has taken a single step. The quadratic term is exactly the cost
+that divide-and-conquer was introduced to avoid, and it is paid in full at the root.
+This raises the question the paper answers: can the top-down split be computed at
+almost linear cost, with a guarantee that it is still the same split the full matrix
+would have returned?
+
+\subsection{The observation model}\label{sec:problem-sampling}
+
+Our answer is to compute only a random subset of the pairs. Following the
+matrix-completion paradigm \cite{candes2009power, candes2008exact}, we observe
+entries through a random mask and reweight: let $\Omega\in\{0,1\}^{m\times m}$ be a
+symmetric mask whose upper-triangular entries are independent
+$\mathrm{Bernoulli}(p)$, $p\in(0,1]$, and form the empirical similarity by
+inverse-probability weighting \cite{candes2009matrix},
+\begin{equation}\label{eq:sampling_estimator}
+   \hat S_{ij}=\begin{cases}\tfrac1p\,\Omega_{ij}\,S_{ij}, & i\ne j,\\ 1, & i=j.\end{cases}
+\end{equation}
+Only the $\Theta(p m^2)$ pairs in the mask are ever estimated, so $p$ is the
+fraction of the cost in \eqref{eq:cost} that is actually paid, and a rate
+$p=\Theta(\log m/m)$ would bring the top-level call down to $\Theta(m\log m)$
+pairwise estimates.
+
+This estimator is unbiased, $\E[\hat S]=S$, so $\EL=\hat L-L$ is mean zero, where
+$\hat L=\hat D-\hat S$. The resulting error is missingness rather than additive
+noise: most pairs are left at zero and the rest rescaled by $1/p$, so it is heavy,
+structured, and its per-node variance grows as $p\to0$ (\Cref{prop:C-var}).
+
+The scope of the analysis is the population matrix. The empirical log-det estimator
+of an individual entry concentrates around $S_{ij}$ at rate
+$\mathcal O(1/\sqrt\ell)$ \cite{aizenbud2023spectral}, and the structural
+conditions of \Cref{sec:model} are stated as properties of the population $S$,
+whose observable proxy is that estimator. 
+
+\subsection{A second operator on the same leaves}\label{sec:problem-distance}
+
+The Laplacian is not the only operator on these leaves whose spectrum carries the
+split. A second construction replaces $S$ by the pairwise \emph{distance} matrix
+$\Dmat$ --- distinct from the degree matrix $D$ of $L=D-S$ --- built entrywise from
+$S$ by $\Dmat_{ij}=-\log S_{ij}$, and centers it, $\Bop:=H\Dmat H$ with
+$H=I-\tfrac1m\1\1^\top$. There the split sits in the sign pattern of $\uone$, the
+eigenvector of $\Bop$ at the eigenvalue of largest absolute value, rather than in
+the Fiedler vector of $L$.
+
+The two operators see the same tree. Under \Cref{asm:gtr,asm:clock} the closed form
+\eqref{eq:similarity_gtr} gives, with $d_{ij}$ the path length of
+\eqref{eq:mrca_height},
+\begin{equation}\label{eq:distance_from_similarity}
+   \Dmat_{ij} = -\log S_{ij} = |\mathrm{tr}(Q)|\;d_{ij},
+   \qquad \Dmat_{ii}=0,
+\end{equation}
+so $\Dmat$ is the additive path metric of $\mathcal{T}$ up to the positive scale
+$|\mathrm{tr}(Q)|$, and a spectral statement about $\Bop$ is a statement about tree
+distances. Since \eqref{eq:distance_from_similarity} is entrywise, the same
+$\mathrm{Bernoulli}(p)$ mask $\Omega$ that samples $S$ samples $\Dmat$ unchanged:
+both operators are observed under the one model \eqref{eq:sampling_estimator}, and
+\Cref{sec:main} states a sampling rate for each. \Cref{app:dist} works out the
+population spectrum of $\Bop$ and proves the distance-route rate.
+
+
+\subsection{The recovery problem}\label{sec:problem-statement}
+
+\medskip
+\noindent\textbf{Problem.} Given the sparsely observed estimate $\hat S$, recover the
+Fiedler split $\Pisp{S}$ of the full matrix from the sign pattern of the Fiedler vector
+$\vvh$ of $\hat L$. We ask for the minimal sampling rate $p$ at which
+$\Pisp{\hat S}=\Pisp{S}$ \hp. Since $\E[\hat S]=S$, the question reduces to an
+eigenvector-perturbation problem over $\EL=\hat L-L$, which the remainder of the
+paper analyzes.
+
+\Cref{thm:stdr-split} already makes $\Pisp{S}$ a clan pair of $\mathcal{T}$, so a rate
+at which $\Pisp{\hat S}=\Pisp{S}$ is a rate at which the sub-sampled operator returns a
+genuine split of the tree. 
+
+
+\medskip
+Recovery is, at its core, an \emph{entry-wise} event. Two vectors induce the same
+sign partition exactly when they agree in sign at every node, so the top-down
+partition succeeds precisely when the empirical Fiedler vector agrees in sign with
+its population counterpart coordinate by coordinate, that is, when
+\begin{equation}\label{eq:entrywise}
+   \norm{\vvh-\vv}_\infty<\min_i|\vv_i|.
+\end{equation}
+Condition \eqref{eq:entrywise} is the formal recovery event that every bound in
+the paper is measured against.

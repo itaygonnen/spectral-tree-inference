@@ -36,15 +36,25 @@ from .operators import ALL_OPERATORS, ARM_OF, OPERATORS, resolve
 # the labels are what a menu shows. "both" means L(S) and B -- the pair the figures
 # compare -- and keeps that meaning now that L_sym is screened too, so a selection
 # recorded before L_sym existed still means what it said.
+# Third element: the operators the imbalance cap weighs. It is the gate's operators, not
+# the run's. A run sweeps L_sym as a third curve; capping on it too would drop a tree whose
+# L and B splits are perfectly even, which is a loss nobody asked for and nobody could
+# explain from the output. "any"/"all" name no operator, so they fall back to the pair the
+# recovery figure compares -- which is also what the cap meant before L_sym was screened.
 GATES: Dict[str, tuple] = {
     "both":       ("L(S) and B both cut a real tree edge",
-                   lambda r: bool(r.get("valid_S")) and bool(r.get("valid_B"))),
-    "valid_L":    ("L(S) cuts a real tree edge", lambda r: bool(r.get("valid_S"))),
-    "valid_Lsym": ("L_sym cuts a real tree edge", lambda r: bool(r.get("valid_Lsym"))),
-    "valid_B":    ("B cuts a real tree edge", lambda r: bool(r.get("valid_B"))),
+                   lambda r: bool(r.get("valid_S")) and bool(r.get("valid_B")),
+                   ("S", "B")),
+    "valid_L":    ("L(S) cuts a real tree edge", lambda r: bool(r.get("valid_S")),
+                   ("S",)),
+    "valid_Lsym": ("L_sym cuts a real tree edge", lambda r: bool(r.get("valid_Lsym")),
+                   ("Lsym",)),
+    "valid_B":    ("B cuts a real tree edge", lambda r: bool(r.get("valid_B")),
+                   ("B",)),
     "any":        ("any operator cuts a real tree edge",
-                   lambda r: any(r.get(f"valid_{k}") for k in ALL_OPERATORS)),
-    "all":        ("every tree, valid or not", lambda r: True),
+                   lambda r: any(r.get(f"valid_{k}") for k in ALL_OPERATORS),
+                   ("S", "B")),
+    "all":        ("every tree, valid or not", lambda r: True, ("S", "B")),
 }
 # what the CLI called the L gate before the operators were named by arm
 GATE_ALIASES = {"valid_S": "valid_L"}
@@ -59,10 +69,17 @@ MAX_ETA = 20.0
 # grid has to reach below that for the curve to show a floor rather than start on the ramp.
 P_MIN, P_POINTS, REPS = 1e-4, 20, 10
 
-# Per-tree cost, measured at m=6000: a screen is one load plus an eigensolve per
-# operator; a sweep is p x reps sub-sampled solves at ~9 s each, and the solve is O(m^3).
+# Per-tree cost, measured at m=6000: a screen is one load plus an eigensolve per operator
+# (~75 s), a sweep is p x reps sub-sampled solves at ~9 s each. Both are dominated by the
+# O(m^3) eigensolve, so both scale by (m/6000)^3 -- a flat estimate under m=6000 was ~100x
+# over at n=128 and under at n=4096, and the "~X h" line is what people plan around.
 # B is ~30x cheaper than a Fiedler arm (ARPACK for one eigenpair, no Laplacian).
-SCREEN_SECS_LARGE, SCREEN_SECS_SMALL, SOLVE_SECS_AT_6000 = 75.0, 10.0, 9.0
+SCREEN_SECS_AT_6000, SOLVE_SECS_AT_6000 = 75.0, 9.0
+# ...and the screen splits into building the matrices, O(m^2 L), and the eigensolves,
+# O(m^3): at m=6000/L=5000 that measured 60 s and 15 s. Keeping the two terms apart is
+# what stops the estimate being ~30x over at n=128, where the old flat 10 s/tree sat.
+SCREEN_BUILD_AT_6000, SCREEN_SOLVE_AT_6000 = 60.0, 15.0
+REF_M, REF_L = 6000.0, 5000.0
 GRIFFING_COST_SHARE = 0.03
 
 
@@ -82,12 +99,31 @@ def gate_label(name: str) -> str:
     return GATES[gate_key(name)][0]
 
 
+def screen_secs(m: int, seq_len: int = 0) -> float:
+    """Rough seconds to screen one tree: matrix build O(m^2 L) plus eigensolves O(m^3).
+
+    Calibrated on the m=6000 / L=5000 dataset. It is an estimate for the "~X h" line, not
+    a measurement -- a real dataset's FASTA parse adds a term this does not model, so it
+    reads low at small m.
+    """
+    scale_l = (seq_len / REF_L) if seq_len else 1.0
+    return max(0.05,
+               SCREEN_BUILD_AT_6000 * (m / REF_M) ** 2 * scale_l
+               + SCREEN_SOLVE_AT_6000 * (m / REF_M) ** 3)
+
+
+def gate_operators(name: str) -> tuple:
+    """The operators a gate's imbalance cap weighs. See the note on ``GATES``."""
+    return GATES[gate_key(name)][2]
+
+
 @dataclass
 class Source:
     """Where one group of trees comes from, and what to call it.
 
     ``name`` is the cache slug and the CSV column, ``loader`` turns a tree id into
-    ``(S, labels, tree, D)``, ``ids`` is every tree available, ``m`` its taxon count.
+    ``(S, labels, tree, D)``, ``ids`` is every tree available, ``m`` its taxon count and
+    ``seq_len`` its alignment length (only the cost estimate uses that).
     Anything that satisfies those four is a source: a FASTA directory, a simulator, a
     future format nobody has written yet.
     """
@@ -96,6 +132,7 @@ class Source:
     loader: Callable
     ids: List[str] = field(default_factory=list)
     m: int = 0
+    seq_len: int = 0
 
 
 @dataclass
@@ -159,15 +196,16 @@ def select_ids(ids: Sequence[str], rows: Dict[str, dict], gate: str,
                operators: Sequence[str] = ()) -> List[str]:
     """Trees passing the validity gate, and (when ``max_eta`` > 0) not too lopsided.
 
-    The imbalance cap applies to the operators the run actually uses: a tree rejected
-    for an L_sym split nobody is sweeping would be a silent, unexplainable loss.
+    The imbalance cap weighs the operators the GATE names, not every operator the run
+    happens to sweep -- see the note on :data:`GATES`. ``operators`` is accepted and
+    ignored; it is kept so the older call signature does not break.
     """
     if not rows:
         return list(ids)
-    keep = GATES[gate_key(gate)][1]
+    _, keep, cap_ops = GATES[gate_key(gate)]
     out = [t for t in ids if t in rows and keep(rows[t])]
     if max_eta and max_eta > 0:
-        keys = [f"eta_{k}" for k in resolve(operators)]
+        keys = [f"eta_{k}" for k in cap_ops]
         out = [t for t in out
                if max((rows[t].get(k, 0.0) for k in keys), default=0.0) <= max_eta]
     return out
@@ -175,7 +213,7 @@ def select_ids(ids: Sequence[str], rows: Dict[str, dict], gate: str,
 
 def default_gate(source_names: Sequence[str], verdicts_by: Dict[str, dict]) -> str:
     """Strictest gate that still selects a tree in EVERY chosen source."""
-    for key, (_, fn) in GATES.items():
+    for key, (_, fn, _ops) in GATES.items():
         if all(any(fn(r) for r in verdicts_by.get(name, {}).values())
                for name in source_names):
             return key
@@ -217,7 +255,7 @@ def plan(spec: RunSpec, sources: Sequence[Source],
         n_screened = sum(1 for t in src.ids if t in v)
         secs = 0.0
         if spec.runs_screen:
-            per_tree = (SCREEN_SECS_LARGE if src.m >= 6000 else SCREEN_SECS_SMALL)
+            per_tree = screen_secs(src.m, src.seq_len)
             secs += len(ids) * per_tree / max(1, spec.workers)
         n_gate, selected = len(ids), list(ids)
         if spec.runs_sweep:
@@ -319,6 +357,7 @@ def execute(spec: RunSpec, sources: Sequence[Source],
             "rule": spec.gate,
             "rule_label": gate_label(spec.gate),
             "max_eta": spec.max_eta,
+            "max_eta_operators": list(gate_operators(spec.gate)),
             "operators": list(spec.operators),
             "per_dataset": {r.name: {"screened": r.n_screened,
                                     "after_rule": r.n_gate,

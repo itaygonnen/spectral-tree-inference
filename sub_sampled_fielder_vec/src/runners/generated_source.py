@@ -12,23 +12,37 @@ one source would make both meaningless.
 """
 from __future__ import annotations
 
-from typing import List, Sequence
+import hashlib
+import json
+from typing import Dict, List, Optional, Sequence
 
 from .benchmark_loaders import GeneratedLoader
 from .experiment_run import Source
 
 
+def _fingerprint(data_key: Dict) -> str:
+    """Six hex characters standing for everything that changes the trees."""
+    blob = json.dumps(data_key, sort_keys=True, default=str)
+    return hashlib.sha1(blob.encode()).hexdigest()[:6]
+
+
 def source_name(model: str, n_taxa: int, seq_len: int, mutation_rate: float,
-                etas: Sequence[int] | None = None) -> str:
+                etas: Sequence[int] | None = None,
+                data_key: Optional[Dict] = None) -> str:
     """The cache slug and CSV label for one simulated cell.
 
-    Everything that changes the trees is in the name, because the name is what the
-    resumable screen and sweep caches are keyed on -- two runs that differ in mutation
-    rate must not inherit each other's verdicts.
+    The readable part names the cell; the trailing fingerprint stands for the rest of
+    ``GeneratedPlan.data_key()``. That matters because ``make_generated`` seeds only on
+    (model, index) and then builds the tree with ``params`` -- so two runs differing only
+    in birth rate or population size produce different trees under the same id, and
+    without the fingerprint they would share a screen cache and inherit each other's
+    verdicts and curves.
     """
     name = f"{model} n{n_taxa} L{seq_len} mu{mutation_rate:g}"
     if etas:
         name += " eta" + "-".join(str(e) for e in etas)
+    if data_key:
+        name += f" #{_fingerprint(data_key)}"
     return name
 
 
@@ -60,9 +74,10 @@ def sources_from_plan(plan) -> List[Source]:
     for (model, n_taxa), ids in sorted(by_cell.items()):
         out.append(Source(
             name=source_name(model, n_taxa, plan.seq_len, plan.mutation_rate,
-                             plan.etas),
+                             plan.etas, plan.data_key()),
             loader=loader,
             ids=sorted(ids),
             m=int(n_taxa),
+            seq_len=int(plan.seq_len),
         ))
     return out

@@ -45,7 +45,7 @@ Validate the real-dataset path after touching it — it walks every call site an
 two-tree sweep in a scratch results root, in about a minute:
 
 ```bash
-python -m analysis.utils.real_selftest
+python -m analysis.utils.selftest
 ```
 
 ## `cluster/`

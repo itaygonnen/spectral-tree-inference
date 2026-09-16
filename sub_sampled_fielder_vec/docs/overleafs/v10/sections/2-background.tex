@@ -1,0 +1,314 @@
+% §2 Background.  Delivers the objects the paper is about: tree, substitution model, similarity
+% and distance, the similarity graph and its Fiedler vector, clans, thm:stdr-split.  No modelling
+% hypothesis is made here: the algorithm and the sampling scheme are §3, every assumption of the
+% analysis is §4.
+\section{Background}\label{sec:background}
+
+This section fixes the objects the paper works with and the algorithm it accelerates.
+\Cref{sec:bg-model} sets the tree and the substitution process running on it,
+\Cref{sec:bg-similarity} the similarity and distance matrices they induce on the terminal nodes
+and the graph those matrices define, and \Cref{sec:bg-clans} the bipartitions a tree admits
+together with the result that the Fiedler vector always returns one of them.
+\Cref{sec:problem} builds the reconstruction algorithm on that result and states the problem this
+paper solves.
+
+\subsection{The generative model}\label{sec:bg-model}
+
+\subsubsection*{Tree topology}
+
+Let $\mathcal{T} = (V, E)$ be a rooted binary phylogenetic tree whose vertex set
+$V = \mathcal{X} \cup \mathcal{H}$ splits into $m$ observed terminal nodes
+$\mathcal{X} = \{x_1, \dots, x_m\}$ and $m-1$ unobserved internal nodes
+$\mathcal{H} = \{h_1, \dots, h_{m-1}\}$, among them a distinguished root
+$r \in \mathcal{H}$ \cite{semple2003phylogenetics}. In the phylogenetic reading the terminal
+nodes are extant organisms and the internal nodes their extinct ancestors.
+
+Every edge $e = (h, h') \in E$ is assigned a \emph{branch length} $t_e \ge 0$, a measure of the
+evolutionary divergence between the two adjacent nodes it joins. We represent branch lengths
+through absolute node heights: each node $h$ carries a height $\tau_h \ge 0$, increasing toward the
+root, with $t_{(h,h')} = |\tau_h - \tau_{h'}|$.
+
+\begin{definition}[Most recent common ancestor]\label{def:mrca}
+For two nodes $h, h'$ of $\mathcal{T}$, the \emph{most recent common ancestor}
+$\mathrm{MRCA}(h,h')$ is the ancestor of both of smallest height, equivalently the unique node of
+smallest height common to the path from $h$ to the root and the path from $h'$ to the root
+\cite{semple2003phylogenetics}.
+\end{definition}
+
+\noindent For a pair of terminal nodes $x_i, x_j$ we denote
+\begin{equation}\label{eq:mrca_height}
+   \tau_{ij} := \tau_{\mathrm{MRCA}(x_i,x_j)},
+   \qquad
+   d_{ij} := \sum_{e \in \mathrm{path}(x_i,x_j)} t_e ,
+\end{equation}
+for the height of their most recent common ancestor and for the total length of the path joining
+them. Closely related terminal nodes have an MRCA of small height and a short path; the root is the
+highest node in the tree. \Cref{fig:tree_topology} illustrates both conventions on a tree with $m = 7$ terminal
+nodes.
+
+The two edges adjacent to the root define the \emph{root split} of the tree: the terminal set
+$\mathcal{X}$ is partitioned into the two subtrees hanging off the root. A single bipartition
+$\mathcal{X} = A \cup B$, rather than the full branching pattern of $\mathcal{T}$, is what one
+top-down step has to resolve; the remaining structure follows recursively.
+
+We denote by $|A|$ and $|B|$ the sizes of the two sides, labelled so that $|A| \le |B|$ and
+$|A| + |B| = m$, and we order the terminal nodes along the split,
+$A = \{x_1, \dots, x_{|A|}\}$ and $B = \{x_{|A|+1}, \dots, x_m\}$. The ordering is a relabelling and
+costs nothing: it is what makes each side a contiguous range of indices, so that the split appears
+in the similarity matrix of \Cref{sec:bg-similarity} as a $2 \times 2$ arrangement of blocks
+\eqref{eq:block_forms} rather than as a scattered set of entries.
+
+\begin{figure}[t]
+\centering
+\footnotesize
+\tikzset{
+  inode/.style={circle, draw, fill=black!8, minimum size=6.6mm, inner sep=0pt,
+                font=\tiny},
+  lfN/.style={circle, draw, fill=black!8, minimum size=6.6mm, inner sep=0pt,
+              font=\tiny},
+  % endpoint of a highlighted path: contour in that path's colour
+  lfblue/.style={lfN, draw=blue!70!black, line width=1.1pt},
+  lforng/.style={lfN, draw=orange!85!black, line width=1.1pt},
+  lfA/.style={circle, draw, fill=blue!22, minimum size=6.6mm, inner sep=0pt,
+              font=\tiny},
+  lfB/.style={circle, draw, fill=red!22, minimum size=6.6mm, inner sep=0pt,
+              font=\tiny},
+  br/.style={thick, black!65},
+  hl/.style={line width=1.6pt, blue!70!black},
+  hlr/.style={line width=1.6pt, orange!85!black},
+  guide/.style={densely dotted, black!45},
+  cutB/.style={line width=1pt, green!45!black, dash pattern=on 3pt off 2pt},
+}
+
+%----------------------------------------------------------------- panel (a)
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\begin{tikzpicture}[x=1cm, y=1.15cm]
+  % leaves -- neutral fill: this panel is about heights, not clans
+  \node[lfblue] (x1) at (-2.35,0) {$x_1$};
+  \node[lfblue] (x2) at (-1.55,0) {$x_2$};
+  \node[lforng] (x3) at (-0.75,0) {$x_3$};
+  \node[lfN]    (x4) at ( 0.30,0) {$x_4$};
+  \node[lforng] (x5) at ( 1.10,0) {$x_5$};
+  \node[lfN] (x6) at ( 1.90,0) {$x_6$};
+  \node[lfN] (x7) at ( 2.70,0) {$x_7$};
+  % internal; the two MRCAs carry the colour of their path
+  \node[inode, fill=blue!30]   (u)  at (-1.95,0.80) {};
+  \node[inode]                 (hA) at (-1.35,1.80) {$h_A$};
+  \node[inode]                 (w)  at ( 0.70,0.80) {};
+  \node[inode]                 (z)  at ( 2.30,0.80) {};
+  \node[inode]                 (hB) at ( 1.50,1.35) {$h_B$};
+  \node[inode, fill=orange!35] (r)  at ( 0.10,2.45) {$r$};
+  % branches
+  \draw[br] (r)--(hA); \draw[br] (r)--(hB);
+  \draw[br] (hA)--(u); \draw[br] (hA)--(x3);
+  \draw[br] (u)--(x1); \draw[br] (u)--(x2);
+  \draw[br] (hB)--(w); \draw[br] (hB)--(z);
+  \draw[br] (w)--(x4); \draw[br] (w)--(x5);
+  \draw[br] (z)--(x6); \draw[br] (z)--(x7);
+  % two edge-disjoint paths: within-clan x1 -- u -- x2, cross-clan x3 -- r -- x5
+  \draw[hlr] (x3)--(hA)--(r)--(hB)--(w)--(x5);
+  \draw[hl]  (x1)--(u)--(x2);
+  % height axis
+  \draw[black!55, -{Latex[length=1.4mm]}] (-3.15,-0.05) -- (-3.15,2.85)
+        node[above, font=\scriptsize, black!55] {$\tau$};
+  \foreach \y/\lbl in {0/$0$, 0.80/$\tau_{12}$, 2.45/$\tau_r$}{
+     \draw[black!55] (-3.25,\y) -- (-3.05,\y);
+     \node[left=0pt, font=\scriptsize, black!70] at (-3.25,\y) {\lbl};
+  }
+  \draw[guide] (-3.05,0.80) -- (u);
+  \draw[guide] (-3.05,2.45) -- (r);
+  \draw[guide] (-3.05,0) -- (x1);
+  % annotations
+  \node[font=\scriptsize, blue!70!black] at (-1.95,-0.62) {$\mathrm{MRCA}(x_1,x_2)$};
+  \node[font=\scriptsize, orange!75!black, align=left, anchor=west] at (0.45,2.82)
+        {$\mathrm{MRCA}(x_3,x_5)=r$\\[-1pt] so $\tau_{35}=\tau_r$};
+\end{tikzpicture}
+\subcaption{Heights and coalescence}\label{fig:topology-heights}
+\end{subfigure}
+\hfill
+%----------------------------------------------------------------- panel (b)
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\begin{tikzpicture}[x=1cm, y=1.15cm]
+  \node[lfB] (x1) at (-2.35,0) {$x_1$};
+  \node[lfB] (x2) at (-1.55,0) {$x_2$};
+  \node[lfB] (x3) at (-0.75,0) {$x_3$};
+  \node[lfB] (x4) at ( 0.30,0) {$x_4$};
+  \node[lfB] (x5) at ( 1.10,0) {$x_5$};
+  \node[lfA] (x6) at ( 1.90,0) {$x_6$};
+  \node[lfA] (x7) at ( 2.70,0) {$x_7$};
+  \node[inode] (u)  at (-1.95,0.80) {};
+  \node[inode] (hA) at (-1.35,1.80) {};
+  \node[inode] (w)  at ( 0.70,0.80) {};
+  \node[inode] (z)  at ( 2.30,0.80) {};
+  \node[inode] (hB) at ( 1.50,1.35) {};
+  \node[inode] (r)  at ( 0.10,2.45) {$r$};
+  \draw[br] (r)--(hA); \draw[br] (r)--(hB);
+  \draw[br] (hA)--(u); \draw[br] (hA)--(x3);
+  \draw[br] (u)--(x1); \draw[br] (u)--(x2);
+  \draw[br] (hB)--(w); \draw[br] (hB)--(z);
+  \draw[br] (w)--(x4); \draw[br] (w)--(x5);
+  \draw[br] (z)--(x6); \draw[br] (z)--(x7);
+  % one edge cut, above z: C1 = {x6,x7}, C2 = everything else
+  \coordinate (m1) at ($(hB)!0.5!(z)$);
+  \draw[cutB] ($(m1)!0.45cm!90:(z)$) -- ($(m1)!0.45cm!-90:(z)$);
+  \node[font=\scriptsize, green!45!black, align=left, anchor=west] at (2.95,1.35)
+        {one edge\\[-1pt] cut};
+  \node[font=\scriptsize, green!45!black] at (2.30,-0.62) {$C_1$};
+  \node[font=\scriptsize, green!45!black] at (-0.55,-0.62) {$C_2$};
+\end{tikzpicture}
+\subcaption{Clans are edge cuts}\label{fig:topology-clans}
+\end{subfigure}
+
+\caption{A tree with $m=7$ terminal nodes. \textbf{(a)} Node heights $\tau_h$ increase toward the
+root, and $\tau_{ij}$ is the height of $\mathrm{MRCA}(i,j)$
+\eqref{eq:mrca_height}. The blue path joins a pair that coalesces early; the orange path joins a
+pair whose most recent common ancestor is the root, so $\tau_{35}=\tau_r$. Every pair separated by
+the root behaves the same way, which is what collapses a whole block of $S$ to a single value in
+\Cref{prop:cfbm}. \textbf{(b)} Removing a single edge leaves a clan on each side
+(\Cref{def:clan}); the cut shown gives $C_1=\{x_6,x_7\}$ and $C_2=\{x_1,\dots,x_5\}$.}
+\label{fig:tree_topology}
+\end{figure}
+
+\subsubsection*{The substitution process}
+
+Sequence data are generated by running a Markov substitution process down the edges of
+$\mathcal{T}$. The process is fixed by a single rate matrix. We work with the \emph{General
+Time-Reversible} (GTR) model, the standard reversible substitution model for aligned sequence data
+\cite{semple2003phylogenetics}: sequences of length $\ell$ over a $d$-character alphabet evolve
+along $\mathcal{T}$ under a rate matrix $Q \in \R^{d \times d}$ satisfying
+\begin{enumerate}[label=(\roman*), leftmargin=2.2em, itemsep=1pt, topsep=3pt]
+\item $Q_{ij}\ge0$ for $i\ne j$, and
+\item $\sum_j Q_{ij}=0$ for all $i$;
+\item there is a stationary distribution $\pi>0$ with $\pi Q=0$; and
+\item $\mathrm{diag}(\pi)\,Q$ is symmetric.
+\end{enumerate}
+Conditions (i)--(ii) make $Q$ a \emph{generator}: its off-diagonal entries are the instantaneous
+rates at which one character is replaced by another, and its rows sum to zero so that
+$\exp(Qt)$ is a stochastic matrix for every $t\ge0$. Condition (iii) says the character
+frequencies $\pi$ are left unchanged by the process, and (iv) makes it \emph{reversible} --- a
+path observed forwards in time and the same path observed backwards have the same probability,
+$\pi_a\,[\exp(Qt)]_{ab}=\pi_b\,[\exp(Qt)]_{ba}$. Together (i)--(iv) imply that all eigenvalues of
+$Q$ are non-positive, and hence that $\mathrm{tr}(Q)<0$.
+
+For two \emph{adjacent} nodes $h,h'$ the substitution matrix over the branch joining them is the
+matrix exponential of the generator run for the branch length,
+\begin{equation}\label{eq:transition_matrix}
+   P(h \mid h') = \exp\bigl(Q\,t_{(h,h')}\bigr),
+   \qquad
+   P(h \mid h')_{ba} = \Prob[\,h = b \mid h' = a\,].
+\end{equation}
+By the Markov property the transition matrix is multiplicative along a path: for nodes joined
+through an intermediate node, $P(h_1 \mid h_3) = P(h_1 \mid h_2) P(h_2 \mid h_3)$. Two nodes
+separated by total branch length $t$ therefore satisfy $P = \exp(Qt)$ whether or not they are
+adjacent.
+
+\subsection{Similarity, distance and the similarity graph}\label{sec:bg-similarity}
+
+The substitution model provides a measure of similarity between every pair of nodes of the tree,
+which we now define.
+
+\begin{definition}[Pairwise similarity]\label{def:similarity}
+The similarity between two nodes is the geometric mean of the determinants of the two transition
+matrices between them \cite{aizenbud2023spectral},
+\begin{equation}\label{eq:similarity_def}
+   S(h_i, h_j) := \sqrt{\det P(h_i \mid h_j)\,\det P(h_j \mid h_i)},
+   \qquad S(h_i,h_i) = 1 .
+\end{equation}
+\end{definition}
+
+\noindent This quantity is a function of the tree metric alone. For a single branch of length $t$,
+reversibility makes the two transition matrices similar under $\mathrm{diag}(\pi)$, so they share a
+determinant, and $\det\exp(Qt) = \exp(\mathrm{tr}(Q)\,t)$ gives $S = \exp(\mathrm{tr}(Q)\,t)$.
+Because $\det$ is multiplicative and $P$ is multiplicative along paths, so is the similarity: for
+any two terminal nodes,
+\begin{equation}\label{eq:similarity_gtr}
+   S_{ij} = \exp\bigl(\mathrm{tr}(Q)\,d_{ij}\bigr),
+\end{equation}
+with $d_{ij}$ the path length of \eqref{eq:mrca_height}. Since $\mathrm{tr}(Q)<0$, similarity decays
+exponentially in the evolutionary distance separating the pair: nodes whose common ancestor is
+recent are similar, and similarity falls off geometrically as that ancestor recedes into the past.
+
+Inverting \eqref{eq:similarity_gtr} recovers the path metric of $\mathcal{T}$ up to a positive
+scale. This is the second matrix the leaves carry, the \emph{distance matrix}
+\begin{equation}\label{eq:distance_from_similarity}
+   \Dmat_{ij} := -\log S_{ij} = |\mathrm{tr}(Q)|\,d_{ij},
+   \qquad \Dmat_{ii}=0 .
+\end{equation}
+Similarity and distance are entrywise transforms of one another, so either may be computed from the
+same sequence data; the analysis of this paper is carried out on the similarity matrix.
+
+\begin{definition}[Similarity matrix and similarity graph]\label{def:simgraph}
+The \emph{similarity graph} $G$ is the complete weighted graph whose vertices are the $m$ terminal
+nodes of $\mathcal{T}$ and whose edge $(x_i,x_j)$ carries weight $S(x_i,x_j)$. Its weighted
+adjacency matrix is the \emph{similarity matrix} $S \in \R^{m \times m}$, which consists of the
+pairwise similarities over the terminal nodes, $S_{ij} := S(x_i, x_j)$, and is symmetric with unit
+diagonal \cite{aizenbud2023spectral}.
+\end{definition}
+
+\noindent The split is read out of $S$ through the Laplacian of that graph.
+
+\begin{definition}[Laplacian and Fiedler vector]\label{def:fiedler}
+The \emph{combinatorial Laplacian} of the similarity graph is $L := D - S$, where $D$ is diagonal
+with $D_{ii} = \sum_j S_{ij}$ \cite{aizenbud2023spectral}. Write
+$0 = \lambda_1 \le \lambda_2 \le \lambda_3 \le \dots \le \lambda_m$ for its eigenvalues. The
+\emph{Fiedler vector} $\vv$ is a unit eigenvector belonging to the second-smallest eigenvalue
+$\lambda_2$ \cite{fiedler1975property, vonluxburg2007tutorial}.
+\end{definition}
+
+\subsection{Clans and the Fiedler split}\label{sec:bg-clans}
+
+The bipartitions of $\mathcal{X}$ that a tree admits have a standard name.
+
+\begin{definition}[Clan; adjacent clans]\label{def:clan}
+A \emph{clan} of $\mathcal{T}$ is a subtree that can be separated from the rest of $\mathcal{T}$ by
+removing a single edge of the underlying unrooted tree, together with the terminal and internal
+nodes it contains \cite{wilkinson2007clades, semple2003phylogenetics}. Two disjoint clans are
+\emph{adjacent} if their union is again a clan \cite{aizenbud2023spectral}, equivalently if the
+roots of the two subtrees are joined to a common neighbouring node.
+\end{definition}
+
+\noindent Removing one edge always leaves a clan on each side, so the clans of $\mathcal{T}$ are
+exactly its edge cuts; \Cref{fig:topology-clans} shows one. The root split of \Cref{sec:bg-model} is
+one of them: $A$ and $B$ are complementary adjacent clans. When we speak of the terminal nodes of a
+clan we mean the elements of $\mathcal{X}$ that the separated subtree contains.
+
+Clans, and only clans, leave a rank signature in the similarity matrix.
+
+\begin{lemma}[Clans are the rank-one blocks, {\cite[Lem.~3.1]{jaffe2021spectral}}]\label{lem:rank-one}
+Let $A$ and $B$ partition the terminal nodes of an unrooted binary tree $\mathcal{T}$, and let
+$S(A,B)$ denote the $|A| \times |B|$ submatrix of cross-pair similarities. Then $S(A,B)$ is rank-one
+if and only if $A$ and $B$ are clans of $\mathcal{T}$.
+\end{lemma}
+
+\noindent \Cref{lem:rank-one} is the precise sense in which the topology of $\mathcal{T}$ is
+embedded in the structure of $S$: a candidate bipartition is a split of the tree exactly when the
+block of similarities it cuts collapses to rank one. With the terminal nodes ordered along the
+split as in \Cref{sec:bg-model}, the within-clan pairs occupy the two diagonal blocks of
+$S$ and the cross-clan pairs its off-diagonal block, and \Cref{lem:rank-one} says that this
+off-diagonal block is rank-one at every split of the tree and at no bipartition that is not one.
+
+Because the similarity \eqref{eq:similarity_gtr} is a function of pairwise distances alone, $S$ is
+invariant to where the root is placed on $\mathcal{T}$: the bipartitions it can express are exactly
+the edge cuts of the unrooted tree.
+
+We can now say why the similarity matrix is the object to compute. Thresholding the Fiedler vector
+of the similarity graph never returns a bipartition that is not a split of the tree.
+
+\begin{theorem}[Consistency of the Fiedler split, {\cite[Thm.~4.2]{aizenbud2023spectral}}]\label{thm:stdr-split}
+Let $G$ be the similarity graph of a binary tree $\mathcal{T}$ and let $v$ be the Fiedler vector of
+$G$. Partition the terminal nodes by the sign pattern of $v$,
+\begin{equation}\label{eq:sign_rule}
+   C_1=\{i:\;v_i\ge0\},\qquad C_2=\{j:\;v_j<0\}.
+\end{equation}
+Then $C_1$ and $C_2$ are adjacent clans of $\mathcal{T}$.
+\end{theorem}
+
+\noindent \Cref{thm:stdr-split} carries no hypothesis on tree shape or on the substitution
+parameters: given the exact similarity matrix, the sign rule \eqref{eq:sign_rule} always cuts the
+tree along a single edge. This is the result the algorithm of \Cref{sec:problem} is built on
+--- it is what makes top-down spectral recovery viable at all, and it is why the recursion can merge
+its two subproblems, since each side is a genuine subtree. We write $\Pisp{S}$ for the bipartition
+\eqref{eq:sign_rule} of the Fiedler vector of $L=D-S$.
+

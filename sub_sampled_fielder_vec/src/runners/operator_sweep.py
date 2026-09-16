@@ -188,6 +188,47 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
         f", true-tree top split {int(gt.sum())}/{int((~gt).sum())}" if gt is not None
         else ", no true tree -- vs_truetree columns will be NaN"))
 
+    def _log_p(arm: str, idx: int, p: float, row: Dict) -> None:
+        """One line per (tree, arm, p), the moment that p finishes.
+
+        The pre-refactor pipeline logged this and the refactor dropped it, so a tree that
+        takes half an hour at m=6000 said nothing between "loaded" and "done". force=True
+        because it must reach experiment.log whether or not the terminal is drawing bars.
+        """
+        part = row.get("partition")
+        if part is None and "partitions" in row:
+            part = row["partitions"][0]
+        if part is not None:
+            part = np.asarray(part)
+            a = int(part.sum())
+            split = f"{min(a, part.size - a)}-{max(a, part.size - a)}"
+            eta = f"{_eta_of(part):.2f}"
+        else:
+            split = eta = "N/A"
+
+        def _num(key):
+            v = row.get(key)
+            if v is None:
+                return None
+            v = float(np.mean(v)) if isinstance(v, (list, tuple, np.ndarray)) else float(v)
+            return v
+
+        bits = []
+        for key, label in (("nmi", "nmi"), ("ari", "ari"), ("agreement", "agr"),
+                           ("dot", "dot"), ("sign_agreement", "sign")):
+            v = _num(key)
+            if v is not None:
+                bits.append(f"{label}={v:.4f}" if label in ("nmi", "ari", "dot")
+                            else f"{label}={v:.2f}%")
+        for key, label in (("sigma2_avg_M", "s2_full"), ("sigma2_avg_S", "s2_sub"),
+                           ("mean_operator_norm_error", "opnorm")):
+            v = _num(key)
+            if v is not None:
+                bits.append(f"{label}={v:.4f}")
+        log_info("bootstrap",
+                 f"{tree_id} [{arm}] p={p:.4g} results: " + ", ".join(bits)
+                 + f", eta={eta}, split={split}", force=True)
+
     out: Dict[str, np.ndarray] = {}
     n_p = len(list(p_values))
     for key in resolve(operators):
@@ -210,43 +251,53 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
             res = bootstrap_p_sweep_simple(
                 S, vec, list(p_values), bootstrap_reps=reps, seed=seed,
                 num_gaps=num_gaps, min_split=min_split, partition_method=rule,
-                laplacian=op.laplacian, extra_metrics=extra_metrics, progress_cb=cb)
+                laplacian=op.laplacian, extra_metrics=extra_metrics, progress_cb=cb,
+                on_p_result=lambda i, pp, row, _a=arm: _log_p(_a, i, pp, row))
             for metric, src in (("nmi", "partition_nmi_M"), ("ari", "partition_ari_M"),
                                 ("agreement", "partition_agreement_M"),
                                 ("dot", "dot_product")):
                 out[f"{metric}_{arm}_{REF_FULL}"] = np.asarray(res[src], float)
             out[f"signagreement_{arm}_{REF_FULL}"] = np.asarray(res["sign_agreement"],
                                                                 float)
-            parts = res["partitions"]
+            # one partition per p: bootstrap_p_sweep_simple averages the vectors first
+            parts = [[q] if q is not None else [] for q in res["partitions"]]
             diagnostics = {k: np.asarray(res[k], float) for k in DIAGNOSTICS
                            if k in res}
         else:
             raw = bpart_sweep_raw(D, list(p_values), reps=reps, seed_base=seed,
                                   eigsolver=eigsolver, aggregation=aggregation,
-                                  extra_metrics=extra_metrics, progress_cb=cb)
+                                  extra_metrics=extra_metrics, progress_cb=cb,
+                                  on_p_result=lambda i, pp, row, _a=arm:
+                                  _log_p(_a, i, pp, row))
             for metric in METRICS:
                 out[f"{metric}_{arm}_{REF_FULL}"] = np.array(
                     [float(np.mean(pp[metric])) for pp in raw["per_p"]], float)
-            # under per_rep aggregation each p holds one partition per replicate; the
-            # recovered-split columns describe the first, which is the only one a
-            # single column can describe
-            parts = [pp["partitions"][0] for pp in raw["per_p"]]
+            # under avg_vector each p holds one partition; under per_rep it holds one
+            # per replicate, and every column below averages over them -- the same
+            # accounting the metrics above already use. Taking only the first would have
+            # put two different accountings in one row.
+            parts = [list(pp["partitions"]) for pp in raw["per_p"]]
             diagnostics = {k: np.array([float(pp[k]) for pp in raw["per_p"]], float)
                            for k in DIAGNOSTICS if k in raw["per_p"][0]}
 
-        # the split the sweep actually recovered at each p, not just its score
+        # the split the sweep actually recovered at each p, not just its score, averaged
+        # over whatever partitions that p produced (one, or one per replicate)
+        def _mean(vals):
+            vals = [v for v in vals if v is not None and not np.isnan(v)]
+            return float(np.mean(vals)) if vals else float("nan")
+
         out[f"split_small_{arm}"] = np.array(
-            [np.nan if p is None else min(int(np.sum(p)), int(p.size - np.sum(p)))
-             for p in parts], float)
+            [_mean([min(int(np.sum(q)), int(q.size - np.sum(q)))
+                    for q in ps if q is not None]) for ps in parts], float)
         out[f"eta_{arm}"] = np.array(
-            [np.nan if p is None else _eta_of(np.asarray(p)) for p in parts], float)
+            [_mean([_eta_of(np.asarray(q)) for q in ps if q is not None])
+             for ps in parts], float)
         # second reference: the true tree's own split, scored from the partitions the
         # sweep just produced -- no extra eigensolve
-        scored = [_score(gt, p) if gt is not None else _score(None, None)
-                  for p in parts]
         for metric in TREE_METRICS:
             out[f"{metric}_{arm}_{REF_TREE}"] = np.array(
-                [sc[metric] for sc in scored], float)
+                [_mean([_score(gt, q)[metric] for q in ps if q is not None])
+                 if gt is not None else float("nan") for ps in parts], float)
         for src, name in DIAGNOSTICS.items():
             if src in diagnostics:
                 out[f"{name}_{arm}"] = diagnostics[src]

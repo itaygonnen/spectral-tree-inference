@@ -104,6 +104,7 @@ def bootstrap_p_sweep_simple(
     laplacian: str = "unnormalized",
     extra_metrics: bool = False,
     progress_cb: Optional[Callable[[int, float], None]] = None,
+    on_p_result: Optional[Callable[[int, float, Dict[str, Any]], None]] = None,
 ) -> Dict[str, Any]:
     """Bootstrap p-sweep with precomputed (M, fiedler_ref). Uniform sampling.
 
@@ -139,6 +140,11 @@ def bootstrap_p_sweep_simple(
         replicate.
     progress_cb : optional ``f(p_index, p)`` called after each p value, so a caller can
         drive a progress bar over a sweep that otherwise runs silently for minutes.
+    on_p_result : optional ``f(p_index, p, row)`` called with that p's metrics the moment
+        it finishes, so a caller can log them live. Separate from ``progress_cb`` because
+        the bar only needs to tick, and because every existing caller passes a
+        two-argument callback. Without it a tree that takes half an hour reports nothing
+        between "loaded" and "done" -- the pre-refactor pipeline logged a line per p.
     laplacian : which Laplacian the per-bootstrap Fiedler is taken from.
         - ``"unnormalized"`` (default): ``L = Deg(S) - S``.
         - ``"normalized"``: ``L_sym = I - D^{-1/2} S D^{-1/2}``.
@@ -213,6 +219,19 @@ def bootstrap_p_sweep_simple(
         extra["empirical_rank_M"].append(rank_M)
         extra["empirical_rank_L_M"].append(rank_L_M)
 
+    def _emit(idx: int, p: float) -> None:
+        """Hand the caller the row just appended for this p."""
+        if on_p_result is None:
+            return
+        row = {"nmi": partition_nmi_M[-1], "ari": partition_ari_M[-1],
+               "agreement": partition_agreement_M[-1],
+               "sign_agreement": sign_agreement[-1], "dot": dot_product[-1],
+               "partition": partitions[-1]}
+        for k, vals in extra.items():
+            if vals:
+                row[k] = vals[-1]
+        on_p_result(idx, float(p), row)
+
     partition_agreement_M: List[float] = []
     partition_ari_M: List[float] = []
     partition_nmi_M: List[float] = []
@@ -236,9 +255,10 @@ def bootstrap_p_sweep_simple(
                 # the fill asserts perfect recovery, so the diagnostics take their p=1
                 # values: no sampling error, S is M
                 _push_extra(sigma2_ref_M, sigma2_ref_M, [0.0], [rank_M], [rank_L_M])
-            if progress_cb is not None:
-                for j in range(idx, len(p_values)):
+            for j in range(idx, len(p_values)):
+                if progress_cb is not None:
                     progress_cb(j, float(p_values[j]))
+                _emit(j, float(p_values[j]))
             break
 
         if p >= 0.9999:
@@ -252,6 +272,7 @@ def bootstrap_p_sweep_simple(
             consecutive_100 += 1
             if progress_cb is not None:
                 progress_cb(idx, float(p))
+            _emit(idx, float(p))
             continue
 
         aligned: List[np.ndarray] = []
@@ -284,6 +305,7 @@ def bootstrap_p_sweep_simple(
             dot_product.append(float('nan'))
             partitions.append(None)
             _push_extra(float('nan'), float('nan'), [], [], [])
+            _emit(idx, float(p))
             continue
 
         try:
@@ -332,6 +354,7 @@ def bootstrap_p_sweep_simple(
         consecutive_100 = consecutive_100 + 1 if agr_M == 100.0 else 0
         if progress_cb is not None:
             progress_cb(idx, float(p))
+        _emit(idx, float(p))
 
     return {
         "p_values": list(p_values),

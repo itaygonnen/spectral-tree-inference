@@ -1,0 +1,51 @@
+This is BibTeX, Version 0.99e (TeX Live 2026/Homebrew)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: distance_route.aux
+The style file: plain.bst
+Database file #1: bibi.bib
+Repeated entry---line 139 of file bibi.bib
+ : @article{tropp2012
+ :                   ,
+I'm skipping whatever remains of this entry
+You've used 11 entries,
+            2118 wiz_defined-function locations,
+            569 strings with 5670 characters,
+and the built_in function-call counts, 3344 in all, are:
+= -- 346
+> -- 117
+< -- 0
++ -- 49
+- -- 36
+* -- 245
+:= -- 571
+add.period$ -- 33
+call.type$ -- 11
+change.case$ -- 49
+chr.to.int$ -- 0
+cite$ -- 11
+duplicate$ -- 120
+empty$ -- 279
+format.name$ -- 36
+if$ -- 677
+int.to.chr$ -- 0
+int.to.str$ -- 11
+missing$ -- 11
+newline$ -- 58
+num.names$ -- 22
+pop$ -- 36
+preamble$ -- 1
+purify$ -- 40
+quote$ -- 0
+skip$ -- 78
+stack$ -- 0
+substring$ -- 279
+swap$ -- 11
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 42
+warning$ -- 0
+while$ -- 40
+width$ -- 13
+write$ -- 122
+(There was 1 error message)

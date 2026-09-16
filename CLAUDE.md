@@ -27,7 +27,25 @@ cd sub_sampled_fielder_vec
 python scripts/interactive_run.py             # menu-driven launcher (recommended)
 python scripts/run_experiment.py              # edit SWEEP_CONFIG dict at top, then run
 ```
-Results land in `sub_sampled_fielder_vec/results/<timestamp>-<run_name>/n{taxa}_L{seq_len}/`. Matrix caches live in `sub_sampled_fielder_vec/src/cache/` (gitignored, reused across runs keyed by `(n_taxa, seq_len, mu, tree_model, seq_model)`).
+Both branches of `interactive_run.py` — real FASTA datasets and simulated trees — run the
+**same** experiment since 2026-09-16: screen (eta + validity per operator) → gate → per-tree
+p-sweep → one run directory, aggregated as a median over trees. It is one code path,
+`src/runners/experiment_run.py`, and the two data sources differ only in a `Source`'s
+loader (`RealLoader` / `GeneratedLoader`). `scripts/run_sweep.py` is the non-interactive
+twin and takes `--dataset-rule` (`both`, `valid_L`, `valid_Lsym`, `valid_B`, `any`, `all`)
+plus `--dry-run` to see the selection without starting anything.
+
+Results land in `results/real_data/runs/<timestamp>-<name>/` (config, summary, screening.csv,
+per_tree.csv, curves.csv, recovery_curve.png, logs), with resumable state in
+`results/real_data/_cache/<source>/`.
+
+The pre-2026-09 single-tree flow — ONE simulated tree per `(n_taxa, seq_len)`, spread from
+bootstrap replicates, results under `results/<tree_model>/<sampling>/<timestamp>-<run_name>/n{taxa}_L{seq_len}/` —
+is off the menu but still reachable via `scripts/run_experiment.py` and
+`interactive_run.single_tree_menu()`. It remains the only path producing the per-p
+coherence / spectral-gap / dk_ratio / IPR diagnostics, middle-out and guardrails. Matrix
+caches live in `sub_sampled_fielder_vec/src/cache/` (gitignored, keyed by
+`(n_taxa, seq_len, mu, tree_model, seq_model)`).
 
 There is no test suite for `sub_sampled_fielder_vec/` — see `tests/README.md` for why (a bare
 `test*.py` in `.gitignore` made any test file uncommittable; now negated for that dir). Validate
@@ -101,13 +119,15 @@ The November-2025 optimizations in `src/core/` are why experiments at `n=8192` a
 
 `analysis/` is flat and holds exactly four things:
 
-- **`paper/`** — the 4 notebooks that produce a manuscript figure, named `figNN_*` so `ls`
+- **`paper/`** — the 3 notebooks that produce a manuscript figure, named `figNN_*` so `ls`
   answers "which notebook makes Figure 3?". The prefix is the filename, not the printed
-  number: `fig04`→Fig 6, `fig05`→Fig 7 (Figs 4–5 are the distance pair, built from
-  `supporting/`). Two notebooks left `paper/` on 2026-08-04 when App G was deleted.
-- **`supporting/`** — 11 files: 8 that produce no paper figure, plus 3 figure producers that
-  were promoted without being moved (`eta_by_operator` → Fig 8, `pstar_flat_cbm_distance` →
-  Fig 4, `pstar_eta_pool_distance` → Fig 5). Flat, one file each.
+  number: `fig02`→Fig 3, `fig03`→Fig 4, `fig05`→Fig 2 (Figs 5–6 are the distance pair, built
+  from `supporting/`). Notebooks leave `paper/` when their float leaves the manuscript: two
+  on 2026-08-04 with App G, and `fig04_hbm_spectral_gap` → `supporting/hbm_spectral_gap` on
+  2026-08-26 with the HBM appendix. **`PAPER_MAP.md` is the authority, not this list.**
+- **`supporting/`** — 13 files: 10 that produce no paper figure, plus 3 figure producers that
+  were promoted without being moved (`eta_by_operator` → Fig 7, `pstar_flat_cbm_distance` →
+  Fig 5, `pstar_eta_pool_distance` → Fig 6). Flat, one file each.
 - **`utils/`** — shared code, imported as `analysis.utils`. **Do not move it.**
 - **`notebooks_cache/`** — every `.npz` a notebook computes, tracked so re-plotting works
   in a fresh clone. Data does NOT live beside notebooks.
@@ -199,17 +219,38 @@ Thin master `thesis_v9.tex` + `sections/*.tex`; figures in `figures/`; open ques
   Build artifacts are excluded by `v9/.gitignore`.
 - **`v7/`, `v8/` and `distance approach/` are still untracked AND gitignored** — for those,
   assume nothing is recoverable and snapshot before destructive edits.
-- Appendix filenames do not match compiled letters: `appendix-G.tex` → App **F**,
-  `appendix-H.tex` → App **G**. ALWAYS resolve which one a request means before editing or
-  deleting — the two candidates for "Appendix G" differ by 500 lines and a main theorem.
-  `sections/appendix-emp.tex` (the old App G, supplementary empirical figures) was **deleted
-  2026-08-04**; that is what shifted the letters. It is recoverable from commit `70b67ce`.
+- **`sections/` filenames encode position** (renamed 2026-08-23): `0-abstract`,
+  `1-introduction`, `2-generative-model`, `3-problem-setting`, `4-main-result`,
+  `5-topological-scaling`, `6-proof-outline`, `7-empirical-study`, then the appendices by
+  their compiled letter — `A-spectral-geometry`, `B-laplacian-sampling-error`,
+  `C-entrywise-perturbation`, `D-hierarchical-block-model`, `E-neumann-vs-davis-kahan`,
+  `F-operator-split-choice`. The old appendix filename/letter mismatch (`appendix-G.tex`
+  → App F, `appendix-H.tex` → App G) is gone with it, and the number is now the
+  authority for reading order. Historical filenames survive inside `% [Reviewer Note: ...]`
+  blocks and refer to files that no longer exist: `problem.tex` (split into
+  `2-generative-model` + `3-problem-setting`, 2026-08-17), `appendix-emp.tex` (the old
+  App G, deleted 2026-08-04, recoverable from `70b67ce`), `main-result-dist.tex`.
+- **Section order is not the writing order** (2026-08-23): the main result is §4 and
+  `5-topological-scaling` follows it. The rule is that everything needed to *read*
+  `thm:main-sim` precedes it — `def:cfbm`/`prop:cfbm`, `def:fiedler`, η, ρ,
+  `thm:stdr-split`, `\Pisp{}`, Condition C1, the observation model, `eq:entrywise` — and
+  everything else follows. `thm:main-sim` concludes the entry-wise criterion and nothing
+  more; `lem:A-decomp`, `cor:root-split`, `Δλ` and the coherence live in §5.
+  `A-spectral-geometry.tex` must keep its internal order (`lem:A-decomp`,
+  `prop:coherence`, `lem:gap`, `cor:root-split`) — that is what makes the
+  identification non-circular.
 - ALWAYS build with `latexmk -pdf -interaction=nonstopmode thesis_v9.tex` **from inside the v9
   directory** (the shell cwd is not where you think after backgrounded commands), and verify with
   `grep -c "undefined" thesis_v9.log` against a baseline taken *before* editing. Zero is the
   expected value. A truncated `.aux`/`.out` from an interrupted run causes
   `File ended while scanning use of \@newl@bel`; fix with `latexmk -C` then rebuild.
-- ALWAYS put restructure rationale in the `.tex` as `% [Reviewer Note: ...]` — invisible in the PDF.
+- **Keep `.tex` comments minimal** (author instruction, 2026-08-23). Each `sections/*.tex`
+  carries a 2–4 line header stating the *point* of the section — what it delivers and what
+  it deliberately leaves to another section — plus operational one-liners (a label that must
+  stay unique, a macro that is easy to confuse). Restructure rationale, before/after
+  commentary and `% [Reviewer Note: ...]` narration do **not** go in the `.tex`: that history
+  belongs in the commit message. The whole `sections/` tree was cut from 429 comment lines to
+  ~40 on that date; keep the ratio near 3%. Code comments inside TikZ figures are fine.
 - **NEVER write confession prose into the `.tex`.** This is a document we intend to publish. It
   states results and the conditions under which they hold. It never narrates what was not done,
   what it would cost, or what a future experiment might show, and it never disparages its own

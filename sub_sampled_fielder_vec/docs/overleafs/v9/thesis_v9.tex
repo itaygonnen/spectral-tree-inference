@@ -1,54 +1,8 @@
 %==============================================================================
 %  Spectral top-down split recovery on imbalanced phylogenetic trees  --  V.09
 %
-%  Thin master. All prose lives in sections/*.tex; this file carries only the
-%  preamble, \maketitle, the \input list and the bibliography/appendix switches.
-%
-%     §1  Introduction                     sections/intro.tex          [A3]
-%     §2  Problem Definition               sections/problem.tex        [A1]
-%           (also declares the distance operator B = H D H, moved here
-%            from the old §4.2 in the v9 refine pass)
-%     §3  Topological Scaling and Spectral Gap  sections/bridging.tex  [A1]
-%     §4  Main Result                      sections/main-result.tex    [A2]
-%           thm:main-sim and cor:infeasible only.  The distance route
-%           (thm:main-dist, rem:dist-remainder, cor:dist-balanced,
-%           rem:gap-scope) moved to the head of App F on 2026-08-04, and
-%           sections/main-result-dist.tex was deleted with it.
-%     §5  Proof Outline                    sections/proof-outline.tex  [A2]
-%     §6  Empirical Results                sections/empirical.tex      [C1]
-%     App A  Spectral geometry             sections/appendix-A.tex     [A1]
-%     App B  Laplacian sampling error      sections/appendix-B.tex     [A1]
-%     App C  Entry-wise perturbation       sections/appendix-C.tex     [A2]
-%     App D  Hierarchical Block Model      sections/appendix-D.tex     [A1]
-%     App E  Neumann vs. standard bounds   sections/appendix-E.tex     [A2]
-%     App F  Distance route                sections/appendix-G.tex     [B1]
-%     App G  Which split each operator picks  sections/appendix-eta.tex
-%
-%  appendix-G.tex COMPILES AS App F -- the one filename that does not match its
-%  letter, and App F is now the last appendix so nothing shifts past it.  Two files
-%  were DELETED at the author's instruction on 2026-08-04: sections/appendix-emp.tex
-%  (supplementary empirical figures, previously App G -- its four floats
-%  fig:pstar_balanced, fig:identity_gen, fig:recovery_grid, fig:operator_sensitivity
-%  are gone from the document, their PNGs retained in figures/ and listed in
-%  analysis/paper_figures.py's RETIRED map, cost registered in
-%  open-items/23-appG-removal.md), and sections/appendix-H.tex (the S-vs-D
-%  comparison, briefly App G).  Both are recoverable from git history
-%  (appendix-emp.tex was tracked at commit 70b67ce).
-%
-%  Introduction and Related Work were reinstated on 2026-07-31 (they had been
-%  deferred on 2026-07-27) and MERGED into a single §1 on the same date: Related
-%  Work is now the subsection "Prior work, and the two hypotheses we drop" inside
-%  sections/intro.tex, carrying \label{sec:related}. sections/related.tex is
-%  deleted (recoverable from git history) and its \input removed below. Every
-%  cross-reference in the paper is \label{}/\Cref{}-based, so the downstream
-%  numbering self-corrected. The deferred/ directory is empty and carries no
-%  Related Work draft.
-%
-%  Notation is introduced inline in sections/problem.tex; there is no separate
-%  notation table/section (v9 polish pass, 2026-07-27 -- matches the convention
-%  in all six reference papers surveyed in docs/papers/). Open items are
-%  registered in open-items/ and collated into OPEN_ITEMS.md by
-%  scripts/collate_open_items.py.
+%  Thin master: preamble, \maketitle, the \input list, bibliography and appendix
+%  switches.  All prose lives in sections/, whose filenames give the reading order.
 %==============================================================================
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
@@ -63,12 +17,11 @@
 \usepackage{hyperref,cleveref}
 \crefname{assumption}{Assumption}{Assumptions}
 \Crefname{assumption}{Assumption}{Assumptions}
+\crefname{condition}{Condition}{Conditions}
+\Crefname{condition}{Condition}{Conditions}
 
-% Self-contained: every \includegraphics resolves inside v9/figures/.
-% The `{../}` entry was removed deliberately -- it let Figure 5 resolve to
-% overleafs/Fiedler_Bipartitions/, OUTSIDE this tree, so uploading v9/ alone to
-% Overleaf failed on that figure. Those four panels now live in
-% figures/Fiedler_Bipartitions/. Do not re-add `{../}`.
+% Self-contained: every \includegraphics resolves inside v9/figures/.  Do NOT re-add
+% `{../}` -- it resolved figures outside this tree and broke an Overleaf upload.
 \graphicspath{{figures/}{./}}
 \bibliographystyle{plain}
 
@@ -83,6 +36,10 @@
 \newtheorem{definition}{Definition}
 \newtheorem{assumption}{Assumption}
 \renewcommand{\theassumption}{A\arabic{assumption}}   % => A1, A2, ...
+% C1 is on its own counter so A1/A2 count only the two modelling hypotheses; it is a
+% quantitative inequality, not an assumption about the data.  Label: asm:margin.
+\newtheorem{condition}{Condition}
+\renewcommand{\thecondition}{C\arabic{condition}}     % => C1
 
 \theoremstyle{remark}
 \newtheorem{remark}{Remark}
@@ -90,7 +47,11 @@
 %------------------------------ notation shortcuts ----------------------------
 \newcommand{\Sin}{S_{\mathrm{in}}}
 \newcommand{\Sout}{S_{\mathrm{out}}}
-\newcommand{\Smin}{S_{\min}}
+% \Smin was never used and is retired.  \Smax is defined in sec:model as
+% max_{i!=j} S_ij.  Bare \Sin (no superscript) is a DIFFERENT quantity from
+% \Sin^{\min} -- it is the per-clan top-level baseline of the HBM -- and is
+% confined to appendix-D, bridging.tex's HBM coda and the lem:gap proof.
+% It must not appear in sec:model or sec:problem.
 \newcommand{\Smax}{S_{\max}}
 \newcommand{\bze}{\beta_0}
 \newcommand{\Dlam}{\Delta\lambda}
@@ -100,6 +61,9 @@
 \newcommand{\ES}{E_{S}}
 \newcommand{\ED}{E_{D}}
 \newcommand{\coh}{\mu(U)}
+% Fiedler sign partition: \Pisp{S} population, \Pisp{\hat S} empirical.  Introduced
+% in §2 at thm:stdr-split.  A clan pair of the tree by thm:stdr-split, unconditionally.
+\newcommand{\Pisp}[1]{\Pi(#1)}
 \newcommand{\rhotil}{\tilde\rho(\eta)}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\opnorm}[1]{\norm{#1}_{2}}
@@ -123,17 +87,18 @@
 \begin{document}
 \maketitle
 
-\input{sections/abstract}
+\input{sections/0-abstract}
 
 %==============================================================================
 %  Main text
 %==============================================================================
-\input{sections/intro}              % §1  (incl. Related Work as §1.1)
-\input{sections/problem}            % §2
-\input{sections/bridging}           % §3
-\input{sections/main-result}        % §4
-\input{sections/proof-outline}      % §5
-\input{sections/empirical}          % §6
+\input{sections/1-introduction}        % §1  Introduction (incl. Related Work as §1.1)
+\input{sections/2-generative-model}    % §2  Generative model of sequences   (sec:model)
+\input{sections/3-problem-setting}     % §3  Problem setting                 (sec:problem)
+\input{sections/4-main-result}         % §4  Main Result                     (sec:main)
+\input{sections/5-topological-scaling} % §5  Topological scaling, spectral gap (sec:bridging)
+\input{sections/6-proof-outline}       % §6  Proof outline                   (sec:outline)
+\input{sections/7-empirical-study}     % §7  Empirical study                 (sec:empirical)
 
 \newpage
 \bibliography{references}
@@ -143,12 +108,16 @@
 %  Appendices
 %==============================================================================
 \appendix
-\input{sections/appendix-A}         % spectral geometry
-\input{sections/appendix-B}         % Laplacian sampling error
-\input{sections/appendix-C}         % entry-wise perturbation
-\input{sections/appendix-D}         % Hierarchical Block Model
-\input{sections/appendix-E}         % Neumann trick vs. standard bounds
-% \input{sections/appendix-F}         % distance route            (App F)
-\input{sections/appendix-eta}       % which split each operator picks (App G)
+% Appendices are \section's, so cleveref called every \Cref{app:*} "Section A"
+% rather than "Appendix A" -- visible in the main text wherever a proof is
+% deferred.  \crefalias retargets the section counter for everything below.
+\crefalias{section}{appendix}
+\crefalias{subsection}{appendix}
+\input{sections/A-spectral-geometry}         % App A  spectral geometry
+\input{sections/B-laplacian-sampling-error}  % App B  Laplacian sampling error
+\input{sections/C-entrywise-perturbation}    % App C  entry-wise perturbation
+\input{sections/D-neumann-vs-davis-kahan}    % App D  Neumann trick vs. standard bounds
+
+\input{sections/E-operator-split-choice}     % App E  which split each operator picks
 
 \end{document}

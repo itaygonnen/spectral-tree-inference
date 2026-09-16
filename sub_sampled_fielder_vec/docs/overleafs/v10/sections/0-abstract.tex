@@ -1,0 +1,11 @@
+% Abstract.  One paragraph, one claim: a sampling rate of order log m / m suffices for
+% the sub-sampled Fiedler split to reproduce the full-data split, and the imbalance eta
+% is the parameter that governs the cost.
+\begin{abstract}
+Top-down reconstruction of latent binary phylogenetic trees is fundamentally bottlenecked by the $\Theta(m^2)$ cost of computing pairwise similarities across $m$ leaves. While observing only a sparse, Bernoulli-sampled subset of entries offers a computational workaround, real-world tree imbalance severely degrades the spectral signal, rendering standard balanced-cluster recovery guarantees inadequate. 
+In this work, we frame spectral tree inference as an eigenvector perturbation problem within the matrix-completion regime, showing that the split obtained from the full similarity matrix of an imbalanced latent tree is recovered exactly from the sign pattern of the empirical Fiedler vector computed on a sparse sample. That split is a clan of the tree for any topology.
+
+Our primary contribution is a sharp finite-sample guarantee proving that a sampling rate of $p = \Theta(\log m / m)$ suffices for exact recovery of that split at a fixed imbalance. By utilizing a coordinate-wise Neumann-series expansion rather than a standard Davis-Kahan $\ell_2$ transfer, we eliminate a spurious $\sqrt{m}$ factor in the entry-wise error bound. 
+Furthermore, we identify the imbalance ratio $\eta$ as the governing topological parameter and prove it dictates recovery through two distinct failure mechanisms: artificially inflating subspace coherence (rendering recovery statistically unaffordable) and eroding the spectral gap (rendering recovery structurally impossible). 
+This yields an explicit sample complexity dependence of $(1+\eta)^3$. Simulations on closed-form block models and Kingman coalescent trees with JC69 sequence evolution validate the predicted $\Theta(\log m / m)$ scaling and the isolated degradation mechanics of topological imbalance.
+\end{abstract}

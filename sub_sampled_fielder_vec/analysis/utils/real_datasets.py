@@ -129,9 +129,9 @@ class Dataset:
     def source(self, limit: Optional[int] = None):
         """This dataset as a :class:`src.runners.experiment_run.Source`."""
         from src.runners.experiment_run import Source
-        m, _ = self.shape()
+        m, seq_len = self.shape()
         return Source(name=self.name, loader=self.loader(),
-                      ids=self.ids(limit), m=m)
+                      ids=self.ids(limit), m=m, seq_len=seq_len)
 
     def load_all(self, tree_id: str):
         """``(S, labels, tree, D)`` for one tree, or ``None`` if files are missing.

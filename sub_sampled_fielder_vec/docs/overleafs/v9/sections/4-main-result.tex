@@ -1,39 +1,27 @@
-%==============================================================================
-%  Section 4 --- Main Result                                        [agent A2]
-%
-%  Source: v8 sec:main (thesis_v8.tex:474-604), stripped to the main result.
-%  Kept here : thm:main-sim (was thm:main), cor:infeasible (reworded).
-%  Moved out : Neumann motivation + thm:neumann + proof sketch  -> sec:outline
-%              NMI paragraph + eq:nmi_def + cor:nmi              -> sec:empirical (C1)
-%              eq:entrywise                                      -> sec:problem (A1)
-%
-%  [Reviewer Note (2026-08-04): the distance route left this section.  Theorem 2
-%  and its coda (rem:dist-remainder, cor:dist-balanced, rem:gap-scope) now open
-%  app:dist, and sections/main-result-dist.tex was deleted after its
-%  similarity-route remainder -- cor:infeasible and the no-converse paragraph --
-%  was folded back in below.]
-%==============================================================================
+% §4 Main result.  Delivers one theorem: p = Theta(log m / m) suffices for the entry-wise
+% criterion eq:entrywise to hold w.h.p.  The statement is about the criterion, not about
+% which split of the tree is returned -- that is §5.
 \section{Main Result}\label{sec:main}
 The entry-wise recovery criterion \eqref{eq:entrywise} is what the sampling rate
 has to buy. This section converts it into a sufficient condition on $p$ for the
-Laplacian $L=D-S$, stated in the structural quantities of \Cref{sec:bridging}: the
+Laplacian $L=D-S$, stated in the structural quantities of \Cref{sec:model}: the
 margin $\rho$ of \eqref{eq:margin_definition} and the imbalance $\eta$ of
 \eqref{eq:imbalance_ratio}.
 
-\begin{theorem}[Exact top-down split recovery]\label{thm:main-sim}
-In a non-balanced CFBM with $m$ terminal nodes and imbalance $\eta\ge1$, let $\rho$
+\begin{theorem}[Exact recovery of the full-data split]\label{thm:main-sim}
+Let $S$ satisfy the non-balanced CFBM of \Cref{def:cfbm} with $m$ terminal nodes and
+imbalance $\eta\ge1$, let $\rho$
 be the structural margin and let $\vvh$ be the empirical Fiedler vector --- the
 unit eigenvector belonging to the second-smallest eigenvalue of the sampled
 Laplacian $\hat L=\hat D-\hat S$, formed from entries observed with probability
 $p$ as in the observation model \eqref{eq:sampling_estimator}. Assume
-\Cref{asm:gtr,asm:clock,asm:cfbm,asm:margin}. For the
-top-down partition to succeed (i.e.\ $\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$), it
-suffices that
+\Cref{asm:margin}. For the entry-wise recovery criterion
+\eqref{eq:entrywise} to hold \hp, i.e.\
+$\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$, it suffices that
 \begin{equation}\label{eq:main_rate}
    p\;>\;\frac{8(1+\eta)^3\,\bze^2\,\log m}{m\,(\rho-\eta\,\Sout^{\max})^2}
-       \;=\;\Theta\!\left(\frac{\log m}{m}\right),
+       \;=\;\Theta\!\left(\frac{\log m}{m}\right).
 \end{equation}
-in which case $\operatorname{sign}(\vvh)$ recovers $(A,B)$ exactly \hp.
 \end{theorem}
 
 \noindent \eqref{eq:main_rate} is a \emph{sufficient} condition. No matching lower
@@ -47,16 +35,3 @@ structural eigenvector against a piecewise-constant target, at a rate governed b
 a spectral gap. Since the hypotheses of the two operators are not nested, it is a
 \emph{sibling} of \Cref{thm:main-sim} rather than a corollary of it;
 \Cref{app:dist} states it as \Cref{thm:main-dist} and proves it.
-
-\noindent What remains is to record where these sufficient conditions can be met
-at all.
-
-\begin{corollary}[Vacuity of the certificate under imbalance]\label{cor:infeasible}
-Under the hypotheses of \Cref{thm:main-sim}, with $\bze$ and the margin
-$\rho-\eta\Sout^{\max}$ held bounded away from $0$ independently of $\eta$, the
-right-hand side of \eqref{eq:main_rate} exceeds $1$ once
-$\eta=\Omega\!\bigl(\sqrt[3]{m/\log m}\bigr)$; in general the threshold is
-reached when $\eta^3\bze^2/(\rho-\eta\Sout^{\max})^2=\Omega(m/\log m)$. No admissible sampling rate
-$p\in(0,1]$ then satisfies the sufficient condition, so \Cref{thm:main-sim}
-certifies nothing about the split in that regime.
-\end{corollary}

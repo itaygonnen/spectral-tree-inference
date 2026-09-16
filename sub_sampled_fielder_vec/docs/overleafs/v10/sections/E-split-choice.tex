@@ -1,0 +1,58 @@
+% Appendix E.  Which split the Fiedler rule picks on 1000 simulated trees with no
+% sub-sampling -- the measurement behind the eta values the sweeps of §7 use.
+\section{Which Split the Fiedler Rule Picks}\label{app:eta}
+
+Two cohorts of 1000 trees, Kingman and birth--death, at $m=1000$ and $L=10^4$ under
+\Cref{asm:gtr,asm:clock}, with no sub-sampling. The split is taken as \Cref{thm:main-sim}
+prescribes: $k$-means on the Fiedler vector of $L(S)$. Per tree we record the imbalance of the
+returned split, $\eta=\max(n_1,n_2)/\min(n_1,n_2)$, and whether that split is an edge of the true
+tree. \Cref{fig:eta-hist} reports both, per cohort.
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{Kingman}\label{fig:eta-king-ls}
+        \includegraphics[width=\textwidth]{eta_hist_kingman_S.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{birth--death}\label{fig:eta-bd-ls}
+        \includegraphics[width=\textwidth]{eta_hist_bd_S.png}
+    \end{subfigure}
+
+    \caption{\textbf{Imbalance of the returned split, 1000 trees per model.} Green is a
+    genuine single-edge bipartition of the true tree, red is not; dashed line is the
+    median. Both panels share bins and axes.}
+    \label{fig:eta-hist}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{The Fiedler rule on both cohorts, 1000 trees each.}
+\label{tab:eta-agreement}
+\begin{tabular}{lrr}
+\toprule
+& Kingman & birth--death\\
+\midrule
+valid single-edge split & $996$  & $996$\\
+median $\eta$           & $3.00$ & $3.08$\\
+maximum $\eta$          & $499$  & $999$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Two things follow from \Cref{tab:eta-agreement}, and both bear on how \Cref{sec:empirical}
+reports its sweeps.
+
+\begin{enumerate}[leftmargin=2em, itemsep=3pt, topsep=3pt]
+\item \textbf{The rule returns an edge of the tree essentially always} --- $99.6\%$ on both
+      cohorts --- which is \Cref{thm:stdr-split} measured under estimation noise rather than on the
+      population matrix.
+\item \textbf{The imbalance it returns spans three orders of magnitude}, with a median near $3$ and
+      a maximum of $499$ on Kingman and $999$ on birth--death. Since $\eta$ enters
+      \eqref{eq:main_rate} cubically, a sweep that pools trees across this range reports an average
+      over recovery problems of very different difficulty. This is why \Cref{sec:empirical}
+      stratifies by $\eta$ rather than pooling.
+\end{enumerate}

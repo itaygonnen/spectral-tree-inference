@@ -1,228 +1,126 @@
-# Interactive STDR Launcher Guide
-
-## Quick Start
-
-Launch the interactive menu system:
+# Interactive launcher guide
 
 ```bash
 cd sub_sampled_fielder_vec
 python scripts/interactive_run.py
 ```
 
-## Features
-
-### 🎨 UI
-- Gradient logo, shaded top to bottom (cyan → indigo → pink), 24-bit where the
-  terminal supports it and the 256-colour cube otherwise (`src/utils/interactive_ui.py`)
-- Clean menu system with colored options
-- Inline parameter editing with defaults
-
-### 📋 Main Menu Options
-
-When you launch, you'll see:
+One experiment, two data sources. The first question is which:
 
 ```
-    s u b - s a m p l e d
-    ███████╗    ████████╗    ██████╗     ██████╗
-    ██╔════╝    ╚══██╔══╝    ██╔══██╗    ██╔══██╗
-    ███████╗       ██║       ██║  ██║    ██████╔╝
-    ╚════██║       ██║       ██║  ██║    ██╔══██╗
-    ███████║       ██║       ██████╔╝    ██║  ██║
-    ╚══════╝       ╚═╝       ╚═════╝     ╚═╝  ╚═╝
-
-    Spectral Tree Recovery
-
-Main Menu
-─────────
-Last Run (from last_run.json):
-  → n=2048, L=10000, μ=0.1, balanced_binary, 10 bootstraps
-  [r] Re-run this config
-
-Cached Matrices:
-  [1] n=2048, L=10000, μ=0.1, balanced_binary
-  [2] n=4096, L=5000, μ=0.05, kingman
-
-  [n] Create new matrix
-  [q] Quit
-
-Choice: _
+Data:
+  [1] real data - FASTA alignments with their true trees (data/tree_sets/)
+  [2] generated data - simulated trees and sequences
 ```
 
-### Option 1: Re-run Last Configuration (`r`)
-- Automatically loads your previous experiment config
-- Saved in `last_run.json` after each run
-- No need to re-enter parameters
+Both branches then ask the same things and run the same code
+(`src/runners/experiment_run.py`), so a simulated run and a real one produce the same run
+directory, the same CSVs and the same curve — a **median over trees** with an
+inter-quartile band. Before 2026-09-16 the simulated branch ran a different experiment
+(one tree per size, spread from bootstrap replicates); see *The single-tree flow* below.
 
-### Option 2: Use Cached Matrix (`1`, `2`, ...)
-- Select from pre-computed matrices
-- Matrix data is loaded from `cache/` directory
-- Configure only experiment parameters (p-values, bootstraps, etc.)
-- Saves computation time - no need to regenerate tree/sequences/matrix
+## What each branch asks
 
-### Option 3: Create New Matrix (`n`)
-- Interactive parameter entry with inline editing
-- Press Enter to keep default values
-- Creates new tree, sequences, and matrix
-- Automatically saved to cache for future use
+**Real data** — pick one or more datasets discovered under `data/tree_sets/` (any
+`<name>/{fasta,newick}` pair; `$STR_DATA_DIR` overrides the location). Select several with
+commas to run every size in turn.
 
-## Parameter Configuration
+**Generated data** — tree model(s), model properties, taxon counts, sequence length and
+mutation rate, and optionally η pooling (keep only trees whose reference split lands in a
+given imbalance band).
 
-When creating a new matrix, you'll be prompted for:
+## Then, identically for both
 
-### Matrix Parameters
+A **screening status** panel: how many trees each source has, how many are screened, how
+many each operator cuts a real tree edge on, the median η, how many clear the η cap, and
+how many are already swept.
+
+A **stage**:
+
+- `screening` — split the full matrix with every operator, record η and whether that split
+  is a genuine single-edge bipartition of the true tree. Resumable; re-running tops up
+  rows that predate an operator without discarding the verdicts they already have.
+- `recovery sweep` — for each selected tree, sub-sample at each `p` and re-read the
+  bipartition. Needs screening first, because the gate reads its verdicts.
+
+One **configuration**, applied to every source so sizes stay comparable. Press Enter to
+accept the defaults, or edit: trees per source, the validity gate, the η cap, the p-grid,
+bootstrap reps, operators, the extra diagnostics, a run name, and the output mode.
+
+Finally a **plan** — the p-grid, the operators, and per source the chain
+`N screened → N after the gate → N after the η cap`, with an estimated wall time — and a
+confirmation. Everything is cached per tree, so the run is safe to interrupt and resume.
+
+## Operators and the gate
+
+| arm | operator | cut |
+|---|---|---|
+| `L` | Fiedler of `L(S) = Deg(S) − S` | k-means **or** sign, whichever splits that tree's reference more evenly |
+| `Lsym` | Fiedler of `L_sym` | same |
+| `B` | leading-\|λ\| eigenvector of `B = HDH` | sign (there the sign pattern *is* the partition) |
+
+The gate decides which screened trees enter a sweep: `both` (L and B), `valid_L`,
+`valid_Lsym`, `valid_B`, `any`, or `all`. The η cap weighs **the operators the gate
+names** — `both` → L and B — so a lopsided `L_sym` split never removes a tree from a run
+whose figure compares L and B.
+
+## Output
+
 ```
-n_taxa [2048]: 4096         ← Type new value or press Enter for default
-sequence_length [10000]: ⏎
-mutation_rate [0.1]: 0.15
-tree_model [balanced_binary]: kingman
-```
-
-### Tree-Specific Parameters
-- **balanced_binary**: `edge_length` (default: 1.0)
-- **kingman/kingman_mean**: `pop_size` (default: 1.0)
-- **lopsided**: `edge_length` (default: 1.0)
-
-### Experiment Parameters
-```
-bootstrap_reps [10]: 20
-num_workers [8]: 16
-p_values: Use default (20 points logspace)? [Y/n]
-sampling_method [uniform]: leveraged
-```
-
-### Leveraged Sampling Parameters (if selected)
-```
-sampling_theta [0.7]: ⏎
-sampling_target_rank [2]: ⏎
-IALM max_iter [500]: ⏎
-IALM tolerance [1e-4]: ⏎
-```
-
-## Directory Structure
-
-After using the interactive launcher:
-
-```
-sub_sampled_fielder_vec/
-├── scripts/
-│   ├── interactive_run.py     ← Interactive launcher (menu-driven)
-│   └── run_experiment.py      ← Same pipeline, config-in-source. NOT deprecated:
-│                                 it is how Figure 7's prerequisite run is produced
-│                                 (see scripts/README.md and docs/RUNBOOK.md).
-│
-├── cache/                      ← Cached matrices, organized by SCOPE (7 of them)
-│   ├── experiment_data/        ← what this launcher reads and writes
-│   │   └── L10000_mu0p1000_n2048_..._treebalanced_binary/
-│   │       ├── tree.npz  observations.npz  similarity_matrix.npz
-│   │       ├── fiedler_ref.npz  metadata.json  .complete
-│   ├── pool_sample/  bootstrap_sweep/  sweep_trial/
-│   └── full_matrix/  distance_matrix/  bpart_sweep/
-│                                 (see docs/CACHE_AND_RESULTS.md)
-│
-├── last_run.json              ← Your last experiment config (gitignored)
-│
-├── results/                    ← Experiment outputs
-│   └── runs/<timestamp>-<prefix>/
-│       ├── sweep_config.json
-│       ├── n2048_L10000/
-│       └── partition_agreement.png
-│
-└── src/utils/
-    └── interactive_ui.py      ← UI components (logo, colors, inputs)
+results/real_data/runs/<timestamp>-<name>/
+    config.json   what was asked for, plus the commit
+    summary.json  headline numbers per source, status, the selection chain
+    screening.csv every tree: η and validity, per operator
+    per_tree.csv  every tree × every p, all metrics, every arm
+    curves.csv    per source × p: median, std, quartiles, bootstrap CI   ← plot from this
+    recovery_curve.png
+    run.log       everything the run printed
+    experiment.log  tagged detail, one line per (tree, arm, p)
+results/real_data/_cache/<source>/   screen.npz + one .npz per swept tree (resumable)
 ```
 
-## Tips
+`results/real_data/README.md` documents every column.
 
-### 💡 First-Time Setup
-1. Run `python scripts/interactive_run.py`
-2. Choose `[n]` to create your first matrix
-3. Configure parameters
-4. Matrix gets cached automatically
-5. Next time, select from cached matrices!
+## Unattended runs
 
-### ⚡ Speed Up Experiments
-- Pre-compute matrices for common configs
-- Use cached matrices for parameter sweeps
-- Matrix generation (tree + sequences + similarity + Fiedler) happens once
-- Experiment sweeps reuse the cached data
+For anything longer than a session, use the non-interactive twin — same questions as
+command-line flags, same code, same run directory:
 
-### 🔄 Re-running Experiments
-- After any run, config is saved to `last_run.json`
-- Next launch shows `[r] Re-run` option
-- Perfect for debugging or minor tweaks
-
-### 🗑️ Cache Management
-View cached experiments:
-```python
-from src.utils.persistent_cache import list_cached_experiments
-cached = list_cached_experiments()
-for item in cached:
-    print(f"{item['cache_key']}: {item['metadata']}")
-```
-
-Clear cache:
-```python
-from src.utils.persistent_cache import clear_cache
-clear_cache()  # Clear all
-clear_cache("n2048_L10000_mu0.100_balanced_binary_JC69")  # Clear specific
-```
-
-## Advanced: TODO Section
-
-### Custom Parameter Input (TODO in `build_config_from_cache()`)
-
-Currently at **interactive_run.py:103**, there's a section marked for enhancement:
-
-```python
-# TODO(human): Implement interactive parameter configuration
-# Ask user for: p_values, bootstrap_reps, num_workers, sampling_method, etc.
-```
-
-**What to implement:**
-- More granular control over p-values (custom ranges, spacing)
-- Additional metrics configuration (coherence_k, num_gaps)
-- Guardrails configuration
-- Output preferences
-
-**Guidance:**
-- Use the existing `get_input()` and `get_choice()` helpers from `interactive_ui.py`
-- Follow the pattern in `create_new_config()` (lines 169-244)
-- Balance between flexibility and usability (too many prompts = bad UX)
-
-## Migration from Old `run_experiment.py`
-
-**Old workflow:**
-```python
-# Edit SWEEP_CONFIG in run_experiment.py
-SWEEP_CONFIG = {
-    "tree_model": "balanced_binary",
-    "taxa_values": [2048],
-    # ... 20 more parameters
-}
-python scripts/run_experiment.py
-```
-
-**New workflow:**
 ```bash
-python scripts/interactive_run.py
-# Interactive prompts guide you through configuration
-# No file editing required!
+python scripts/run_sweep.py --list
+python scripts/run_sweep.py --dataset "6000 taxa" --stage sweep \
+    --dataset-rule valid_L --max-eta 20 --dry-run     # see the selection, run nothing
+nohup python scripts/run_sweep.py --dataset "6000 taxa" --stage sweep \
+    --dataset-rule valid_L --limit 120 > logs/sweep.log 2>&1 &
 ```
+
+`--dry-run` prints the grid, the operators and the selection chain and exits, which is the
+cheap way to choose a gate before committing a cluster job to it. `scripts/run_real_sweep.py`
+is kept as a shim for the name in the cluster runbook.
+
+## The single-tree flow
+
+The pre-2026-09 simulated flow — one tree per `(n_taxa, seq_len)`, cached matrices,
+re-run-last-configuration, results under
+`results/<tree_model>/<sampling>/<timestamp>-<run_name>/n{taxa}_L{seq_len}/` — is off the
+menu. Its curve is one tree's, not a population median, so it was never comparable with a
+real-data curve.
+
+It is not deleted: `scripts/run_experiment.py` drives the same pipeline without prompts,
+and `interactive_run.single_tree_menu()` is the old menu. It remains the only path that
+produces the per-p linear-algebra diagnostics (coherence, spectral gap, dk_ratio, IPR) and
+the middle-out and guardrail code.
 
 ## Troubleshooting
 
-### Colors not showing?
-- Make sure you're using a modern terminal (macOS Terminal, iTerm2, Windows Terminal)
-- Older terminals may not support ANSI color codes
+**"no datasets found"** — a dataset is `<root>/<name>/fasta/*.fasta` beside
+`<name>/newick/*.nwk`. The launcher prints every root it searched and why each folder was
+rejected; `python scripts/run_sweep.py --list` prints the same, plus `NOT ALIGNED` when a
+FASTA's records differ in length.
 
-### Cache not found?
-- Cache directory is created automatically in `sub_sampled_fielder_vec/cache/`
-- First run with `use_persistent_cache=True` creates cache
+**A gate selects nothing** — the screen carries no verdict for the operator it names
+(e.g. `valid_Lsym` against a screen written before `L_sym` was added). Re-run
+`--stage screen`; it tops up in place. `run_sweep.py` warns about exactly this.
 
-### Last run not showing?
-- `last_run.json` is created after first successful experiment
-- Located in `sub_sampled_fielder_vec/last_run.json`
-
----
-
-**Enjoy the new interactive STDR launcher! No more config file editing! 🎉**
+**Checking it all works** — `python -m analysis.utils.selftest` walks every call site of
+both branches in about a minute, in a scratch results root.

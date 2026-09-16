@@ -12,7 +12,8 @@ python scripts/run_benchmark.py
 
 Enter takes the default at every prompt. Nothing expensive happens until you confirm.
 
-> This is **not** `scripts/interactive_run.py` (pipeline A, one matrix at a time — see
+> This is **not** `scripts/interactive_run.py`, which since 2026-09-16 runs the same
+> screen → gate → sweep experiment on real *or* simulated sources (see
 > [INTERACTIVE_GUIDE.md](INTERACTIVE_GUIDE.md)). Different tool, different outputs.
 
 ---

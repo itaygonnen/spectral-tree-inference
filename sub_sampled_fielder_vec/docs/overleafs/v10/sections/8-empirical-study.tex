@@ -1,0 +1,94 @@
+% §7 Empirical study.  Point: measure the price of sampling -- the agreement between the
+% sub-sampled and the full-data partition -- on closed-form and on simulated matrices,
+% for both operators.  It does not certify which split of a tree either partition is.
+\section{Empirical Results}\label{sec:empirical}
+
+Two experiments produce the figures below. In the first, $S$ is written down directly from the constant-block CFBM of \Cref{def:cfbm} with $\Sin^{\min}=0.9$ and $\Sout^{\max}=0.05$, so the sampling mask is the only source of error. In the second, dendropy simulates Kingman coalescent trees, evolves JC69 sequences of length $\ell=10^4$ along their branches, and $S$ is the log-det similarity estimated from the resulting alignment (\Cref{asm:gtr}); tree shape is then off-model and every entry of $S$ carries estimation noise, so this is where the exact cross-clan baseline of \Cref{asm:clock} and the margin of \Cref{asm:margin} are put to the test.
+
+Each matrix is sub-sampled independently at every $p$ on a grid and read through the Laplacian $L$ of \Cref{thm:main-sim}, rounded by $k$-means on $L_{\mathrm{sym}}$ as that theorem prescribes. A point is an average over $20$ independent sub-sampling replicates at that size and imbalance; on the simulated trees the count is set by how many trees the pool holds at that $(n,\eta)$.
+
+Recovery is scored by the Normalized Mutual Information (NMI) between the split $\hat C=\Pisp{\hat S}$ returned from the sub-sampled matrix and the reference split $C^\ast=\Pisp{S}$ returned by the same operator on the full matrix at $p=1$. NMI is the standard measure of agreement between two spectral-clustering partitions \cite{fortunato2010community, qinrohe2013regularized}:
+\begin{equation}\label{eq:nmi_def}
+   \mathrm{NMI}(Y,C)=\frac{2\,I(Y;C)}{H(Y)+H(C)},
+\end{equation}
+with $I(Y;C)$ the mutual information and $H(\cdot)$ the Shannon entropy. NMI attains its maximum value $1$ if and only if the two partitions are identical up to relabeling, and decays as they disagree \cite{strehlghosh2002cluster, fortunato2010community}. The quantity being measured is therefore the cost of sub-sampling and nothing else: both partitions come from the same operator on the same tree, and they differ only in how many entries of $S$ were computed.
+
+\begin{corollary}[Perfect partition recovery and $\mathrm{NMI}=1$]\label{cor:nmi}
+Under the hypotheses of \Cref{thm:main-sim}, the partition $\hat C$ obtained by thresholding $\vvh$ at zero satisfies $\hat C=C^\ast$ \hp, and therefore $\mathrm{NMI}(\hat C,C^\ast)=1$.
+\end{corollary}
+\begin{proof}
+\Cref{thm:main-sim} guarantees $\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$, so for each node $i$, $|\vvh_i-\vv_i|<|\vv_i|$, which forces $\vvh_i$ and $\vv_i$ to share a sign. Thresholding both at zero therefore yields the same partition, $\hat C=\Pisp{\hat S}=\Pisp{S}=C^\ast$. No property of the tree enters: the argument is node-wise sign agreement between two vectors. Exact agreement gives $I(\hat C;C^\ast)=H(\hat C)=H(C^\ast)$, whence by \eqref{eq:nmi_def} $\mathrm{NMI}(\hat C,C^\ast)=1$.
+\end{proof}
+
+Both figures below share one layout: one pair of panels per imbalance, at $\eta=1,5,10,15$ throughout. On the left, measured NMI against the sampling rate $p$, one curve per size, the curves running dark to light (viridis) with increasing size, and the red dashed line at the $0.90$ level that defines the empirical threshold $\hat p^\star$. On the right, $\hat p^\star$ against size on log-log axes, with a dotted reference of the shape \eqref{eq:main_rate} predicts, $\log m/m$, fitted to the measured points. Filled markers are measured; open markers are bounds rather than thresholds, a read-off pinned at either end of the $p$ grid, and are excluded from the fit.
+
+Along the similarity route the transition sharpens and shifts left as the size grows, and $\hat p^\star$ decays parallel to the reference at every $\eta$ on both data sets: on the closed-form matrix of \Cref{fig:pstar_synth}, and on the simulated phylogenies of \Cref{fig:pstar_gen}, where the coherence and gap identities of \Cref{prop:coherence} and \Cref{lem:gap} continue to hold despite off-model tree shapes and JC69 noise. The $\Theta(\log m/m)$ sample complexity of \eqref{eq:main_rate} therefore survives finite-sequence estimation noise.
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta=1$}\label{fig:pstar_synth_eta1}
+        \includegraphics[width=\textwidth]{pstar_synth_nmi_eta1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta=5$}\label{fig:pstar_synth_eta5}
+        \includegraphics[width=\textwidth]{pstar_synth_nmi_eta5.png}
+    \end{subfigure}
+
+    \vspace{3mm}
+
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta=10$}\label{fig:pstar_synth_eta10}
+        \includegraphics[width=\textwidth]{pstar_synth_nmi_eta10.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta=15$}\label{fig:pstar_synth_eta15}
+        \includegraphics[width=\textwidth]{pstar_synth_nmi_eta15.png}
+    \end{subfigure}
+    \caption{\textbf{Similarity route, no estimation noise.} $S$ is the constant-block
+    CFBM in closed form, so the sampling mask is the only error present. The
+    transition sharpens and moves left as $m$ grows, and $\hat p^\star$ falls parallel
+    to $\log m/m$ at every imbalance.}
+    \label{fig:pstar_synth}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta\approx1$}\label{fig:pstar_gen_eta1}
+        \includegraphics[width=\textwidth]{pstar_gen_kmeans_eta1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta\approx5$}\label{fig:pstar_gen_eta5}
+        \includegraphics[width=\textwidth]{pstar_gen_kmeans_eta5.png}
+    \end{subfigure}
+
+    \vspace{3mm}
+
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta\approx10$}\label{fig:pstar_gen_eta10}
+        \includegraphics[width=\textwidth]{pstar_gen_kmeans_eta10.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \captionsetup{singlelinecheck=false, justification=raggedright, skip=1pt}
+        \subcaption{$\eta\approx15$}\label{fig:pstar_gen_eta15}
+        \includegraphics[width=\textwidth]{pstar_gen_kmeans_eta15.png}
+    \end{subfigure}
+    \caption{\textbf{Similarity route, simulated phylogenies.} Kingman trees carrying
+    JC69 sequences, with $S$ estimated from the alignment rather than written down.
+    The $\log m/m$ decay of \Cref{fig:pstar_synth} survives off-model tree shapes and
+    per-entry estimation noise.}
+    \label{fig:pstar_gen}
+\end{figure}
+

@@ -1,35 +1,29 @@
-%==============================================================================
-%  §6  Empirical Results
-%==============================================================================
+% §7 Empirical study.  Point: measure the price of sampling -- the agreement between the
+% sub-sampled and the full-data partition -- on closed-form and on simulated matrices,
+% for both operators.  It does not certify which split of a tree either partition is.
 \section{Empirical Results}\label{sec:empirical}
 
-% [Reviewer Note: restructured so the experiment is described once.  The four
-%  figures share one layout, so that layout is stated in the text and each caption
-%  now carries only what data its figure shows.  The fitted constant C is not
-%  reported: both producing notebooks label it a diagnostic rather than a paper
-%  metric, and the figures' claim is the slope, not the intercept.  The distance
-%  route no longer has its own subsection -- it is the same experiment through the
-%  second operator, and $\Bop$ is declared in \Cref{sec:problem}.]
-We test both sampling rates in two complementary regimes. In the \emph{synthesized} regime the similarity matrix $S$ is built directly from the closed-form constant-block CFBM (\Cref{asm:cfbm}), isolating the linear algebra with no estimation noise. In the \emph{generated} regime dendropy simulates Kingman coalescent trees and evolves JC69 sequences of length $\ell=10^4$, from which $S$ is the log-det similarity (\Cref{asm:gtr}); this probes whether the two hypotheses the proof actually rests on --- the exact cross-clan baseline of \Cref{asm:clock} and the separation margin of \Cref{asm:margin} --- survive realistic tree shapes and finite-sequence noise. The intra-clan structure that the constant-block CFBM idealizes away is not at issue: \eqref{eq:cfbm_floor} leaves it free. Each regime is then run through both operators of \Cref{sec:problem}: the Laplacian $L$ of \Cref{thm:main-sim}, and the centered distance operator $\Bop=H\Dmat H$ of \Cref{thm:main-dist}. Each rounds as its own theorem does --- $k$-means on the normalized Laplacian $L_{\mathrm{sym}}$ for the similarity route, the sign pattern of $\uone$ for the distance route.
+Two experiments produce the figures below. In the first, $S$ is written down directly from the constant-block CFBM of \Cref{def:cfbm} with $\Sin^{\min}=0.9$ and $\Sout^{\max}=0.05$, so the sampling mask is the only source of error. In the second, dendropy simulates Kingman coalescent trees, evolves JC69 sequences of length $\ell=10^4$ along their branches, and $S$ is the log-det similarity estimated from the resulting alignment (\Cref{asm:gtr}); tree shape is then off-model and every entry of $S$ carries estimation noise, so this is where the exact cross-clan baseline of \Cref{asm:clock} and the margin of \Cref{asm:margin} are put to the test.
 
-Recovery is scored by the Normalized Mutual Information (NMI) of the recovered split $\hat C$ against the planted split $C^\ast$. NMI is the standard accuracy metric for evaluating spectral-clustering partitions against a known ground truth \cite{fortunato2010community, qinrohe2013regularized}:
+Each matrix is sub-sampled independently at every $p$ on a grid and read through both operators of \Cref{sec:problem} --- the Laplacian $L$ of \Cref{thm:main-sim}, rounded by $k$-means on $L_{\mathrm{sym}}$, and the centred distance operator $\Bop=H\Dmat H$ of \Cref{thm:main-dist}, rounded by the sign of $\uone$ --- each as its own theorem prescribes. A point is an average over independent sub-sampling replicates at that size and imbalance, $20$ per point on the similarity route and $8$ on the distance route; on the simulated trees the count is set by how many trees the pool holds at that $(n,\eta)$.
+
+Recovery is scored by the Normalized Mutual Information (NMI) between the split $\hat C=\Pisp{\hat S}$ returned from the sub-sampled matrix and the reference split $C^\ast=\Pisp{S}$ returned by the same operator on the full matrix at $p=1$. NMI is the standard measure of agreement between two spectral-clustering partitions \cite{fortunato2010community, qinrohe2013regularized}:
 \begin{equation}\label{eq:nmi_def}
    \mathrm{NMI}(Y,C)=\frac{2\,I(Y;C)}{H(Y)+H(C)},
 \end{equation}
-with $I(Y;C)$ the mutual information and $H(\cdot)$ the Shannon entropy. NMI attains its maximum value $1$ if and only if the two partitions are identical up to relabeling, and decays as they disagree \cite{strehlghosh2002cluster, fortunato2010community}. Composing this with the sign-recovery guarantee of \Cref{thm:main-sim} fixes the population endpoint of our sweeps.
+with $I(Y;C)$ the mutual information and $H(\cdot)$ the Shannon entropy. NMI attains its maximum value $1$ if and only if the two partitions are identical up to relabeling, and decays as they disagree \cite{strehlghosh2002cluster, fortunato2010community}. The quantity being measured is therefore the cost of sub-sampling and nothing else: both partitions come from the same operator on the same tree, and they differ only in how many entries of $S$ were computed.
 
 \begin{corollary}[Perfect partition recovery and $\mathrm{NMI}=1$]\label{cor:nmi}
-Under the hypotheses of \Cref{thm:main-sim}, the spectral partition $\hat C=\{\hat C_A,\hat C_B\}$ obtained by thresholding $\vvh$ at zero satisfies $\hat C=C^\ast$ \hp, and therefore $\mathrm{NMI}(\hat C,C^\ast)=1$.
+Under the hypotheses of \Cref{thm:main-sim}, the partition $\hat C$ obtained by thresholding $\vvh$ at zero satisfies $\hat C=C^\ast$ \hp, and therefore $\mathrm{NMI}(\hat C,C^\ast)=1$.
 \end{corollary}
 \begin{proof}
-\Cref{thm:main-sim} guarantees $\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$, so for each node $i$, $|\vvh_i-\vv_i|<|\vv_i|$, which forces $\vvh_i$ and $\vv_i$ to share a sign. Under the CFBM the population Fiedler vector is sign-constant on each clan \cite{aizenbud2023spectral} ($\vv_i>0$ on $A$, $\vv_i<0$ on $B$), so the zero-threshold partition of $\vvh$ recovers $C^\ast$ exactly. Exact recovery gives $I(\hat C;C^\ast)=H(\hat C)=H(C^\ast)$, whence by \eqref{eq:nmi_def} $\mathrm{NMI}(\hat C,C^\ast)=1$.
+\Cref{thm:main-sim} guarantees $\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$, so for each node $i$, $|\vvh_i-\vv_i|<|\vv_i|$, which forces $\vvh_i$ and $\vv_i$ to share a sign. Thresholding both at zero therefore yields the same partition, $\hat C=\Pisp{\hat S}=\Pisp{S}=C^\ast$. No property of the tree enters: the argument is node-wise sign agreement between two vectors. Exact agreement gives $I(\hat C;C^\ast)=H(\hat C)=H(C^\ast)$, whence by \eqref{eq:nmi_def} $\mathrm{NMI}(\hat C,C^\ast)=1$.
 \end{proof}
 
 All four figures below share one layout: one pair of panels per imbalance, at $\eta=1,5,10,15$ throughout. On the left, measured NMI against the sampling rate $p$, one curve per size, the curves running dark to light (viridis) with increasing size, and the red dashed line at the $0.90$ level that defines the empirical threshold $\hat p^\star$. On the right, $\hat p^\star$ against size on log-log axes, with a dotted reference of the shape the governing rate predicts --- $\log m/m$, from \eqref{eq:main_rate} on the similarity side and \eqref{eq:main-rate-dist-balanced} on the distance side --- fitted to the measured points. Filled markers are measured; open markers are bounds rather than thresholds, a read-off pinned at either end of the $p$ grid, and are excluded from the fit.
 
-Along the similarity route the transition sharpens and shifts left as the size grows, and $\hat p^\star$ decays parallel to the reference at every $\eta$ in both regimes: with no estimation noise in \Cref{fig:pstar_synth}, and on Kingman trees in \Cref{fig:pstar_gen}, where the coherence and gap identities of \Cref{prop:coherence} and \Cref{lem:gap} continue to hold despite off-model tree shapes and JC69 noise (\Cref{asm:gtr}). The $\Theta(\log n/n)$ sample complexity predicted by \eqref{eq:main_rate} therefore survives realistic finite-sequence estimation noise.
+Along the similarity route the transition sharpens and shifts left as the size grows, and $\hat p^\star$ decays parallel to the reference at every $\eta$ on both data sets: on the closed-form matrix of \Cref{fig:pstar_synth}, and on the simulated phylogenies of \Cref{fig:pstar_gen}, where the coherence and gap identities of \Cref{prop:coherence} and \Cref{lem:gap} continue to hold despite off-model tree shapes and JC69 noise. The $\Theta(\log m/m)$ sample complexity of \eqref{eq:main_rate} therefore survives finite-sequence estimation noise.
 
-% Source: analysis/paper/fig02_pstar_synth_cbm.ipynb
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
@@ -57,14 +51,13 @@ Along the similarity route the transition sharpens and shifts left as the size g
         \subcaption{$\eta=15$}\label{fig:pstar_synth_eta15}
         \includegraphics[width=\textwidth]{pstar_synth_nmi_eta15.png}
     \end{subfigure}
-    \caption{\textbf{Similarity route, synthesized non-balanced constant-block CFBM.}
-    $\Sin=0.9$, $\Sout^{\max}=0.05$; seven sizes across two decades of $m$; $20$
-    sub-sampling trials per point; $k$-means rounding. No estimation noise is
-    present: $S$ is the closed-form block matrix.}
+    \caption{\textbf{Similarity route, no estimation noise.} $S$ is the constant-block
+    CFBM in closed form, so the sampling mask is the only error present. The
+    transition sharpens and moves left as $m$ grows, and $\hat p^\star$ falls parallel
+    to $\log m/m$ at every imbalance.}
     \label{fig:pstar_synth}
 \end{figure}
 
-% Source: analysis/paper/fig03_pstar_gen_kingman.ipynb
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
@@ -92,17 +85,15 @@ Along the similarity route the transition sharpens and shifts left as the size g
         \subcaption{$\eta\approx15$}\label{fig:pstar_gen_eta15}
         \includegraphics[width=\textwidth]{pstar_gen_kmeans_eta15.png}
     \end{subfigure}
-    \caption{\textbf{Similarity route, generated Kingman trees.} JC69 sequences of
-    length $\ell=10^4$, log-det similarity; $n=500,1000,2000,4000,6000,8000$;
-    $k$-means rounding. Each point averages the pool samples available at that
-    $(n,\eta)$ --- ten at $\eta\approx1,5$, three at $\eta\approx10,15$, and one at
-    $n=8000$ throughout.}
+    \caption{\textbf{Similarity route, simulated phylogenies.} Kingman trees carrying
+    JC69 sequences, with $S$ estimated from the alignment rather than written down.
+    The $\log m/m$ decay of \Cref{fig:pstar_synth} survives off-model tree shapes and
+    per-entry estimation noise.}
     \label{fig:pstar_gen}
 \end{figure}
 
 Run through $\Bop$ on the same data, the sign rule of \Cref{thm:main-dist} reproduces that decay at $\eta=1$ and degrades progressively away from balance, until at $\eta=15$ most synthesized sizes never recover below full data (\Cref{fig:pstar_synth_dist,fig:pstar_gen_dist}). Only the $\eta=1$ panel of \Cref{fig:pstar_synth_dist} lies inside the configuration where hypotheses (i)--(ii) of \Cref{thm:main-dist} are verified (\Cref{cor:dist-balanced}); the remaining panels measure the estimator rather than certify the rate. Which operator tolerates more noise is not read off these sweeps --- the two routes differ in rounding rule as well as in operator --- and \Cref{rem:gap-scope} compares the two rates' parameter groups, not the two estimators.
 
-% Source: analysis/supporting/pstar_flat_cbm_distance.ipynb
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
@@ -130,13 +121,13 @@ Run through $\Bop$ on the same data, the sign rule of \Cref{thm:main-dist} repro
         \subcaption{$\eta=15$}\label{fig:pstar_synth_dist_eta15}
         \includegraphics[width=\textwidth]{pstar_synth_dist_eta15.png}
     \end{subfigure}
-    \caption{\textbf{Distance route, synthesized non-balanced constant-block CFBM.} The matrix
-    of \Cref{fig:pstar_synth} read through $\Bop=H\Dmat H$ with $\Dmat=-\log S$;
-    sign rounding; $8$ trials per point.}
+    \caption{\textbf{Distance route, no estimation noise.} The matrix of
+    \Cref{fig:pstar_synth} read through $\Bop=H\Dmat H$ with $\Dmat=-\log S$. The
+    decay is reproduced at $\eta=1$ and degrades as imbalance grows, until at
+    $\eta=15$ most sizes reach the threshold only at full data.}
     \label{fig:pstar_synth_dist}
 \end{figure}
 
-% Source: analysis/supporting/pstar_eta_pool_distance.ipynb
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
@@ -164,11 +155,9 @@ Run through $\Bop$ on the same data, the sign rule of \Cref{thm:main-dist} repro
         \subcaption{$\eta\approx15$}\label{fig:pstar_gen_dist_eta15}
         \includegraphics[width=\textwidth]{pstar_gen_dist_eta15.png}
     \end{subfigure}
-    \caption{\textbf{Distance route, generated Kingman trees.} The same
-    $\eta$-binned pool and the same $p$ grid as \Cref{fig:pstar_gen} --- same trees,
-    same sequences, same ten sub-sampling replicates per point --- read through
-    $\Bop$ with $\Dmat=-\log S$ recovered from each cached $S$; sign rounding. The
-    replicates are combined as in \Cref{fig:pstar_gen}: sign-align, average the
-    eigenvectors, partition the average \emph{once}.}
+    \caption{\textbf{Distance route, simulated phylogenies.} The trees, sequences and
+    $p$ grid of \Cref{fig:pstar_gen}, read through $\Bop$ instead of $L$. Estimation
+    noise leaves the picture of \Cref{fig:pstar_synth_dist} unchanged: the balanced
+    case decays, and imbalance costs the threshold.}
     \label{fig:pstar_gen_dist}
 \end{figure}

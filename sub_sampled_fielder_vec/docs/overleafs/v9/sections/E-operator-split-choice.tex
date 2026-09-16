@@ -1,9 +1,5 @@
-%==============================================================================
-%  Appendix G --- which split each operator picks.
-%  Filename carries the topic, not the letter (see the master's header note).
-%  Every number here comes from analysis/supporting/eta_by_operator.ipynb.
-%==============================================================================
-
+% Appendix E.  Which split each operator picks on 1000 simulated trees with no
+% sub-sampling -- the measurement behind the eta values the sweeps use.
 \section{Which Split Each Operator Picks}\label{app:eta}
 
 Two cohorts of 1000 trees, Kingman and birth--death, at $m=1000$ and $L=10^4$ under
@@ -11,7 +7,8 @@ Two cohorts of 1000 trees, Kingman and birth--death, at $m=1000$ and $L=10^4$ un
 own theorem states: $k$-means on the Fiedler vector of $L(S)$, sign on the
 leading-magnitude eigenvector of $\Bop=H\Dmat H$. Per tree we record the imbalance of the
 returned split, $\eta=\max(n_1,n_2)/\min(n_1,n_2)$, and whether that split is an edge of
-the true tree.
+the true tree. \Cref{fig:eta-hist} reports both, per cohort and per
+operator.
 
 \begin{figure}[htbp]
     \centering
@@ -67,7 +64,7 @@ identical $\eta$        & \multicolumn{2}{r}{$64.1\%$} & \multicolumn{2}{r}{$33.
 \end{tabular}
 \end{table}
 
-\noindent Four things follow.
+\noindent \Cref{tab:eta-agreement} summarises the two cohorts. Four things follow.
 
 \begin{enumerate}[leftmargin=2em, itemsep=3pt, topsep=3pt]
 \item \textbf{On Kingman trees the operators differ in \emph{which} edge, not in whether

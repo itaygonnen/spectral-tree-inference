@@ -1,46 +1,22 @@
-%==============================================================================
-%  Appendix A  Proof of the spectral geometry                      [owner: A1]
-%  Source: v8 app:comp1 (v8:701-786).
-%  One-statement-one-home: v8's lem:A-coherence and lem:A-gap restated
-%  prop:coherence and lem:gap verbatim; both are now proof environments
-%  attached to the main-text statements, and the duplicate labels are gone.
-%==============================================================================
+% Appendix A.  Proofs of the population spectral geometry.  The order lem:A-decomp ->
+% prop:coherence -> lem:gap -> lem:A-decomp(iv) is load-bearing: lem:gap uses only the
+% inequality lambda_2 <= m*beta_0, and clause (iv) then uses lem:gap's interlacing
+% bound to force equality.  Reordering makes the identification circular.
 \section{Proof of the spectral geometry}\label{app:comp1}
-% Supports Proposition~\ref{prop:coherence}, Lemma~\ref{lem:gap}, Corollary~\ref{cor:tolerance}.
 
-We first record the range of the population entries, which earlier versions carried
-as a standing assumption and which is in fact a consequence of the three that
-precede it.
+\noindent Every later appeal to a bounded population entry is to \Cref{prop:cfbm}.
+No range claim is made for $\hat S$: by \eqref{eq:sampling_estimator} its observed
+off-diagonal entries equal $S_{ij}/p$, which exceed $1$ throughout the regime
+$p=\Theta(\log m/m)$ of interest.
 
-\begin{remark}[Range of the population entries]\label{rem:range}
-Under \Cref{asm:gtr,asm:clock,asm:cfbm} the population matrix satisfies
-\[
-   S_{ii}=1,\qquad
-   0<\bze\le S_{ij}\le\Smax<1\quad(i\ne j),
-   \qquad \Smax:=\max_{i\ne j}S_{ij}.
-\]
-Indeed $\tau_{ii}=0$ makes $S_{ii}=\exp(0)=1$ --- consistent with
-\eqref{eq:sampling_estimator}, whose unbiasedness $\E[\hat S]=S$ requires it ---
-while off the diagonal \Cref{asm:clock} places every cross-clan entry at
-$\bze\in(0,1)$ and \eqref{eq:cfbm_floor} places every same-clan entry in
-$(\bze,\Smax]$. No range claim is made for $\hat S$: by
-\eqref{eq:sampling_estimator} its observed off-diagonal entries equal $S_{ij}/p$,
-which exceed $1$ throughout the regime $p=\Theta(\log m/m)$ of interest.
-\end{remark}
+\noindent We first prove the spectral decomposition stated in \Cref{sec:model},
+which the proof of \Cref{lem:gap} then uses.
 
-\noindent Every later appeal to a bounded entry is to this remark. For the proof of
-\Cref{lem:gap} we next derive the spectral properties of the
-Fiedler vector.
-
-\begin{lemma}[Spectral decomposition of the imbalanced Laplacian]\label{lem:A-decomp}
-Under \Cref{asm:clock,asm:cfbm}: (i) the smallest eigenvalue is $\lambda_1=0$ with
-$v^{(1)}=\tfrac1{\sqrt m}\1_m$; (ii) the Fiedler eigenvalue is $\lambda_2=m\bze$;
-(iii) the Fiedler vector is piecewise constant, $\vv_i=+c_A$ for $i\in A$ and
-$\vv_i=-c_B$ for $i\in B$, with $c_A=\sqrt{b/(am)}$ and $c_B=\sqrt{a/(bm)}$.
-\end{lemma}
-\begin{proof}
-For any $L=D-S$, $L\1=D\1-S\1=0$, so $\lambda_1=0$ with $v^{(1)}=\tfrac1{\sqrt
-m}\1_m$; no assumption on $S$ is needed.
+\begin{proof}[Proof of \Cref{lem:A-decomp}(i)--(iii)]
+For any $L=D-S$, $L\1=D\1-S\1=0$, so $0$ is an eigenvalue with
+$v^{(1)}=\tfrac1{\sqrt m}\1_m$; no assumption on $S$ is needed. Every off-diagonal
+entry of $S$ is at least $\bze>0$ by \Cref{prop:cfbm}, so the similarity graph is
+connected and $\lambda_1=0$ is simple.
 
 \emph{Step heights.} Assume $\vv$ has the stated form with $c_A,c_B>0$. The
 constraints $\norm{\vv}_2=1$ and $\langle v^{(1)},\vv\rangle=0$ give $ac_A=bc_B$,
@@ -53,7 +29,7 @@ hence
 
 \emph{Eigenpair verification.} Write $\vv=(c_A\1_a,\,-c_B\1_b)^\top$ with
 $ac_A=bc_B$. The only structural input is that the diagonal sub-degrees of
-\Cref{asm:cfbm} already carry the row sums of their own block,
+\Cref{prop:cfbm} already carry the row sums of their own block,
 $D_A=\operatorname{diag}(S_A\1_a)+b\bze I_a$, so that
 \begin{equation}\label{eq:block_annihilation}
    (D_A-S_A)\1_a=b\bze\1_a,\qquad(D_B-S_B)\1_b=a\bze\1_b,
@@ -71,9 +47,20 @@ $J_{b\times a}\1_a=a\1_b$ and \eqref{eq:block_annihilation},
 \]
 which reduces to
 $\bigl(b\bze(c_A+c_B)\1_a,\,-a\bze(c_A+c_B)\1_b\bigr)^\top$. From $ac_A=bc_B$,
-$b(c_A+c_B)=mc_A$ and $a(c_A+c_B)=mc_B$, so $Lv^{(2)}=m\bze\,\vv$ and
-$\lambda_2=m\bze$.
+$b(c_A+c_B)=mc_A$ and $a(c_A+c_B)=mc_B$, so $Lv^{(2)}=m\bze\,\vv$: the pair
+$(m\bze,\vv)$ is an eigenpair, which is claim~(ii).
+
+\emph{The bound \eqref{eq:lambda2_upper}.} Since $\lambda_1=0$ is simple with
+eigenvector $v^{(1)}$, the Courant--Fischer characterisation of the second
+eigenvalue reads $\lambda_2=\min\{x^\top Lx:\ \norm{x}_2=1,\ x\perp v^{(1)}\}$. The
+vector $\vv$ is admissible in that minimisation --- it is a unit vector and
+$\langle v^{(1)},\vv\rangle=0$ by construction --- so
+$\lambda_2\le\langle\vv,L\vv\rangle=m\bze\norm{\vv}_2^2=m\bze$.
 \end{proof}
+
+\noindent Nothing above forces $\lambda_2$ to \emph{equal} $m\bze$; that is an
+ordering claim, and it is what \Cref{asm:margin} supplies in clause (iv), proved at
+the end of this appendix after the interlacing bound it needs.
 
 \begin{proof}[Proof of \Cref{prop:coherence}]
 Substituting the Fiedler coordinates of \Cref{lem:A-decomp} into
@@ -86,23 +73,29 @@ Substituting the Fiedler coordinates of \Cref{lem:A-decomp} into
 \end{proof}
 
 \begin{proof}[Proof of \Cref{lem:gap}]
-The argument uses \Cref{asm:clock,asm:cfbm} and \Cref{rem:range}. By \Cref{lem:A-decomp} the
-Fiedler eigenvalue is $\lambda_2=m\bze=m\Sout^{\max}$.
+The argument uses \Cref{asm:clock} and \Cref{prop:cfbm}, and only the
+\emph{inequality} \eqref{eq:lambda2_upper}, $\lambda_2\le m\bze=m\Sout^{\max}$ ---
+not clause (iv) of \Cref{lem:A-decomp}, whose proof appeals to the interlacing step
+below.
 For $\lambda_3$, standard algebraic-connectivity interlacing gives
 $\lambda_3(L)\ge\min\bigl(\lambda_2(L_{C_1}),\lambda_2(L_{C_2})\bigr)$, and applying
 the Fiedler-eigenvalue formula to each sub-clan Laplacian gives
-$\lambda_2(L_{C_c})\ge n_c\,S_{\mathrm{in}}^{(c)}$. With
-$\Sin=\min_c S_{\mathrm{in}}^{(c)}$,
-\[
-   \min\bigl(\lambda_2(L_{C_1}),\lambda_2(L_{C_2})\bigr)\ge\min(n_1,n_2)\,\Sin=m_{\min}\Sin,
-\]
-so $\Dlam=\lambda_3-\lambda_2\ge m_{\min}\Sin-m\Sout^{\max}$. Using
-$\Sin=\rho+\Sout^{\max}$ and $m=m_{\min}(1+\eta)$,
+$\lambda_2(L_{C_c})\ge n_c\,S_{\mathrm{in}}^{(c)}$. Since
+$\min_c S_{\mathrm{in}}^{(c)}=\Sin^{\min}$, the weakest intra-clan similarity of
+\eqref{eq:cfbm_floor},
+\begin{equation}\label{eq:lambda3_lower}
+   \lambda_3\ \ge\ \min\bigl(\lambda_2(L_{C_1}),\lambda_2(L_{C_2})\bigr)
+   \ \ge\ \min(n_1,n_2)\,\Sin^{\min}=m_{\min}\Sin^{\min},
+\end{equation}
+so $\Dlam=\lambda_3-\lambda_2\ge m_{\min}\Sin^{\min}-m\Sout^{\max}$. Using
+$\Sin^{\min}=\rho+\Sout^{\max}$, which is \eqref{eq:margin_under_clock}, and
+$m=m_{\min}(1+\eta)$,
 \[
    \Dlam\ge m_{\min}(\rho+\Sout^{\max})-(1+\eta)m_{\min}\Sout^{\max}
         =m_{\min}\rho-\eta\,m_{\min}\Sout^{\max}. \qedhere
 \]
 \end{proof}
+
 
 \begin{proof}[Proof of \Cref{cor:tolerance}]
 Positivity of the bound in \Cref{lem:gap} requires
@@ -112,4 +105,19 @@ similarity by the subtree depth, $\Sout^{\max}\propto e^{-\mathcal O(h(\mathcal 
 Substituting into $\eta<\Sin^{\min}/\Sout^{\max}$ gives \eqref{eq:eta_distance_bound};
 the logarithmic scaling $r,h=\mathcal O(\log m)$ under Kingman yields
 $\eta\le\mathcal O(e^{\mathcal O(\log m)})=\mathcal O(m^c)$.
+\end{proof}
+
+\noindent With \eqref{eq:lambda3_lower} in hand the inequality
+\eqref{eq:lambda2_upper} can be closed.
+
+\begin{proof}[Proof of \Cref{lem:A-decomp}(iv)]
+Suppose $\lambda_2<m\bze$. Then $m\bze$, an eigenvalue of $L$ by
+\Cref{lem:A-decomp}(ii) and equal to neither $\lambda_1=0$ nor $\lambda_2$, satisfies
+$m\bze\ge\lambda_3$. The interlacing bound \eqref{eq:lambda3_lower} gives
+$\lambda_3\ge m_{\min}\Sin^{\min}$, so this forces $m_{\min}\Sin^{\min}\le m\bze$.
+But $\Sout^{\max}=\bze$ under \Cref{asm:clock} and $m=m_{\min}(1+\eta)$, so
+\eqref{eq:margin_assumption} reads $\Sin^{\min}>(1+\eta)\bze$, i.e.\
+$m_{\min}\Sin^{\min}>m\bze$ --- a contradiction. Hence $\lambda_2=m\bze$, and then
+$\lambda_3\ge m_{\min}\Sin^{\min}>m\bze=\lambda_2$ shows $\lambda_2$ is simple, so
+$\vv$ is the Fiedler vector up to sign.
 \end{proof}

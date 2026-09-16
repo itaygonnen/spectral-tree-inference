@@ -58,7 +58,7 @@ laptop: it rsyncs the repo and the dataset over ssh, excluding caches, results a
 
 `python scripts/run_sweep.py --list` is the readiness check: a dataset listed with the
 right tree count means the data, the layout and the environment are all fine.
-`python -m analysis.utils.real_selftest` (~1 min, scratch dir) goes further and screens
+`python -m analysis.utils.selftest` (~1 min, scratch dir) goes further and screens
 and sweeps two trees for real — worth running after changing the code, not before every
 run.
 

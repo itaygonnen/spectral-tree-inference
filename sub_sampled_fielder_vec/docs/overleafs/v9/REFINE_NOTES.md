@@ -11,7 +11,7 @@ invisible in the compiled PDF.
 
 ---
 
-## Abstract — `sections/abstract.tex`
+## Abstract — `sections/0-abstract.tex`
 
 Rewritten as **problem → approach → bound → takeaway**. The previous version
 spent five of eleven sentences on method exposition (the Neumann-vs-Davis–Kahan
@@ -21,7 +21,7 @@ survives as a subordinate clause. The closing "we prove no matching lower bound"
 sentence is kept verbatim: it is a claim-discipline commitment
 (`open-items/12-A3.md`).
 
-## §1 Introduction — `sections/intro.tex`
+## §1 Introduction — `sections/1-introduction.tex`
 
 **Dissolved:** the five numbered difficulties `(i)`–`(v)` and the eight-bullet
 contributions list (≈160 lines) → two paragraphs plus a compressed roadmap.
@@ -67,7 +67,7 @@ closed it.
 chain table. `asm:margin` and its siblings are cited as hypotheses *inside*
 `thm:main-sim` and must remain referenceable.
 
-## §3 — `sections/bridging.tex`
+## §3 — `sections/5-topological-scaling.tex`
 
 **Retitled** "Bridging Tree Topology to Linear Algebra" →
 **"Topological Scaling and Spectral Gap"**: the old title named the activity
@@ -80,7 +80,7 @@ the proposition or lemma immediately below stated formally, so the reader was
 told everything twice. Proposition 1 and Lemma 1 are now stated directly and the
 two failure modes run as continuous prose.
 
-## §4 Main Result — `sections/main-result.tex`, `sections/main-result-dist.tex`
+## §4 Main Result — `sections/4-main-result.tex`, `sections/main-result-dist.tex`
 
 **Reordered to put Theorem 1 and Theorem 2 back to back.** Previously the section
 stated Theorem 1, spent a corollary and a remark on the *reach* of that theorem,
@@ -99,7 +99,7 @@ the section had begun winding down. Now:
 criterion.}` heading are gone; the `\providecommand` macro block is promoted to
 the preamble of `thesis_v9.tex` (kept as a fallback in the section file).
 
-## §5 Proof Outline — `sections/proof-outline.tex`
+## §5 Proof Outline — `sections/6-proof-outline.tex`
 
 **Dissolved:** subsections 5.1–5.5. A proof sketch is where momentum matters
 most — the reader is being carried through an argument, not consulting a manual —
@@ -107,7 +107,7 @@ and five headings across two pages announced each step twice, once in the roadma
 sentence and once as a title. `lem:neumann`, `lem:pernode` and the proof
 environment (with its internal Step 1–4 structure) are untouched.
 
-## §6 Empirical Results — `sections/empirical.tex`
+## §6 Empirical Results — `sections/7-empirical-study.tex`
 
 **Integrated:** §6.1 "Scoring the recovered split" into the experimental setup. A
 metric is apparatus, not a result: a numbered subsection put a definition between
@@ -146,3 +146,10 @@ undefined references/citations: 0   (baseline: 0)
 bibitems: 22, all still cited        (bibtex warnings: 0)
 pages: 31                            (baseline: 33)
 ```
+
+---
+
+**File paths above were rewritten 2026-08-23**, when `sections/` was renamed to encode
+position (`1-introduction.tex`, `2-generative-model.tex`, ...). The section *numbers* in the
+headings are those of the v9 refine pass and no longer match the compiled document: the main
+result is now §4 and topological scaling §5.

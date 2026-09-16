@@ -1,12 +1,6 @@
-%==============================================================================
-%  Appendix C --- Proof of the entry-wise perturbation               [agent A2]
-%
-%  Source: v8 thesis_v8.tex:863-1002.
-%  Restructure: C.1 keeps the decomposition (lem:C-series, lem:C-first, rem:C-asym);
-%               C.2 keeps the concentration chain and now carries the proof of
-%                   lem:pernode (v8's lem:C-bern, whose statement moved to sec:outline);
-%               C.3 is new and holds lem:C-remainder, moved out of C.1.
-%==============================================================================
+% Appendix C.  Proofs of the entry-wise perturbation chain: Neumann series, per-node
+% concentration, and the discarded remainder that confines the argument to the
+% strong-signal regime.
 \section{Proof of the entry-wise perturbation}\label{app:comp3}
 
 \subsection{Neumann decomposition (proof of \Cref{lem:neumann})}\label{app:comp3a}
@@ -78,14 +72,14 @@ $(\EL\vv)_i=\sum_{k\ne i}(\ES)_{ik}\vv_i-\sum_{j\ne i}(\ES)_{ij}\vv_j
 \end{proof}
 
 \begin{proposition}[Within-clan terms vanish]\label{prop:C-within}
-Under \Cref{asm:cfbm}, $\vv$ is constant on each clan (\Cref{lem:A-decomp}), so
+Under \Cref{def:cfbm}, $\vv$ is constant on each clan (\Cref{lem:A-decomp}), so
 $X_{ij}=0$ for same-clan pairs; only cross-clan pairs survive:
 $(\EL\vv)_i=\sum_{j\in A}X_{ij}$ for $i\in B$, and
 $(\EL\vv)_i=\sum_{j\in B}X_{ij}$ for $i\in A$.
 \end{proposition}
 
 \begin{proposition}[Per-node variance]\label{prop:C-var}
-Under \Cref{asm:cfbm} and the observation model \eqref{eq:sampling_estimator}, with
+Under \Cref{def:cfbm} and the observation model \eqref{eq:sampling_estimator}, with
 $\bze=\Sout^{\max}$ and using
 $(c_A+c_B)^2=m/(ab)=(1+\eta)^2/(m\eta)$,
 \begin{equation}
@@ -116,7 +110,7 @@ and a union bound over the $m$ nodes at $\delta=\delta_0/m$ yields
 \end{proof}
 
 \begin{proposition}[Clan $B$ is binding]\label{prop:C-bind}
-Under \Cref{asm:cfbm}, $\min_i|\vv_i|=|c_B|$, attained on the larger clan $B$. The
+Under \Cref{lem:A-decomp}, $\min_i|\vv_i|=|c_B|$, attained on the larger clan $B$. The
 per-node condition $|(\EL\vv)_i|<\Dlam|\vv_i|$ requires
 $p>8m(1+\eta)\bze^2\log m/\Dlam^2$ on $B$ (the clan-$A$ condition carries an extra
 $1/\eta$), so since $\eta\ge1$, clan $B$ binds.
