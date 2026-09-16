@@ -28,6 +28,8 @@ from typing import Dict, List
 
 import numpy as np
 
+from dataclasses import replace
+
 _ROOT = Path(__file__).resolve().parents[2]      # sub_sampled_fielder_vec
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
@@ -43,9 +45,8 @@ from src.runners.experiment_run import (GATES, MAX_ETA, P_MIN,  # noqa: E402
 from src.runners.operators import ALL_OPERATORS, ARM_OF, OPERATORS  # noqa: E402
 
 
-def _ask_config(datasets, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec:
-    """One parameter set for all datasets: show the defaults, edit them only on request."""
-    names = [c.name for c in datasets]
+def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec:
+    """One parameter set for every source: show the defaults, edit them only on request."""
     spec = RunSpec(stage="screen" if is_screen else "sweep",
                    max_trees=0,                   # 0 = every tree in each dataset
                    workers=max(1, min(8, (os.cpu_count() or 4) // 2)),
@@ -54,7 +55,7 @@ def _ask_config(datasets, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunS
                    extra_metrics=True, prefix="", display_mode="progress")
 
     print_divider()
-    print("configuration (applies to every dataset chosen):")
+    print("configuration (applies to every source chosen):")
     if is_screen:
         print("  trees      all")
         print(f"  workers    {spec.workers}")
@@ -69,12 +70,12 @@ def _ask_config(datasets, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunS
         print("  metrics    NMI, ARI, agreement, sign agreement, dot "
               "(NMI is what the figure plots)")
         print("  extras     on  - sigma2, ||sub-full||_2 and the numerical ranks,\n                       recorded at every p (~4% of the run at m=6000)")
-        print("  output     one run directory with every dataset in it")
+        print("  output     one run directory with every source in it")
     print()
     if not confirm("Edit this configuration?", default=False):
         return spec
 
-    cap = get_input("Max trees per dataset (blank = all)", default="")
+    cap = get_input("Max trees per source (blank = all)", default="")
     spec.max_trees = int(cap) if cap and cap.strip() else 0
     if is_screen:
         # screening has no free parameters, so it has one canonical output per dataset
@@ -125,19 +126,20 @@ def _framed(lines: List[str], rule_after: int = -1) -> None:
     print()
 
 
-def _print_status(datasets, verdicts_by: Dict[str, dict]) -> None:
+def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
     """Screening coverage, verdicts and median imbalance, before anything is picked."""
     print_header("Screening status")
     cap = f"eta<={MAX_ETA:g}"
-    head = f"{'dataset':<12}{'trees':>7}{'screened':>10}"
+    width = max(12, max(len(s.name) for s in sources) + 1)
+    head = f"{'source':<{width}}{'trees':>7}{'screened':>10}"
     for k in ALL_OPERATORS:
         head += f"{ARM_OF[k] + ' edge':>11}{'med eta':>9}"
     head += f"{'L+B':>6}{cap:>10}{'swept':>7}"
     lines = [head]
-    for c in datasets:
-        v, ids = verdicts_by[c.name], c.ids()
+    for c in sources:
+        v, ids = verdicts_by[c.name], c.ids
         done = [t for t in ids if t in v]
-        line = f"{c.name:<12}{len(ids):>7}{len(done):>10}"
+        line = f"{c.name:<{width}}{len(ids):>7}{len(done):>10}"
         for k in ALL_OPERATORS:
             n_ok = sum(1 for t in done if v[t].get(f"valid_{k}"))
             etas = [v[t][f"eta_{k}"] for t in done if f"eta_{k}" in v[t]]
@@ -163,11 +165,60 @@ def _print_status(datasets, verdicts_by: Dict[str, dict]) -> None:
         "• swept              - trees the recovery sweep has already covered",
         "• a '-' means that operator has not been screened yet on this dataset",
     ]
-    _framed(lines, rule_after=len(datasets))
+    _framed(lines, rule_after=len(sources))
+
+
+def _run(sources, *, batch_hint: str) -> None:
+    """Status, stage, one configuration, the plan, then the run. Source-agnostic."""
+    verdicts_by = {c.name: verdicts(c.name) for c in sources}
+    _print_status(sources, verdicts_by)
+
+    stage = get_menu_choice(
+        "Run:", ["screening - split the full matrix, check eta and validity",
+                 "recovery sweep - sweep trees over p for NMI curve "
+                 "(needs screening)"], default_index=0)
+    is_screen = stage.startswith("screening")
+
+    spec = _ask_config([c.name for c in sources], is_screen, verdicts_by)
+    if spec.max_trees:
+        sources = [replace(c, ids=c.ids[:spec.max_trees]) for c in sources]
+    rows = plan(spec, sources, verdicts_by)
+
+    print_divider()
+    if not is_screen:
+        pv = spec.p_values()
+        print(f"  p-grid     {len(pv)} log-spaced points, {pv[0]:.4g} .. {pv[-1]:.4g}")
+    width = max(12, max(len(r.name) for r in rows) + 1)
+    total = sum(r.hours for r in rows)
+    for r in rows:
+        print(f"  {r.name:<{width}} m={r.m:<5} {len(r.selected):>4} trees"
+              f"  ~{r.hours:.1f} h")
+        if not is_screen:
+            # where the trees went: the two filters, in the order they are applied
+            print(f"  {'':<{width}} {r.n_screened} screened -> {r.n_gate} "
+                  f"[{gate_label(spec.gate)}] -> {len(r.selected)} with eta <= "
+                  f"{spec.max_eta:g}")
+        if r.warning:
+            print_warning(f"{r.name}: {r.warning}")
+    print(f"\ntotal ~{total:.1f} h. Every tree is cached on its own, so this is safe to "
+          "interrupt and resume.")
+    if total > 1.0 and batch_hint:
+        print(f"for anything this long prefer:\n  nohup {batch_hint} "
+              f"--stage {spec.stage} > logs/{spec.stage}.log 2>&1 &")
+    if not confirm("Run it here?", default=total <= 1.0):
+        print_warning("Cancelled")
+        return
+
+    def _announce(k, n, row):
+        print_divider()
+        print_header(f"[{k}/{n}] {row.name}")
+
+    execute(spec, sources, rows, on_source=_announce)
+    print_success("done")
 
 
 def run_real_data_menu() -> None:
-    """Pick datasets and a stage, configure once, then run the stage on each."""
+    """Real datasets: pick the FASTA/newick directories, then run."""
     datasets = list_datasets()
     if not datasets:
         print_error("No real datasets found.")
@@ -184,48 +235,36 @@ def run_real_data_menu() -> None:
     print()
     picks = get_multi_choice("Dataset(s)", [str(i) for i in range(1, len(datasets) + 1)])
     chosen = [datasets[int(i) - 1] for i in picks]
+    names = ",".join(c.name for c in chosen)
+    _run([c.source() for c in chosen],
+         batch_hint=f'python scripts/run_sweep.py --dataset "{names}"')
 
-    verdicts_by = {c.name: verdicts(c.name) for c in chosen}
-    _print_status(chosen, verdicts_by)
 
-    stage = get_menu_choice(
-        "Run:", ["screening - split the full matrix, check eta and validity",
-                 "recovery sweep - sweep trees over p for NMI curve "
-                 "(needs screening)"], default_index=0)
-    is_screen = stage.startswith("screening")
+def run_generated_menu() -> None:
+    """Simulated trees: ask the model, sizes and sequence length, then run.
 
-    spec = _ask_config(chosen, is_screen, verdicts_by)
-    sources = [c.source(spec.max_trees or None) for c in chosen]
-    rows = plan(spec, sources, verdicts_by)
+    The same experiment as the real branch -- a population of trees, screened, gated and
+    swept, with the curve a median over trees. The simulated branch used to run one tree
+    per size and take its spread from bootstrap replicates, which is a different
+    quantity and was not comparable with a real-data curve.
+    """
+    from src.runners.generated_source import sources_from_plan
+    from src.utils.generated_prompts import (prompt_generated_plan, print_pool_table,
+                                             resolve_pool_ids)
 
-    print_divider()
-    if not is_screen:
-        pv = spec.p_values()
-        print(f"  p-grid     {len(pv)} log-spaced points, {pv[0]:.4g} .. {pv[-1]:.4g}")
-    total = sum(r.hours for r in rows)
-    for r in rows:
-        print(f"  {r.name:<12} m={r.m:<5} {len(r.selected):>4} trees  ~{r.hours:.1f} h")
-        if not is_screen:
-            # where the trees went: the two filters, in the order they are applied
-            print(f"  {'':<12} {r.n_screened} screened -> {r.n_gate} "
-                  f"[{gate_label(spec.gate)}] -> {len(r.selected)} with eta <= "
-                  f"{spec.max_eta:g}")
-        if r.warning:
-            print_warning(f"{r.name}: {r.warning}")
-    print(f"\ntotal ~{total:.1f} h. Every tree is cached on its own, so this is safe to "
-          "interrupt and resume.")
-    if total > 1.0:
-        print("for anything this long prefer:\n  nohup python scripts/run_sweep.py "
-              f"--dataset \"{','.join(c.name for c in chosen)}\" "
-              f"--stage {spec.stage} "
-              f"> logs/real_{spec.stage}.log 2>&1 &")
-    if not confirm("Run it here?", default=total <= 1.0):
-        print_warning("Cancelled")
+    print_header("Generated data")
+    plan_g = prompt_generated_plan()
+    if plan_g.pooled:
+        # the eta pool is the only place a rejection-sampled tree exists; top it up
+        # before anything asks for ids, because what comes back is what is on disk
+        print_pool_table(plan_g)
+        plan_g.tree_ids = resolve_pool_ids(plan_g)
+        if not plan_g.tree_ids:
+            print_error("the eta pool is empty for these parameters and nothing could "
+                        "be built -- nothing to run")
+            return
+    sources = sources_from_plan(plan_g)
+    if not sources:
+        print_error("no trees to run")
         return
-
-    def _announce(k, n, row):
-        print_divider()
-        print_header(f"[{k}/{n}] {row.name}")
-
-    execute(spec, sources, rows, on_source=_announce)
-    print_success("done")
+    _run(sources, batch_hint="")

@@ -5,9 +5,9 @@ It holds the knobs (:class:`RunSpec`), a list of :class:`Source` objects that sa
 enumerate and load trees, and nothing else -- no ``Dataset``, no ``.fasta``, no
 simulator. Front-ends differ only in how they fill those in:
 
-    scripts/run_sweep.py          argparse -> RunSpec + real sources
-    analysis/utils/real_interactive.py   a menu -> the same
-    scripts/run_benchmark.py      a menu -> RunSpec + generated sources
+    scripts/run_sweep.py         argparse -> RunSpec + real sources
+    analysis/utils/run_menu.py   a menu -> the same, for real OR simulated sources
+    scripts/run_benchmark.py     a menu -> RunSpec + generated sources
 
 Before this existed the menu and the command line carried a selection implementation
 each and wrote different vocabularies into the same ``summary.json`` field, and the

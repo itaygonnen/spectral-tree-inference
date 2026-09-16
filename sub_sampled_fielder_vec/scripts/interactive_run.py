@@ -474,7 +474,7 @@ def run_experiment(config: Dict[str, Any]):
 
 DATA_SOURCES = [
     "real data - FASTA alignments with their true trees (data/tree_sets/)",
-    "generated data - simulated trees and sequences (cached matrices)",
+    "generated data - simulated trees and sequences",
 ]
 
 
@@ -495,13 +495,29 @@ def main():
     # Clean up incomplete cache entries from interrupted experiments
     clean_incomplete_caches()
 
-    # The real branch runs one stage and exits: it already asked for every dataset at
-    # once, so there is nothing left to offer.
+    # Both branches run one stage and exit: each already asked for every source at
+    # once, so there is nothing left to offer. They differ only in where the trees come
+    # from -- everything after that is the same screen, gate, sweep and run directory.
+    from analysis.utils.run_menu import run_generated_menu, run_real_data_menu
     if choose_data_source() == DATA_SOURCES[0]:
-        from analysis.utils.real_interactive import run_real_data_menu
         run_real_data_menu()
-        return
+    else:
+        run_generated_menu()
 
+
+def single_tree_menu():
+    """The pre-2026-09 simulated flow: ONE tree per (n, L), cached matrices, re-runs.
+
+    No longer on the data-source menu. It sweeps a single simulated tree and takes its
+    spread from bootstrap replicates, which is a different quantity from a median over a
+    population of trees -- the two curves were never comparable, which is exactly why
+    the simulated branch now runs the same experiment as the real one.
+
+    Kept, and callable, because it is the only path that produces the per-p
+    linear-algebra diagnostics (coherence, spectral gap, dk_ratio, IPR) and the
+    middle-out and guardrail code. ``scripts/run_experiment.py`` drives the same
+    pipeline without prompts.
+    """
     while True:
         # Show main menu
         choices, cached = show_main_menu()
@@ -528,7 +544,7 @@ def main():
 
         elif len(choices) == 1 and choices[0] == 'd':
             # Real FASTA datasets - a different question set, see the module docstring
-            from analysis.utils.real_interactive import run_real_data_menu
+            from analysis.utils.run_menu import run_real_data_menu
             run_real_data_menu()
 
         else:

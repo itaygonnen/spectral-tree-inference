@@ -105,7 +105,7 @@ def menu_config_helpers() -> str:
     import inspect
 
     from analysis.utils.real_datasets import list_datasets
-    from analysis.utils.real_interactive import _ask_config
+    from analysis.utils.run_menu import _ask_config
     from src.runners.experiment_run import (GATES, RunSpec, default_gate, gate_key,
                                             plan, select_ids, verdicts)
     datasets = list_datasets()[:2]
