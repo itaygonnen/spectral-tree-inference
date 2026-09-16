@@ -46,6 +46,28 @@ from src.runners.experiment_run import (GATES, MAX_ETA, P_MIN,  # noqa: E402
 from src.runners.operators import ALL_OPERATORS, ARM_OF, OPERATORS  # noqa: E402
 
 
+def _cmd_width() -> int:
+    """Width to wrap a printed command at, leaving room for the two-space indent."""
+    import shutil
+    return max(40, min(shutil.get_terminal_size(fallback=(80, 24)).columns, 100) - 8)
+
+
+def _say(text: str, indent: str = "") -> None:
+    """Print prose wrapped to the terminal.
+
+    Long lines are not a cosmetic problem here: the line before a prompt used to be 160
+    characters, so on an 80-column terminal it wrapped twice and the answer landed
+    mid-sentence -- which reads as the program having crashed.
+    """
+    import shutil
+    import textwrap
+
+    width = max(40, min(shutil.get_terminal_size(fallback=(80, 24)).columns, 100))
+    for line in textwrap.wrap(text, width=width, initial_indent=indent,
+                              subsequent_indent=indent + "  ") or [indent]:
+        print(line)
+
+
 def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec:
     """One parameter set for every source: show the defaults, edit them only on request."""
     spec = RunSpec(stage="screen" if is_screen else "sweep",
@@ -63,14 +85,14 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec
         print(f"  operators  {', '.join(OPERATORS[k].key for k in spec.operators)}"
               "  (each Fiedler arm cut by k-means or sign, whichever is more even)")
     else:
-        print(f"  trees      all, gated on [{gate_label(spec.gate)}], "
-              f"eta <= {spec.max_eta:g}")
+        _say(f"trees      all, gated on [{gate_label(spec.gate)}], "
+             f"eta <= {spec.max_eta:g}", indent="  ")
         print(f"  p-grid     {spec.p_points} log-spaced points, {spec.p_min:g} .. 1.0")
         print(f"  reps       {spec.reps} bootstrap replicates per p")
-        print(f"  operators  {', '.join(spec.operators)}")
-        print("  metrics    NMI, ARI, agreement, sign agreement, dot "
-              "(NMI is what the figure plots)")
-        print("  extras     on  - sigma2, ||sub-full||_2 and the numerical ranks,\n                       recorded at every p (~4% of the run at m=6000)")
+        print(f"  operators  {', '.join(spec.operators)}"
+              "   (NMI is what the figure plots)")
+        print("  metrics    NMI, ARI, agreement, sign agreement, dot")
+        print("  extras     on - sigma2, ||sub-full||_2, numerical ranks per p")
         print("  output     one run directory with every source in it")
     print()
     if not confirm("Edit this configuration?", default=False):
@@ -223,31 +245,34 @@ def _run(sources, *, batch_hint: str) -> None:
               f"  ~{r.hours:.1f} h")
         if not is_screen:
             # where the trees went: the two filters, in the order they are applied
-            print(f"  {'':<{width}} {r.n_screened} screened -> {r.n_gate} "
-                  f"[{gate_label(spec.gate)}] -> {len(r.selected)} with eta <= "
-                  f"{spec.max_eta:g}")
+            _say(f"{r.n_screened} screened -> {r.n_gate} "
+                 f"[{gate_label(spec.gate)}] -> {len(r.selected)} with eta <= "
+                 f"{spec.max_eta:g}", indent="      ")
         if r.warning:
             print_warning(f"{r.name}: {r.warning}")
-    print(f"\ntotal ~{total:.1f} h"
-          + ("" if is_screen else " (the sweep runs one tree at a time; workers"
-                                 " parallelise the screen only)")
-          + ". Every tree is cached on its own, so this is safe to interrupt and "
-            "resume.")
+    print()
+    _say(f"total ~{total:.1f} h"
+         + ("" if is_screen else " (the sweep runs one tree at a time; workers "
+                                "parallelise the screen only)")
+         + ". Every tree is cached on its own, so this is safe to interrupt and "
+           "resume.")
     if total > 1.0 and batch_hint:
         # the SAME run, as a command -- not a bare skeleton that would drop every
         # answer just given and sweep a different set of trees
-        cmd = as_command(spec, sources)
-        print(f"for anything this long prefer (this is the run configured above):\n"
-              f"  nohup {cmd} \\\n      > logs/{spec.stage}.log 2>&1 &")
+        cmd = as_command(spec, sources, width=_cmd_width(), indent="      ")
+        print("for anything this long prefer (this is the run configured above):")
+        print(f"  nohup {cmd} \\\n      > logs/{spec.stage}.log 2>&1 &")
     if not confirm("Run it here?", default=total <= 1.0):
         # not a dead end: declining "here" almost always means "somewhere else", and
         # the command carrying these answers is the thing you came for
         print_warning("Cancelled -- nothing was run and nothing was written")
         if batch_hint:
             print("\nto run this exact configuration elsewhere:")
-            print(f"  {as_command(spec, sources)}")
-            print(f"\nor detached:\n  nohup {as_command(spec, sources)} \\\n"
-                  f"      > logs/{spec.stage}.log 2>&1 &")
+            print("  " + as_command(spec, sources, width=_cmd_width(), indent="      "))
+            print("\nor detached:")
+            print("  nohup " + as_command(spec, sources, width=_cmd_width(),
+                                          indent="      ")
+                  + f" \\\n      > logs/{spec.stage}.log 2>&1 &")
         return
 
     def _announce(k, n, row):
@@ -267,7 +292,8 @@ def run_real_data_menu() -> None:
         return
 
     print_header("Real data")
-    print("  Tip: select several with commas (e.g. '1,2') to run every size in turn")
+    _say("Tip: select several with commas (e.g. '1,2') to run every size in turn",
+         indent="  ")
     print()
     for i, c in enumerate(datasets, 1):
         m, seq_len = c.shape()

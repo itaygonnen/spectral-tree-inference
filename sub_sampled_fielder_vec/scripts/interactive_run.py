@@ -472,8 +472,10 @@ def run_experiment(config: Dict[str, Any]):
     return multi_run_results
 
 
+# Kept short on purpose: the menu appends "(default)" and an index, and the whole line
+# has to clear an 80-column terminal without wrapping.
 DATA_SOURCES = [
-    "real data - FASTA alignments with their true trees (data/tree_sets/)",
+    "real data - FASTA alignments with their true trees",
     "generated data - simulated trees and sequences",
 ]
 
@@ -481,8 +483,7 @@ DATA_SOURCES = [
 def choose_data_source() -> str:
     """First question: which kind of data. The two branches share no parameters."""
     print_header("Data source")
-    print("  Tip: inside either branch, select several entries with commas "
-          "(e.g. '1,2') to run them in turn")
+    print("  Tip: select several entries with commas (e.g. '1,2')")
     print()
     return get_menu_choice("Data:", DATA_SOURCES, default_index=0)
 

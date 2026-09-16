@@ -100,7 +100,8 @@ def gate_label(name: str) -> str:
 
 
 def as_command(spec: "RunSpec", sources: Sequence["Source"],
-               script: str = "python scripts/run_sweep.py") -> str:
+               script: str = "python scripts/run_sweep.py",
+               width: int = 0, indent: str = "    ") -> str:
     """The command line that reproduces this spec exactly.
 
     The menu used to suggest a bare ``--dataset X --stage sweep`` for long runs, which
@@ -128,7 +129,20 @@ def as_command(spec: "RunSpec", sources: Sequence["Source"],
         parts.append(f'--prefix "{spec.prefix}"')
     if spec.display_mode != "progress":
         parts.append(f"--display-mode {spec.display_mode}")
-    return " ".join(parts)
+    if width <= 0:
+        return " ".join(parts)
+    # backslash continuations at flag boundaries: a command that wraps mid-token in the
+    # terminal is still copyable, but it is not readable, and this one is printed to be
+    # read as much as pasted
+    lines, cur = [], parts[0]
+    for part in parts[1:]:
+        if len(cur) + 1 + len(part) + 2 > width:
+            lines.append(cur + " \\")
+            cur = indent + part
+        else:
+            cur += " " + part
+    lines.append(cur)
+    return "\n".join(lines)
 
 
 def screen_secs(m: int, seq_len: int = 0) -> float:
