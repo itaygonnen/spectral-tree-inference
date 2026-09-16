@@ -45,6 +45,9 @@ from src.utils.persistent_cache import list_cached_experiments, clean_incomplete
 # where the generated-data branch actually runs, not at module level.
 
 
+# The only sampling method the current experiments use; see ask_sampling().
+SAMPLING_METHOD = "uniform"
+
 # Paths
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -142,6 +145,41 @@ def show_main_menu() -> tuple[List[str], List[Dict[str, Any]]]:
     return choices, cached
 
 
+def ask_sampling(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Which matrix gets sub-sampled. Sets the sampling keys on ``config``.
+
+    The method is not asked: leveraged and LDS are not part of the current experiments,
+    and a prompt that only ever gets one answer is a prompt that can be answered wrongly
+    (it used to default to lds). ``src/core/sampling/`` still holds both, so reviving one
+    means setting ``sampling_method`` here again, not rewriting anything.
+
+    The matrix IS asked, because both answers are in use:
+
+        similarity  sub-sample the JC similarity S, Fiedler of L(S) = Deg(S) - S.
+        distance    sub-sample the paralinear distance D, then transform the sub-sample
+                    back, S = exp(-alpha*D_hat), and read the same Fiedler vector. The
+                    sigma2 criterion is defined on similarity, so this asks whether
+                    sub-sampling commutes with the exponential kernel (SNJ, alpha from
+                    the same paper).
+
+    Note this is NOT the B = H D H operator the real-data runs compare against L(S):
+    that one reads its split off the double-centred distance matrix itself. It lives in
+    ``src.runners.operators`` and is reached through ``scripts/run_benchmark.py``.
+    """
+    config["sampling_method"] = SAMPLING_METHOD
+    kind = get_menu_choice(
+        "Matrix to sub-sample:",
+        ["similarity - JC matrix S, Fiedler of L(S)",
+         "distance - paralinear D, then S = exp(-alpha * D_hat)"],
+        default_index=0).split(" ")[0]
+    config["matrix_kind"] = kind
+    if kind == "distance":
+        config["distance_alpha"] = float(get_input(
+            "Distance scaling alpha  (S = exp(-alpha * D); 1.0 = the SNJ pipeline)",
+            default="1.0"))
+    return config
+
+
 def build_config_from_cache(cache_metadata: Dict[str, Any]) -> Dict[str, Any]:
     """Build experiment config from cached matrix metadata."""
     # Extract basic params from cache
@@ -176,21 +214,7 @@ def build_config_from_cache(cache_metadata: Dict[str, Any]) -> Dict[str, Any]:
     display_mode = get_menu_choice("Display mode:", ["progress", "debug"], default_index=0)
     config["display_mode"] = display_mode
 
-    # Sampling method
-    sampling = get_menu_choice("Sampling method:", ['uniform', 'leveraged', 'lds'], default_index=2)
-    config["sampling_method"] = sampling
-
-    if sampling == "leveraged":
-        config["sampling_theta"] = float(get_input("Theta (phase 1 ratio)", default="0.7"))
-        config["sampling_target_rank"] = int(get_input("Target rank", default="2"))
-        config["sampling_allow_uniform_fallback"] = confirm("Allow fallback to uniform sampling for low p?", default=False)
-        config["log_sampling_diagnostics"] = confirm("Log sampling diagnostics (for analysis)?", default=True)
-    elif sampling == "lds":
-        config["sampling_theta"] = float(get_input("Theta (phase 1 ratio)", default="0.3"))
-        config["sampling_target_rank"] = int(get_input("Target rank", default="2"))
-        config["sampling_tau_floor_multiplier"] = float(get_input("Tau floor multiplier", default="1.0"))
-        config["sampling_allow_uniform_fallback"] = confirm("Allow fallback to uniform sampling for low p?", default=False)
-        config["log_sampling_diagnostics"] = confirm("Log sampling diagnostics (for analysis)?", default=True)
+    ask_sampling(config)
 
     # Truncation threshold
     print()
@@ -280,21 +304,7 @@ def build_batch_config_from_caches(cache_entries: List[Dict[str, Any]]) -> Dict[
     display_mode = get_menu_choice("Display mode:", ["progress", "debug"], default_index=0)
     config["display_mode"] = display_mode
 
-    # Sampling method
-    sampling = get_menu_choice("Sampling method:", ['uniform', 'leveraged', 'lds'], default_index=2)
-    config["sampling_method"] = sampling
-
-    if sampling == "leveraged":
-        config["sampling_theta"] = float(get_input("Theta (phase 1 ratio)", default="0.7"))
-        config["sampling_target_rank"] = int(get_input("Target rank", default="2"))
-        config["sampling_allow_uniform_fallback"] = confirm("Allow fallback to uniform sampling for low p?", default=False)
-        config["log_sampling_diagnostics"] = confirm("Log sampling diagnostics (for analysis)?", default=True)
-    elif sampling == "lds":
-        config["sampling_theta"] = float(get_input("Theta (phase 1 ratio)", default="0.3"))
-        config["sampling_target_rank"] = int(get_input("Target rank", default="2"))
-        config["sampling_tau_floor_multiplier"] = float(get_input("Tau floor multiplier", default="1.0"))
-        config["sampling_allow_uniform_fallback"] = confirm("Allow fallback to uniform sampling for low p?", default=False)
-        config["log_sampling_diagnostics"] = confirm("Log sampling diagnostics (for analysis)?", default=True)
+    ask_sampling(config)
 
     # Truncation threshold
     print()
@@ -365,8 +375,8 @@ def create_new_config() -> Dict[str, Any]:
         print("Custom p-values not yet implemented - using defaults")
         p_values = list(np.logspace(-4, 0, 20))
 
-    # Sampling method
-    sampling_method = get_menu_choice("Sampling method:", ["uniform", "leveraged", "lds"], default_index=2)
+    # Sampling
+    sampling = ask_sampling({})
 
     # Display mode
     display_mode = get_menu_choice("Display mode:", ["progress", "debug"], default_index=0)
@@ -389,26 +399,11 @@ def create_new_config() -> Dict[str, Any]:
         "num_workers": num_workers,
         "p_values": p_values,
         "use_middle_out": False,
-        "sampling_method": sampling_method,
+        **sampling,
         "display_mode": display_mode,
         "guardrails_enabled": False,
         "run_name_prefix": get_input("run_name_prefix (optional)", default=""),
     }
-
-    # Leveraged sampling parameters
-    if sampling_method == "leveraged":
-        config["sampling_theta"] = float(get_input("sampling_theta", default="0.7"))
-        config["sampling_target_rank"] = int(get_input("sampling_target_rank", default="2"))
-        config["sampling_allow_uniform_fallback"] = confirm("Allow fallback to uniform sampling for low p?", default=False)
-        config["sampling_ialm_max_iter"] = int(get_input("IALM max_iter", default="500"))
-        config["sampling_ialm_tol"] = float(get_input("IALM tolerance", default="1e-4"))
-        config["log_sampling_diagnostics"] = confirm("Log sampling diagnostics (for analysis)?", default=True)
-    elif sampling_method == "lds":
-        config["sampling_theta"] = float(get_input("sampling_theta", default="0.3"))
-        config["sampling_target_rank"] = int(get_input("sampling_target_rank", default="2"))
-        config["sampling_tau_floor_multiplier"] = float(get_input("tau_floor_multiplier", default="1.0"))
-        config["sampling_allow_uniform_fallback"] = confirm("Allow fallback to uniform sampling for low p?", default=False)
-        config["log_sampling_diagnostics"] = confirm("Log sampling diagnostics (for analysis)?", default=True)
 
     # Truncation threshold
     print()
