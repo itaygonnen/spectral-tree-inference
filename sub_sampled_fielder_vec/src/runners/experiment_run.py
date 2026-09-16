@@ -99,6 +99,38 @@ def gate_label(name: str) -> str:
     return GATES[gate_key(name)][0]
 
 
+def as_command(spec: "RunSpec", sources: Sequence["Source"],
+               script: str = "python scripts/run_sweep.py") -> str:
+    """The command line that reproduces this spec exactly.
+
+    The menu used to suggest a bare ``--dataset X --stage sweep`` for long runs, which
+    silently dropped every answer the user had just given -- at m=6000 that turned a
+    38-tree ``valid_L`` sweep into a ``both`` sweep of nothing. Every field that differs
+    from the CLI default is emitted, so the printed command IS the configured run.
+    """
+    parts = [script, f'--dataset "{",".join(s.name for s in sources)}"',
+             f"--stage {spec.stage}"]
+    if spec.max_trees:
+        parts.append(f"--limit {spec.max_trees}")
+    if spec.workers != 4:
+        parts.append(f"--workers {spec.workers}")
+    if spec.runs_sweep:
+        parts.append(f"--dataset-rule {spec.gate}")
+        parts.append(f"--max-eta {spec.max_eta:g}")
+        parts.append(f"--p-min {spec.p_min:g}")
+        parts.append(f"--p-points {spec.p_points}")
+        parts.append(f"--reps {spec.reps}")
+        if tuple(spec.operators) != tuple(ALL_OPERATORS):
+            parts.append(f"--operators {','.join(spec.operators)}")
+        if not spec.extra_metrics:
+            parts.append("--no-extra-metrics")
+    if spec.prefix:
+        parts.append(f'--prefix "{spec.prefix}"')
+    if spec.display_mode != "progress":
+        parts.append(f"--display-mode {spec.display_mode}")
+    return " ".join(parts)
+
+
 def screen_secs(m: int, seq_len: int = 0) -> float:
     """Rough seconds to screen one tree: matrix build O(m^2 L) plus eigensolves O(m^3).
 
@@ -261,6 +293,8 @@ def plan(spec: RunSpec, sources: Sequence[Source],
         if spec.runs_sweep:
             n_gate = len(select_ids(ids, v, spec.gate))
             selected = select_ids(ids, v, spec.gate, spec.max_eta, spec.operators)
+            # serial: run_sweep walks the trees one at a time, so this is wall time.
+            # ``workers`` parallelises the screen only.
             secs += (len(selected) * spec.p_points * spec.reps
                      * SOLVE_SECS_AT_6000 * (src.m / 6000.0) ** 3
                      * (n_fiedler + n_griffing * GRIFFING_COST_SHARE))

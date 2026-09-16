@@ -40,8 +40,9 @@ from src.utils.interactive_ui import (                       # noqa: E402
 
 from .real_datasets import describe_search, list_datasets, sweep_cache_dir  # noqa: E402
 from src.runners.experiment_run import (GATES, MAX_ETA, P_MIN,  # noqa: E402
-                                        P_POINTS, REPS, RunSpec, default_gate, execute,
-                                        gate_label, gate_operators, plan, verdicts)
+                                        P_POINTS, REPS, RunSpec, as_command,
+                                        default_gate, execute, gate_label,
+                                        gate_operators, plan, verdicts)
 from src.runners.operators import ALL_OPERATORS, ARM_OF, OPERATORS  # noqa: E402
 
 
@@ -206,11 +207,17 @@ def _run(sources, *, batch_hint: str) -> None:
                   f"{spec.max_eta:g}")
         if r.warning:
             print_warning(f"{r.name}: {r.warning}")
-    print(f"\ntotal ~{total:.1f} h. Every tree is cached on its own, so this is safe to "
-          "interrupt and resume.")
+    print(f"\ntotal ~{total:.1f} h"
+          + ("" if is_screen else " (the sweep runs one tree at a time; workers"
+                                 " parallelise the screen only)")
+          + ". Every tree is cached on its own, so this is safe to interrupt and "
+            "resume.")
     if total > 1.0 and batch_hint:
-        print(f"for anything this long prefer:\n  nohup {batch_hint} "
-              f"--stage {spec.stage} > logs/{spec.stage}.log 2>&1 &")
+        # the SAME run, as a command -- not a bare skeleton that would drop every
+        # answer just given and sweep a different set of trees
+        cmd = as_command(spec, sources)
+        print(f"for anything this long prefer (this is the run configured above):\n"
+              f"  nohup {cmd} \\\n      > logs/{spec.stage}.log 2>&1 &")
     if not confirm("Run it here?", default=total <= 1.0):
         print_warning("Cancelled")
         return
@@ -241,9 +248,7 @@ def run_real_data_menu() -> None:
     print()
     picks = get_multi_choice("Dataset(s)", [str(i) for i in range(1, len(datasets) + 1)])
     chosen = [datasets[int(i) - 1] for i in picks]
-    names = ",".join(c.name for c in chosen)
-    _run([c.source() for c in chosen],
-         batch_hint=f'python scripts/run_sweep.py --dataset "{names}"')
+    _run([c.source() for c in chosen], batch_hint="python scripts/run_sweep.py")
 
 
 def run_generated_menu() -> None:

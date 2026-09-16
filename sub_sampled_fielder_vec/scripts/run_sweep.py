@@ -62,7 +62,9 @@ def build_parser() -> argparse.ArgumentParser:
                          "in turn, or 'all' for every dataset on disk")
     ap.add_argument("--stage", choices=("screen", "sweep", "both"), default="both")
     ap.add_argument("--limit", type=int, default=0, help="first N trees only")
-    ap.add_argument("--workers", type=int, default=4, help="screen workers")
+    ap.add_argument("--workers", type=int, default=4,
+                    help="parallel workers for the SCREEN. The sweep is serial: it runs "
+                         "one tree at a time, so its estimate is wall time as printed")
     ap.add_argument("--operators", default=",".join(ALL_OPERATORS),
                     help="comma-separated subset of " + ",".join(ALL_OPERATORS)
                          + " (S = L(S) Fiedler, Lsym = normalized, B = HDH)")
