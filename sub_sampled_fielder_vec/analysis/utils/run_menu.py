@@ -116,8 +116,27 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec
 
 
 def _framed(lines: List[str], rule_after: int = -1) -> None:
-    """Draw ``lines`` inside a box, so a status panel is not mistaken for a menu."""
+    """Draw ``lines`` inside a box, so a status panel is not mistaken for a menu.
+
+    A box wider than the terminal is worse than no box: every line wraps and the borders
+    land mid-sentence, which is what an 80-column terminal did to this panel once it
+    carried a column pair per operator. When it will not fit, rule lines are used
+    instead -- the panel still reads as a panel, and nothing is mangled.
+    """
+    import shutil
+
     width = max(len(x) for x in lines)
+    cols = shutil.get_terminal_size(fallback=(80, 24)).columns
+    if width + 4 > cols:
+        rule = "─" * min(cols, width)
+        print(rule)
+        for i, line in enumerate(lines):
+            print(line)
+            if i == rule_after:
+                print(rule)
+        print(rule)
+        print()
+        return
     print("┌" + "─" * (width + 2) + "┐")
     for i, line in enumerate(lines):
         print(f"│ {line.ljust(width)} │")
@@ -133,22 +152,26 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
     cap = f"eta<={MAX_ETA:g}"
     if not sources:
         return
-    width = max(12, max(len(s.name) for s in sources) + 1)
-    head = f"{'source':<{width}}{'trees':>7}{'screened':>10}"
-    for k in ALL_OPERATORS:
-        head += f"{ARM_OF[k] + ' edge':>11}{'med eta':>9}"
-    head += f"{'L+B':>6}{cap:>10}{'swept':>7}"
+    width = max(8, max(len(s.name) for s in sources) + 1)
+    # only operators some chosen source actually has verdicts for: a column pair of "-"
+    # per unscreened operator is what pushed this panel past an 80-column terminal
+    shown = [k for k in ALL_OPERATORS
+             if any(any(f"valid_{k}" in v for v in verdicts_by[c.name].values())
+                    for c in sources)] or ["S", "B"]
+    head = f"{'source':<{width}}{'trees':>6}{'scrn':>6}"
+    for k in shown:
+        head += f"{ARM_OF[k] + ' edge':>9}{'eta':>7}"
+    head += f"{'L+B':>5}{cap:>9}{'swept':>7}"
     lines = [head]
     for c in sources:
         v, ids = verdicts_by[c.name], c.ids
         done = [t for t in ids if t in v]
-        line = f"{c.name:<{width}}{len(ids):>7}{len(done):>10}"
-        for k in ALL_OPERATORS:
+        line = f"{c.name:<{width}}{len(ids):>6}{len(done):>6}"
+        for k in shown:
             n_ok = sum(1 for t in done if v[t].get(f"valid_{k}"))
             etas = [v[t][f"eta_{k}"] for t in done if f"eta_{k}" in v[t]]
             med = float(np.median(etas)) if etas else float("nan")
-            line += (f"{n_ok:>11}{med:>9.1f}" if etas
-                     else f"{'-':>11}{'-':>9}")
+            line += (f"{n_ok:>9}{med:>7.1f}" if etas else f"{'-':>9}{'-':>7}")
         n_both = sum(1 for t in done if v[t].get("valid_S") and v[t].get("valid_B"))
         # the same operators the cap will actually weigh, so the panel cannot promise
         # a count the plan then contradicts
@@ -158,19 +181,17 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
                            default=0.0) <= MAX_ETA)
         swept = (len(list(sweep_cache_dir(c.name).glob("*.npz")))
                  if sweep_cache_dir(c.name).is_dir() else 0)
-        lines.append(line + f"{n_both:>6}{n_cap:>10}{swept:>7}")
+        lines.append(line + f"{n_both:>5}{n_cap:>9}{swept:>7}")
     lines += [
-        "• <arm> edge         - trees whose split of the full matrix is a real edge",
-        "                       of the true tree, per operator (L, Lsym, B)",
-        "• med eta            - median imbalance of that split: larger clan / smaller",
-        "                       clan, so 1 is a perfectly even cut",
-        "• L+B                - trees valid under both L(S) and B, the pair the",
-        "                       recovery figure compares",
-        f"• eta<={MAX_ETA:<14g}- trees even enough on L(S) and B to carry a recovery",
-        "                       signal; this is what a 'both' sweep starts from. A gate",
-        "                       naming one operator weighs only that one.",
-        "• swept              - trees the recovery sweep has already covered",
-        "• a '-' means that operator has not been screened yet on this dataset",
+        "• <arm> edge  - trees whose split of the full matrix is a real edge of",
+        "                the true tree; eta is the median imbalance of that split",
+        "                (larger clan / smaller clan, so 1 is a perfectly even cut)",
+        "• L+B         - valid under both L(S) and B, the pair the figure compares",
+        f"• eta<={MAX_ETA:<7g}- even enough on L(S) and B to carry a recovery signal;",
+        "                what a 'both' sweep starts from. A gate naming one",
+        "                operator weighs only that one.",
+        "• swept       - trees the recovery sweep has already covered",
+        "• operators with no verdicts yet are not shown; screen to add them",
     ]
     _framed(lines, rule_after=len(sources))
 
@@ -219,7 +240,14 @@ def _run(sources, *, batch_hint: str) -> None:
         print(f"for anything this long prefer (this is the run configured above):\n"
               f"  nohup {cmd} \\\n      > logs/{spec.stage}.log 2>&1 &")
     if not confirm("Run it here?", default=total <= 1.0):
-        print_warning("Cancelled")
+        # not a dead end: declining "here" almost always means "somewhere else", and
+        # the command carrying these answers is the thing you came for
+        print_warning("Cancelled -- nothing was run and nothing was written")
+        if batch_hint:
+            print("\nto run this exact configuration elsewhere:")
+            print(f"  {as_command(spec, sources)}")
+            print(f"\nor detached:\n  nohup {as_command(spec, sources)} \\\n"
+                  f"      > logs/{spec.stage}.log 2>&1 &")
         return
 
     def _announce(k, n, row):
