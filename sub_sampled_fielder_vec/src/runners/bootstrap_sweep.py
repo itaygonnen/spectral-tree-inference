@@ -59,7 +59,8 @@ def check_guardrails_trigger(sign_agreements: List[float],
 def _get_or_generate_experiment_data(
     cfg: StructuredConfig,
     n_taxa: int,
-    seq_len: int
+    seq_len: int,
+    need_similarity: bool = True
 ) -> Tuple[object, np.ndarray, np.ndarray, np.ndarray]:
     """
     Get experiment data from persistent cache or generate fresh.
@@ -70,9 +71,13 @@ def _get_or_generate_experiment_data(
         cfg: Experiment configuration
         n_taxa: Number of taxa
         seq_len: Sequence length
+        need_similarity: Build S and its reference Fiedler vector. False for the
+            B = H D H route, which reads its split off the distance matrix and needs
+            neither -- and at n=8192 an unused S costs O(n^2 L) plus an eigensolve.
 
     Returns:
-        Tuple of (tree, observations, similarity_matrix, fiedler_ref)
+        Tuple of (tree, observations, similarity_matrix, fiedler_ref); the last two
+        are None when ``need_similarity`` is False.
     """
     # Try to load from persistent cache if enabled
     if cfg.cache.use_persistent_cache:
@@ -110,6 +115,9 @@ def _get_or_generate_experiment_data(
         n_taxa, seq_len, cfg.sequence.params["mutation_rate"],
         tree_model=tree, seq_model=seq_model
     )
+
+    if not need_similarity:
+        return (tree, observations, None, None)
 
     matrix_kind = getattr(cfg.sampling, "matrix_kind", "similarity")
     alpha = float(getattr(cfg.sampling, "distance_alpha", 1.0))
@@ -150,6 +158,92 @@ def _get_or_generate_experiment_data(
         )
 
     return (tree, observations, M, fiedler_ref)
+
+
+def _sweep_griffing(
+    cfg: StructuredConfig,
+    n_taxa: int,
+    seq_len: int,
+    show_progress: bool = True,
+    progress_callback: callable = None
+):
+    """The distance route: B = H D H, sign of the leading-|lambda| eigenvector.
+
+    The similarity route sub-samples S and re-reads the Fiedler vector of L(S). This one
+    sub-samples the paralinear distance D and re-reads the leading eigenvector of the
+    double-centred B = H D H -- the operator the real-data runs compare against L(S).
+    It is NOT ``SamplingConfig.matrix_kind="distance"``, which sub-samples D only to
+    transform it back into a similarity and then reads the same Fiedler vector.
+
+    The sweep itself is ``bpart_sweep_raw``, the one implementation of this in the repo
+    (the real-data sweep and the operator-comparison benchmark call it too). This maps
+    its per-p output onto the tuple ``sweep_for_params`` returns, so the writers and
+    plots downstream do not know which operator produced the numbers.
+    """
+    from ..utils.bpart_sweep_cache import bpart_sweep_raw
+    from ..utils.griffing import griffing_leading_eigvec
+
+    tree, observations, _, _ = _get_or_generate_experiment_data(
+        cfg, n_taxa, seq_len, need_similarity=False)
+
+    import spectraltree  # local import keeps the cross-project boundary explicit
+    log_info('bootstrap', "Computing full paralinear distance matrix...", force=True)
+    D = spectraltree.paralinear_distance(observations)
+
+    v_ref = griffing_leading_eigvec(D, solver="lm_k1")
+    partition_ref = np.asarray(v_ref >= 0)
+    n1 = int(partition_ref.sum())
+    n2 = int(partition_ref.size - n1)
+    log_info('bootstrap',
+             f"Reference partition (B = HDH): {n1} vs {n2} taxa "
+             f"(eta={max(n1, n2) / max(min(n1, n2), 1):.2f})", force=True)
+
+    p_values = list(cfg.experiment.p_values)
+    bar = (create_progress_bar(len(p_values), "  B = HDH sweep", unit="p")
+           if show_progress else None)
+
+    def _tick(p_idx, p):
+        if bar is not None:
+            bar.update(1)
+        if progress_callback is not None:
+            progress_callback(p_idx)
+
+    raw = bpart_sweep_raw(
+        D, p_values, reps=cfg.experiment.bootstrap_reps, seed_base=cfg.experiment.seed,
+        eigsolver="lm_k1", aggregation="avg_vector", extra_metrics=True,
+        progress_cb=_tick)
+    if bar is not None:
+        bar.close()
+
+    per_p = raw["per_p"]
+    agreement = [float(np.mean(pp["agreement"])) for pp in per_p]
+    dot_products = [float(np.mean(pp["dot"])) for pp in per_p]
+    splits = []
+    for pp in per_p:
+        part = np.asarray(pp["partitions"][0])
+        a = int(part.sum())
+        splits.append((min(a, part.size - a), max(a, part.size - a)))
+
+    # the diagnostics bpart_sweep_raw collected, in the (mean, median, std) shape the
+    # results writer expects; names match the similarity route's so one reader serves both
+    metrics_dict = {}
+    for name in ("operator_norm_error", "empirical_rank_S", "empirical_rank_L_S"):
+        if f"mean_{name}" in per_p[0]:
+            metrics_dict[name] = [(float(pp[f"mean_{name}"]), float(pp[f"median_{name}"]),
+                                   float(pp[f"std_{name}"])) for pp in per_p]
+    for name in ("empirical_rank_M", "empirical_rank_L_M"):
+        if name in per_p[0]:
+            metrics_dict[name] = [(float(pp[name]), float(pp[name]), 0.0)
+                                  for pp in per_p]
+
+    sigma2_M = [float(pp.get("sigma2_avg_M", np.nan)) for pp in per_p]
+    sigma2_S = [float(pp.get("sigma2_avg_S", np.nan)) for pp in per_p]
+
+    return (v_ref, agreement, agreement,
+            [float('nan')] * len(p_values),          # no S_avg partition on this route
+            dot_products, metrics_dict, float(sigma2_M[-1]),
+            sigma2_M, sigma2_S, splits, [None] * len(p_values),
+            ["griffing"] * len(p_values), tree, partition_ref)
 
 
 def sweep_for_params(
@@ -236,6 +330,10 @@ def sweep_for_params(
     log_info('bootstrap',
              f"Using sampling method: {cfg.sampling.method} | matrix_kind: {cfg.sampling.matrix_kind}"
              + (f" (α={cfg.sampling.distance_alpha})" if cfg.sampling.matrix_kind == "distance" else ""))
+
+    if getattr(cfg.experiment, "operator", "L") == "B":
+        # the distance route reads its split off B = H D H; nothing below applies
+        return _sweep_griffing(cfg, n_taxa, seq_len, show_progress, progress_callback)
 
     # Get or generate experiment data (with optional persistent caching)
     tree, observations, M, fiedler_ref = _get_or_generate_experiment_data(cfg, n_taxa, seq_len)

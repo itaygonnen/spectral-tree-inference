@@ -145,6 +145,13 @@ class ExperimentConfig(BaseModel):
         display_mode: Display mode (progress bars or debug logging)
         num_workers: Number of parallel workers (1 = sequential)
         use_middle_out: Use middle-out p-value processing strategy
+        operator: Which operator reads the bipartition off the sub-sampled matrix.
+                 "L" (default) is the Fiedler vector of L(S) = Deg(S) - S, the
+                 similarity route. "B" is the leading-|lambda| eigenvector of the
+                 double-centred distance matrix B = H D H (Griffing), cut by sign --
+                 the distance route the real-data runs compare against. This is a
+                 different question from SamplingConfig.matrix_kind, which chooses
+                 which matrix is SUB-SAMPLED and then reads the same Fiedler vector.
     """
     p_values: List[float] = Field(min_items=1)
     bootstrap_reps: int = Field(gt=0)
@@ -153,6 +160,7 @@ class ExperimentConfig(BaseModel):
     display_mode: Literal["progress", "debug"] = "progress"
     num_workers: int = Field(ge=1, default=1)
     use_middle_out: bool = False
+    operator: Literal["L", "B"] = "L"
 
     @validator("p_values")
     def validate_p_values(cls, v):

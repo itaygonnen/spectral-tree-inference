@@ -146,37 +146,29 @@ def show_main_menu() -> tuple[List[str], List[Dict[str, Any]]]:
 
 
 def ask_sampling(config: Dict[str, Any]) -> Dict[str, Any]:
-    """Which matrix gets sub-sampled. Sets the sampling keys on ``config``.
+    """Which operator reads the bipartition. Sets the sampling keys on ``config``.
 
-    The method is not asked: leveraged and LDS are not part of the current experiments,
-    and a prompt that only ever gets one answer is a prompt that can be answered wrongly
-    (it used to default to lds). ``src/core/sampling/`` still holds both, so reviving one
-    means setting ``sampling_method`` here again, not rewriting anything.
+    The sampling METHOD is not asked: leveraged and LDS are not part of the current
+    experiments, and a prompt that only ever gets one answer is a prompt that can be
+    answered wrongly (it used to default to lds). ``src/core/sampling/`` still holds
+    both, so reviving one means setting ``sampling_method`` here again.
 
-    The matrix IS asked, because both answers are in use:
+    The OPERATOR is asked, because that is the comparison the work is about:
 
-        similarity  sub-sample the JC similarity S, Fiedler of L(S) = Deg(S) - S.
-        distance    sub-sample the paralinear distance D, then transform the sub-sample
-                    back, S = exp(-alpha*D_hat), and read the same Fiedler vector. The
-                    sigma2 criterion is defined on similarity, so this asks whether
-                    sub-sampling commutes with the exponential kernel (SNJ, alpha from
-                    the same paper).
+        similarity  sub-sample S, re-read the Fiedler vector of L(S) = Deg(S) - S.
+        distance    sub-sample the paralinear distance D, re-read the leading-|lambda|
+                    eigenvector of B = H D H and cut it by sign.
 
-    Note this is NOT the B = H D H operator the real-data runs compare against L(S):
-    that one reads its split off the double-centred distance matrix itself. It lives in
-    ``src.runners.operators`` and is reached through ``scripts/run_benchmark.py``.
+    Both routes run on the same generated tree and the same p-grid, so their recovery
+    curves are directly comparable -- the same pair the real-data runs compare.
     """
     config["sampling_method"] = SAMPLING_METHOD
-    kind = get_menu_choice(
-        "Matrix to sub-sample:",
-        ["similarity - JC matrix S, Fiedler of L(S)",
-         "distance - paralinear D, then S = exp(-alpha * D_hat)"],
-        default_index=0).split(" ")[0]
-    config["matrix_kind"] = kind
-    if kind == "distance":
-        config["distance_alpha"] = float(get_input(
-            "Distance scaling alpha  (S = exp(-alpha * D); 1.0 = the SNJ pipeline)",
-            default="1.0"))
+    choice = get_menu_choice(
+        "Operator:",
+        ["similarity - Fiedler of L(S) = Deg(S) - S",
+         "distance - B = H D H, sign of the leading eigenvector (Griffing)"],
+        default_index=0)
+    config["operator"] = "B" if choice.startswith("distance") else "L"
     return config
 
 

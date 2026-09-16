@@ -148,6 +148,7 @@ def custom_config(
     display_mode: str = "progress",
     num_workers: int = 1,
     use_middle_out: bool = False,
+    operator: str = "L",
     validate_partition_in_tree: bool = True,
     sampling_method: str = "uniform",
     sampling_theta: float = 0.3,
@@ -273,7 +274,8 @@ def custom_config(
             run_name=run_name,
             display_mode=display_mode,
             num_workers=num_workers,
-            use_middle_out=use_middle_out
+            use_middle_out=use_middle_out,
+            operator=operator
         ),
         sampling=sampling,
         metrics=metrics,

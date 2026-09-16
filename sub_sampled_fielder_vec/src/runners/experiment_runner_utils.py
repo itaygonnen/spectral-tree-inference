@@ -29,6 +29,7 @@ def extract_config_values(config: Dict[str, Any], wide_sweep_p_values: List[floa
         "sampling_method": config.get("sampling_method", "uniform"),
         "matrix_kind": config.get("matrix_kind", "similarity"),
         "distance_alpha": config.get("distance_alpha", 1.0),
+        "operator": config.get("operator", "L"),
     }
 
 
@@ -143,6 +144,7 @@ def create_experiment_config(
         display_mode="progress",
         num_workers=num_workers,
         use_middle_out=use_middle_out,
+        operator=config.get("operator", "L"),
         sampling_method=sampling_config["sampling_method"],
         sampling_theta=sampling_config["sampling_theta"],
         sampling_target_rank=sampling_config["sampling_target_rank"],
