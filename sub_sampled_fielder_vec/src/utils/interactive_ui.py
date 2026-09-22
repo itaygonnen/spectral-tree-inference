@@ -195,12 +195,7 @@ def print_config_summary(config: Dict[str, Any], prefix: str = "  →"):
     print(f"{prefix} {Colors.BOLD}Experiment:{Colors.RESET} {bootstrap_reps} bootstraps, p={p_info}, {display_mode} mode")
 
     # Sampling line
-    if sampling_method == 'leveraged':
-        theta = config.get('sampling_theta', '?')
-        rank = config.get('sampling_target_rank', '?')
-        print(f"{prefix} {Colors.BOLD}Sampling:{Colors.RESET} leveraged (θ={theta}, rank={rank})")
-    else:
-        print(f"{prefix} {Colors.BOLD}Sampling:{Colors.RESET} {sampling_method}")
+    print(f"{prefix} {Colors.BOLD}Sampling:{Colors.RESET} {sampling_method}")
 
 
 def get_input(prompt: str, default: Optional[str] = None, color: str = Colors.CYAN) -> str:

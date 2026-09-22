@@ -12,14 +12,13 @@ class UniformSampler(BaseSampler):
     and maintains symmetry. Uses optimized sparse/dense strategies based on p.
     """
 
-    def __init__(self, self_value: float = 1.0, **kwargs):
+    def __init__(self, self_value: float = 1.0):
         """
         Initialize uniform sampler.
 
         Args:
             self_value: Value enforced on the diagonal after sampling (1.0 for
                 similarity matrices, 0.0 for distance matrices).
-            **kwargs: Ignored (for API compatibility with other samplers)
         """
         super().__init__(self_value=self_value)
     

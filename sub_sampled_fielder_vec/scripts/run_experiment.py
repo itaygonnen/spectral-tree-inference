@@ -21,7 +21,6 @@ from src.runners.experiment_runner_utils import (
 
 
 WIDE_SWEEP_P_VALUES = list(np.logspace(-4, 0, 20))
-LEVERAGED_P_VALUES = list(np.logspace(-2, 0, 20))  # Start from 10^-2 for leveraged sampling
 
 # -----------------------------------------------------------------------------
 # Manual configuration block - edit these values when launching new sweeps.
@@ -34,19 +33,13 @@ SWEEP_CONFIG: Dict[str, Any] = {
     "bootstrap_reps": 10,
     "num_workers": 8,
     "use_middle_out": False,
-    "run_name_prefix": "balanced_binary_leveraged_no_bypass",
-    "p_values": LEVERAGED_P_VALUES,
+    "run_name_prefix": "balanced_binary_uniform",
+    "p_values": WIDE_SWEEP_P_VALUES,
     "tree_params": {"edge_length": 1.0},
     "coherence_k": 4,
     "num_gaps": 0,
     "guardrails_enabled": False,
-    "sampling_method": "leveraged",
-    "sampling_theta": 0.7,
-    "sampling_target_rank": 2,  # Reduced from 10 for lower theoretical minimum
-    "sampling_ialm_max_iter": 500,
-    "sampling_ialm_tol": 1e-4,
-    "sampling_ialm_bypass_threshold": 1.0,  # Never bypass IALM
-    "sampling_force_leveraged": True,  # Force leveraged sampling even at low p
+    "sampling_method": "uniform",
 }
 
 

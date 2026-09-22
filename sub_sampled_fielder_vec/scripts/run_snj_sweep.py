@@ -7,7 +7,7 @@ Maps the SNJ paper's three metrics to a sub-sampling axis:
   Panel 3: Robinson-Foulds       (paper's empirical metric)
 
 For now sampling is plain uniform with no completion (the worst-case
-baseline). A future iteration can layer IALM completion on top.
+baseline). Uniform sampling is the only sub-sampling method.
 """
 import os
 import sys

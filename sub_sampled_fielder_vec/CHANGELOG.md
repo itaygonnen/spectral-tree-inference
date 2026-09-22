@@ -4,6 +4,63 @@ All notable changes to the STDR framework are documented here.
 
 ---
 
+## [2026-09-17] Removed the leveraged (IALM) and LDS samplers
+
+Uniform sampling is now the only sub-sampling method. Nothing in the live pipeline
+(`experiment_run.py` → `operator_screen` / `griffing_sweep` / `p_sweep_inner`) had
+selected `leveraged` or `lds` since the screen→gate→p-sweep flow landed, and every
+result the manuscript rests on is uniform.
+
+### Removed
+- `src/core/sampling/leveraged/` (14 files, ~1,400 lines): IALM solver, singular-value
+  thresholding, leverage-score estimation, non-uniform sampling, the LDS/IPW sampler.
+- `src/utils/sampling_logger.py` — existed only to dump leverage scores per `p`.
+- `SamplingConfig` fields `theta`, `target_rank`, `tau_floor_multiplier`, `ialm_max_iter`,
+  `ialm_tol`, `ialm_bypass_threshold`, `force_leveraged`, `allow_uniform_fallback`,
+  `log_sampling_diagnostics`, `prob_formula`, and their `custom_config` / `SWEEP_CONFIG`
+  pass-throughs.
+- 15 always-NaN diagnostic columns from `results.json` (`phase1_s1..s3`, `leverage_max`,
+  `leverage_std`, `leverage_sum`, `leverage_symmetry_error`, `ialm_iterations`,
+  `phase1_sufficiency`, `spectral_gap`, `phase1_actual`, `phase2_actual`,
+  `fallback_to_uniform`, `tau_floor`, `phase1_budget_fraction`). 133 columns → 88.
+- ~225 lines from `bootstrap_sweep.py`: the sampler-kwargs branching, the per-replicate
+  leverage-metric collection, the diagnostics-save block, the leveraged/LDS run summary.
+
+### Changed
+- `SamplingConfig.method` is `Literal["uniform"]`. It is kept because it names the
+  results directory (`results/<tree_model>/<method>/`); no cache key encodes it, so
+  every existing cache stays valid.
+- `get_sampler` raises `ValueError` on anything but `"uniform"`; `SamplingConfig`
+  rejects `"leveraged"`/`"lds"` at validation time.
+- `results.json` config columns are now `sampling_method` + `sampling_matrix_kind`
+  (was method/theta/target_rank/tau_floor_multiplier/prob_formula).
+
+### Removed — the analysis and docs for it
+- `analysis/legacy/leveraged_sampling_analysis/` (19 files, 2,679 lines): the IO + metrics +
+  visualization stack for leveraged/LDS runs, including the 4th copy of
+  `plot_phase_transition_scaling`.
+- `analysis/legacy/scripts/analyze_lds_experiment.py` (374 lines) — the directory is now gone.
+- `docs/deprecated/` in full: `LEVERAGED_SAMPLING.md`, `LDS_SAMPLING.md`, `LDS_MIGRATION.md`
+  (1,500+ lines documenting a deleted API). `docs/INDEX.md`, `docs/ARCHITECTURE.md`,
+  `docs/CONFIGURATION.md`, `analysis/legacy/README.md` and `CLAUDE.md` updated to match.
+
+`analysis/legacy/comparison/notebook_utils.py` keeps two `sys.path.insert` calls naming
+`leveraged_sampling_analysis/io`. They were already broken before this pass (they omit the
+`legacy/` path segment); recorded in `analysis/legacy/README.md`, not fixed — legacy is
+quarantined.
+
+### Not touched
+- `analysis/supporting/nnm_vs_ipw.ipynb` — its NNM arm uses Soft-Impute in
+  `analysis/utils/spectral.py`, never the deleted IALM solver.
+
+### Verified
+- All touched modules import; `python -m src.cache_io` passes; `run_sweep.py --dry-run`
+  and `sync_paper_figures.py --check` unchanged (13 figures, 4 floats, exit 0).
+- End-to-end `sweep_for_params` at n=128, L=400, p∈{0.5, 1.0}: `partition_agreement_M`
+  = 100% at both, incremental save writes `results.json` with 88 columns.
+
+---
+
 ## [2026-07-30] Repository restructure around the v9 paper
 
 Two cleanup passes. **No mathematics, figure, or plotted curve changed** — all 23 paper

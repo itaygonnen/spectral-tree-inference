@@ -28,7 +28,6 @@ from ..utils.summaries import save_single_results, save_json
 from ..utils.random_entries import _get_cached_similarity_matrix, _subsample_matrix_entries, compute_fiedler_from_similarity, compute_fiedler_from_laplacian
 from ..core.similarity_builder import SimilarityMatrixBuilder
 from ..utils.logging import log_info, log_warning, create_progress_bar, suppress_warnings, is_progress_mode
-from ..utils.sampling_logger import save_sampling_diagnostics
 from ..utils.persistent_cache import (
     _get_cache_key,
     save_experiment_data,
@@ -298,34 +297,10 @@ def sweep_for_params(
     log_info('bootstrap', f"n={n_taxa}, L={seq_len} preparing experiment data…")
 
     # Create similarity builder with configured sampling method
-    # Build method-specific kwargs (avoid passing IALM params to LDS)
-    method_kwargs = {
-        'theta': cfg.sampling.theta,
-        'target_rank': cfg.sampling.target_rank,
-        'allow_uniform_fallback': cfg.sampling.allow_uniform_fallback
-    }
-
-    if cfg.sampling.method == "leveraged":
-        # IALM-specific parameters
-        method_kwargs.update({
-            'ialm_max_iter': cfg.sampling.ialm_max_iter,
-            'ialm_tol': cfg.sampling.ialm_tol,
-            'ialm_bypass_threshold': cfg.sampling.ialm_bypass_threshold,
-            'force_leveraged': cfg.sampling.force_leveraged
-        })
-    elif cfg.sampling.method == "lds":
-        # LDS-specific parameters
-        method_kwargs.update({
-            'tau_floor_multiplier': cfg.sampling.tau_floor_multiplier,
-            'force_lds': cfg.sampling.force_leveraged,  # Reuse force_leveraged flag
-            'prob_formula': cfg.sampling.prob_formula,
-        })
-
     similarity_builder = SimilarityMatrixBuilder(
         method=cfg.sampling.method,
         matrix_kind=cfg.sampling.matrix_kind,
         distance_alpha=cfg.sampling.distance_alpha,
-        **method_kwargs
     )
     log_info('bootstrap',
              f"Using sampling method: {cfg.sampling.method} | matrix_kind: {cfg.sampling.matrix_kind}"
@@ -463,7 +438,6 @@ def sweep_for_params(
 
     # Initialize metric storage - all metrics for M, S, L_M, L_S
     # Plus new spectral metrics: lambda2/lambda3 eigenvalues, IPR, DK ratio
-    # Plus new leveraged sampling diagnostics
     metric_keys = [
         'operator_norm_error',
         'empirical_rank_M', 'empirical_rank_S', 'empirical_rank_L_M', 'empirical_rank_L_S',
@@ -473,15 +447,6 @@ def sweep_for_params(
         # New spectral metrics
         'lambda2_L_M', 'lambda3_L_M', 'lambda2_L_S', 'lambda3_L_S',
         'ipr_S', 'dk_ratio_S',
-        # New leveraged sampling diagnostics
-        'phase1_s1', 'phase1_s2', 'phase1_s3',  # First 3 singular values from Phase 1 SVD
-        'leverage_max', 'leverage_std', 'leverage_sum', 'leverage_symmetry_error',
-        'ialm_iterations',  # Number of IALM iterations (0 if bypassed)
-        'phase1_sufficiency',  # Phase 1 actual samples / theoretical minimum (LDS quality indicator)
-        'spectral_gap',  # s[1]/s[2] from Phase 1 SVD — denominator in Davis-Kahan bound
-        # LDS budget diagnostics (Part A)
-        'phase1_actual', 'phase2_actual', 'fallback_to_uniform', 'tau_floor',
-        'phase1_budget_fraction',  # = phase1_actual / (phase1_actual + phase2_actual)
         # Final-partition (STDR partition phase, no merge): computed once per p (not per bootstrap)
         'final_partition_ari', 'final_partition_jaccard',
         'final_n_clusters_M', 'final_n_clusters_S',
@@ -619,74 +584,6 @@ def sweep_for_params(
                         S = S.toarray()
                     S[S < cfg.sampling.truncation_threshold] = 0.0
                     np.fill_diagonal(S, 1.0)
-
-                # NEW: Collect leveraged sampling metrics if available
-                if hasattr(similarity_builder, 'sampler') and hasattr(similarity_builder.sampler, 'last_sample_metrics'):
-                    metrics = similarity_builder.sampler.last_sample_metrics
-                    if metrics is not None:
-                        # Extract Phase 1 singular values (first 3)
-                        sv = metrics.get('phase1_singular_values', [])
-                        metric_values['phase1_s1'].append(sv[0] if len(sv) > 0 else float('nan'))
-                        metric_values['phase1_s2'].append(sv[1] if len(sv) > 1 else float('nan'))
-                        metric_values['phase1_s3'].append(sv[2] if len(sv) > 2 else float('nan'))
-
-                        # Extract leverage score diagnostics
-                        metric_values['leverage_max'].append(metrics.get('leverage_max', float('nan')))
-                        metric_values['leverage_std'].append(metrics.get('leverage_std', float('nan')))
-                        metric_values['leverage_sum'].append(metrics.get('leverage_sum', float('nan')))
-                        metric_values['leverage_symmetry_error'].append(metrics.get('leverage_symmetry_error', float('nan')))
-
-                        # Extract IALM iterations
-                        metric_values['ialm_iterations'].append(metrics.get('ialm_iterations', float('nan')))
-
-                        # Extract Phase 1 sufficiency (LDS quality indicator)
-                        metric_values['phase1_sufficiency'].append(metrics.get('phase1_sufficiency', float('nan')))
-                        metric_values['spectral_gap'].append(metrics.get('spectral_gap', float('nan')))
-
-                        # Extract LDS budget diagnostics (Part A)
-                        p1_actual = metrics.get('phase1_actual', float('nan'))
-                        p2_actual = metrics.get('phase2_actual', float('nan'))
-                        metric_values['phase1_actual'].append(p1_actual)
-                        metric_values['phase2_actual'].append(p2_actual)
-                        metric_values['fallback_to_uniform'].append(float(metrics.get('fallback_to_uniform', False)))
-                        metric_values['tau_floor'].append(metrics.get('tau_floor', float('nan')))
-                        total_actual = (p1_actual if not np.isnan(p1_actual) else 0) + (p2_actual if not np.isnan(p2_actual) else 0)
-                        frac = p1_actual / total_actual if total_actual > 0 and not np.isnan(p1_actual) else float('nan')
-                        metric_values['phase1_budget_fraction'].append(frac)
-                    else:
-                        # No metrics available (e.g., uniform sampler)
-                        metric_values['phase1_s1'].append(float('nan'))
-                        metric_values['phase1_s2'].append(float('nan'))
-                        metric_values['phase1_s3'].append(float('nan'))
-                        metric_values['leverage_max'].append(float('nan'))
-                        metric_values['leverage_std'].append(float('nan'))
-                        metric_values['leverage_sum'].append(float('nan'))
-                        metric_values['leverage_symmetry_error'].append(float('nan'))
-                        metric_values['ialm_iterations'].append(float('nan'))
-                        metric_values['phase1_sufficiency'].append(float('nan'))
-                        metric_values['spectral_gap'].append(float('nan'))
-                        metric_values['phase1_actual'].append(float('nan'))
-                        metric_values['phase2_actual'].append(float('nan'))
-                        metric_values['fallback_to_uniform'].append(float('nan'))
-                        metric_values['tau_floor'].append(float('nan'))
-                        metric_values['phase1_budget_fraction'].append(float('nan'))
-                else:
-                    # Not a leveraged sampler - append NaN for all new metrics
-                    metric_values['phase1_s1'].append(float('nan'))
-                    metric_values['phase1_s2'].append(float('nan'))
-                    metric_values['phase1_s3'].append(float('nan'))
-                    metric_values['leverage_max'].append(float('nan'))
-                    metric_values['leverage_std'].append(float('nan'))
-                    metric_values['leverage_sum'].append(float('nan'))
-                    metric_values['leverage_symmetry_error'].append(float('nan'))
-                    metric_values['ialm_iterations'].append(float('nan'))
-                    metric_values['phase1_sufficiency'].append(float('nan'))
-                    metric_values['spectral_gap'].append(float('nan'))
-                    metric_values['phase1_actual'].append(float('nan'))
-                    metric_values['phase2_actual'].append(float('nan'))
-                    metric_values['fallback_to_uniform'].append(float('nan'))
-                    metric_values['tau_floor'].append(float('nan'))
-                    metric_values['phase1_budget_fraction'].append(float('nan'))
 
                 # Update running average of S (streaming - no storage!)
                 # Uses Welford's online algorithm for numerical stability
@@ -878,38 +775,6 @@ def sweep_for_params(
                 metric_values['final_n_clusters_M'].append(float('nan'))
                 metric_values['final_n_clusters_S'].append(float('nan'))
 
-        # Save sampling diagnostics if enabled (leveraged/lds sampling only)
-        if (cfg.sampling.log_sampling_diagnostics and
-            cfg.sampling.method in ["leveraged", "lds"] and
-            hasattr(similarity_builder, 'sampler') and
-            hasattr(similarity_builder.sampler, 'last_sample_metrics')):
-
-            metrics = similarity_builder.sampler.last_sample_metrics
-            if metrics is not None:
-                # Handle different key names for leverage scores
-                # - LeveragedSampler uses 'leverage_scores'
-                # - LDSSampler uses 'leverage_scores_raw' and 'leverage_scores_regularized'
-                leverage_scores = metrics.get('leverage_scores') or metrics.get('leverage_scores_regularized')
-                phase2_sampled_indices = metrics.get('phase2_sampled_indices')
-                phase2_sampling_probs = metrics.get('phase2_sampling_probs')
-                fallback = metrics.get('fallback_to_uniform', False)
-
-                if fallback:
-                    # Sampler fell back to uniform sampling (p too small)
-                    # No leverage scores to save
-                    pass
-                elif leverage_scores is not None:
-                    try:
-                        save_sampling_diagnostics(
-                            run_dir=run_dir,
-                            p_value=p,
-                            leverage_scores=leverage_scores,
-                            sampled_indices=phase2_sampled_indices if phase2_sampled_indices else [],
-                            prob_matrix=phase2_sampling_probs
-                        )
-                    except Exception as e:
-                        log_warning('bootstrap', f"Failed to save sampling diagnostics for p={p:.4g}: {e}")
-
         # Store all metrics
         sign_agreements.append(float(sign_agreement))
         partition_agreement_M.append(float(partition_agr_M))
@@ -960,13 +825,6 @@ def sweep_for_params(
             'min_separation_S', 'min_separation_L_S',
             'lambda2_L_S', 'lambda3_L_S',
             'ipr_S', 'dk_ratio_S',
-            # Leveraged sampling diagnostics (Phase A)
-            'phase1_s1', 'phase1_s2', 'phase1_s3',
-            'leverage_max', 'leverage_std', 'leverage_sum', 'leverage_symmetry_error',
-            'ialm_iterations',
-            # LDS budget diagnostics (Part A)
-            'phase1_actual', 'phase2_actual', 'fallback_to_uniform', 'tau_floor',
-            'phase1_budget_fraction',
             # Final-partition (one value per p; aggregator wraps as (val, val, 0.0))
             'final_partition_ari', 'final_partition_jaccard',
             'final_n_clusters_M', 'final_n_clusters_S',
@@ -1077,10 +935,7 @@ def sweep_for_params(
             # Build config columns (constant for all p-values in this run)
             _config_cols = {
                 'sampling_method': cfg.sampling.method,
-                'sampling_theta': cfg.sampling.theta,
-                'sampling_target_rank': cfg.sampling.target_rank,
-                'sampling_tau_floor_multiplier': cfg.sampling.tau_floor_multiplier,
-                'sampling_prob_formula': cfg.sampling.prob_formula,
+                'sampling_matrix_kind': cfg.sampling.matrix_kind,
             }
 
             # Save as both single and taxa format for compatibility
@@ -1126,86 +981,6 @@ def sweep_for_params(
                 # Truncate error message to keep it readable
                 error_summary = error_msg.split(':')[0] if ':' in error_msg else error_msg
                 log_info('bootstrap', f"  p={p_val:.4g}: {error_summary}")
-
-    # Print sampling summary for leveraged/lds sampling experiments
-    if cfg.sampling.method in ["leveraged", "lds"] and hasattr(similarity_builder, 'sampler'):
-        # Count how many p-values used leveraged vs uniform sampling
-        n_leveraged = 0
-        n_uniform_fallback = 0
-        n_ialm_bypassed = 0
-        n_ialm_converged = 0
-        n_ialm_max_iter = 0
-
-        # Analyze result_source_list and metrics
-        for i, p in enumerate(cfg.experiment.p_values):
-            if result_source_list[i] in ['computed']:
-                # Check metrics for this p-value
-                if 'leverage_max' in metrics_dict and i < len(metrics_dict['leverage_max']):
-                    leverage_mean = metrics_dict['leverage_max'][i][0]  # (mean, median, std)
-                    if np.isnan(leverage_mean):
-                        n_uniform_fallback += 1
-                    else:
-                        n_leveraged += 1
-                        # Check IALM status
-                        if 'ialm_iterations' in metrics_dict and i < len(metrics_dict['ialm_iterations']):
-                            ialm_iters = metrics_dict['ialm_iterations'][i][0]
-                            if ialm_iters == 0:
-                                n_ialm_bypassed += 1
-                            elif ialm_iters < cfg.sampling.ialm_max_iter:
-                                n_ialm_converged += 1
-                            else:
-                                n_ialm_max_iter += 1
-
-        # Calculate theoretical minimum p
-        n_taxa = n_taxa
-        n_upper = n_taxa * (n_taxa - 1) // 2
-        theoretical_min_phase1 = int(4 * n_taxa * cfg.sampling.target_rank * np.log(n_taxa))
-        p_min = theoretical_min_phase1 / n_upper
-
-        log_info('bootstrap', "\n" + "="*60, force=True)
-        log_info('bootstrap', "Sampling Summary:", force=True)
-        log_info('bootstrap', f"  Method: {cfg.sampling.method} (theta={cfg.sampling.theta}, rank={cfg.sampling.target_rank})", force=True)
-        log_info('bootstrap', f"  Minimum p for {cfg.sampling.method}: {p_min:.6f} ({p_min*100:.2f}%)", force=True)
-        log_info('bootstrap', f"  P-values using {cfg.sampling.method} sampling: {n_leveraged}/{len(cfg.experiment.p_values)}", force=True)
-        log_info('bootstrap', f"  P-values falling back to uniform: {n_uniform_fallback}/{len(cfg.experiment.p_values)}", force=True)
-
-        # Show method-specific statistics
-        if cfg.sampling.method == "leveraged" and n_leveraged > 0:
-            log_info('bootstrap', f"  IALM bypassed (high p): {n_ialm_bypassed}", force=True)
-            log_info('bootstrap', f"  IALM converged: {n_ialm_converged}", force=True)
-            if n_ialm_max_iter > 0:
-                log_info('bootstrap', f"  IALM hit max_iter: {n_ialm_max_iter}", force=True)
-        elif cfg.sampling.method == "lds" and n_leveraged > 0:
-            log_info('bootstrap', f"  LDS single-shot estimator used for all {cfg.sampling.method} p-values", force=True)
-
-            # Aggregate Phase 1 quality report for LDS
-            if 'phase1_sufficiency' in metrics_dict:
-                phase1_qualities = []
-                for i, p in enumerate(cfg.experiment.p_values):
-                    if result_source_list[i] == 'computed' and i < len(metrics_dict['phase1_sufficiency']):
-                        quality_mean = metrics_dict['phase1_sufficiency'][i][0]  # (mean, median, std)
-                        if not np.isnan(quality_mean) and quality_mean > 0:  # Valid LDS run (not fallback)
-                            phase1_qualities.append(quality_mean)
-
-                if len(phase1_qualities) > 0:
-                    mean_quality = np.mean(phase1_qualities) * 100  # Convert to percentage
-                    n_low = sum(1 for q in phase1_qualities if q < 0.10)  # <10%
-                    n_medium = sum(1 for q in phase1_qualities if 0.10 <= q < 0.50)  # 10-50%
-                    n_high = sum(1 for q in phase1_qualities if q >= 0.50)  # >=50%
-
-                    log_info('bootstrap', "", force=True)
-                    log_info('bootstrap', "  Phase 1 Quality Summary:", force=True)
-                    log_info('bootstrap', f"    Mean sufficiency: {mean_quality:.1f}%", force=True)
-                    log_info('bootstrap', f"    <10% (very noisy):  {n_low}/{len(phase1_qualities)} p-values", force=True)
-                    log_info('bootstrap', f"    10-50% (noisy):     {n_medium}/{len(phase1_qualities)} p-values", force=True)
-                    log_info('bootstrap', f"    ≥50% (good):        {n_high}/{len(phase1_qualities)} p-values", force=True)
-
-                    # Warning if most p-values are severely underpowered
-                    if mean_quality < 10.0:
-                        log_info('bootstrap', f"    ⚠ Most p-values ran with very noisy leverage estimates", force=True)
-                        log_info('bootstrap', f"       Consider: increase theta (currently {cfg.sampling.theta}) or focus on higher p-values", force=True)
-
-        log_info('bootstrap', "="*60, force=True)
 
     return (fiedler_ref, sign_agreements, partition_agreement_M, partition_agreement_S,
             dot_products, metrics_dict, reference_partition_quality,

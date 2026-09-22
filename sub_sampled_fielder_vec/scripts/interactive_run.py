@@ -148,10 +148,9 @@ def show_main_menu() -> tuple[List[str], List[Dict[str, Any]]]:
 def ask_sampling(config: Dict[str, Any]) -> Dict[str, Any]:
     """Which operator reads the bipartition. Sets the sampling keys on ``config``.
 
-    The sampling METHOD is not asked: leveraged and LDS are not part of the current
-    experiments, and a prompt that only ever gets one answer is a prompt that can be
-    answered wrongly (it used to default to lds). ``src/core/sampling/`` still holds
-    both, so reviving one means setting ``sampling_method`` here again.
+    The sampling METHOD is not asked: uniform is the only one. The leveraged/IALM and
+    LDS samplers were removed on 2026-09-17 (history in git); nothing had selected them
+    since this flow landed.
 
     The OPERATOR is asked, because that is the comparison the work is about:
 

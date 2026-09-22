@@ -30,17 +30,14 @@ July-2026 reorganization. Trust the mechanism, verify the paths.
 | [INTERACTIVE_GUIDE.md](INTERACTIVE_GUIDE.md) | `scripts/interactive_run.py` walkthrough. **Rewritten 2026-09-16**: both menu branches now run one experiment (screen → gate → sweep → one run directory). The single-tree flow it used to describe is `interactive_run.single_tree_menu()` / `scripts/run_experiment.py`. |
 | [../CHANGELOG.md](../CHANGELOG.md) | Notably the 2026-02-20 LDS debiasing fix (`π_ij`, not `p_ij`). |
 
-## Sampling methods
+## Sampling
 
-| Method | Speed | Accuracy | Use when | Docs |
-|---|---|---|---|---|
-| `uniform` | fastest | baseline | default, quick tests | `src/core/sampling/uniform/` |
-| `lds` | fast | high | large trees, production | [deprecated/LDS_SAMPLING.md](deprecated/LDS_SAMPLING.md) |
-| `leveraged` (IALM) | slow | highest | small trees, max accuracy | [deprecated/LEVERAGED_SAMPLING.md](deprecated/LEVERAGED_SAMPLING.md) |
+`uniform` is the only method: sample `O(p·n²)` upper-triangular entries uniformly and
+debias by `1/p`. Code in `src/core/sampling/uniform/`.
 
-Those two documents were moved to `deprecated/` — the prose was superseded, but the
-samplers themselves are live in `src/core/sampling/`. `deprecated/` also holds
-`LDS_MIGRATION.md`.
+The `leveraged` (IALM) and `lds` samplers, their `analysis/legacy/` diagnostic stack,
+and the whole `docs/deprecated/` directory (`LEVERAGED_SAMPLING.md`, `LDS_SAMPLING.md`,
+`LDS_MIGRATION.md`) were **removed on 2026-09-17**. History is in git.
 
 ## Other artifacts here
 
@@ -56,7 +53,7 @@ samplers themselves are live in `src/core/sampling/`. `deprecated/` also holds
 ## Previously listed here and now gone
 
 The earlier index linked 11 paths that no longer resolve: the three `LDS_*` /
-`LEVERAGED_SAMPLING` docs (moved to `deprecated/`), five READMEs inside the analysis
-packages (now under `analysis/legacy/`), and `DOCUMENTATION_UPDATE_SUMMARY.md` /
-`RECENT_CHANGES.md` (deleted). Recorded so a reader who remembers them does not go
-hunting.
+`LEVERAGED_SAMPLING` docs (deleted 2026-09-17 with the samplers they documented), five
+READMEs inside the analysis packages (now under `analysis/legacy/`), and
+`DOCUMENTATION_UPDATE_SUMMARY.md` / `RECENT_CHANGES.md` (deleted). Recorded so a reader
+who remembers them does not go hunting.

@@ -103,14 +103,6 @@ def get_sampling_config(config: Dict[str, Any]) -> Dict[str, Any]:
     """Extract all sampling-related parameters."""
     return {
         "sampling_method": config.get("sampling_method", "uniform"),
-        "sampling_theta": config.get("sampling_theta", 0.3),
-        "sampling_target_rank": config.get("sampling_target_rank", 2),
-        "sampling_ialm_max_iter": config.get("sampling_ialm_max_iter", 100),
-        "sampling_ialm_tol": config.get("sampling_ialm_tol", 1e-6),
-        "sampling_ialm_bypass_threshold": config.get("sampling_ialm_bypass_threshold", 0.1),
-        "sampling_force_leveraged": config.get("sampling_force_leveraged", False),
-        "sampling_allow_uniform_fallback": config.get("sampling_allow_uniform_fallback", True),
-        "log_sampling_diagnostics": config.get("log_sampling_diagnostics", False),
         "truncation_threshold": config.get("truncation_threshold", 0.0),
         "matrix_kind": config.get("matrix_kind", "similarity"),
         "distance_alpha": config.get("distance_alpha", 1.0),
@@ -146,14 +138,6 @@ def create_experiment_config(
         use_middle_out=use_middle_out,
         operator=config.get("operator", "L"),
         sampling_method=sampling_config["sampling_method"],
-        sampling_theta=sampling_config["sampling_theta"],
-        sampling_target_rank=sampling_config["sampling_target_rank"],
-        sampling_ialm_max_iter=sampling_config["sampling_ialm_max_iter"],
-        sampling_ialm_tol=sampling_config["sampling_ialm_tol"],
-        sampling_ialm_bypass_threshold=sampling_config["sampling_ialm_bypass_threshold"],
-        sampling_force_leveraged=sampling_config["sampling_force_leveraged"],
-        sampling_allow_uniform_fallback=sampling_config["sampling_allow_uniform_fallback"],
-        log_sampling_diagnostics=sampling_config["log_sampling_diagnostics"],
         truncation_threshold=sampling_config["truncation_threshold"],
         matrix_kind=sampling_config["matrix_kind"],
         distance_alpha=sampling_config["distance_alpha"],
@@ -204,12 +188,6 @@ def run_single_experiment(
     print(f"\n{'-'*80}")
     print(f"Launching experiment for {tree_model} tree: n={n_taxa}, L={seq_len}")
     print(f"Sampling method: {sampling_config['sampling_method']}")
-    if sampling_config["sampling_method"] == "leveraged":
-        print(f"  Phase 1 ratio (theta): {sampling_config['sampling_theta']}")
-        print(f"  Target rank: {sampling_config['sampling_target_rank']}")
-        print(f"  IALM max_iter: {sampling_config['sampling_ialm_max_iter']}, tol: {sampling_config['sampling_ialm_tol']}")
-        print(f"  IALM bypass threshold: {sampling_config['sampling_ialm_bypass_threshold']}")
-        print(f"  Force leveraged: {sampling_config['sampling_force_leveraged']}")
     
     runner = ExperimentRunner(cfg, base_dir=str(base_dir), subdir_name=subdir_name)
     run_dir, results = runner.run()

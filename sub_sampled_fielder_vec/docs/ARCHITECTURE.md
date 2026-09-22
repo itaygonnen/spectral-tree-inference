@@ -116,8 +116,7 @@ sub_sampled_fielder_vec/
 - **`src/utils/metrics.py`** - `compute_partition_agreement()`, `compute_fiedler_dot_product()`, etc.
 
 ### For Analysis
-- **`analysis/legacy/comparison/compare_methods.py`** - Compare uniform vs leveraged sampling (unmaintained)
-- **`analysis/legacy/leveraged_sampling_analysis/`** - Diagnostic framework for leveraged sampling (unmaintained)
+- **`analysis/legacy/comparison/compare_methods.py`** - Compare uniform vs leveraged sampling (unmaintained; the leveraged sampler it compares against was removed 2026-09-17)
 - For the paper's own analysis, start at **`analysis/PAPER_MAP.md`**
 
 ## Data Flow
@@ -372,4 +371,3 @@ below is kept only as a description of what it used to show.
 
 - [METRICS.md](METRICS.md) - Detailed metrics documentation
 - [CONFIGURATION.md](CONFIGURATION.md) - Configuration system details
-- [LEVERAGED_SAMPLING.md](deprecated/LEVERAGED_SAMPLING.md) - Leveraged sampling implementation

@@ -10,7 +10,7 @@ eigenvector of S used in the thesis.
 by 1/p, leaving the diagonal untouched (matrix-completion convention).
 
 `uniform_mask` / `ipw_from_mask` / `nnm_from_mask` are the figure-11 trio:
-they let two reconstruction strategies (IPW, NNM via IALM) consume the *same*
+they let two reconstruction strategies (IPW, NNM via Soft-Impute) consume the *same*
 uniform sample Ω, so the head-to-head is paired on sampling noise.
 """
 from __future__ import annotations
@@ -95,7 +95,7 @@ def nnm_from_mask(
     Tibshirani (2010) algorithm — the standard NNM solver for matrix
     completion, and the right tool for the Candès & Recht / Candès & Plan
     comparison under **uniform** sampling. (We deliberately do not call the
-    RPCA-style `ialm_solve` here: that solver targets a different objective
+    an RPCA-style IALM solver here: that solver targets a different objective
     and is numerically fragile on this data.)
 
     For uniform sampling we default to λ = ‖P_Ω(M)‖_F / √(p·n²) — a scale-aware

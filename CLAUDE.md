@@ -88,22 +88,27 @@ This framework asks: *if we replace the full similarity matrix `M` with a sub-sa
 `scripts/run_experiment.py` → `extract_config_values` → `ExperimentRunner.run()` → for each `(n_taxa, seq_len)` calls `sweep_for_params(cfg, n, L, run_dir)` in `src/runners/bootstrap_sweep.py`. That function:
 1. Generates sequences on a tree (`src/models/`).
 2. Builds the full similarity matrix `M` and computes the **reference Fiedler vector** at `p=1.0`.
-3. For each `p` in `cfg.experiment.p_values`: runs a bootstrap loop of `K` reps, each time sub-sampling `M → S_k` (uniform / leveraged / LDS), maintaining a streaming average `S̄` via Welford, computing the Fiedler of `L(S_k)`, sign-aligning to the reference, and accumulating.
+3. For each `p` in `cfg.experiment.p_values`: runs a bootstrap loop of `K` reps, each time sub-sampling `M → S_k` uniformly, maintaining a streaming average `S̄` via Welford, computing the Fiedler of `L(S_k)`, sign-aligning to the reference, and accumulating.
 4. After the loop, computes partition-agreement metrics (`partition_agreement_M`, `partition_agreement_S`), `dot_product`, `sign_agreement` in `src/utils/metrics.py` and writes `results.json` + plots.
 
 ### Configuration system
 Pydantic v2 models in `src/config/base_config.py`: `StructuredConfig` bundles `TreeConfig`, `SequenceConfig`, `ExperimentConfig`, `SamplingConfig`, `MetricsConfig`, `GuardrailsConfig`, `CacheConfig`, `OutputConfig`. Build via `src/config/presets.py:custom_config(...)`. The script-level `SWEEP_CONFIG` dict is flattened into these by `extract_config_values()`.
 
-### Sampling methods (`src/core/sampling/`)
-Pluggable via `SamplingConfig.method`:
-- **`uniform`** — baseline; sample `O(p·n²)` upper-triangular entries uniformly.
-- **`leveraged`** (IALM) — Phase 1 uniform → estimate leverage scores → Phase 2 leverage-biased sampling → IALM matrix completion. Highest accuracy, slow. `src/core/sampling/leveraged/`.
-- **`lds`** — Leveraged Debiased Sampler: same two-phase sampling but uses an unbiased IPW estimator with effective inclusion probability `π_ij = p_0 + (1-p_0)·p_ij` instead of IALM completion. 10–100× faster than IALM. **Critical**: debias with `π_ij`, not `p_ij` alone — see `CHANGELOG.md` 2026-02-20.
+### Sampling (`src/core/sampling/`)
+**`uniform` is the only method** — sample `O(p·n²)` upper-triangular entries uniformly
+and debias by `1/p`. `SamplingConfig.method` is `Literal["uniform"]`; it survives only
+because it names the results directory (`results/<tree_model>/<method>/`).
 
-`SamplingConfig` knobs that control behavior at low `p`:
-- `allow_uniform_fallback=True` (safe mode) — falls back to uniform when leveraged budget is below theoretical minimum.
-- `force_leveraged=True` (research mode) — proceeds with leveraged using a 90/10 phase split, no guardrails.
-- `ialm_bypass_threshold` — skip IALM and return the sparse sample directly when `p` is high enough.
+The leveraged (IALM) and LDS samplers were **removed on 2026-09-17** along with
+`src/utils/sampling_logger.py` and their ~15 `results.json` diagnostic columns
+(`leverage_*`, `ialm_iterations`, `phase1_*`, `tau_floor`). Nothing had selected them
+since the screen→gate→p-sweep flow landed, and every result the manuscript rests on is
+uniform. History is in git (`src/core/sampling/leveraged/`, removed at the commit
+carrying this note). The same pass deleted `analysis/legacy/leveraged_sampling_analysis/`,
+`analysis/legacy/scripts/analyze_lds_experiment.py`, and all of `docs/deprecated/`.
+
+What remains on `SamplingConfig`: `truncation_threshold`, `matrix_kind`
+(`"similarity"` | `"distance"`), `distance_alpha`.
 
 ### Performance constraints (load-bearing)
 The November-2025 optimizations in `src/core/` are why experiments at `n=8192` are tractable. Don't regress them:
@@ -135,10 +140,11 @@ The November-2025 optimizations in `src/core/` are why experiments at `n=8192` a
 There is no per-topic nesting: 18 notebooks previously sat in 16 directories, which
 grouped nothing.
 
-Its one sibling is **`analysis/legacy/`** — six superseded packages (`comparison`,
-`generic_analysis`, `leveraged_sampling_analysis`, `notebooks`, `scripts`,
-`spectral_analysis`). Unmaintained; don't add to them, and don't revive an import from
-them.
+Its one sibling is **`analysis/legacy/`** — four superseded packages (`comparison`,
+`generic_analysis`, `notebooks`, `spectral_analysis`) plus `plot_phase_transition.py`.
+Unmaintained; don't add to them, and don't revive an import from them.
+`leveraged_sampling_analysis/` and `scripts/` went with the leveraged samplers on
+2026-09-17.
 
 **`PAPER_MAP.md` is the authority** for which notebook produces which figure, which
 claim it supports, which cache it consumes, and how to rebuild it. It is *generated*

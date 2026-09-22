@@ -11,6 +11,10 @@ Do not add to these. If you need something here, port it into
 Last substantive activity: **Dec 2025 – Apr 2025**, versus July 2026 for the paper
 notebooks.
 
+**Removed 2026-09-17** with the leveraged/IALM and LDS samplers themselves:
+`leveraged_sampling_analysis/` (19 files, 2,679 lines) and `scripts/analyze_lds_experiment.py`.
+History is in git.
+
 ## What was extracted before archiving
 
 `comparison/phase_transition_utils.py` was **not** dead. Four live importers pulled
@@ -25,21 +29,19 @@ originals, retained only as history; the canonical versions are in `src/`.
 
 | Path | What it does | Condition |
 |---|---|---|
-| `comparison/` | uniform vs leveraged head-to-head runner, sigmoid/power-law phase-transition fits, notebook glue | `notebook_utils.py` loads plot modules **by file path**, which is brittle. Its 3 `.md` files are redirect stubs to `docs/ANALYSIS_GUIDES.md`, **which has been deleted** -- it documented notebooks that no longer exist. Same for the two `spectral_analysis/*/README.md` stubs. |
+| `comparison/` | uniform vs leveraged head-to-head runner, sigmoid/power-law phase-transition fits, notebook glue | `notebook_utils.py` loads plot modules **by file path**, which is brittle -- and two of those inserts point into `leveraged_sampling_analysis/io`, deleted 2026-09-17 (they were already stale: they omitted the `legacy/` segment). Its 3 `.md` files are redirect stubs to `docs/ANALYSIS_GUIDES.md`, **which has been deleted** -- it documented notebooks that no longer exist. Same for the two `spectral_analysis/*/README.md` stubs. |
 | `generic_analysis/` | 15-module numerical-linear-algebra diagnostics library (Davis–Kahan, eigen spectrum, IPR, rank/coherence, operator norm) | **Never imported in this checkout** — no importer anywhere and no `__pycache__` was ever generated. 1,630 lines. |
-| `leveraged_sampling_analysis/` | IO + metrics + visualization stack for the LDS / leveraged-sampling experiments | Was in use (has `__pycache__` from May 2026). `metrics/diagnostics.py` and `metrics/leverage.py` both define `compute_leverage_concentration`. Its docstring example path `results/kingman_mean/lds/…` no longer exists; the live layout nests under `results/runs/`. |
 | `notebooks/` | `matrix_utils.py` only, 728 lines, "for target matrix analysis notebooks" | **Contains no notebooks.** The helper library has no consumer. |
-| `scripts/` | `analyze_lds_experiment.py`, cross-`n` LDS analysis | Overlaps `leveraged_sampling_analysis/` and `plot_phase_transition.py`. |
 | `spectral_analysis/` | two pipelines: `sweep_params_analysis/` (p_crit detection, BBP crossing, scaling laws, 10 plot modules) and `target_quality_anlysis/` (pre-flight diagnostics on full similarity matrices, plus a stability K-trial variant) | **86 MB — 78% of all of `analysis/`.** Holds 12 committed Dec-2025 run directories under `target_quality_anlysis/analysis_results/` (231 PDF, 197 TXT, 84 SVG, 84 NWK). Directory name has a typo (`anlysis`), kept because renaming it breaks those run dirs. |
 | `plot_phase_transition.py` | single-run phase-transition plot script | Was at `analysis/` root. |
 
 ## Known duplication (recorded, not fixed)
 
-- **Four** implementations of phase-transition plotting/fitting coexist:
+- **Three** implementations of phase-transition plotting/fitting coexist:
   `generic_analysis/phase_transition_plotting.py`,
-  `leveraged_sampling_analysis/visualization/scaling.py` (both define a
-  `plot_phase_transition_scaling`), `spectral_analysis/sweep_params_analysis/phase_transition/`,
-  and `plot_phase_transition.py`.
+  `spectral_analysis/sweep_params_analysis/phase_transition/`, and
+  `plot_phase_transition.py`. A fourth,
+  `leveraged_sampling_analysis/visualization/scaling.py`, went with that package.
 - `spectral_analysis/target_quality_anlysis/output/partition_validity.py::check_partition_valid_in_tree`
   duplicates `src/utils/partition_validity.py`, which is the version the paper
   notebooks import.

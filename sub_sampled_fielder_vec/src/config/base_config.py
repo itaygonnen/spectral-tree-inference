@@ -178,20 +178,9 @@ class SamplingConfig(BaseModel):
     """Sampling method configuration.
 
     Attributes:
-        method: Sampling method ("uniform", "leveraged", or "hldt")
-               - uniform: Simple uniform sampling (baseline)
-               - leveraged: IALM-based matrix completion (high accuracy, slow)
-               - hldt: HLDT debiased estimator (high speed, good accuracy)
-        theta: Phase 1 budget ratio for leveraged/hldt sampling (0 < theta < 1)
-        target_rank: Rank r for SVD in leverage score computation
-        tau_floor_multiplier: Multiplier for regularization floor in HLDT (default: 1.0)
-                             τ_floor = multiplier × mean(leverage_scores)
-        ialm_max_iter: Maximum iterations for IALM solver (leveraged method only)
-        ialm_tol: Convergence tolerance for IALM (leveraged method only)
-        ialm_bypass_threshold: Skip IALM when p >= this threshold (leveraged method only)
-        force_leveraged: Force leveraged/lds sampling even when Phase 1 budget is insufficient
-        allow_uniform_fallback: Allow fallback to uniform sampling when p is too small (default: True)
-        log_sampling_diagnostics: Save detailed sampling diagnostics for analysis
+        method: Sampling method. ``"uniform"`` is the only one; the leveraged/IALM
+                and LDS samplers were removed on 2026-09-17. The field is kept
+                because it names the results directory (``results/<tree_model>/<method>/``).
         truncation_threshold: Minimum similarity threshold - values below this are set to 0.0
                             (0.0 = no truncation, 1e-4 = remove noise, higher = more aggressive)
         matrix_kind: Which matrix to sub-sample. "similarity" (default) uses the JC similarity
@@ -204,24 +193,8 @@ class SamplingConfig(BaseModel):
                        when matrix_kind == "distance". α=1 reproduces the canonical pipeline
                        (modulo the JC vs paralinear difference); α≠1 reweights eigengaps.
     """
-    method: Literal["uniform", "leveraged", "lds"] = "uniform"
-    theta: float = Field(default=0.3, gt=0.0, lt=1.0, description="Phase 1 budget ratio")
-    target_rank: int = Field(default=2, ge=1, description="SVD rank for leverage estimation")
-    tau_floor_multiplier: float = Field(default=1.0, gt=0.0, description="LDS regularization floor multiplier")
-    ialm_max_iter: int = Field(default=100, ge=1, description="IALM maximum iterations")
-    ialm_tol: float = Field(default=1e-6, gt=0.0, description="IALM convergence tolerance")
-    ialm_bypass_threshold: float = Field(default=0.1, gt=0.0, le=1.0, description="Skip IALM when p >= threshold")
-    force_leveraged: bool = Field(default=False, description="Force leveraged sampling even when Phase 1 budget is insufficient")
-    allow_uniform_fallback: bool = Field(default=True, description="Allow fallback to uniform sampling when p is too small")
-    log_sampling_diagnostics: bool = Field(default=False, description="Save detailed sampling diagnostics for analysis")
+    method: Literal["uniform"] = "uniform"
     truncation_threshold: float = Field(default=0.0, ge=0.0, description="Minimum similarity threshold for sparsification")
-    prob_formula: Literal["additive", "multiplicative", "max"] = Field(
-        default="additive",
-        description="Formula for combining row/col leverage into p_ij. "
-                    "'additive': μ_i+μ_j (HLDT paper default), "
-                    "'multiplicative': μ_i×μ_j (concentrates on high-leverage pairs), "
-                    "'max': max(μ_i,μ_j)"
-    )
     matrix_kind: Literal["similarity", "distance"] = Field(
         default="similarity",
         description="Sub-sample similarity (JC) or distance (paralinear). See SNJ paper."

@@ -143,14 +143,6 @@ def save_single_results(
             # New spectral metrics
             'lambda2_L_M', 'lambda3_L_M', 'lambda2_L_S', 'lambda3_L_S',
             'ipr_S', 'dk_ratio_S',
-            # Phase A: Leveraged sampling diagnostics
-            'phase1_s1', 'phase1_s2', 'phase1_s3',
-            'leverage_max', 'leverage_std', 'leverage_sum', 'leverage_symmetry_error',
-            'ialm_iterations',
-            'phase1_sufficiency',  # HLDT Phase 1 quality indicator
-            # LDS budget diagnostics (Part A)
-            'phase1_actual', 'phase2_actual', 'fallback_to_uniform', 'tau_floor',
-            'phase1_budget_fraction',
             # Final-partition (recursive Fiedler split, STDR partition phase only)
             'final_partition_ari', 'final_partition_jaccard',
             'final_n_clusters_M', 'final_n_clusters_S',

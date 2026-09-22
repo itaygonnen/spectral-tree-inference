@@ -31,7 +31,7 @@ class SimilarityMatrixBuilder:
         Initialize the matrix builder.
 
         Args:
-            method: Sampling method ("uniform", "leveraged", "lds").
+            method: Sampling method. Only "uniform" is supported.
             matrix_kind: "similarity" (JC) or "distance" (paralinear). Controls
                 which matrix is built and sub-sampled, and which self-value the
                 sampler enforces on the diagonal (1.0 vs 0.0).
@@ -83,10 +83,6 @@ class SimilarityMatrixBuilder:
         subsampled = self.sampler.sample(full, p, seed)
 
         if self.matrix_kind == "distance":
-            # Densify sparse outputs (LDS) so exp() doesn't fill them dense
-            # with exp(0)=1 implicitly.
-            if not isinstance(subsampled, np.ndarray):
-                subsampled = subsampled.toarray()
             # CRITICAL: the sampler returns D̂ with sampled entries = D_ij/p
             # (IPW-debiased) and unsampled entries = 0 (placeholder for missing).
             # exp(-α·0) = 1 would invert the semantics, treating "missing"

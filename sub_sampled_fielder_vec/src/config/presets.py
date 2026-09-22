@@ -151,14 +151,6 @@ def custom_config(
     operator: str = "L",
     validate_partition_in_tree: bool = True,
     sampling_method: str = "uniform",
-    sampling_theta: float = 0.3,
-    sampling_target_rank: int = 2,
-    sampling_ialm_max_iter: int = 100,
-    sampling_ialm_tol: float = 1e-6,
-    sampling_ialm_bypass_threshold: float = 0.1,
-    sampling_force_leveraged: bool = False,
-    sampling_allow_uniform_fallback: bool = True,
-    log_sampling_diagnostics: bool = False,
     truncation_threshold: float = 0.0,
     matrix_kind: str = "similarity",
     distance_alpha: float = 1.0,
@@ -185,14 +177,7 @@ def custom_config(
         num_workers: Number of parallel workers (1 = sequential)
         use_middle_out: Use middle-out p-value processing strategy
         validate_partition_in_tree: Validate that Fiedler partition corresponds to a real tree edge before running experiment
-        sampling_method: Sampling method ("uniform" or "leveraged")
-        sampling_theta: Phase 1 budget ratio for leveraged sampling (0 < theta < 1)
-        sampling_target_rank: Rank for SVD in leverage estimation
-        sampling_ialm_max_iter: Maximum IALM solver iterations
-        sampling_ialm_tol: IALM convergence tolerance
-        sampling_ialm_bypass_threshold: Skip IALM when p >= this threshold (default: 0.1)
-        sampling_force_leveraged: Force leveraged sampling even when Phase 1 budget is insufficient
-        sampling_allow_uniform_fallback: Allow fallback to uniform sampling when p is too small (default: True)
+        sampling_method: Sampling method; "uniform" is the only one
         truncation_threshold: Minimum similarity threshold - values below this are set to 0.0 (default: 0.0, i.e., no truncation)
         use_persistent_cache: Enable disk-based caching of experiment data (tree, observations, matrices)
         **kwargs: Additional model-specific parameters (e.g., kappa, edge_length, etc.)
@@ -248,14 +233,6 @@ def custom_config(
     # Build sampling config
     sampling = SamplingConfig(
         method=sampling_method,
-        theta=sampling_theta,
-        target_rank=sampling_target_rank,
-        ialm_max_iter=sampling_ialm_max_iter,
-        ialm_tol=sampling_ialm_tol,
-        ialm_bypass_threshold=sampling_ialm_bypass_threshold,
-        force_leveraged=sampling_force_leveraged,
-        allow_uniform_fallback=sampling_allow_uniform_fallback,
-        log_sampling_diagnostics=log_sampling_diagnostics,
         truncation_threshold=truncation_threshold,
         matrix_kind=matrix_kind,
         distance_alpha=distance_alpha

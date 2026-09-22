@@ -8,7 +8,7 @@ on the JC distance matrix instead of SNJ on the JC similarity matrix:
   Panel 3: Robinson-Foulds       (empirical metric)
 
 For now sampling is plain uniform with no completion (the worst-case
-baseline). A future iteration can layer IALM completion on top.
+baseline). Uniform sampling is the only sub-sampling method.
 """
 import os
 import sys
