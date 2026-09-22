@@ -66,7 +66,12 @@ P_VALUES: List[float] = np.geomspace(1e-3, 1.0, 25).tolist()
 BOOTSTRAP_REPS = 10
 SEED = 0
 NUM_GAPS = 10
-EARLY_STOP_CONSECUTIVE_100 = 2
+# The eta-pool sweeps on disk were produced by an ASCENDING scan with a high-side stop
+# after 2 consecutive perfect p's, and they back a published figure. Both facts are cache
+# key (``sweep_cache._build_config``), so naming the traversal here is what keeps those
+# 503 entries hitting rather than being recomputed under the new middle-out default.
+EARLY_STOP = 2
+TRAVERSAL = "ascending"
 
 # --- default pool-key params (MUST match build_eta_pool defaults) ------------
 MU, POP_SIZE, SEQ_LEN, TREE_MODEL, SEQ_MODEL = 0.1, 1.0, 10_000, "kingman", "JC69"
@@ -86,7 +91,7 @@ def _default_pool_params() -> Dict[str, object]:
 def _default_sweep_params() -> Dict[str, object]:
     return dict(p_values=P_VALUES, bootstrap_reps=BOOTSTRAP_REPS, seed=SEED,
                num_gaps=NUM_GAPS,
-               early_stop_consecutive_100=EARLY_STOP_CONSECUTIVE_100)
+               early_stop=EARLY_STOP, traversal=TRAVERSAL)
 
 
 def _norm_ref(M: np.ndarray) -> np.ndarray:

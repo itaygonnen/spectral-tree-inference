@@ -21,7 +21,14 @@ from ..cache_io import bootstrap_sweep as _scope, SENTINEL
 from .eta_pool_cache import bin_name
 
 
-SCHEMA_VERSION = "v3"
+SCHEMA_VERSION = "v4"
+# v3 -> v4 (2026-09-17): the early-stop fill stopped fabricating ``dot_product`` and
+# ``sign_agreement`` in the skipped tail -- neither follows from a settled partition, and
+# both are now NaN. ``early_stop_consecutive_100`` was renamed ``early_stop`` (the trigger
+# is NMI, not agreement==100) and ``traversal`` joined it, because a middle-out sweep and
+# an ascending one are different sweeps. The 503 v3 entries were re-keyed and corrected in
+# place by ``scripts/migrate_sweep_cache_v4.py``, not recomputed: the fabricated indices
+# are exactly reproducible from the stored agreement curve.
 
 
 def _flat_key(param_key: str, eta_target: int, idx: int, sweep_key: str) -> str:
@@ -46,11 +53,12 @@ def _build_config(
     seed: int,
     num_gaps: int,
     min_split: int,
-    early_stop_consecutive_100: int,
+    early_stop: int,
     partition_method: str,
     matrix_kind: str = "similarity",
     distance_alpha: float = 1.0,
     laplacian: str = "unnormalized",
+    traversal: str = "ascending",
 ) -> Dict[str, Any]:
     config = {
         "p_values": [round(float(p), 9) for p in p_values],
@@ -58,7 +66,8 @@ def _build_config(
         "seed": int(seed),
         "num_gaps": int(num_gaps),
         "min_split": int(min_split),
-        "early_stop_consecutive_100": int(early_stop_consecutive_100),
+        "early_stop": int(early_stop),
+        "traversal": str(traversal),
         "partition_method": str(partition_method),
         "matrix_kind": str(matrix_kind),
         "distance_alpha": round(float(distance_alpha), 9),
@@ -76,17 +85,18 @@ def compute_sweep_key(
     seed: int,
     num_gaps: int,
     min_split: int,
-    early_stop_consecutive_100: int,
+    early_stop: int,
     partition_method: str,
     matrix_kind: str = "similarity",
     distance_alpha: float = 1.0,
     laplacian: str = "unnormalized",
+    traversal: str = "ascending",
 ) -> Tuple[str, Dict[str, Any]]:
     config = _build_config(
         p_values, bootstrap_reps, seed, num_gaps, min_split,
-        early_stop_consecutive_100, partition_method,
+        early_stop, partition_method,
         matrix_kind=matrix_kind, distance_alpha=distance_alpha,
-        laplacian=laplacian,
+        laplacian=laplacian, traversal=traversal,
     )
     blob = json.dumps(config, sort_keys=True).encode("utf-8")
     return hashlib.sha1(blob).hexdigest()[:12], config
@@ -148,11 +158,12 @@ def compute_or_load_sweep(
     seed: int = 0,
     num_gaps: int = 10,
     min_split: int = 1,
-    early_stop_consecutive_100: int = 0,
+    early_stop: int = 0,
     partition_method: str = "sigma2",
     matrix_kind: str = "similarity",
     distance_alpha: float = 1.0,
     laplacian: str = "unnormalized",
+    traversal: str = "ascending",
     use_cache: bool = True,
 ) -> Optional[Tuple[Dict[str, Any], bool]]:
     """Return ``(result, was_cached)`` for one sweep, or ``None`` if M_loader returns None."""
@@ -161,7 +172,7 @@ def compute_or_load_sweep(
     sweep_key, config = compute_sweep_key(
         p_values=p_values, bootstrap_reps=bootstrap_reps, seed=seed,
         num_gaps=num_gaps, min_split=min_split,
-        early_stop_consecutive_100=early_stop_consecutive_100,
+        early_stop=early_stop, traversal=traversal,
         partition_method=partition_method,
         matrix_kind=matrix_kind, distance_alpha=distance_alpha,
         laplacian=laplacian,
@@ -181,7 +192,7 @@ def compute_or_load_sweep(
         M=M, fiedler_ref=v_pop, p_values=p_values,
         bootstrap_reps=bootstrap_reps, seed=seed, num_gaps=num_gaps,
         min_split=min_split,
-        early_stop_consecutive_100=early_stop_consecutive_100,
+        early_stop=early_stop, traversal=traversal,
         partition_method=partition_method,
         laplacian=laplacian,
     )

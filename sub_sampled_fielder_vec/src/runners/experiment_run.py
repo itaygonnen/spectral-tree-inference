@@ -65,6 +65,21 @@ GATE_ALIASES = {"valid_S": "valid_L"}
 # for every p. 20 is well above the recoverability scale (m/log m)^(1/3) ~ 5.3 at m=1000.
 MAX_ETA = 20.0
 
+# What a sweep reads by default. NOT ``ALL_OPERATORS``: L_sym is a full Fiedler arm and
+# costs about as much as L, roughly half of a sweep's wall time (B is
+# ``GRIFFING_COST_SHARE`` of one), and the recovery figure compares L against B. It stays
+# in ``ALL_OPERATORS`` because the screen is cheap and still records ``valid_Lsym`` /
+# ``eta_Lsym``, so the ``valid_Lsym`` gate keeps working and ``--operators S,Lsym,B``
+# still sweeps it on request.
+DEFAULT_OPERATORS: tuple = ("S", "B")
+
+# Consecutive settled p's required before either end of the grid is extrapolated. The
+# sweep visits the grid middle-out and stops each side on its own rule -- NMI == 1.0
+# above, NMI <= LOW_FLOOR below -- so a curve that has said what it is going to say is
+# not measured to both horizons. 0 measures every p. See
+# ``src.runners.p_sweep_inner.MiddleOut`` for the traversal and the fill contract.
+EARLY_STOP = 2
+
 # p starts at 1e-4: the transition sits near log n / n, which is 1.4e-3 at m=6000, so the
 # grid has to reach below that for the curve to show a floor rather than start on the ramp.
 P_MIN, P_POINTS, REPS = 1e-4, 20, 10
@@ -121,8 +136,10 @@ def as_command(spec: "RunSpec", sources: Sequence["Source"],
         parts.append(f"--p-min {spec.p_min:g}")
         parts.append(f"--p-points {spec.p_points}")
         parts.append(f"--reps {spec.reps}")
-        if tuple(spec.operators) != tuple(ALL_OPERATORS):
+        if tuple(spec.operators) != tuple(DEFAULT_OPERATORS):
             parts.append(f"--operators {','.join(spec.operators)}")
+        if spec.early_stop != EARLY_STOP:
+            parts.append(f"--early-stop {spec.early_stop}")
         if not spec.extra_metrics:
             parts.append("--no-extra-metrics")
     if spec.prefix:
@@ -195,7 +212,8 @@ class RunSpec:
     reps: int = REPS
     num_gaps: int = 10
     min_split: int = 5
-    operators: Sequence[str] = ALL_OPERATORS
+    operators: Sequence[str] = DEFAULT_OPERATORS
+    early_stop: int = EARLY_STOP
     # On by default: measured +21% on the L arm at m=1000 (4 p x 5 reps, 0.48 s ->
     # 0.58 s), and the diagnostics are O(m^2) per replicate against the eigensolve's
     # O(m^3), so the share falls as 1/m -- about 4% at m=6000.
@@ -308,7 +326,9 @@ def plan(spec: RunSpec, sources: Sequence[Source],
             n_gate = len(select_ids(ids, v, spec.gate))
             selected = select_ids(ids, v, spec.gate, spec.max_eta, spec.operators)
             # serial: run_sweep walks the trees one at a time, so this is wall time.
-            # ``workers`` parallelises the screen only.
+            # ``workers`` parallelises the screen only. An UPPER bound when
+            # ``early_stop`` is on: how many p's each end skips depends on where that
+            # tree's curve turns, which is not knowable before sweeping it.
             secs += (len(selected) * spec.p_points * spec.reps
                      * SOLVE_SECS_AT_6000 * (src.m / 6000.0) ** 3
                      * (n_fiedler + n_griffing * GRIFFING_COST_SHARE))
@@ -347,7 +367,7 @@ def _run_source(row: PlanRow, spec: RunSpec) -> List[str]:
     run_sweep(ids, sweep_cache_dir(src.name), src.loader, spec.p_values(),
               reps=spec.reps, num_gaps=spec.num_gaps, min_split=spec.min_split,
               operators=spec.operators, source=src.name, m=row.m,
-              extra_metrics=spec.extra_metrics)
+              extra_metrics=spec.extra_metrics, early_stop=spec.early_stop)
     return ids
 
 

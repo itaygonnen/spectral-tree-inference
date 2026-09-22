@@ -27,6 +27,7 @@ from ..cache_io import bpart_sweep as _scope
 from ..core.similarity_builder import SimilarityMatrixBuilder
 from ..utils.griffing import DEFAULT_SOLVER, griffing_leading_eigvec
 from ..runners.nj_sweep import _impute_mean
+from ..runners.p_sweep_inner import EXTRA_METRIC_KEYS, LOW_FLOOR, MiddleOut
 
 SCHEMA_VERSION = "v1"
 _METRICS = ("agreement", "dot", "ari", "nmi")
@@ -90,6 +91,8 @@ def _build_config(
     method: str = "griffing_double_centering",
     eigsolver: str = DEFAULT_SOLVER,
     aggregation: str = DEFAULT_AGGREGATION,
+    early_stop: int = 0,
+    traversal: str = "middle_out",
 ) -> Dict[str, Any]:
     """Config dict that IS the cache key (sha1'd by :func:`compute_sweep_key`).
 
@@ -112,15 +115,23 @@ def _build_config(
         config["eigsolver"] = str(eigsolver)
     if aggregation != DEFAULT_AGGREGATION:
         config["aggregation"] = str(aggregation)
+    # A sweep that skipped p's is not the same sweep as one that measured them all, so
+    # it gets its own namespace -- and, per the note above, only when it differs from
+    # the historical default, so every key already on disk stays byte-identical.
+    if early_stop:
+        config["early_stop"] = int(early_stop)
+        config["traversal"] = str(traversal)
     return config
 
 
 def compute_sweep_key(
     p_values: Sequence[float], reps: int, seed_base: int, imputation: str,
     eigsolver: str = DEFAULT_SOLVER, aggregation: str = DEFAULT_AGGREGATION,
+    early_stop: int = 0, traversal: str = "middle_out",
 ) -> Tuple[str, Dict[str, Any]]:
     config = _build_config(p_values, reps, seed_base, imputation,
-                           eigsolver=eigsolver, aggregation=aggregation)
+                           eigsolver=eigsolver, aggregation=aggregation,
+                           early_stop=early_stop, traversal=traversal)
     blob = json.dumps(config, sort_keys=True).encode("utf-8")
     return hashlib.sha1(blob).hexdigest()[:12], config
 
@@ -130,6 +141,8 @@ def bpart_sweep_raw(
     seed_base: int = 0, imputation: str = "mean",
     eigsolver: str = DEFAULT_SOLVER, aggregation: str = DEFAULT_AGGREGATION,
     extra_metrics: bool = False,
+    early_stop: int = 0, low_floor: float = LOW_FLOOR,
+    traversal: str = "middle_out",
     progress_cb: Optional[Callable[[int, float], None]] = None,
     on_p_result: Optional[Callable[[int, float, Dict[str, Any]], None]] = None,
 ) -> Dict[str, Any]:
@@ -154,9 +167,18 @@ def bpart_sweep_raw(
     ``_M``/``_S`` roles are played here by ``D`` and ``D_hat``). Off by default; when off
     the arithmetic is unchanged.
 
+    ``early_stop`` > 0 sweeps the grid middle-out and stops each end once the curve has
+    settled -- the distance route's half of :class:`~src.runners.p_sweep_inner.MiddleOut`,
+    including its fill contract: a skipped p carries ``nmi``/``ari``/``agreement`` and
+    nothing else, with ``dot`` and every diagnostic NaN. ``p_values[0]`` is measured
+    either way. It is part of the cache key, so a stopped sweep and a full one are never
+    pooled.
+
     ``progress_cb`` is called ``f(p_index, p)`` after each p, for a caller's progress bar.
     ``on_p_result`` is called ``f(p_index, p, row)`` with that p's entry the moment it is
     complete, so a caller can log the numbers live rather than when the whole sweep ends.
+    Both fire in VISIT order, which is middle-out rather than ascending when
+    ``early_stop`` > 0.
     """
     if imputation not in ("mean", "zero"):
         raise ValueError(f"imputation must be 'mean' or 'zero', got {imputation!r}")
@@ -176,8 +198,13 @@ def bpart_sweep_raw(
         rank_L_M = numerical_rank(B_full)
         del B_full
 
-    per_p: List[Dict[str, Any]] = []
-    for p_idx, p in enumerate(p_values):
+    # Indexed by p, never appended to: the grid is visited middle-out, so the slot a
+    # result belongs in is not the number of results so far.
+    n_p = len(list(p_values))
+    per_p: List[Optional[Dict[str, Any]]] = [None] * n_p
+    trav = MiddleOut(n_p, early_stop=early_stop, low=low_floor, traversal=traversal)
+    for p_idx in trav.indices():
+        p = float(p_values[p_idx])
         aligned: List[np.ndarray] = []
         op_errs: List[float] = []
         rank_S_vals: List[float] = []
@@ -208,7 +235,7 @@ def bpart_sweep_raw(
         else:
             scored = aligned
 
-        per_p.append({
+        per_p[p_idx] = {
             "p": float(p),
             "agreement": [_partition_agreement(v_ref, v) for v in scored],
             "dot": [float(np.abs(np.dot(v, v_ref))) for v in scored],
@@ -217,7 +244,8 @@ def bpart_sweep_raw(
             # the split itself, so a caller can score it against another reference
             # (e.g. the true tree's own split) without re-running the sweep
             "partitions": [np.asarray(v) >= 0 for v in scored],
-        })
+            "measured": 1.0,
+        }
         if extra_metrics:
             from ..utils.metrics import sigma2_of_partition
             part = np.asarray(scored[0]) >= 0
@@ -234,11 +262,49 @@ def bpart_sweep_raw(
                                  ("std", np.std)):
                     row[f"{stat}_{name}"] = (float(fn(arr)) if arr.size
                                              else float('nan'))
-            per_p[-1].update(row)
+            per_p[p_idx].update(row)
+        trav.observe(p_idx, float(np.mean(per_p[p_idx]["nmi"])))
         if progress_cb is not None:
-            progress_cb(p_idx, float(p))
+            progress_cb(p_idx, p)
         if on_p_result is not None:
-            on_p_result(p_idx, float(p), per_p[-1])
+            on_p_result(p_idx, p, per_p[p_idx])
+
+    # --- extrapolate the ends the traversal skipped ---------------------------------
+    # Same contract as the similarity route: a skipped p carries the partition metrics
+    # its side's rule supports and NaN for everything else. ``partitions`` is emptied
+    # rather than guessed on the low side, so eta / split / vs_truetree stay NaN.
+    def _fill(idx: int, agreement: float, ari: float, nmi: float,
+              partition: Optional[np.ndarray]) -> None:
+        row: Dict[str, Any] = {
+            "p": float(p_values[idx]), "measured": 0.0,
+            "agreement": [agreement], "ari": [ari], "nmi": [nmi],
+            "dot": [float('nan')],
+            "partitions": [partition] if partition is not None else [],
+        }
+        if extra_metrics:
+            row.update({k: float('nan') for k in EXTRA_METRIC_KEYS})
+            row["empirical_rank_M"] = rank_M      # constants of D, not functions of p
+            row["empirical_rank_L_M"] = rank_L_M
+        per_p[idx] = row
+        if progress_cb is not None:
+            progress_cb(idx, float(p_values[idx]))
+        if on_p_result is not None:
+            on_p_result(idx, float(p_values[idx]), row)
+
+    if trav.high_fill:
+        # NMI == 1.0 exactly means the recovered sign pattern IS the reference's, so
+        # these three are deductions. Guarded rather than assumed.
+        exact = all(float(np.mean(per_p[i]["nmi"])) >= 1.0 for i in trav.high_trigger)
+        for i in trav.high_fill:
+            _fill(i, 100.0 if exact else float('nan'),
+                  1.0 if exact else float('nan'),
+                  1.0 if exact else float('nan'),
+                  (np.asarray(v_ref) >= 0) if exact else None)
+    if trav.low_fill:
+        held = {m: float(np.mean([np.mean(per_p[i][m]) for i in trav.low_trigger]))
+                for m in ("agreement", "ari", "nmi")}
+        for i in trav.low_fill:
+            _fill(i, held["agreement"], held["ari"], held["nmi"], None)
 
     return {
         "p_values": [float(p) for p in p_values],

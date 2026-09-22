@@ -1,10 +1,9 @@
 """Reusable bootstrap p-sweep over a precomputed (M, fiedler_ref) pair.
 
-Narrow extraction of the inner loop in ``bootstrap_sweep.py::sweep_for_params``
-(lines ~498–722) for the **uniform sampling** path, focused on
-``partition_agreement_M``. Drops the metric_composer, leveraged-sampler
-diagnostics, persistent caching, guardrails, and partition-validity checks
-that the full runner needs but a notebook does not.
+Narrow extraction of the inner loop in ``bootstrap_sweep.py::sweep_for_params``,
+focused on ``partition_agreement_M``. Drops the metric_composer, persistent
+caching, guardrails, and partition-validity checks that the full runner needs
+but a notebook does not.
 
 Use ``sweep_for_params`` for full experiments; use this helper when you
 already have ``(M, v_pop)`` (e.g. from the eta-pool cache) and want a
@@ -41,6 +40,140 @@ EXTRA_METRIC_KEYS = (
     "mean_empirical_rank_L_S", "median_empirical_rank_L_S", "std_empirical_rank_L_S",
     "empirical_rank_M", "empirical_rank_L_M",
 )
+
+# --- middle-out traversal ----------------------------------------------------------
+# The grid is swept from its middle outwards, one step per side, so a sweep can stop on
+# either end the moment the curve has said what it is going to say:
+#
+#   high side   NMI == 1.0 twice running        -> every larger p recovers perfectly too
+#   low  side   NMI <= LOW_FLOOR twice running  -> every smaller p sits on the floor
+#
+# Both inner sweeps seed their RNG from the p INDEX and never from visit order
+# (``seed + i`` here, ``seed_base + 10_000*p_idx + rep`` in ``bpart_sweep_cache``), so
+# visiting the grid middle-out is bit-exact on every point still computed.
+#
+# Serial and single-step on purpose. ``middle_out_runner`` expands in parallel blocks and
+# widens ``workers_per_side`` once one side finishes; ``offset`` then advances past where
+# the other side stopped and the indices in between are never computed AND never filled
+# (n_p=20, workers=8, high guardrail in round 1 leaves 2,3,4,5 as None). Two cursors
+# stepping one index at a time cannot do that.
+HIGH_PERFECT = 1.0      # NMI of a partition identical to the reference -- exactly 1.0,
+                        # not approximately: sklearn's NMI of a labelling against itself
+                        # or its complement is bit-exact 1.0.
+LOW_FLOOR = 0.10        # NMI at or below which a point counts as "no recovery"
+
+
+class MiddleOut:
+    """Which p index to compute next, and which ends of the grid to extrapolate.
+
+        trav = MiddleOut(len(p_values), early_stop)
+        for idx in trav.indices():
+            row = compute(p_values[idx])
+            trav.observe(idx, row["nmi"])
+        # trav.high_fill / trav.low_fill are the indices to extrapolate, and
+        # trav.high_trigger / trav.low_trigger the measured points that decided it
+
+    The middle seed counts towards both sides, so a grid whose centre already recovers
+    perfectly stops the high side one step later rather than measuring it twice.
+
+    Index 0 is ALWAYS measured, even when the low side stops above it: ``p_min`` is the
+    bottom of the axis the recovery figure is drawn to show, and one extra solve there is
+    the cheapest on the grid (sparse below density 0.1, dense above).
+
+    ``early_stop=0`` disables every stop and hands back a plain ascending grid, so a
+    ``--no-early-stop`` run computes and logs its p's in the order it always did.
+
+    ``traversal="ascending"`` is the pre-2026-09 shape: walk 0..n-1 and stop only on the
+    high side. It exists because the eta-pool cache holds 503 sweeps produced that way
+    and they back a published figure. It is a cache key (``sweep_cache._build_config``),
+    so an ascending sweep and a middle-out one can never be pooled.
+    """
+
+    TRAVERSALS = ("middle_out", "ascending")
+
+    def __init__(self, n_p: int, early_stop: int = 2,
+                 high: float = HIGH_PERFECT, low: float = LOW_FLOOR,
+                 traversal: str = "middle_out"):
+        if n_p < 1:
+            raise ValueError(f"n_p must be >= 1, got {n_p}")
+        if early_stop < 0:
+            raise ValueError(f"early_stop must be >= 0, got {early_stop}")
+        if traversal not in self.TRAVERSALS:
+            raise ValueError(f"traversal must be one of {self.TRAVERSALS}, "
+                             f"got {traversal!r}")
+        self.traversal = traversal
+        self.n_p = int(n_p)
+        self.early_stop = int(early_stop)
+        self.high = float(high)
+        self.low = float(low)
+        # an ascending sweep has no low side and no middle seed: index 0 is its start,
+        # and every point it visits belongs to the high run
+        self.mid = self.n_p // 2 if traversal == "middle_out" else 0
+        self.high_fill: List[int] = []
+        self.low_fill: List[int] = []
+        self.high_trigger: List[int] = []
+        self.low_trigger: List[int] = []
+        self._seen: Dict[int, float] = {}
+        self._hi_run: List[int] = []     # newest run of high-side indices at/above `high`
+        self._lo_run: List[int] = []     # newest run of low-side indices at/below `low`
+
+    def observe(self, idx: int, nmi: float) -> None:
+        """Record the NMI measured at ``idx``. A NaN breaks both runs, as it must:
+        a p whose every replicate failed says nothing about its neighbours."""
+        v = float(nmi)
+        self._seen[idx] = v
+        # visit order IS p order on each side (ascending high, descending low), so
+        # appending keeps each run in the order the guardrail has to read it
+        if idx >= self.mid:
+            self._hi_run = self._hi_run + [idx] if v >= self.high else []
+        if idx <= self.mid:
+            self._lo_run = self._lo_run + [idx] if v <= self.low else []
+
+    @property
+    def measured(self) -> List[int]:
+        return sorted(self._seen)
+
+    def indices(self):
+        """Yield the indices to compute, stopping each side on its own rule."""
+        if self.early_stop <= 0:
+            yield from range(self.n_p)
+            return
+
+        if self.traversal == "ascending":
+            for idx in range(self.n_p):
+                if len(self._hi_run) >= self.early_stop:
+                    self.high_trigger = self._hi_run[-self.early_stop:]
+                    self.high_fill = list(range(idx, self.n_p))
+                    return
+                yield idx
+            return
+
+        yield self.mid
+        hi, lo = self.mid + 1, self.mid - 1
+        hi_done = lo_done = False
+        while not (hi_done and lo_done):
+            if not hi_done:
+                if hi >= self.n_p:
+                    hi_done = True
+                elif len(self._hi_run) >= self.early_stop:
+                    hi_done = True
+                    self.high_trigger = self._hi_run[-self.early_stop:]
+                    self.high_fill = list(range(hi, self.n_p))
+                else:
+                    yield hi
+                    hi += 1
+            if not lo_done:
+                if lo < 0:
+                    lo_done = True
+                elif len(self._lo_run) >= self.early_stop:
+                    lo_done = True
+                    self.low_trigger = self._lo_run[-self.early_stop:]
+                    self.low_fill = list(range(1, lo + 1))
+                    if 0 not in self._seen:
+                        yield 0                  # the p_min anchor
+                else:
+                    yield lo
+                    lo -= 1
 
 
 def _bipartition_agreement(partition_ref: np.ndarray, partition_avg: np.ndarray) -> float:
@@ -99,7 +232,9 @@ def bootstrap_p_sweep_simple(
     num_gaps: int = 10,
     min_split: int = 1,
     partition_ref: Optional[np.ndarray] = None,
-    early_stop_consecutive_100: int = 0,
+    early_stop: int = 0,
+    low_floor: float = LOW_FLOOR,
+    traversal: str = "middle_out",
     partition_method: str = "sigma2",
     laplacian: str = "unnormalized",
     extra_metrics: bool = False,
@@ -118,10 +253,14 @@ def bootstrap_p_sweep_simple(
     num_gaps, min_split : passed to partition_taxa (sigma2 mode only).
     partition_ref : optional precomputed reference partition. If None,
         derived from fiedler_ref according to ``partition_method``.
-    early_stop_consecutive_100 : if > 0, stop the sweep after this many
-        consecutive p's hit partition_agreement_M == 100.0, and fill the
-        remaining p's with (100.0, 100.0, 1.0). Assumes p_values are
-        ordered such that agreement is monotone-ish at the high-p tail.
+    early_stop : if > 0, sweep the grid middle-out (see :class:`MiddleOut`) and stop
+        each side after this many consecutive settled points -- NMI == 1.0 on the high
+        side, NMI <= ``low_floor`` on the low side. The skipped p's are extrapolated
+        under the fill contract below; ``p_values[0]`` is measured either way. 0 sweeps
+        the whole grid ascending, as it always did.
+    low_floor : the low side's "no recovery" level. Only read when ``early_stop`` > 0.
+    traversal : ``"middle_out"`` (default) or ``"ascending"`` -- see :class:`MiddleOut`.
+        ``"ascending"`` reproduces the pre-2026-09 shape the eta-pool cache holds.
     partition_method : how to derive partitions from Fiedler vectors.
         - ``"sigma2"`` (default): use ``partition_taxa`` (gap search by σ₂,
           honours ``num_gaps``/``min_split``). Can return degenerate splits
@@ -155,10 +294,35 @@ def bootstrap_p_sweep_simple(
     -------
     dict with keys: ``p_values``, ``partition_agreement_M``,
     ``partition_ari_M``, ``partition_nmi_M``, ``sign_agreement``,
-    ``dot_product``, ``partition_split_ref``, ``reference_partition_quality``.
+    ``dot_product``, ``partition_split_ref``, ``reference_partition_quality``,
+    and ``measured`` (1.0 where the p was computed, 0.0 where it was extrapolated).
     ``partition_ari_M`` is the Adjusted Rand Index and ``partition_nmi_M``
     is the Normalized Mutual Information between the reference bipartition
     and the bootstrap-averaged bipartition (both label-permutation invariant).
+
+    Fill contract
+    -------------
+    An extrapolated p carries ONLY what its side's rule supports, and NaN everywhere
+    else. Filling a quantity the trigger does not imply is how the mechanisms this one
+    replaces went wrong: a perfectly recovered partition says nothing about ``dot`` or
+    about ``||S - M||_2``, both of which are continuous in the sub-sample.
+
+    =====================  =========================  ==========================
+    quantity               high tail (NMI == 1)       low tail (NMI <= floor)
+    =====================  =========================  ==========================
+    nmi, ari               1.0                        mean of the triggering p's
+    partition_agreement_M  100.0                      mean of the triggering p's
+    the partition itself   ``partition_ref``          None
+    dot, sign_agreement    NaN                        NaN
+    sigma2_avg_S, ranks    NaN                        NaN
+      of S and L(S)
+    sigma2_avg_M, ranks    their real value -- these are constants of M, not of p
+      of M and L(M)
+    =====================  =========================  ==========================
+
+    ``on_p_result`` fires in VISIT order, which is middle-out, not ascending. Every
+    caller logs ``p`` rather than the index, so the log stays readable; a caller that
+    assumes ascending order must pass ``early_stop=0``.
     """
     from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
     from spectraltree.spectral_tree_reconstruction import partition_taxa
@@ -190,8 +354,10 @@ def bootstrap_p_sweep_simple(
 
     partition_ref_int = partition_ref.astype(int)
 
-    # constants of the run: the ranks of M and of its Laplacian do not depend on p
-    extra: Dict[str, List[float]] = ({k: [] for k in EXTRA_METRIC_KEYS}
+    # Every output is indexed by p, never appended to: the grid is visited middle-out,
+    # so the slot a result belongs in is not the number of results so far.
+    n_p = len(p_values)
+    extra: Dict[str, List[float]] = ({k: [float('nan')] * n_p for k in EXTRA_METRIC_KEYS}
                                      if extra_metrics else {})
     rank_M = rank_L_M = float('nan')
     sigma2_ref_M = float('nan')
@@ -203,76 +369,63 @@ def bootstrap_p_sweep_simple(
         sigma2_ref_M = sigma2_of_partition(M, partition_ref)
         del L_M_full                       # n x n; nothing below needs it
 
-    def _push_extra(sigma2_M, sigma2_S, op_errs, rank_S, rank_LS):
+    def _set_extra(idx, sigma2_M, sigma2_S, op_errs, rank_S, rank_LS):
         """One row of diagnostics for one p. Lists may be empty (every rep failed)."""
         if not extra_metrics:
             return
-        extra["sigma2_avg_M"].append(float(sigma2_M))
-        extra["sigma2_avg_S"].append(float(sigma2_S))
+        extra["sigma2_avg_M"][idx] = float(sigma2_M)
+        extra["sigma2_avg_S"][idx] = float(sigma2_S)
         for name, vals in (("operator_norm_error", op_errs),
                            ("empirical_rank_S", rank_S),
                            ("empirical_rank_L_S", rank_LS)):
             arr = np.asarray(vals, dtype=float)
             for stat, fn in (("mean", np.mean), ("median", np.median), ("std", np.std)):
-                extra[f"{stat}_{name}"].append(
-                    float(fn(arr)) if arr.size else float('nan'))
-        extra["empirical_rank_M"].append(rank_M)
-        extra["empirical_rank_L_M"].append(rank_L_M)
+                extra[f"{stat}_{name}"][idx] = (float(fn(arr)) if arr.size
+                                                else float('nan'))
+        extra["empirical_rank_M"][idx] = rank_M
+        extra["empirical_rank_L_M"][idx] = rank_L_M
 
     def _emit(idx: int, p: float) -> None:
-        """Hand the caller the row just appended for this p."""
+        """Hand the caller the row just written for this p."""
         if on_p_result is None:
             return
-        row = {"nmi": partition_nmi_M[-1], "ari": partition_ari_M[-1],
-               "agreement": partition_agreement_M[-1],
-               "sign_agreement": sign_agreement[-1], "dot": dot_product[-1],
-               "partition": partitions[-1]}
+        row = {"nmi": partition_nmi_M[idx], "ari": partition_ari_M[idx],
+               "agreement": partition_agreement_M[idx],
+               "sign_agreement": sign_agreement[idx], "dot": dot_product[idx],
+               "partition": partitions[idx], "measured": measured[idx]}
         for k, vals in extra.items():
-            if vals:
-                row[k] = vals[-1]
+            row[k] = vals[idx]
         on_p_result(idx, float(p), row)
 
-    partition_agreement_M: List[float] = []
-    partition_ari_M: List[float] = []
-    partition_nmi_M: List[float] = []
+    partition_agreement_M: List[float] = [float('nan')] * n_p
+    partition_ari_M: List[float] = [float('nan')] * n_p
+    partition_nmi_M: List[float] = [float('nan')] * n_p
     # the bootstrap-averaged partition per p, so a caller can score it against another
     # reference (e.g. the true tree's split) without paying for the sweep twice
-    partitions: List[Optional[np.ndarray]] = []
-    sign_agreement: List[float] = []
-    dot_product: List[float] = []
-    consecutive_100 = 0
+    partitions: List[Optional[np.ndarray]] = [None] * n_p
+    sign_agreement: List[float] = [float('nan')] * n_p
+    dot_product: List[float] = [float('nan')] * n_p
+    measured: List[float] = [0.0] * n_p
 
-    for idx, p in enumerate(p_values):
-        if early_stop_consecutive_100 > 0 and consecutive_100 >= early_stop_consecutive_100:
-            remaining = len(p_values) - idx
-            partition_agreement_M.extend([100.0] * remaining)
-            partition_ari_M.extend([1.0] * remaining)
-            partition_nmi_M.extend([1.0] * remaining)
-            sign_agreement.extend([100.0] * remaining)
-            dot_product.extend([1.0] * remaining)
-            partitions.extend([partition_ref.copy()] * remaining)
-            for _ in range(remaining):
-                # the fill asserts perfect recovery, so the diagnostics take their p=1
-                # values: no sampling error, S is M
-                _push_extra(sigma2_ref_M, sigma2_ref_M, [0.0], [rank_M], [rank_L_M])
-            for j in range(idx, len(p_values)):
-                if progress_cb is not None:
-                    progress_cb(j, float(p_values[j]))
-                _emit(j, float(p_values[j]))
-            break
+    trav = MiddleOut(n_p, early_stop=early_stop, low=low_floor, traversal=traversal)
+    for idx in trav.indices():
+        p = float(p_values[idx])
+        measured[idx] = 1.0
 
         if p >= 0.9999:
-            partition_agreement_M.append(100.0)
-            partition_ari_M.append(1.0)
-            partition_nmi_M.append(1.0)
-            sign_agreement.append(100.0)
-            dot_product.append(1.0)
-            partitions.append(partition_ref.copy())
-            _push_extra(sigma2_ref_M, sigma2_ref_M, [0.0], [rank_M], [rank_L_M])
-            consecutive_100 += 1
+            # S is M exactly, so this is not an extrapolation: every quantity below is
+            # the reference's own, including the ones a fill would have to leave NaN.
+            partition_agreement_M[idx] = 100.0
+            partition_ari_M[idx] = 1.0
+            partition_nmi_M[idx] = 1.0
+            sign_agreement[idx] = 100.0
+            dot_product[idx] = 1.0
+            partitions[idx] = partition_ref.copy()
+            _set_extra(idx, sigma2_ref_M, sigma2_ref_M, [0.0], [rank_M], [rank_L_M])
+            trav.observe(idx, 1.0)
             if progress_cb is not None:
-                progress_cb(idx, float(p))
-            _emit(idx, float(p))
+                progress_cb(idx, p)
+            _emit(idx, p)
             continue
 
         aligned: List[np.ndarray] = []
@@ -298,14 +451,11 @@ def bootstrap_p_sweep_simple(
                 S_sum = S.astype(float).copy() if S_sum is None else S_sum + S
 
         if not aligned:
-            partition_agreement_M.append(float('nan'))
-            partition_ari_M.append(float('nan'))
-            partition_nmi_M.append(float('nan'))
-            sign_agreement.append(float('nan'))
-            dot_product.append(float('nan'))
-            partitions.append(None)
-            _push_extra(float('nan'), float('nan'), [], [], [])
-            _emit(idx, float(p))
+            # every slot already holds NaN; observe() sees the NaN and breaks both runs,
+            # so a failed p never counts towards a stop
+            _set_extra(idx, float('nan'), float('nan'), [], [], [])
+            trav.observe(idx, float('nan'))
+            _emit(idx, p)
             continue
 
         try:
@@ -329,34 +479,78 @@ def bootstrap_p_sweep_simple(
             ari_M = float('nan')
             nmi_M = float('nan')
             partition_avg = None
-        partitions.append(None if partition_avg is None
-                          else np.asarray(partition_avg).astype(bool))
-        partition_agreement_M.append(float(agr_M))
-        partition_ari_M.append(ari_M)
-        partition_nmi_M.append(nmi_M)
-        sign_agreement.append(float(compute_sign_agreement(fiedler_ref, v_avg)))
+        partitions[idx] = (None if partition_avg is None
+                           else np.asarray(partition_avg).astype(bool))
+        partition_agreement_M[idx] = float(agr_M)
+        partition_ari_M[idx] = ari_M
+        partition_nmi_M[idx] = nmi_M
+        sign_agreement[idx] = float(compute_sign_agreement(fiedler_ref, v_avg))
         try:
-            dot_product.append(float(compute_fiedler_dot_product(fiedler_ref, v_avg)))
+            dot_product[idx] = float(compute_fiedler_dot_product(fiedler_ref, v_avg))
         except ValueError as e:
             log_warning('p_sweep_inner', f"dot_product failed at p={p:.4g}: {e}")
-            dot_product.append(float('nan'))
         if extra_metrics:
             if partition_avg is None:
-                _push_extra(float('nan'), float('nan'), op_errs,
-                            rank_S_vals, rank_LS_vals)
+                _set_extra(idx, float('nan'), float('nan'), op_errs,
+                           rank_S_vals, rank_LS_vals)
             else:
                 part = np.asarray(partition_avg).astype(bool)
                 s_avg = S_sum / max(len(aligned), 1) if S_sum is not None else None
-                _push_extra(sigma2_of_partition(M, part),
-                            float('nan') if s_avg is None
-                            else sigma2_of_partition(s_avg, part),
-                            op_errs, rank_S_vals, rank_LS_vals)
-        consecutive_100 = consecutive_100 + 1 if agr_M == 100.0 else 0
+                _set_extra(idx, sigma2_of_partition(M, part),
+                           float('nan') if s_avg is None
+                           else sigma2_of_partition(s_avg, part),
+                           op_errs, rank_S_vals, rank_LS_vals)
+        trav.observe(idx, nmi_M)
         if progress_cb is not None:
             progress_cb(idx, float(p))
-        _emit(idx, float(p))
+        _emit(idx, p)
+
+    # --- extrapolate the ends the traversal skipped ---------------------------------
+    # Only nmi / ari / agreement / the partition are written. Everything else keeps the
+    # NaN it was preallocated with, which is the fill contract: ``dot``, ``sign``, and
+    # every S-side diagnostic are continuous in the sub-sample and are NOT implied by a
+    # settled partition. ``run_export._stats`` drops NaN and reports ``n``, so the
+    # extrapolated rows announce themselves in curves.csv.
+    if trav.high_fill:
+        # the high rule is NMI == 1.0 exactly, so the partition IS the reference and
+        # 1.0 / 1.0 / 100.0 are deductions, not estimates. Guarded rather than assumed:
+        # a relaxed threshold would make them estimates, and then nothing is filled.
+        exact = all(partition_nmi_M[i] >= HIGH_PERFECT
+                    and partition_agreement_M[i] == 100.0 for i in trav.high_trigger)
+        for i in trav.high_fill:
+            if exact:
+                partition_nmi_M[i] = 1.0
+                partition_ari_M[i] = 1.0
+                partition_agreement_M[i] = 100.0
+                partitions[i] = partition_ref.copy()
+                if float(p_values[i]) >= 0.9999:
+                    # S is M here, so this p is exact rather than extrapolated and costs
+                    # nothing to state in full -- never spend the dot / sign / diagnostic
+                    # columns on a point the fast path would have given for free
+                    sign_agreement[i] = 100.0
+                    dot_product[i] = 1.0
+                    measured[i] = 1.0
+                    _set_extra(i, sigma2_ref_M, sigma2_ref_M, [0.0], [rank_M], [rank_L_M])
+            if progress_cb is not None:
+                progress_cb(i, float(p_values[i]))
+            _emit(i, float(p_values[i]))
+    if trav.low_fill:
+        # the low rule says only "still on the floor", so the floor's own measured level
+        # is carried down rather than a baseline invented from the metric's definition
+        held = {name: float(np.mean([vals[i] for i in trav.low_trigger]))
+                for name, vals in (("nmi", partition_nmi_M),
+                                   ("ari", partition_ari_M),
+                                   ("agreement", partition_agreement_M))}
+        for i in trav.low_fill:
+            partition_nmi_M[i] = held["nmi"]
+            partition_ari_M[i] = held["ari"]
+            partition_agreement_M[i] = held["agreement"]
+            if progress_cb is not None:
+                progress_cb(i, float(p_values[i]))
+            _emit(i, float(p_values[i]))
 
     return {
+        "measured": measured,
         "p_values": list(p_values),
         "partition_agreement_M": partition_agreement_M,
         "partition_ari_M": partition_ari_M,

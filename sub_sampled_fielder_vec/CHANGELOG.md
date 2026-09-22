@@ -4,6 +4,71 @@ All notable changes to the STDR framework are documented here.
 
 ---
 
+## [2026-09-17] Middle-out early stop in the sweep, and L_sym off the sweep default
+
+The p-grid is now swept from its middle outwards and each end stops once the curve has
+settled, instead of measuring every p from `p_min` to 1.0. The strategy is the one
+`middle_out_runner.py` has always had for the legacy single-tree flow; the code is new,
+because that implementation has four defects (below).
+
+### Added
+- `p_sweep_inner.MiddleOut` — the traversal and both stop rules, shared by the similarity
+  route (`bootstrap_p_sweep_simple`) and the distance route (`bpart_sweep_raw`). Serial,
+  two cursors, one step per side. High side stops after N consecutive `NMI == 1.0`, low
+  side after N consecutive `NMI <= 0.10`; `p_values[0]` is always measured so `p_min`
+  anchors the floor with a real number. `traversal="ascending"` reproduces the pre-2026-09
+  shape, which is what the eta-pool cache holds.
+- `--early-stop N` / `--no-early-stop` on `scripts/run_sweep.py`, `RunSpec.early_stop`
+  (default 2), and the matching menu question.
+- `measured_{arm}`, a per-p column recording which points were computed. Additive — not in
+  `operator_sweep.META_KEYS` — so no cached tree was invalidated.
+- `scripts/check_early_stop.py` — replays the traversal over every cached curve and asserts
+  both stop rules against data that predates the code, plus a structural check that the
+  traversal partitions `range(n_p)` exactly for every `(n_p, early_stop, stop position)`.
+  0 violations across the 8 cached trees.
+- `scripts/migrate_sweep_cache_v4.py` — the one-off v3 -> v4 re-key.
+
+### Changed
+- **Sweeps read L(S) and B by default, not L_sym** (`experiment_run.DEFAULT_OPERATORS`).
+  L_sym is a full Fiedler arm, roughly half a sweep's wall time where B is 3%
+  (`GRIFFING_COST_SHARE`), and the recovery figure compares L against B. It stays in
+  `ALL_OPERATORS`: the screen still records `valid_Lsym`/`eta_Lsym`, the `valid_Lsym` gate
+  still works, `--operators S,Lsym,B` still sweeps it. This is the larger of the two
+  savings here — early stop skips 21.7% of grid points across the cached trees but only
+  0.4% of the DENSE ones (p > 0.1, where the O(m^3) solves are).
+- Both inner sweeps index their outputs by p instead of appending, since visit order is no
+  longer p order. Every callback fires in visit order; the log line already printed `p`.
+- `sweep_cache.SCHEMA_VERSION` v3 -> v4: `early_stop_consecutive_100` renamed `early_stop`,
+  `traversal` added. The 503 cached eta-pool sweeps were re-keyed and corrected in place
+  rather than orphaned (~60 h of dense solves avoided); `partition_nmi_M` is byte-identical
+  across the migration, and it is one of the only three fields `eta_pool_sweep` reads.
+
+### Fixed
+- The fill no longer fabricates what its trigger does not imply. An extrapolated p carries
+  nmi/ari/agreement and, on the high side, the reference partition; `dot`,
+  `sign_agreement`, `sigma2_avg_S` and every rank/operator-norm diagnostic are NaN. On one
+  cached eta-pool entry the old fill had written `dot = 1.0` over 12 of 25 points, the
+  measured value at the last real point being 0.9928.
+- `load_tree_sweep` compares `early_stop` under a partial order, not for equality: a tree
+  swept with a smaller (or no) stop is strictly better data and is reused, while a run that
+  asked for measurement is never handed an extrapolated tail.
+
+### Defects in `middle_out_runner.py` this does NOT inherit (that code is untouched)
+1. **Index skipping.** When one side's guardrail fires it widens `workers_per_side` and
+   then advances `offset` by it, so the other side's next block starts past where it
+   stopped. At `n_p=20, workers=8`, firing the high guardrail in round 1 leaves indices
+   2,3,4,5 never computed AND never filled. Two serial cursors cannot do that, and
+   `check_early_stop.py` tests it.
+2. `check_guardrails_high` fires at `>= 99.9` but `create_guardrail_high_result` writes
+   `100.0` — a fabrication at the trigger, not only in the tail.
+3. That fill asserts `S = M`: `operator_norm_error = 0`, every `_S` metric equal to its
+   `_M` counterpart. Untrue at p = 0.3 with a perfectly recovered partition.
+4. `create_below_threshold_result` writes `partition_agreement = 50.0` as a "random
+   baseline". Flip-max agreement's random baseline at the 20:1 splits `MAX_ETA` allows is
+   ~95%, and this pipeline scores NMI, whose measured floor is 0.000-0.048.
+
+---
+
 ## [2026-09-17] Removed the leveraged (IALM) and LDS samplers
 
 Uniform sampling is now the only sub-sampling method. Nothing in the live pipeline

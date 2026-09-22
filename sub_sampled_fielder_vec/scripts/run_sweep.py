@@ -34,7 +34,8 @@ for _p in (str(_ROOT), str(_REPO)):
 
 from analysis.utils.real_datasets import (describe_search, get_dataset,   # noqa: E402
                                           list_datasets)
-from src.runners.experiment_run import (GATE_ALIASES, GATES, MAX_ETA,     # noqa: E402
+from src.runners.experiment_run import (DEFAULT_OPERATORS, EARLY_STOP,    # noqa: E402
+                                        GATE_ALIASES, GATES, MAX_ETA,
                                         P_MIN, P_POINTS, REPS, RunSpec,
                                         execute, gate_label, gate_operators, plan,
                                         verdicts)
@@ -65,7 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--workers", type=int, default=4,
                     help="parallel workers for the SCREEN. The sweep is serial: it runs "
                          "one tree at a time, so its estimate is wall time as printed")
-    ap.add_argument("--operators", default=",".join(ALL_OPERATORS),
+    ap.add_argument("--operators", default=",".join(DEFAULT_OPERATORS),
                     help="comma-separated subset of " + ",".join(ALL_OPERATORS)
                          + " (S = L(S) Fiedler, Lsym = normalized, B = HDH)")
     ap.add_argument("--p-min", type=float, default=P_MIN,
@@ -73,6 +74,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--p-points", type=int, default=P_POINTS,
                     help="log-spaced p in [p-min, 1]")
     ap.add_argument("--reps", type=int, default=REPS, help="bootstrap reps per p")
+    ap.add_argument("--early-stop", type=int, default=EARLY_STOP, metavar="N",
+                    help="extrapolate an end of the p-grid after N consecutive settled "
+                         "points (NMI==1 above, NMI<=0.1 below); p_min is always measured")
+    ap.add_argument("--no-early-stop", dest="early_stop", action="store_const", const=0,
+                    help="measure every p on the grid")
     ap.add_argument("--num-gaps", type=int, default=10)
     ap.add_argument("--min-split", type=int, default=5)
     ap.add_argument("--dataset-rule", "--cohort-rule", "--gate", dest="dataset_rule",
@@ -109,8 +115,8 @@ def spec_from_args(args) -> RunSpec:
                    p_points=args.p_points, reps=args.reps, num_gaps=args.num_gaps,
                    min_split=args.min_split,
                    operators=[o.strip() for o in args.operators.split(",") if o.strip()],
-                   extra_metrics=args.extra_metrics, prefix=args.prefix,
-                   display_mode=args.display_mode)
+                   extra_metrics=args.extra_metrics, early_stop=args.early_stop,
+                   prefix=args.prefix, display_mode=args.display_mode)
 
 
 def sources_from_args(args):

@@ -41,7 +41,9 @@ from .p_sweep_inner import EXTRA_METRIC_KEYS
 # rather than mixed into a figure with a different grid. Neither the column list nor
 # the operator list is here -- both are additive, and putting them in the key would
 # make every cached tree a miss the moment one was added (a 50 h recompute at m=6000
-# to gain a column).
+# to gain a column). ``early_stop`` is not here either, for a different reason: it is
+# stored and compared, but under a partial order rather than for equality -- see
+# ``load_tree_sweep``.
 META_KEYS = ("reps", "num_gaps", "min_split", "partition_method",
              "eigsolver", "aggregation", "m")
 
@@ -84,7 +86,7 @@ def columns(operators: Sequence[str] = ()) -> Tuple[str, ...]:
     fiedler = [ARM_OF[k] for k in resolve(operators) if OPERATORS[k].kind == "fiedler"]
     return (tuple(f"{m}_{a}_{REF_FULL}" for m in METRICS for a in arms)
             + tuple(f"{m}_{a}_{REF_TREE}" for m in TREE_METRICS for a in arms)
-            + tuple(f"{x}_{a}" for x in ("eta", "split_small") for a in arms)
+            + tuple(f"{x}_{a}" for x in ("eta", "split_small", "measured") for a in arms)
             + tuple(f"signagreement_{a}_{REF_FULL}" for a in fiedler)
             + tuple(f"{name}_{a}" for name in DIAGNOSTICS.values() for a in arms))
 
@@ -92,11 +94,18 @@ def columns(operators: Sequence[str] = ()) -> Tuple[str, ...]:
 COLUMNS = columns()
 
 
-def sweep_meta(reps: int, num_gaps: int, min_split: int, m: int = 6000) -> Dict:
-    """The cache key for one tree's sweep. Unchanged since the first cluster run."""
+def sweep_meta(reps: int, num_gaps: int, min_split: int, m: int = 6000,
+               early_stop: int = 0) -> Dict:
+    """The cache key for one tree's sweep. Unchanged since the first cluster run.
+
+    ``early_stop`` is stored but NOT in :data:`META_KEYS` -- it is compared by
+    :func:`load_tree_sweep` under a partial order rather than for equality, because a
+    tree swept with a smaller (or no) early stop holds strictly more measurement than
+    one swept with a larger one.
+    """
     return dict(reps=int(reps), num_gaps=int(num_gaps), min_split=int(min_split),
                 partition_method="kmeans_or_sign", eigsolver="lm_k1",
-                aggregation="avg_vector", m=int(m),
+                aggregation="avg_vector", m=int(m), early_stop=int(early_stop),
                 metrics=",".join(COLUMNS))
 
 
@@ -157,6 +166,15 @@ def load_tree_sweep(cache_dir, tree_id: str, p_values: Sequence[float], meta: Di
         stored = dict(z["meta"].item())
         if any(stored.get(k) != meta[k] for k in META_KEYS):
             return None
+        # Asymmetric on the early stop, unlike every key above. A tree swept with a
+        # SMALLER stop measured at least every p this run wants measured, so it is
+        # strictly better data and is reused; 0 (measured throughout) serves any run.
+        # The converse is refused: a run that asked for measurement is never handed an
+        # extrapolated tail.
+        want = int(meta.get("early_stop", 0) or 0)
+        have = int(stored.get("early_stop", 0) or 0)
+        if have and (not want or have > want):
+            return None
         met, ref = metric.rsplit("_vs_", 1)
         nan = np.full(len(z["p_values"]), np.nan)
         return tuple(np.asarray(z[f"{met}_{a}_vs_{ref}"], float)
@@ -169,7 +187,7 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
                    reps: int, num_gaps: int = 10, min_split: int = MIN_SPLIT,
                    operators: Sequence[str] = (), extra_metrics: bool = False,
                    rule_policy: str = "best", eigsolver: str = "lm_k1",
-                   aggregation: str = "avg_vector",
+                   aggregation: str = "avg_vector", early_stop: int = 0,
                    progress_cb=None) -> Dict[str, np.ndarray]:
     """Every selected operator on one tree. Returns ``{column: one value per p}``.
 
@@ -194,10 +212,15 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
         The pre-refactor pipeline logged this and the refactor dropped it, so a tree that
         takes half an hour at m=6000 said nothing between "loaded" and "done". force=True
         because it must reach experiment.log whether or not the terminal is drawing bars.
+
+        A p the early stop extrapolated is logged too, and says so: reading the log, the
+        gap between two measured p's would otherwise look like a crash.
         """
         part = row.get("partition")
-        if part is None and "partitions" in row:
-            part = row["partitions"][0]
+        if part is None:
+            # an extrapolated low-side row carries no partition at all, not even a None
+            parts = row.get("partitions") or []
+            part = parts[0] if len(parts) else None
         if part is not None:
             part = np.asarray(part)
             a = int(part.sum())
@@ -225,8 +248,9 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
             v = _num(key)
             if v is not None:
                 bits.append(f"{label}={v:.4f}")
+        kind = "results" if row.get("measured", 1.0) else "EXTRAPOLATED"
         log_info("bootstrap",
-                 f"{tree_id} [{arm}] p={p:.4g} results: " + ", ".join(bits)
+                 f"{tree_id} [{arm}] p={p:.4g} {kind}: " + ", ".join(bits)
                  + f", eta={eta}, split={split}", force=True)
 
     out: Dict[str, np.ndarray] = {}
@@ -251,7 +275,8 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
             res = bootstrap_p_sweep_simple(
                 S, vec, list(p_values), bootstrap_reps=reps, seed=seed,
                 num_gaps=num_gaps, min_split=min_split, partition_method=rule,
-                laplacian=op.laplacian, extra_metrics=extra_metrics, progress_cb=cb,
+                laplacian=op.laplacian, extra_metrics=extra_metrics,
+                early_stop=early_stop, progress_cb=cb,
                 on_p_result=lambda i, pp, row, _a=arm: _log_p(_a, i, pp, row))
             for metric, src in (("nmi", "partition_nmi_M"), ("ari", "partition_ari_M"),
                                 ("agreement", "partition_agreement_M"),
@@ -259,6 +284,7 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
                 out[f"{metric}_{arm}_{REF_FULL}"] = np.asarray(res[src], float)
             out[f"signagreement_{arm}_{REF_FULL}"] = np.asarray(res["sign_agreement"],
                                                                 float)
+            out[f"measured_{arm}"] = np.asarray(res["measured"], float)
             # one partition per p: bootstrap_p_sweep_simple averages the vectors first
             parts = [[q] if q is not None else [] for q in res["partitions"]]
             diagnostics = {k: np.asarray(res[k], float) for k in DIAGNOSTICS
@@ -266,7 +292,8 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
         else:
             raw = bpart_sweep_raw(D, list(p_values), reps=reps, seed_base=seed,
                                   eigsolver=eigsolver, aggregation=aggregation,
-                                  extra_metrics=extra_metrics, progress_cb=cb,
+                                  extra_metrics=extra_metrics, early_stop=early_stop,
+                                  progress_cb=cb,
                                   on_p_result=lambda i, pp, row, _a=arm:
                                   _log_p(_a, i, pp, row))
             for metric in METRICS:
@@ -277,6 +304,8 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
             # accounting the metrics above already use. Taking only the first would have
             # put two different accountings in one row.
             parts = [list(pp["partitions"]) for pp in raw["per_p"]]
+            out[f"measured_{arm}"] = np.array(
+                [float(pp.get("measured", 1.0)) for pp in raw["per_p"]], float)
             diagnostics = {k: np.array([float(pp[k]) for pp in raw["per_p"]], float)
                            for k in DIAGNOSTICS if k in raw["per_p"][0]}
 
@@ -312,7 +341,7 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
               operators: Sequence[str] = (), source: str = "", m: int = 6000,
               extra_metrics: bool = False, rule_policy: str = "best",
               eigsolver: str = "lm_k1", aggregation: str = "avg_vector",
-              seed_stride: int = 1000) -> List[str]:
+              early_stop: int = 0, seed_stride: int = 1000) -> List[str]:
     """Sweep every id in ``ids``, skipping trees already cached. Returns ids done."""
     import time
 
@@ -320,7 +349,7 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
     arms = [ARM_OF[k] for k in ops]
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
-    meta = dict(sweep_meta(reps, num_gaps, min_split, m),
+    meta = dict(sweep_meta(reps, num_gaps, min_split, m, early_stop),
                 partition_method=("kmeans_or_sign" if rule_policy == "best"
                                   else rule_policy),
                 eigsolver=eigsolver, aggregation=aggregation)
@@ -349,7 +378,7 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
             tree_id, loader, seed=seed_for(tree_id, seed_stride), p_values=pv,
             reps=reps, num_gaps=num_gaps, min_split=min_split, operators=ops,
             extra_metrics=extra_metrics, rule_policy=rule_policy,
-            eigsolver=eigsolver, aggregation=aggregation,
+            eigsolver=eigsolver, aggregation=aggregation, early_stop=early_stop,
             progress_cb=lambda arm, i, p: inner.update(1))
         inner.close()
         np.savez(_cache_file(cache_dir, tree_id), p_values=pv,

@@ -26,6 +26,7 @@ import csv
 import json
 import subprocess
 import sys
+import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Sequence
@@ -326,8 +327,14 @@ def write_summary(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
                     key = f"nmi_{ARM_OF[k]}_{ref}"
                     arr = [v[key] for v in trees.values() if key in v]
                     if arr:
-                        entry["sweep"][f"median_{key}"] = [
-                            float(x) for x in np.nanmedian(np.vstack(arr), 0)]
+                        # A p every tree extrapolated is all-NaN by design, not by
+                        # accident: the low-side fill carries no partition, so nothing
+                        # can be scored against the true tree there. NaN is the answer,
+                        # and numpy's warning about it is noise in a run log.
+                        with warnings.catch_warnings():
+                            warnings.simplefilter("ignore", RuntimeWarning)
+                            med = np.nanmedian(np.vstack(arr), 0)
+                        entry["sweep"][f"median_{key}"] = [float(x) for x in med]
         summary["datasets"][dataset] = entry
     out = run_dir / "summary.json"
     out.write_text(json.dumps(summary, indent=2) + "\n")

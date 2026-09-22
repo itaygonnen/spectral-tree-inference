@@ -35,6 +35,34 @@ loader (`RealLoader` / `GeneratedLoader`). `scripts/run_sweep.py` is the non-int
 twin and takes `--dataset-rule` (`both`, `valid_L`, `valid_Lsym`, `valid_B`, `any`, `all`)
 plus `--dry-run` to see the selection without starting anything.
 
+A sweep reads **L(S) and B by default, not L_sym** (`experiment_run.DEFAULT_OPERATORS`,
+2026-09-17). L_sym is a full Fiedler arm and costs about as much as L — roughly half a
+sweep's wall time, where B is 3% (`GRIFFING_COST_SHARE`) — and the recovery figure compares
+L against B. It stays in `ALL_OPERATORS`: the screen still records `valid_Lsym`/`eta_Lsym`,
+the `valid_Lsym` gate still works, and `--operators S,Lsym,B` still sweeps it.
+
+The p-grid is swept **middle-out with a two-sided early stop** (`--early-stop N`, default 2;
+`--no-early-stop` measures every p). Seed the middle p, walk both ways one step at a time,
+and stop each end once the curve has settled — NMI == 1.0 twice above, NMI <= 0.10 twice
+below — extrapolating the rest. `p_values[0]` is always measured, so `p_min` anchors the
+floor with a real number. Both inner sweeps seed from the p INDEX, so the traversal is
+bit-exact on every point it still computes, and `p̂*` is unchanged at any threshold <= 1.0.
+Measured 21.7% of grid points skipped across the cached trees, but only 0.4% of the DENSE
+ones (p > 0.1, where `FiedlerVectorComputer` switches to `eigh`) — the saving is real in
+point count and small in wall time; dropping L_sym is the larger lever. Verify with
+`python scripts/check_early_stop.py`.
+
+**The fill contract is load-bearing** (`p_sweep_inner.MiddleOut`): an extrapolated p carries
+only what its side's rule supports — nmi/ari/agreement and, on the high side, the reference
+partition — and NaN for `dot`, `sign_agreement` and every S-side diagnostic, none of which
+follow from a settled partition. `run_export._stats` drops NaN and reports `n`, so
+`curves.csv` says which rows were measured; `per_tree.csv` carries `measured_{arm}` per p and
+the run log marks those lines `EXTRAPOLATED`. `measured_{arm}` is an **additive** column, not
+in `operator_sweep.META_KEYS`, so no cached tree was invalidated. `early_stop` IS in the
+stored meta but compared under a partial order: a tree swept with a smaller (or no) stop
+holds strictly more measurement and is reused; a run that asked for measurement is never
+handed an extrapolated tail.
+
 Results land in `results/real_data/runs/<timestamp>-<name>/` (config, summary, screening.csv,
 per_tree.csv, curves.csv, recovery_curve.png, logs), with resumable state in
 `results/real_data/_cache/<source>/`.
@@ -53,6 +81,7 @@ changes with:
 
 ```bash
 python -m src.cache_io                        # cache key/sentinel smoke checks
+python scripts/check_early_stop.py            # early-stop assumptions + traversal coverage
 python scripts/sync_paper_figures.py --check  # figure provenance; non-zero on problems
 python scripts/collate_open_items.py          # regenerates + lints the open-items register
 ```
@@ -93,6 +122,24 @@ This framework asks: *if we replace the full similarity matrix `M` with a sub-sa
 
 ### Configuration system
 Pydantic v2 models in `src/config/base_config.py`: `StructuredConfig` bundles `TreeConfig`, `SequenceConfig`, `ExperimentConfig`, `SamplingConfig`, `MetricsConfig`, `GuardrailsConfig`, `CacheConfig`, `OutputConfig`. Build via `src/config/presets.py:custom_config(...)`. The script-level `SWEEP_CONFIG` dict is flattened into these by `extract_config_values()`.
+
+### Sweep cache schemas
+
+`src/utils/sweep_cache.py` is at **v4** (2026-09-17). v3 -> v4 renamed
+`early_stop_consecutive_100` to `early_stop` (the trigger is NMI now, not
+`agreement == 100`), added `traversal` (`ascending` | `middle_out` — two different sweeps,
+never pooled), and stopped the fill fabricating `dot_product = 1.0` /
+`sign_agreement = 100.0` in the skipped tail; both are NaN now. On a cached entry that
+was 12 of 25 points of the `dot` column.
+
+The 503 entries under `sub_sampled_fielder_vec/cache/bootstrap_sweep` were **re-keyed and
+corrected in place** by `scripts/migrate_sweep_cache_v4.py`, not recomputed — the old fill
+boundary is exactly reproducible from the stored agreement curve, and a rebuild is ~60 h of
+dense solves. `partition_nmi_M`/`_ari_M`/`_agreement_M` are byte-identical across the
+migration and are the only fields `eta_pool_sweep` reads, so Fig 7 does not move.
+`eta_pool_sweep` pins `traversal="ascending"`, which is what keeps those entries hitting
+under the middle-out default. The v3 directories are still there; drop them with
+`--drop-v3` once the figure has been rebuilt once.
 
 ### Sampling (`src/core/sampling/`)
 **`uniform` is the only method** — sample `O(p·n²)` upper-triangular entries uniformly

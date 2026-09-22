@@ -39,8 +39,8 @@ from src.utils.interactive_ui import (                       # noqa: E402
     print_header, print_option, print_success, print_warning)
 
 from .real_datasets import describe_search, list_datasets, sweep_cache_dir  # noqa: E402
-from src.runners.experiment_run import (GATES, MAX_ETA, P_MIN,  # noqa: E402
-                                        P_POINTS, REPS, RunSpec, as_command,
+from src.runners.experiment_run import (EARLY_STOP, GATES, MAX_ETA,  # noqa: E402
+                                        P_MIN, P_POINTS, REPS, RunSpec, as_command,
                                         default_gate, execute, gate_label,
                                         gate_operators, plan, verdicts)
 from src.runners.operators import ALL_OPERATORS, ARM_OF, OPERATORS  # noqa: E402
@@ -75,6 +75,7 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec
                    workers=max(1, min(8, (os.cpu_count() or 4) // 2)),
                    gate=default_gate(names, verdicts_by),
                    max_eta=MAX_ETA, p_min=P_MIN, p_points=P_POINTS, reps=REPS,
+                   early_stop=EARLY_STOP,
                    extra_metrics=True, prefix="", display_mode="progress")
 
     print_divider()
@@ -92,6 +93,10 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec
         print(f"  operators  {', '.join(spec.operators)}"
               "   (NMI is what the figure plots)")
         print("  metrics    NMI, ARI, agreement, sign agreement, dot")
+        stop = ("off - every p on the grid is measured" if not spec.early_stop else
+                f"extrapolate an end after {spec.early_stop} settled points "
+                f"(NMI=1 above, NMI<=0.1 below); p_min is always measured")
+        _say(f"early stop {stop}", indent="  ")
         print("  extras     on - sigma2, ||sub-full||_2, numerical ranks per p")
         print("  output     one run directory with every source in it")
     print()
@@ -122,6 +127,9 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec
     spec.p_points = int(get_input(
         f"p-grid points (log-spaced, {spec.p_min:g}..1)", default=str(spec.p_points)))
     spec.reps = int(get_input("Bootstrap reps per p", default=str(spec.reps)))
+    spec.early_stop = int(get_input(
+        "Settled points before an end of the grid is extrapolated (0 = measure every p)",
+        default=str(spec.early_stop)))
     ops = get_input("Operators (comma-separated: " + ",".join(ALL_OPERATORS) + ")",
                     default=",".join(spec.operators))
     spec.operators = tuple(o.strip() for o in ops.split(",") if o.strip())
