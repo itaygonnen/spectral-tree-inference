@@ -70,8 +70,11 @@ tol=1 on `eta_S`:
 target, so ±1 keeps 12–29% of the valid trees. At m=6000 that is 18 swept instead of 38
 (9 h instead of 19 h); at m=1000 it is a four-tree run with two empty buckets. So the panel
 (`eta_buckets.panel_lines`, drawn by the menu prompt *and* by `--dry-run`, from the same
-numbers via `experiment_run.bucket_panel`) shows available/want/take per bucket with short
-ones marked, and the tolerance is promptable — widening to ±2 fills every bucket at m=6000.
+numbers via `experiment_run.bucket_panel`) shows per bucket its `eta range`, `found`
+(screened trees landing in it), `cap` and `sweep` = min(found, cap), with short buckets
+marked and a `no bucket` row for the trees that matched nothing and are skipped — that
+row is the saving. A legend spells the columns out, once per panel group rather than per
+redraw. The tolerance is promptable — widening to ±2 fills every bucket at m=6000.
 **Generated pooled sources do not have this problem**: the pool is rejection-sampled *to*
 the targets, and the screened `eta_S` lands in the intended bin every time (measured: 12/12,
 zero unbucketed). The asymmetry is the data, not the code.

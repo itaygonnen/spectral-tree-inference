@@ -187,7 +187,7 @@ def _ask_buckets(spec: RunSpec, names, verdicts_by: Dict[str, dict]) -> None:
         if new_tol == spec.eta_tol:
             break
         spec.eta_tol = new_tol          # redraw once at the new tolerance, then move on
-        _bucket_panels(spec, names, verdicts_by)
+        _bucket_panels(spec, names, verdicts_by, legend=False)
         if confirm("Keep this half-width?", default=True):
             break
 
@@ -199,19 +199,26 @@ def _ask_buckets(spec: RunSpec, names, verdicts_by: Dict[str, dict]) -> None:
     else:
         print_warning(f"need {len(spec.eta_targets)} counts, got {len(caps)} -- keeping "
                       + ",".join(str(c) for c in spec.per_bucket))
-    _bucket_panels(spec, names, verdicts_by)
+    _bucket_panels(spec, names, verdicts_by, legend=False)
 
 
-def _bucket_panels(spec: RunSpec, names, verdicts_by: Dict[str, dict]) -> None:
-    """One occupancy panel per source, under the spec as it stands."""
-    for name in names:
+def _bucket_panels(spec: RunSpec, names, verdicts_by: Dict[str, dict],
+                   legend: bool = True) -> None:
+    """One occupancy panel per source, under the spec as it stands.
+
+    ``legend=False`` for a redraw: the dialogue shows each panel up to three times while
+    the tolerance and the caps are settled, and three copies of the same footer pushes
+    the numbers off the screen.
+    """
+    for i, name in enumerate(names):
         rows = verdicts_by.get(name) or {}
         if not rows:
             _say(f"{name}: not screened yet -- buckets cannot be counted", indent="  ")
             continue
         kept, buckets, _short = select_buckets(sorted(rows), rows, spec)
         _framed([f"{name}  ->  {len(kept)} tree(s) to sweep"]
-                + panel_lines(buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol),
+                + panel_lines(buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol,
+                              legend=(legend and i == 0)),
                 rule_after=0)
 
 

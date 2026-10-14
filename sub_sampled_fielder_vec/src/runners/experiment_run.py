@@ -460,7 +460,7 @@ def _run_source(row: PlanRow, spec: RunSpec) -> List[str]:
     return ids
 
 
-def bucket_panel(row: "PlanRow", spec: RunSpec) -> List[str]:
+def bucket_panel(row: "PlanRow", spec: RunSpec, legend: bool = True) -> List[str]:
     """The bucket occupancy for one planned source, or no lines when it does not apply.
 
     Lives here, beside the selection it describes, so the menu prompt and the
@@ -468,7 +468,8 @@ def bucket_panel(row: "PlanRow", spec: RunSpec) -> List[str]:
     """
     if not (spec.bucket and spec.runs_sweep and row.buckets):
         return []
-    return panel_lines(row.buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol)
+    return panel_lines(row.buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol,
+                       legend=legend)
 
 
 def _selection_row(row: "PlanRow", spec: RunSpec, covered: Sequence[str]) -> dict:

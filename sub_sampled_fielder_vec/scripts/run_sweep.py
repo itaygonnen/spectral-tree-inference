@@ -197,7 +197,9 @@ def main() -> None:
             print(chain, flush=True)
             # The occupancy the selection was drawn from, so --dry-run answers "why so
             # few?" without a second command. Same lines the menu panel draws.
-            for line in bucket_panel(r, spec):
+            # the legend goes under the first dataset only; repeating it per dataset
+            # buries the numbers it is there to explain
+            for line in bucket_panel(r, spec, legend=(r is rows[0])):
                 print("    " + line, flush=True)
         if r.warning:
             print(f"  WARNING: {r.warning}", flush=True)

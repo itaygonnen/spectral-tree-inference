@@ -144,17 +144,28 @@ def select(ids: Sequence[str], rows: Dict[str, dict], cap_ops: Sequence[str],
 def panel_lines(buckets: Dict[Optional[int], List[str]],
                 eta_targets: Sequence[int] = ETA_TARGETS,
                 per_bucket: Sequence[int] = PER_BUCKET,
-                eta_tol: float = ETA_TOL, bar_width: int = 18) -> List[str]:
+                eta_tol: float = ETA_TOL, bar_width: int = 18,
+                legend: bool = True) -> List[str]:
     """The occupancy table, as lines ready for ``run_menu._framed``.
 
     Rendered here rather than in the menu so the non-interactive ``--dry-run`` path shows
     the same panel as the prompt, from the same numbers.
 
-    The bar is scaled to the largest bucket INCLUDING the unbucketed row, because that row
-    is usually the big one and a bar that silently excluded it would hide the saving.
+    Columns, which the legend also spells out because four abbreviations in a row is not
+    a table anyone can read cold::
 
-    ``bar_width`` 18 puts the widest row (unbucketed, with its "not swept" tag) at 73
-    characters, which still fits an 80-column terminal once ``_framed`` adds its 4 of box.
+        bucket      the target, named as the eta pool names its bins
+        eta range   the window a tree's eta has to fall in to join this bucket
+        found       screened trees whose eta lands in that window
+        cap         the most this run will sweep from the bucket
+        sweep       what actually runs: min(found, cap)
+
+    The bar is scaled to the largest row INCLUDING "no bucket", because that row is
+    usually the big one and a bar that silently excluded it would hide the saving.
+
+    ``bar_width`` 18 keeps the widest row inside 73 characters, which still fits an
+    80-column terminal once ``_framed`` adds its 4 of box. ``legend=False`` drops the
+    footer for a redraw that has already shown it once.
     """
     caps = {int(t): int(c) for t, c in zip(eta_targets, per_bucket)}
     rows_out = [(int(t), len(buckets.get(int(t), []))) for t in eta_targets]
@@ -167,17 +178,35 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
 
     # no trailing pad on the header: ``_framed`` sizes its box to the longest line, so a
     # run of spaces there would widen the box past what anything prints
-    lines = [f"{'bucket':<11}{'window':>12}{'avail':>7}{'want':>6}{'take':>6}"]
+    lines = [f"{'bucket':<11}{'eta range':>12}{'found':>7}{'cap':>6}{'sweep':>6}"]
     total = 0
+    short_any = False
     for target, n in rows_out:
-        want = caps.get(target, 0)
-        take = min(n, want)
+        cap = caps.get(target, 0)
+        take = min(n, cap)
         total += take
         lo, hi = window(target, eta_tol)
-        mark = "  short" if n < want else ""
-        lines.append(f"{label(target):<11}{f'{lo:g}..{hi:g}':>12}{n:>7}{want:>6}"
+        # no count in the tag: with the columns named, "found 6 / cap 10" already says
+        # it is short, and spelling it out again pushed the row past 80 columns
+        mark = ""
+        if n < cap:
+            short_any = True
+            mark = "  short"
+        lines.append(f"{label(target):<11}{f'{lo:g}..{hi:g}':>12}{n:>7}{cap:>6}"
                      f"{take:>6}  {bar(n)}{mark}")
-    lines.append(f"{'unbucketed':<11}{'-':>12}{n_unb:>7}{'-':>6}{0:>6}  {bar(n_unb)}"
-                 f"  not swept")
-    lines.append(f"{'TOTAL':<11}{'':>12}{'':>7}{sum(caps.values()):>6}{total:>6}")
+    lines.append(f"{'no bucket':<11}{'-':>12}{n_unb:>7}{'-':>6}{0:>6}  {bar(n_unb)}"
+                 f"  skipped")
+    lines.append(f"{'TOTAL':<11}{'':>12}{'':>7}{sum(caps.values()):>6}{total:>6}"
+                 f"  <- will sweep")
+    if legend:
+        lines += [
+            "found = screened trees whose eta lands in that range",
+            "cap   = most to sweep from that bucket;  sweep = min(found, cap)",
+        ]
+        if short_any:          # only explain the marker when one is on screen
+            lines.append("short = fewer found than the cap asks for")
+        lines += [
+            "no bucket = matched no range, so skipped. That is the time saved;",
+            "            widen the eta range to catch more of them.",
+        ]
     return lines
