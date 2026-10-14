@@ -35,6 +35,7 @@ import numpy as np
 
 from ..plots.plot_operator_threshold import _median_ci
 from ..runners.operator_sweep import REF_FULL, columns
+from ..runners.eta_buckets import bucket_of, label, tree_eta, window
 from ..runners.operators import ARM_OF, OPERATORS, resolve
 from .run_paths import screen_cache_path, sweep_cache_dir
 
@@ -169,12 +170,17 @@ def write_failures_csv(run_dir: Path, datasets: Sequence[str]) -> Path | None:
 
 
 def write_screening_csv(run_dir: Path, datasets: Sequence[str],
-                        operators: Sequence[str] = ()) -> Path | None:
+                        operators: Sequence[str] = (),
+                        selection: Dict | None = None) -> Path | None:
     """Every tree of every dataset, one row: eta and validity per operator.
 
     Columns are named by ARM (``L``, ``Lsym``, ``B``) while the cache stores them by
     operator key (``S``, ``Lsym``, ``B``) -- ``eta_S`` in a table beside ``eta_B`` read
     as two different things to everyone who saw it.
+
+    With bucketing on, a ``bucket`` column records which eta bucket each tree fell in
+    (blank = none), so ``eta_buckets.png`` is reproducible from the CSV rather than only
+    from the cache the run happened to read.
     """
     rows = [(c, r) for c in datasets for r in _screen_rows(c)]
     if not rows:
@@ -183,7 +189,10 @@ def write_screening_csv(run_dir: Path, datasets: Sequence[str],
     # only write an operator's columns when some row actually carries them: a screen
     # from before L_sym existed would otherwise get a wall of blanks
     present = [k for k in ops if any(f"eta_{k}" in r for _, r in rows)]
-    header = ["dataset", "m", "tree"]
+    buckets = (selection or {}).get("buckets") or {}
+    bucketing = bool(buckets.get("enabled"))
+    cap_ops = tuple((selection or {}).get("max_eta_operators") or ())
+    header = ["dataset", "m", "tree"] + (["bucket"] if bucketing else [])
     for k in present:
         a = ARM_OF[k]
         header += [f"eta_{a}", f"valid_{a}", f"rule_{a}"]
@@ -195,6 +204,10 @@ def write_screening_csv(run_dir: Path, datasets: Sequence[str],
         w.writerow(header)
         for c, r in sorted(rows, key=lambda x: (x[0], x[1]["tree"])):
             line = [c, r.get("m", ""), r["tree"]]
+            if bucketing:
+                t = bucket_of(r, cap_ops, buckets.get("eta_targets", ()),
+                              float(buckets.get("eta_tol", 1.0)))
+                line.append("" if t is None else label(t))
             for k in present:
                 line += [_fmt(r.get(f"eta_{k}")), _flag(r.get(f"valid_{k}")),
                          r.get(f"rule_{k}", "")]
@@ -409,6 +422,82 @@ def plot_recovery(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
     return out
 
 
+def plot_eta_buckets(run_dir: Path, datasets: Sequence[str],
+                     selection: Dict | None = None) -> Path | None:
+    """The eta distribution this run selected from, with the buckets drawn on it.
+
+    The recovery curve says what the swept trees did; this says which trees they were and
+    what was left on the floor. On real data the buckets hold a minority of the valid
+    population, so a figure that showed only the swept trees would make a four-tree run
+    and a forty-tree run look alike.
+
+    One panel per dataset: a fine histogram of the gated trees' eta, the bucket windows
+    shaded, and each bucket annotated take/available. ``None`` when the run did not
+    bucket or nothing was screened.
+    """
+    buckets = (selection or {}).get("buckets") or {}
+    if not buckets.get("enabled"):
+        return None
+    targets = [int(t) for t in buckets.get("eta_targets", ())]
+    caps = [int(c) for c in buckets.get("per_bucket", ())]
+    tol = float(buckets.get("eta_tol", 1.0))
+    cap_ops = tuple((selection or {}).get("max_eta_operators") or ())
+    gate = (selection or {}).get("rule", "")
+    from ..runners.experiment_run import GATES, gate_key
+
+    keep = GATES[gate_key(gate)][1] if gate else (lambda r: True)
+    panels = []
+    for name in datasets:
+        etas = [tree_eta(r, cap_ops) for r in _screen_rows(name) if keep(r)]
+        if etas:
+            panels.append((name, np.asarray(etas, float)))
+    if not panels or not targets:
+        return None
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(len(panels), 1, figsize=(7.5, 2.6 * len(panels)),
+                             squeeze=False)
+    for ax, (name, etas) in zip(axes[:, 0], panels):
+        # log x: eta spans 1 to several hundred on real data, and a linear axis puts
+        # every bucket in the leftmost tenth of the frame
+        hi = max(float(etas.max()) * 1.05, max(targets) + tol + 1.0)
+        ax.hist(etas, bins=np.geomspace(1.0, hi, 60), color="#9ca3af",
+                edgecolor="white", linewidth=0.4)
+        for t, cap in zip(targets, caps):
+            lo_w, hi_w = window(t, tol)
+            n_in = int(np.sum((etas >= lo_w) & (etas <= hi_w)))
+            ax.axvspan(lo_w, hi_w, color="#1d4ed8", alpha=0.16, linewidth=0)
+            ax.axvline(t, color="#1d4ed8", linewidth=1.0, alpha=0.7)
+            # inside the axes, not above them: the bucket labels sit over the title
+            # otherwise, and four of them across a narrow frame is where it shows
+            ax.annotate(f"{label(t)}\n{min(n_in, cap)}/{n_in}",
+                        xy=(t, 0.97), xycoords=("data", "axes fraction"),
+                        # eta01 sits on the axis limit, so centring runs it off-frame
+                        ha=("left" if t <= 1.3 else "center"),
+                        va="top", fontsize=7.5, color="#1d4ed8")
+        ax.set_xscale("log")
+        ax.set_xlim(1.0, hi)
+        # headroom for the labels, so a tall bar never runs into one
+        ax.set_ylim(0, max(np.histogram(etas, bins=np.geomspace(1.0, hi, 60))[0]) * 1.45)
+        ax.set_ylabel("trees")
+        swept = sum(min(int(np.sum((etas >= window(t, tol)[0])
+                                   & (etas <= window(t, tol)[1]))), c)
+                    for t, c in zip(targets, caps))
+        ax.set_title(f"{name}  -  {len(etas)} gated, {swept} swept, "
+                     f"{len(etas) - swept} not needed",
+                     fontsize=9, loc="left", pad=6)
+    axes[-1, 0].set_xlabel(r"$\eta$ = larger clan / smaller clan   "
+                           f"(bucketed on {', '.join(cap_ops) or 'the gate'})")
+    fig.tight_layout()
+    out = run_dir / "eta_buckets.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
+
+
 def export_run(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
                status: str = "completed", note: str = "",
                p_values: Sequence[float] | None = None,
@@ -420,12 +509,13 @@ def export_run(run_dir: Path, dataset_ids: Dict[str, Sequence[str]],
     can contribute another run's trees.
     """
     names = list(dataset_ids)
-    written = [p for p in (write_screening_csv(run_dir, names, operators),
+    written = [p for p in (write_screening_csv(run_dir, names, operators, selection),
                            write_failures_csv(run_dir, names)) if p]
     written += write_curve_csvs(run_dir, dataset_ids, p_values, operators)
     written.append(write_summary(run_dir, dataset_ids, status, note, p_values,
                                  selection, operators))
-    plot = plot_recovery(run_dir, dataset_ids, p_values, operators)
-    if plot:
-        written.append(plot)
+    for plot in (plot_recovery(run_dir, dataset_ids, p_values, operators),
+                 plot_eta_buckets(run_dir, names, selection)):
+        if plot:
+            written.append(plot)
     return written

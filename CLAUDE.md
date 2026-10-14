@@ -35,11 +35,52 @@ loader (`RealLoader` / `GeneratedLoader`). `scripts/run_sweep.py` is the non-int
 twin and takes `--dataset-rule` (`both`, `valid_L`, `valid_Lsym`, `valid_B`, `any`, `all`)
 plus `--dry-run` to see the selection without starting anything.
 
-A sweep reads **L(S) and B by default, not L_sym** (`experiment_run.DEFAULT_OPERATORS`,
-2026-09-17). L_sym is a full Fiedler arm and costs about as much as L — roughly half a
-sweep's wall time, where B is 3% (`GRIFFING_COST_SHARE`) — and the recovery figure compares
-L against B. It stays in `ALL_OPERATORS`: the screen still records `valid_Lsym`/`eta_Lsym`,
-the `valid_Lsym` gate still works, and `--operators S,Lsym,B` still sweeps it.
+A sweep reads **the similarity arm L(S) alone** (`experiment_run.DEFAULT_OPERATORS`,
+2026-10-14 — the distance route is no longer run), and the default gate is
+**`valid_L`**, not `both` (`DEFAULT_GATE`): gating on B's validity while never sweeping B
+throws away trees that are fine for L. `gate_operators("valid_L")` is `("S",)`, so the η
+cap and the η buckets both weigh S without anything else being said. L_sym and B stay in
+`ALL_OPERATORS` — the screen still records their validity and η (B's eigensolve is ~3% of a
+tree, `GRIFFING_COST_SHARE`), every screen cache keeps its meaning, the
+`valid_Lsym`/`valid_B`/`both` gates keep working, and `--operators S,Lsym,B` still sweeps
+all three.
+
+**η buckets decide which trees are swept at all** (`src/runners/eta_buckets.py`,
+2026-10-14). The paper reports at η ∈ {1, 5, 10, 15}; a run that sweeps the whole valid
+population pays in full for trees that never reach a figure. Selection is now three filters
+in `select_ids` — `screened → [gate] → [η ≤ max_eta] → [per-bucket cap] → swept` — and the
+third one is where the time goes: each tree joins the nearest target within `eta_tol`
+(default 1.0), at most `per_bucket` per target (default 10/10/3/3, from
+`eta_pool_sweep.ETA_SAMPLE_CAP`), and **anything matching no target is dropped**. Membership
+is `eta_pool_cache.closest_target`, reused unchanged — the same rule the η pool's rejection
+sampler accepts by, so the windows are disjoint *with gaps* rather than a partition of the η
+axis. `--no-buckets` restores the old behaviour. Because the bucket windows are far tighter
+than `MAX_ETA=20`, the η cap is subsumed when buckets are on and is kept only so turning
+them off restores what it meant.
+
+**The occupancy panel is the feature, not decoration.** Measured on the screen caches, at
+tol=1 on `eta_S`:
+
+| source | screened | valid for S | η01 | η05 | η10 | η15 | unbucketed |
+|---|---|---|---|---|---|---|---|
+| 1000 taxa | 66 | 32 | 0 | 1 | 0 | 3 | 28 |
+| 6000 taxa | 100 | 69 | 6 | 6 | 4 | 4 | 49 |
+
+`eta_S` has median 24.6 (m=1000) and 17.8 (m=6000) — the mass sits *above* the largest
+target, so ±1 keeps 12–29% of the valid trees. At m=6000 that is 18 swept instead of 38
+(9 h instead of 19 h); at m=1000 it is a four-tree run with two empty buckets. So the panel
+(`eta_buckets.panel_lines`, drawn by the menu prompt *and* by `--dry-run`, from the same
+numbers via `experiment_run.bucket_panel`) shows available/want/take per bucket with short
+ones marked, and the tolerance is promptable — widening to ±2 fills every bucket at m=6000.
+**Generated pooled sources do not have this problem**: the pool is rejection-sampled *to*
+the targets, and the screened `eta_S` lands in the intended bin every time (measured: 12/12,
+zero unbucketed). The asymmetry is the data, not the code.
+
+The run directory records it: `eta_buckets.png` beside `curves.csv`, a `bucket` column in
+`screening.csv`, and `summary.json` carrying the bucket config plus per-bucket got-vs-want so
+a summary cannot imply four even buckets where the data has two empty ones. Check occupancy
+for any dataset and tolerance, without launching a run, with
+`python scripts/check_eta_buckets.py --tol 1 2 3`.
 
 The p-grid is swept **middle-out with a two-sided early stop** (`--early-stop N`, default 2;
 `--no-early-stop` measures every p). Seed the middle p, walk both ways one step at a time,
@@ -96,6 +137,7 @@ changes with:
 ```bash
 python -m src.cache_io                        # cache key/sentinel smoke checks
 python scripts/check_early_stop.py            # early-stop assumptions + traversal coverage
+python scripts/check_eta_buckets.py           # bucket occupancy per dataset + cap invariants
 python scripts/sync_paper_figures.py --check  # figure provenance; non-zero on problems
 python scripts/collate_open_items.py          # regenerates + lints the open-items register
 ```

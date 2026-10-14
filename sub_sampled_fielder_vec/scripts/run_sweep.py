@@ -16,9 +16,12 @@ the two produce identical run directories.
     nohup python scripts/run_sweep.py --dataset "6000 taxa" --stage sweep \
         > logs/real_sweep.log 2>&1 &
 
-The sweep defaults to the trees whose partition is a real tree edge under BOTH L(S) and
-B, and whose reference split is no more lopsided than eta=20; ``--dataset-rule`` widens
-the first gate, ``--max-eta 0`` removes the second.
+The sweep reads the similarity arm L(S) only, and defaults to the trees whose L(S)
+partition is a real tree edge, are no more lopsided than eta=20, and fall in one of the
+paper's eta buckets (1/5/10/15 +-1) -- capped per bucket, with everything matching no
+bucket dropped. ``--dataset-rule`` widens the first gate, ``--max-eta 0`` removes the
+second, ``--no-buckets`` removes the third, and ``--dry-run`` shows the occupancy each
+would select from without running anything.
 """
 from __future__ import annotations
 
@@ -34,8 +37,10 @@ for _p in (str(_ROOT), str(_REPO)):
 
 from analysis.utils.real_datasets import (describe_search, get_dataset,   # noqa: E402
                                           list_datasets)
-from src.runners.experiment_run import (DEFAULT_OPERATORS, EARLY_STOP,    # noqa: E402
-                                        GATE_ALIASES, GATES, MAX_ETA,
+from src.runners.eta_buckets import ETA_TARGETS, ETA_TOL, PER_BUCKET  # noqa: E402
+from src.runners.experiment_run import bucket_panel                  # noqa: E402
+from src.runners.experiment_run import (DEFAULT_GATE, DEFAULT_OPERATORS,  # noqa: E402
+                                        EARLY_STOP, GATE_ALIASES, GATES, MAX_ETA,
                                         P_MIN, P_POINTS, REPS, RunSpec,
                                         execute, gate_label, gate_operators, plan,
                                         verdicts)
@@ -82,9 +87,20 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--num-gaps", type=int, default=10)
     ap.add_argument("--min-split", type=int, default=5)
     ap.add_argument("--dataset-rule", "--cohort-rule", "--gate", dest="dataset_rule",
-                    choices=tuple(GATES) + tuple(GATE_ALIASES), default="both",
+                    choices=tuple(GATES) + tuple(GATE_ALIASES), default=DEFAULT_GATE,
                     help="which screened trees enter the sweep: "
                          + "; ".join(f"{k} = {v[0]}" for k, v in GATES.items()))
+    ap.add_argument("--eta-targets", default=",".join(str(t) for t in ETA_TARGETS),
+                    metavar="A,B,...",
+                    help="eta buckets to sweep; a tree goes to the nearest within "
+                         "--eta-tol and is DROPPED if it matches none")
+    ap.add_argument("--per-bucket", default=",".join(str(c) for c in PER_BUCKET),
+                    metavar="A,B,...",
+                    help="how many trees to sweep per bucket, parallel to --eta-targets")
+    ap.add_argument("--eta-tol", type=float, default=ETA_TOL,
+                    help="half-width of a bucket's window (default %(default)g)")
+    ap.add_argument("--no-buckets", dest="bucket", action="store_false",
+                    help="sweep every tree clearing the gate and --max-eta, as before")
     ap.add_argument("--max-eta", type=float, default=MAX_ETA,
                     help="drop trees whose reference split is more lopsided than this "
                          "(0 keeps all); a 1/999 split is a real edge but has no "
@@ -116,6 +132,9 @@ def spec_from_args(args) -> RunSpec:
                    min_split=args.min_split,
                    operators=[o.strip() for o in args.operators.split(",") if o.strip()],
                    extra_metrics=args.extra_metrics, early_stop=args.early_stop,
+                   bucket=args.bucket, eta_tol=args.eta_tol,
+                   eta_targets=[int(x) for x in args.eta_targets.split(",") if x.strip()],
+                   per_bucket=[int(x) for x in args.per_bucket.split(",") if x.strip()],
                    prefix=args.prefix, display_mode=args.display_mode)
 
 
@@ -171,8 +190,15 @@ def main() -> None:
         print(f"dataset {r.name!r}: {len(r.ids)} trees, m={r.m}  ~{r.hours:.1f} h",
               flush=True)
         if spec.runs_sweep:
-            print(f"  {r.n_screened} screened -> {r.n_gate} [{gate_label(spec.gate)}] "
-                  f"-> {len(r.selected)} with eta <= {spec.max_eta:g}", flush=True)
+            chain = (f"  {r.n_screened} screened -> {r.n_gate} [{gate_label(spec.gate)}]"
+                     f" -> {r.n_max_eta} with eta <= {spec.max_eta:g}")
+            if spec.bucket:
+                chain += f" -> {len(r.selected)} bucketed"
+            print(chain, flush=True)
+            # The occupancy the selection was drawn from, so --dry-run answers "why so
+            # few?" without a second command. Same lines the menu panel draws.
+            for line in bucket_panel(r, spec):
+                print("    " + line, flush=True)
         if r.warning:
             print(f"  WARNING: {r.warning}", flush=True)
     if args.dry_run:

@@ -26,6 +26,8 @@ from ..utils.logging import close_log_file, set_display_mode, setup_log_file
 from ..utils.run_paths import new_run_dir, screen_cache_path, sweep_cache_dir
 from .operator_screen import run_screen
 from .operator_sweep import run_sweep
+from .eta_buckets import ETA_TARGETS, ETA_TOL, PER_BUCKET, label, panel_lines
+from .eta_buckets import select as bucket_select
 from .operators import ALL_OPERATORS, ARM_OF, OPERATORS, resolve
 
 # Which screened trees a sweep may use. The gate is whether that operator's partition of
@@ -65,13 +67,15 @@ GATE_ALIASES = {"valid_S": "valid_L"}
 # for every p. 20 is well above the recoverability scale (m/log m)^(1/3) ~ 5.3 at m=1000.
 MAX_ETA = 20.0
 
-# What a sweep reads by default. NOT ``ALL_OPERATORS``: L_sym is a full Fiedler arm and
-# costs about as much as L, roughly half of a sweep's wall time (B is
-# ``GRIFFING_COST_SHARE`` of one), and the recovery figure compares L against B. It stays
-# in ``ALL_OPERATORS`` because the screen is cheap and still records ``valid_Lsym`` /
-# ``eta_Lsym``, so the ``valid_Lsym`` gate keeps working and ``--operators S,Lsym,B``
-# still sweeps it on request.
-DEFAULT_OPERATORS: tuple = ("S", "B")
+# What a sweep reads by default: the similarity arm alone (2026-10-14 -- the distance
+# route is no longer run). NOT ``ALL_OPERATORS``: L_sym is a full Fiedler arm costing
+# about as much as L, and B is ``GRIFFING_COST_SHARE`` of one. Both stay in
+# ``ALL_OPERATORS`` because the screen is cheap and still records their validity and eta,
+# so the ``valid_Lsym`` / ``valid_B`` / ``both`` gates keep working, every screen cache
+# keeps its meaning, and ``--operators S,Lsym,B`` still sweeps all three on request.
+# ``DEFAULT_GATE`` moves with this: gating on B's validity while never sweeping B throws
+# away trees that are perfectly good for L.
+DEFAULT_OPERATORS: tuple = ("S",)
 
 # Consecutive settled p's required before either end of the grid is extrapolated. The
 # sweep visits the grid middle-out and stops each side on its own rule -- NMI == 1.0
@@ -79,6 +83,11 @@ DEFAULT_OPERATORS: tuple = ("S", "B")
 # not measured to both horizons. 0 measures every p. See
 # ``src.runners.p_sweep_inner.MiddleOut`` for the traversal and the fill contract.
 EARLY_STOP = 2
+
+# The gate a run uses unless told otherwise. ``valid_L`` rather than ``both`` because the
+# sweep default is S alone; ``gate_operators("valid_L")`` is ``("S",)``, so the imbalance
+# cap and the eta buckets both weigh the similarity arm without anything else being said.
+DEFAULT_GATE = "valid_L"
 
 # p starts at 1e-4: the transition sits near log n / n, which is 1.4e-3 at m=6000, so the
 # grid has to reach below that for the curve to show a floor rather than start on the ramp.
@@ -133,6 +142,17 @@ def as_command(spec: "RunSpec", sources: Sequence["Source"],
     if spec.runs_sweep:
         parts.append(f"--dataset-rule {spec.gate}")
         parts.append(f"--max-eta {spec.max_eta:g}")
+        # the bucket answers are the ones that decide how many trees run at all, so a
+        # printed command that dropped them would reproduce a much longer run
+        if not spec.bucket:
+            parts.append("--no-buckets")
+        else:
+            if tuple(spec.eta_targets) != tuple(ETA_TARGETS):
+                parts.append("--eta-targets " + ",".join(str(t) for t in spec.eta_targets))
+            if tuple(spec.per_bucket) != tuple(PER_BUCKET):
+                parts.append("--per-bucket " + ",".join(str(c) for c in spec.per_bucket))
+            if float(spec.eta_tol) != float(ETA_TOL):
+                parts.append(f"--eta-tol {spec.eta_tol:g}")
         parts.append(f"--p-min {spec.p_min:g}")
         parts.append(f"--p-points {spec.p_points}")
         parts.append(f"--reps {spec.reps}")
@@ -205,8 +225,17 @@ class RunSpec:
     stage: str = "screen"                    # screen | sweep | both
     max_trees: int = 0                       # 0 = every tree in each source
     workers: int = 4
-    gate: str = "both"
+    gate: str = DEFAULT_GATE
     max_eta: float = MAX_ETA
+    # Which trees are worth sweeping at all. Screened trees are bucketed by the eta the
+    # gate weighs, against the paper's targets, and only ``per_bucket`` of each are swept
+    # -- everything landing in no bucket is dropped, which is where the time goes. See
+    # ``src.runners.eta_buckets``; parallel tuples rather than a dict so ``asdict`` into
+    # config.json round-trips (JSON would key a dict by str).
+    bucket: bool = True
+    eta_targets: Sequence[int] = ETA_TARGETS
+    per_bucket: Sequence[int] = PER_BUCKET
+    eta_tol: float = ETA_TOL
     p_min: float = P_MIN
     p_points: int = P_POINTS
     reps: int = REPS
@@ -226,6 +255,14 @@ class RunSpec:
         self.operators = resolve(self.operators)
         if self.stage not in ("screen", "sweep", "both"):
             raise ValueError(f"stage must be screen|sweep|both, got {self.stage!r}")
+        self.eta_targets = tuple(int(t) for t in self.eta_targets)
+        self.per_bucket = tuple(int(c) for c in self.per_bucket)
+        if len(self.per_bucket) != len(self.eta_targets):
+            raise ValueError(
+                f"per_bucket has {len(self.per_bucket)} entries for "
+                f"{len(self.eta_targets)} eta targets; they are parallel lists")
+        if self.eta_tol <= 0:
+            raise ValueError(f"eta_tol must be > 0, got {self.eta_tol}")
 
     @property
     def runs_screen(self) -> bool:
@@ -257,12 +294,31 @@ def verdicts(source: str) -> Dict[str, dict]:
 
 def select_ids(ids: Sequence[str], rows: Dict[str, dict], gate: str,
                max_eta: float = 0.0,
-               operators: Sequence[str] = ()) -> List[str]:
-    """Trees passing the validity gate, and (when ``max_eta`` > 0) not too lopsided.
+               operators: Sequence[str] = (),
+               bucket: bool = False,
+               eta_targets: Sequence[int] = ETA_TARGETS,
+               per_bucket: Sequence[int] = PER_BUCKET,
+               eta_tol: float = ETA_TOL) -> List[str]:
+    """What a sweep would take: three filters, in order.
+
+        screened -> [validity gate] -> [eta <= max_eta] -> [per-bucket cap] -> swept
 
     The imbalance cap weighs the operators the GATE names, not every operator the run
     happens to sweep -- see the note on :data:`GATES`. ``operators`` is accepted and
     ignored; it is kept so the older call signature does not break.
+
+    ``bucket`` adds the third filter (:mod:`src.runners.eta_buckets`): keep only
+    ``per_bucket`` trees per eta target, and drop everything that matches no target. It
+    defaults OFF here and ON in :class:`RunSpec`, because this function is also called
+    bare -- by the selftest and by anything asking "what does this gate select" -- and
+    those callers mean the gate, not a run's budget. Note the bucket windows
+    (1/5/10/15 +-1) are far tighter than ``MAX_ETA=20``, so when it is on the eta cap is
+    subsumed and left in place only so turning buckets off restores the old behaviour.
+
+    This is the one function ``plan()``, ``_run_source()`` and ``summary.json`` all agree
+    on, which is why the bucket stage lives here and not in a front-end: real and
+    generated sources are fixed by the same edit, and ``PlanRow.hours`` -- linear in the
+    selected count -- corrects itself.
     """
     if not rows:
         return list(ids)
@@ -272,7 +328,25 @@ def select_ids(ids: Sequence[str], rows: Dict[str, dict], gate: str,
         keys = [f"eta_{k}" for k in cap_ops]
         out = [t for t in out
                if max((rows[t].get(k, 0.0) for k in keys), default=0.0) <= max_eta]
+    if bucket:
+        out, _buckets, _short = bucket_select(out, rows, cap_ops, eta_targets,
+                                              per_bucket, eta_tol)
     return out
+
+
+def select_buckets(ids: Sequence[str], rows: Dict[str, dict], spec: "RunSpec"):
+    """``(kept, buckets, shortfall)`` for one source under ``spec``, gate and cap applied.
+
+    What :func:`select_ids` does, with the occupancy it selected from handed back so a
+    panel can be drawn from the same numbers the plan used rather than a second
+    derivation that could disagree.
+    """
+    gated = select_ids(ids, rows, spec.gate, spec.max_eta, spec.operators)
+    if not rows:
+        return list(gated), {}, {}
+    cap_ops = gate_operators(spec.gate)
+    return bucket_select(gated, rows, cap_ops, spec.eta_targets, spec.per_bucket,
+                         spec.eta_tol)
 
 
 def default_gate(source_names: Sequence[str], verdicts_by: Dict[str, dict]) -> str:
@@ -295,6 +369,12 @@ class PlanRow:
     n_gate: int
     hours: float
     warning: str = ""
+    n_max_eta: int = 0                       # survivors of the eta cap, before buckets
+    # ``{target: ids}`` plus a ``None`` key, the occupancy ``selected`` was drawn from.
+    # Carried on the row so the panel, the plan line and summary.json are one derivation
+    # -- three independent ones would eventually disagree.
+    buckets: Dict = field(default_factory=dict)
+    shortfall: Dict = field(default_factory=dict)
 
     @property
     def name(self) -> str:
@@ -322,9 +402,15 @@ def plan(spec: RunSpec, sources: Sequence[Source],
             per_tree = screen_secs(src.m, src.seq_len)
             secs += len(ids) * per_tree / max(1, spec.workers)
         n_gate, selected = len(ids), list(ids)
+        n_max_eta, buckets, shortfall = len(ids), {}, {}
         if spec.runs_sweep:
             n_gate = len(select_ids(ids, v, spec.gate))
-            selected = select_ids(ids, v, spec.gate, spec.max_eta, spec.operators)
+            capped = select_ids(ids, v, spec.gate, spec.max_eta, spec.operators)
+            n_max_eta = len(capped)
+            if spec.bucket and v:
+                selected, buckets, shortfall = select_buckets(ids, v, spec)
+            else:
+                selected = capped
             # serial: run_sweep walks the trees one at a time, so this is wall time.
             # ``workers`` parallelises the screen only. An UPPER bound when
             # ``early_stop`` is on: how many p's each end skips depends on where that
@@ -338,7 +424,9 @@ def plan(spec: RunSpec, sources: Sequence[Source],
                     f"the sweep can only use screened trees -- screen this source first")
         rows.append(PlanRow(source=src, ids=ids, selected=selected,
                             n_screened=n_screened, n_gate=n_gate,
-                            hours=secs / 3600.0, warning=warn))
+                            hours=secs / 3600.0, warning=warn,
+                            n_max_eta=n_max_eta, buckets=buckets,
+                            shortfall=shortfall))
     return rows
 
 
@@ -358,7 +446,8 @@ def _run_source(row: PlanRow, spec: RunSpec) -> List[str]:
 
     # re-read the verdicts: on a "both" run the screen above is what decides this
     ids = select_ids(row.ids, verdicts(src.name), spec.gate, spec.max_eta,
-                     spec.operators)
+                     spec.operators, spec.bucket, spec.eta_targets, spec.per_bucket,
+                     spec.eta_tol)
     if not ids:
         print(f"  nothing to sweep -- no tree passes [{gate_label(spec.gate)}]"
               f"{f' with eta <= {spec.max_eta:g}' if spec.max_eta else ''}. "
@@ -369,6 +458,37 @@ def _run_source(row: PlanRow, spec: RunSpec) -> List[str]:
               operators=spec.operators, source=src.name, m=row.m,
               extra_metrics=spec.extra_metrics, early_stop=spec.early_stop)
     return ids
+
+
+def bucket_panel(row: "PlanRow", spec: RunSpec) -> List[str]:
+    """The bucket occupancy for one planned source, or no lines when it does not apply.
+
+    Lives here, beside the selection it describes, so the menu prompt and the
+    non-interactive ``--dry-run`` print the same table from the same numbers.
+    """
+    if not (spec.bucket and spec.runs_sweep and row.buckets):
+        return []
+    return panel_lines(row.buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol)
+
+
+def _selection_row(row: "PlanRow", spec: RunSpec, covered: Sequence[str]) -> dict:
+    """One dataset's funnel for ``summary.json``: how many trees survived each filter,
+    and -- when bucketing is on -- what each bucket held against what was asked for.
+
+    Without the per-bucket got/want a summary can say "18 swept" while leaving a reader
+    to assume the four buckets were even, which on real data they are not.
+    """
+    out = {"screened": row.n_screened, "after_rule": row.n_gate,
+           "after_max_eta": row.n_max_eta, "swept": len(covered)}
+    if spec.bucket:
+        out["buckets"] = {label(t): {"available": len(ids),
+                                     "want": int(c),
+                                     "take": min(len(ids), int(c))}
+                          for t, c, ids in zip(spec.eta_targets, spec.per_bucket,
+                                               (row.buckets.get(int(t), [])
+                                                for t in spec.eta_targets))}
+        out["unbucketed"] = len(row.buckets.get(None, []))
+    return out
 
 
 def execute(spec: RunSpec, sources: Sequence[Source],
@@ -427,9 +547,11 @@ def execute(spec: RunSpec, sources: Sequence[Source],
             "max_eta": spec.max_eta,
             "max_eta_operators": list(gate_operators(spec.gate)),
             "operators": list(spec.operators),
-            "per_dataset": {r.name: {"screened": r.n_screened,
-                                    "after_rule": r.n_gate,
-                                    "after_max_eta": len(covered.get(r.name, []))}
+            "buckets": {"enabled": bool(spec.bucket),
+                        "eta_targets": [int(t) for t in spec.eta_targets],
+                        "per_bucket": [int(c) for c in spec.per_bucket],
+                        "eta_tol": float(spec.eta_tol)},
+            "per_dataset": {r.name: _selection_row(r, spec, covered.get(r.name, []))
                             for r in rows},
         }
     for f in export_run(run_dir, covered or {r.name: r.ids for r in rows},

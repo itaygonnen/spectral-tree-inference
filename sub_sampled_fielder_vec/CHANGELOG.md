@@ -4,6 +4,70 @@ All notable changes to the STDR framework are documented here.
 
 ---
 
+## [2026-10-14] Eta buckets choose the trees; the sweep reads similarity only
+
+A sweep took every tree clearing the gate and the eta cap. The cost is linear in that
+count, so trees that never reach a figure were paid for in full. Selection is now three
+filters, and the third one decides how long a run takes:
+
+    screened -> [validity gate] -> [eta <= max_eta] -> [per-bucket cap] -> swept
+
+### Added
+- `src/runners/eta_buckets.py` — bucket by the eta the gate weighs, against the paper's
+  targets {1,5,10,15}, keeping at most `per_bucket` per target and **dropping everything
+  that matches no target**. Membership is `eta_pool_cache.closest_target`, reused
+  unchanged: the same rule the eta pool's rejection sampler accepts by, so the windows are
+  disjoint *with gaps* rather than a partition of the eta axis. Also renders the occupancy
+  panel, so the menu and `--dry-run` draw it from one set of numbers.
+- `RunSpec.bucket / eta_targets / per_bucket / eta_tol` (defaults on, {1,5,10,15}, 10/10/3/3
+  from `eta_pool_sweep.ETA_SAMPLE_CAP`, tol 1.0), `--eta-targets / --per-bucket / --eta-tol
+  / --no-buckets`, and a menu dialogue that redraws the panel after the tolerance so a
+  choice is made against the numbers it produces.
+- `eta_buckets.png` in the run directory, a `bucket` column in `screening.csv`, and
+  per-bucket got-vs-want in `summary.json`.
+- `scripts/check_eta_buckets.py` — occupancy per dataset × tolerance, plus the four
+  invariants the capping claims: every kept tree inside its window, no bucket over cap, no
+  unbucketed tree kept, kept list exactly the concatenated prefixes.
+
+### Changed
+- **`DEFAULT_OPERATORS = ("S",)`** — the distance route is no longer run — and
+  **`DEFAULT_GATE = "valid_L"`**, because gating on B's validity while never sweeping B
+  discards trees that are fine for L. `gate_operators("valid_L")` is `("S",)`, so the eta
+  cap and the buckets follow without a second setting. L_sym and B stay in `ALL_OPERATORS`:
+  the screen still records them, every screen cache keeps its meaning, and
+  `--operators S,Lsym,B` still sweeps all three.
+- `select_ids` gained the bucket filter and `select_buckets` returns the occupancy it
+  selected from. Both `plan()` and `_run_source()` go through it, so real and generated
+  sources are fixed by one edit and `PlanRow.hours` corrects itself.
+
+### Measured
+At tol=1 on `eta_S`, the buckets hold a minority of the valid population — which is the
+saving and also the reason the panel exists:
+
+| source | screened | valid for S | eta01 | eta05 | eta10 | eta15 | unbucketed |
+|---|---|---|---|---|---|---|---|
+| 1000 taxa | 66 | 32 | 0 | 1 | 0 | 3 | 28 |
+| 6000 taxa | 100 | 69 | 6 | 6 | 4 | 4 | 49 |
+
+`eta_S` median 24.6 (m=1000) / 17.8 (m=6000): the mass sits above the largest target. At
+m=6000 that is 18 swept instead of 38 — **9 h instead of 19 h** — and at ±2 every bucket
+fills (26 trees, 13 h). At m=1000 it is a four-tree run with two empty buckets, which is
+why the tolerance is promptable rather than fixed.
+
+Generated pooled sources fill their buckets by construction: the pool is rejection-sampled
+to the targets, and the screened `eta_S` landed in the intended bin for 12 of 12 trees at
+n=500, zero unbucketed. The real/generated asymmetry is the data, not the code.
+
+### Verified
+- `check_eta_buckets.py` exits 0 on both datasets across tol ∈ {1,2,3}.
+- End-to-end at tol=2: funnel 66 → 32 → 11 → 7, and the `.npz` count, `summary.json`'s
+  `swept`, and the tree count in `per_tree.csv` all equal 7; no swept tree lacks a bucket
+  in `screening.csv`.
+- `analysis/utils/selftest.py` passes all 8 checks, including its assertion that every
+  `RunSpec` field is set by `_ask_config`.
+
+---
+
 ## [2026-10-14] The benchmark pipeline takes the same early stop; both grid endpoints anchored
 
 `scripts/run_benchmark.py` -- the operator-comparison benchmark, which serves real AND

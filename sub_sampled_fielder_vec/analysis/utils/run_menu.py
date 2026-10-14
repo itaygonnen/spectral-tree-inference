@@ -39,10 +39,11 @@ from src.utils.interactive_ui import (                       # noqa: E402
     print_header, print_option, print_success, print_warning)
 
 from .real_datasets import describe_search, list_datasets, sweep_cache_dir  # noqa: E402
+from src.runners.eta_buckets import panel_lines                     # noqa: E402
 from src.runners.experiment_run import (EARLY_STOP, GATES, MAX_ETA,  # noqa: E402
                                         P_MIN, P_POINTS, REPS, RunSpec, as_command,
                                         default_gate, execute, gate_label,
-                                        gate_operators, plan, verdicts)
+                                        gate_operators, plan, select_buckets, verdicts)
 from src.runners.operators import ALL_OPERATORS, ARM_OF, OPERATORS  # noqa: E402
 
 
@@ -88,6 +89,12 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec
     else:
         _say(f"trees      all, gated on [{gate_label(spec.gate)}], "
              f"eta <= {spec.max_eta:g}", indent="  ")
+        buck = ("off - every tree clearing the gate is swept" if not spec.bucket else
+                "eta " + "/".join(str(t) for t in spec.eta_targets)
+                + f" +-{spec.eta_tol:g}, at most "
+                + "/".join(str(c) for c in spec.per_bucket)
+                + " trees each; anything matching no bucket is dropped")
+        _say(f"buckets    {buck}", indent="  ")
         print(f"  p-grid     {spec.p_points} log-spaced points, {spec.p_min:g} .. 1.0")
         print(f"  reps       {spec.reps} bootstrap replicates per p")
         print(f"  operators  {', '.join(spec.operators)}"
@@ -122,6 +129,7 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec
     spec.max_eta = float(get_input(
         "Drop trees whose reference split is more lopsided than eta (0 = keep all)",
         default=str(spec.max_eta)))
+    _ask_buckets(spec, names, verdicts_by)
     spec.p_min = float(get_input("Smallest sub-sampling rate p (largest is always 1.0)",
                                  default=str(spec.p_min)))
     spec.p_points = int(get_input(
@@ -143,6 +151,68 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec
                     "debug - every line on the terminal too, no bars"],
         default_index=0).split(" ")[0]
     return spec
+
+
+def _ask_buckets(spec: RunSpec, names, verdicts_by: Dict[str, dict]) -> None:
+    """Show what each eta bucket holds, then take the caps. Mutates ``spec`` in place.
+
+    This is where a run stops paying for trees it does not need, so it is a dialogue
+    rather than a flag: on real data the paper's windows at +-1 keep a minority of the
+    valid trees and some buckets come up empty, and the only way to find out is to look.
+    The panel is redrawn after the tolerance so a choice can be made against the numbers
+    it produces rather than remembered from before it.
+
+    Sets ``spec.bucket``, ``spec.eta_tol``, ``spec.eta_targets`` and ``spec.per_bucket``.
+    """
+    spec.bucket = confirm(
+        "Restrict the sweep to the paper's eta buckets?  (n sweeps every gated tree)",
+        default=spec.bucket)
+    if not spec.bucket:
+        return
+    raw = get_input("Eta buckets - comma-separated targets",
+                    default=",".join(str(t) for t in spec.eta_targets))
+    spec.eta_targets = tuple(int(x) for x in raw.split(",") if x.strip())
+    if len(spec.per_bucket) != len(spec.eta_targets):
+        # keep the parallel lists parallel: reuse the last cap for any new target
+        last = spec.per_bucket[-1] if spec.per_bucket else 3
+        spec.per_bucket = tuple(
+            (spec.per_bucket[i] if i < len(spec.per_bucket) else last)
+            for i in range(len(spec.eta_targets)))
+
+    while True:
+        _bucket_panels(spec, names, verdicts_by)
+        tol = get_input("Bucket half-width (a tree joins the nearest target within it)",
+                        default=f"{spec.eta_tol:g}")
+        new_tol = float(tol)
+        if new_tol == spec.eta_tol:
+            break
+        spec.eta_tol = new_tol          # redraw once at the new tolerance, then move on
+        _bucket_panels(spec, names, verdicts_by)
+        if confirm("Keep this half-width?", default=True):
+            break
+
+    raw = get_input("Trees per bucket - one count per target, in order",
+                    default=",".join(str(c) for c in spec.per_bucket))
+    caps = [int(x) for x in raw.split(",") if x.strip()]
+    if len(caps) == len(spec.eta_targets):
+        spec.per_bucket = tuple(caps)
+    else:
+        print_warning(f"need {len(spec.eta_targets)} counts, got {len(caps)} -- keeping "
+                      + ",".join(str(c) for c in spec.per_bucket))
+    _bucket_panels(spec, names, verdicts_by)
+
+
+def _bucket_panels(spec: RunSpec, names, verdicts_by: Dict[str, dict]) -> None:
+    """One occupancy panel per source, under the spec as it stands."""
+    for name in names:
+        rows = verdicts_by.get(name) or {}
+        if not rows:
+            _say(f"{name}: not screened yet -- buckets cannot be counted", indent="  ")
+            continue
+        kept, buckets, _short = select_buckets(sorted(rows), rows, spec)
+        _framed([f"{name}  ->  {len(kept)} tree(s) to sweep"]
+                + panel_lines(buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol),
+                rule_after=0)
 
 
 def _framed(lines: List[str], rule_after: int = -1) -> None:
