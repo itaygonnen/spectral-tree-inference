@@ -21,6 +21,8 @@ from typing import Dict, List, Optional, Sequence
 
 import numpy as np
 
+from ..runners.experiment_run import EARLY_STOP
+
 # Operator keys, in the order they appear in the screen table.
 OPERATORS = ("S", "D", "Lsym")
 
@@ -74,6 +76,11 @@ class BenchmarkConfig:
     # three is the historical behaviour; a subset saves a full bootstrap sweep
     # per tree per operator dropped.
     operators: List[str] = field(default_factory=lambda: list(METHOD_KEYS))
+    # Consecutive settled points before an end of the p-grid is extrapolated, the same
+    # knob and the same default as the menu/CLI pipeline (``experiment_run.EARLY_STOP``).
+    # The sweep itself is shared -- ``benchmark_workers`` calls ``sweep_one_tree`` -- so
+    # this is the only thing that was keeping the two pipelines apart.
+    early_stop: int = EARLY_STOP
 
     def methods(self) -> List[str]:
         """Selected method keys, always in menu order."""
@@ -87,9 +94,17 @@ class BenchmarkConfig:
         return {"num_gaps": self.num_gaps, "min_split": self.min_split}
 
     def sweep_meta(self) -> dict:
-        return {"p_values": [round(float(p), 9) for p in self.p_values],
+        meta = {"p_values": [round(float(p), 9) for p in self.p_values],
                 "bootstrap_reps": self.bootstrap_reps,
                 "num_gaps": self.num_gaps, "min_split": self.min_split}
+        # Emitted only when set, so every output directory written before the early stop
+        # existed still matches at ``early_stop=0`` instead of being refused as
+        # incompatible. A run that DOES extrapolate is a different sweep and
+        # ``check_meta`` refuses to merge it into a fully measured directory -- which is
+        # the point: one directory never mixes measured and extrapolated curves.
+        if self.early_stop:
+            meta["early_stop"] = int(self.early_stop)
+        return meta
 
 
 def check_meta(out_dir: Path, cfg: BenchmarkConfig, extra: dict) -> None:

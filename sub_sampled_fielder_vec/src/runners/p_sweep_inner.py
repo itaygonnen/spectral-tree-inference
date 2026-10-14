@@ -76,16 +76,23 @@ class MiddleOut:
     The middle seed counts towards both sides, so a grid whose centre already recovers
     perfectly stops the high side one step later rather than measuring it twice.
 
-    Index 0 is ALWAYS measured, even when the low side stops above it: ``p_min`` is the
-    bottom of the axis the recovery figure is drawn to show, and one extra solve there is
-    the cheapest on the grid (sparse below density 0.1, dense above).
+    BOTH endpoints are ALWAYS measured, even when a side stops before reaching them.
+    ``p_min`` is the bottom of the axis the recovery figure is drawn to show, and one
+    extra solve there is the cheapest on the grid (sparse below density 0.1, dense
+    above). ``p_max`` is measured for a different reason: at p=1 the sampler is the
+    identity, so the arms disagree about what "exact" means -- the Fiedler arms
+    short-circuit to 1.0 while the distance arm's ARPACK solve lands ~1e-4 away. Keeping
+    the endpoint measured means a ``--no-early-stop`` run and an early-stopped one agree
+    EXACTLY, everywhere, instead of agreeing to solver tolerance at one point.
 
     ``early_stop=0`` disables every stop and hands back a plain ascending grid, so a
     ``--no-early-stop`` run computes and logs its p's in the order it always did.
 
     ``traversal="ascending"`` is the pre-2026-09 shape: walk 0..n-1 and stop only on the
-    high side. It exists because the eta-pool cache holds 503 sweeps produced that way
-    and they back a published figure. It is a cache key (``sweep_cache._build_config``),
+    high side, and -- the one exception to the endpoint rule above -- fill through
+    ``p_max`` rather than anchoring it. It exists because the eta-pool cache holds 503
+    sweeps produced that way and they back a published figure; anchoring the endpoint
+    would make a fresh run disagree with those entries under their own key. It is a cache key (``sweep_cache._build_config``),
     so an ascending sweep and a middle-out one can never be pooled.
     """
 
@@ -158,7 +165,9 @@ class MiddleOut:
                 elif len(self._hi_run) >= self.early_stop:
                     hi_done = True
                     self.high_trigger = self._hi_run[-self.early_stop:]
-                    self.high_fill = list(range(hi, self.n_p))
+                    self.high_fill = list(range(hi, self.n_p - 1))
+                    if self.n_p - 1 not in self._seen:
+                        yield self.n_p - 1       # the p_max anchor
                 else:
                     yield hi
                     hi += 1
@@ -523,14 +532,6 @@ def bootstrap_p_sweep_simple(
                 partition_ari_M[i] = 1.0
                 partition_agreement_M[i] = 100.0
                 partitions[i] = partition_ref.copy()
-                if float(p_values[i]) >= 0.9999:
-                    # S is M here, so this p is exact rather than extrapolated and costs
-                    # nothing to state in full -- never spend the dot / sign / diagnostic
-                    # columns on a point the fast path would have given for free
-                    sign_agreement[i] = 100.0
-                    dot_product[i] = 1.0
-                    measured[i] = 1.0
-                    _set_extra(i, sigma2_ref_M, sigma2_ref_M, [0.0], [rank_M], [rank_L_M])
             if progress_cb is not None:
                 progress_cb(i, float(p_values[i]))
             _emit(i, float(p_values[i]))

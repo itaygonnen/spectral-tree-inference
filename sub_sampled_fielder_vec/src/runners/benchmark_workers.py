@@ -112,7 +112,7 @@ def sweep_one(item) -> dict:
         curves = _sweep_one_tree(
             tree_id, _LOADER, seed=1000 * int(ti), p_values=cfg.p_values,
             reps=cfg.bootstrap_reps, num_gaps=cfg.num_gaps,
-            min_split=cfg.min_split, operators=ops,
+            min_split=cfg.min_split, operators=ops, early_stop=cfg.early_stop,
             # fixed for this benchmark; see the module docstring
             rule_policy="kmeans", eigsolver=DEFAULT_SOLVER, aggregation="per_rep")
 

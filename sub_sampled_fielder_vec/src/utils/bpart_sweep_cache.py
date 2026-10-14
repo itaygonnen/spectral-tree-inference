@@ -275,6 +275,9 @@ def bpart_sweep_raw(
     # rather than guessed on the low side, so eta / split / vs_truetree stay NaN.
     def _fill(idx: int, agreement: float, ari: float, nmi: float,
               partition: Optional[np.ndarray]) -> None:
+        # p_max is never filled -- MiddleOut anchors both endpoints -- so this never has
+        # to decide what "exact" means at p=1, where the sampler is the identity but the
+        # ARPACK solve still lands ~1e-4 from 1.0.
         row: Dict[str, Any] = {
             "p": float(p_values[idx]), "measured": 0.0,
             "agreement": [agreement], "ari": [ari], "nmi": [nmi],

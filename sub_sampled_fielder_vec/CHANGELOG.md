@@ -4,6 +4,47 @@ All notable changes to the STDR framework are documented here.
 
 ---
 
+## [2026-10-14] The benchmark pipeline takes the same early stop; both grid endpoints anchored
+
+`scripts/run_benchmark.py` -- the operator-comparison benchmark, which serves real AND
+generated trees -- called the shared `sweep_one_tree` without `early_stop`, so it silently
+defaulted to 0 while the menu/CLI pipeline defaulted to 2. The two are now one setting.
+
+### Changed
+- `BenchmarkConfig.early_stop` (default 2, same as `experiment_run.EARLY_STOP`), threaded
+  through `benchmark_workers.sweep_one`, and prompted for by `run_benchmark.py`.
+- `BenchmarkConfig.sweep_meta()` carries `early_stop` **only when non-zero**, so an output
+  directory written before the early stop existed still resumes at 0, while `check_meta`
+  refuses to merge an extrapolated run into a fully measured directory. One directory
+  never mixes measured and extrapolated curves.
+- **`MiddleOut` now anchors BOTH endpoints**, not just `p_min`. At p=1 the sampler is the
+  identity, so the Fiedler arms treat the point as exact (1.0) while the distance arm's
+  `lm_k1` ARPACK solve lands ~1e-4 away -- measured 0.99990 against a filled 1.0 on
+  `kingman_n128_002`. Rather than pick a winner, the endpoint is measured: a
+  `--no-early-stop` run and an early-stopped one are now bit-identical (zero tolerance)
+  on every point that is not extrapolated, instead of agreeing to solver tolerance at
+  one of them.
+- `traversal="ascending"` is the one exception and still fills through `p_max`: the 503
+  migrated eta-pool entries have NaN there, and anchoring the endpoint would make a fresh
+  run disagree with its own cache.
+
+### Removed
+- The two `p >= 0.9999` short-circuits added in the previous commit, in
+  `p_sweep_inner`'s high fill and `bpart_sweep_cache._fill`. Anchoring `p_max` makes the
+  first unreachable and the second wrong for the ascending traversal.
+
+### Verified
+- Generated trees run the identical path: `sources_from_plan` -> `Source` -> `RunSpec` ->
+  `execute` -> `run_sweep`, giving `operators=('S','B')`, `early_stop=2`, both fills, the
+  fill contract and `measured_{arm}` -- confirmed on a kingman n=128 run.
+- Benchmark pipeline at `early_stop` 0 vs 2 on generated trees: 220 values bit-identical,
+  30 extrapolated, no endpoint among them.
+- `MiddleOut` never fills an endpoint and covers `range(n_p)` exactly, over every
+  `(n_p <= 30, early_stop, high stop, low stop)`; `ascending` still reproduces the legacy
+  fill boundary.
+
+---
+
 ## [2026-09-17] Middle-out early stop in the sweep, and L_sym off the sweep default
 
 The p-grid is now swept from its middle outwards and each end stops once the curve has

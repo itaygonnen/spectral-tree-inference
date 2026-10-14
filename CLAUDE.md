@@ -44,13 +44,27 @@ the `valid_Lsym` gate still works, and `--operators S,Lsym,B` still sweeps it.
 The p-grid is swept **middle-out with a two-sided early stop** (`--early-stop N`, default 2;
 `--no-early-stop` measures every p). Seed the middle p, walk both ways one step at a time,
 and stop each end once the curve has settled — NMI == 1.0 twice above, NMI <= 0.10 twice
-below — extrapolating the rest. `p_values[0]` is always measured, so `p_min` anchors the
-floor with a real number. Both inner sweeps seed from the p INDEX, so the traversal is
-bit-exact on every point it still computes, and `p̂*` is unchanged at any threshold <= 1.0.
-Measured 21.7% of grid points skipped across the cached trees, but only 0.4% of the DENSE
+below — extrapolating the rest. **Both endpoints are always measured**: `p_min` anchors
+the floor the grid exists to show, and `p_max` is anchored because at p=1 the sampler is
+the identity but the B arm's ARPACK solve still lands ~1e-4 from 1.0 — measuring it is
+what makes a `--no-early-stop` run and an early-stopped one agree *exactly* rather than
+to solver tolerance. (`traversal="ascending"` is the one exception: it fills through
+`p_max`, because the 503 migrated eta-pool entries were produced that way.)
+
+Both inner sweeps seed from the p INDEX, so the traversal is bit-exact on every point it still computes, and `p̂*` is unchanged at any threshold <= 1.0.
+Measured 21.7% of grid points skipped across the cached trees, but only 0.3% of the DENSE
 ones (p > 0.1, where `FiedlerVectorComputer` switches to `eigh`) — the saving is real in
 point count and small in wall time; dropping L_sym is the larger lever. Verify with
 `python scripts/check_early_stop.py`.
+
+`scripts/run_benchmark.py` (the operator-comparison benchmark, real *and* generated
+trees) runs the same sweep through `benchmark_workers.py` and takes the same knob via
+`BenchmarkConfig.early_stop`, default 2. Its key is `BenchmarkConfig.sweep_meta()`, which
+emits `early_stop` only when non-zero: an output directory written before the early stop
+existed still resumes at 0, and `check_meta` refuses to merge an extrapolated run into a
+fully measured directory. It keeps all three operators and
+`rule_policy="kmeans"`/`aggregation="per_rep"` — those are like-for-like with Figs 2/4 and
+are not the sweep default.
 
 **The fill contract is load-bearing** (`p_sweep_inner.MiddleOut`): an extrapolated p carries
 only what its side's rule supports — nmi/ari/agreement and, on the high side, the reference

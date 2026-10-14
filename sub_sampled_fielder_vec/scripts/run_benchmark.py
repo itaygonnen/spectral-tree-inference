@@ -180,6 +180,9 @@ def prompt_knobs(n_available: int, *, allow_subset: bool = True,
     reps = int(get_input("Bootstrap replicates per p", default="10"))
     n_compare = int(get_input("Cohort cap (trees carried into the p-sweep)",
                               default="100"))
+    early_stop = int(get_input(
+        "Settled points before an end of the p-grid is extrapolated (0 = measure "
+        "every p)", default=str(BenchmarkConfig.early_stop)))
 
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     default_out = PROJECT_ROOT / "results" / "runs" / f"{stamp}-benchmark"
@@ -187,7 +190,8 @@ def prompt_knobs(n_available: int, *, allow_subset: bool = True,
                     default=str(default_out))
 
     cfg = BenchmarkConfig(p_values=p_values, bootstrap_reps=reps,
-                          n_compare=n_compare, operators=ops)
+                          n_compare=n_compare, operators=ops,
+                          early_stop=early_stop)
     return cfg, Path(out).expanduser(), n_use
 
 
