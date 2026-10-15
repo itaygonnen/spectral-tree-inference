@@ -107,6 +107,13 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec
         _say(f"early stop {stop}", indent="  ")
         print("  extras     on - sigma2, ||sub-full||_2, numerical ranks per p")
         print("  output     one run directory with every source in it")
+    # The occupancy BEFORE the confirm, not only behind "Edit": the panel exists so the
+    # tree count is seen before it is agreed to, and the default caps keep a minority of
+    # the valid trees on real data (4 of 32 at m=1000). Hiding it behind an opt-in edit
+    # is how someone launches a four-tree run believing it was thirty.
+    if not is_screen and spec.bucket:
+        print()
+        _bucket_panels(spec, names, verdicts_by)
     print()
     if not confirm("Edit this configuration?", default=False):
         return spec
@@ -181,7 +188,6 @@ def _ask_buckets(spec: RunSpec, names, verdicts_by: Dict[str, dict]) -> None:
             for i in range(len(spec.eta_targets)))
 
     while True:
-        _bucket_panels(spec, names, verdicts_by)
         tol = get_input("Bucket half-width (a tree joins the nearest target within it)",
                         default=f"{spec.eta_tol:g}")
         new_tol = float(tol)

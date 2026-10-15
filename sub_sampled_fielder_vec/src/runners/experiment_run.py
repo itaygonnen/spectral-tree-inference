@@ -349,11 +349,26 @@ def select_buckets(ids: Sequence[str], rows: Dict[str, dict], spec: "RunSpec"):
                          spec.eta_tol)
 
 
-def default_gate(source_names: Sequence[str], verdicts_by: Dict[str, dict]) -> str:
-    """Strictest gate that still selects a tree in EVERY chosen source."""
-    for key, (_, fn, _ops) in GATES.items():
-        if all(any(fn(r) for r in verdicts_by.get(name, {}).values())
-               for name in source_names):
+def default_gate(source_names: Sequence[str], verdicts_by: Dict[str, dict],
+                 prefer: str = DEFAULT_GATE) -> str:
+    """The gate to start from: ``prefer`` when it selects a tree in EVERY chosen source,
+    otherwise the strictest gate that does.
+
+    ``prefer`` exists because "strictest" stopped being the right opening move when the
+    sweep went S-only: ``both`` also requires B's split to be a real tree edge, and
+    filtering on an operator the run never sweeps discards trees that are perfectly good
+    for L. The menu and the command line would otherwise disagree on the same data --
+    the CLI defaults to :data:`DEFAULT_GATE` outright.
+    """
+    def selects(key: str) -> bool:
+        fn = GATES[key][1]
+        return all(any(fn(r) for r in verdicts_by.get(name, {}).values())
+                   for name in source_names)
+
+    if prefer in GATES and selects(prefer):
+        return prefer
+    for key in GATES:
+        if selects(key):
             return key
     return "all"
 
