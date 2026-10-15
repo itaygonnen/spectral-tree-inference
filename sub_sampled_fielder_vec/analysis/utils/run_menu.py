@@ -43,7 +43,8 @@ from src.runners.eta_buckets import panel_lines                     # noqa: E402
 from src.runners.experiment_run import (EARLY_STOP, GATES, MAX_ETA,  # noqa: E402
                                         P_MIN, P_POINTS, REPS, RunSpec, as_command,
                                         default_gate, execute, gate_label,
-                                        gate_operators, plan, select_buckets, verdicts)
+                                        gate_operators, plan, select_buckets, verdicts,
+                                        already_swept)
 from src.runners.operators import ALL_OPERATORS, ARM_OF, OPERATORS  # noqa: E402
 
 
@@ -216,9 +217,14 @@ def _bucket_panels(spec: RunSpec, names, verdicts_by: Dict[str, dict],
             _say(f"{name}: not screened yet -- buckets cannot be counted", indent="  ")
             continue
         kept, buckets, _short = select_buckets(sorted(rows), rows, spec)
-        _framed([f"{name}  ->  {len(kept)} tree(s) to sweep"]
+        # the screen row carries the taxon count, which the sweep-cache meta is keyed on
+        m = next((r.get("m", 0) for r in rows.values() if r.get("m")), 0)
+        done = already_swept(name, m, kept, spec)
+        todo = len(kept) - len(done)
+        _framed([f"{name}  ->  {todo} tree(s) to sweep"
+                 + (f"  ({len(done)} already done)" if done else "")]
                 + panel_lines(buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol,
-                              legend=(legend and i == 0)),
+                              legend=(legend and i == 0), done=done),
                 rule_after=0)
 
 

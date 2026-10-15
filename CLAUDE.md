@@ -70,12 +70,16 @@ tol=1 on `eta_S`:
 target, so ±1 keeps 12–29% of the valid trees. At m=6000 that is 18 swept instead of 38
 (9 h instead of 19 h); at m=1000 it is a four-tree run with two empty buckets. So the panel
 (`eta_buckets.panel_lines`, drawn by the menu prompt *and* by `--dry-run`, from the same
-numbers via `experiment_run.bucket_panel`) shows per bucket its `found` (screened trees
-landing within the tolerance), `cap` and `sweep` = min(found, cap), with short buckets
-marked and a `no bucket` row for the trees too far from every target — that row is the
-saving. The window is deliberately *not* a column: it is `target ± eta_tol` for every
-row, so the rule is stated once in the header instead. A legend spells the columns out,
-once per panel group rather than per redraw. The tolerance is promptable — widening to ±2 fills every bucket at m=6000.
+numbers via `experiment_run.bucket_panel`) shows three **tree counts** per bucket —
+`have` (screened trees within the tolerance), `done` (already swept on this p-grid, so
+reused) and `to run` — plus a `no bucket` row for the trees too far from every target,
+which is the saving. Neither the window nor the cap is a column: both are constant down
+their column, so they are stated once in the header; a per-row copy of a constant reads
+as data and invites arithmetic across the row. `done` comes from
+`already_swept`, which asks `load_tree_sweep` whether a cached tree is genuinely reusable
+rather than globbing `*.npz` — at 1000 taxa two η15 trees had a cache file and one was
+reusable, so a glob would have promised half the work that remained. `PlanRow.hours` is
+net of `done` for the same reason. The tolerance is promptable — widening to ±2 fills every bucket at m=6000.
 **Generated pooled sources do not have this problem**: the pool is rejection-sampled *to*
 the targets, and the screened `eta_S` lands in the intended bin every time (measured: 12/12,
 zero unbucketed). The asymmetry is the data, not the code.

@@ -27,7 +27,7 @@ fills its buckets by construction while a real one does not.
 """
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from ..utils.eta_pool_cache import bin_name, closest_target
 
@@ -145,22 +145,27 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
                 eta_targets: Sequence[int] = ETA_TARGETS,
                 per_bucket: Sequence[int] = PER_BUCKET,
                 eta_tol: float = ETA_TOL, bar_width: int = 24,
-                legend: bool = True) -> List[str]:
+                legend: bool = True, done: Optional[Set[str]] = None) -> List[str]:
     """The occupancy table, as lines ready for ``run_menu._framed``.
 
     Rendered here rather than in the menu so the non-interactive ``--dry-run`` path shows
     the same panel as the prompt, from the same numbers.
 
-    Columns::
+    Columns -- all three are counts of trees, nothing else::
 
         bucket      the target, named as the eta pool names its bins
-        found       screened trees whose eta lands within the tolerance of it
-        cap         the most this run will sweep from the bucket
-        sweep       what actually runs: min(found, cap)
+        have        screened trees whose eta lands within the tolerance of it
+        done        of the ones this run would take, how many are already swept
+        to run      what this run still has to compute
 
-    The window itself is NOT a column: it is ``target +- eta_tol`` for every row, so a
-    per-row copy of it spends twelve characters restating the tolerance once per bucket.
-    The rule goes in the header line instead.
+    Neither the window nor the cap is a column. The window is ``target +- eta_tol`` and
+    the cap is a setting, identical down its own column; both belong in the header line,
+    said once. A per-row copy of a constant reads as data and invites arithmetic across
+    the row -- which is exactly how "cap" was misread.
+
+    ``done`` must be supplied as ids genuinely REUSABLE for this run, not merely present
+    on disk: a tree cached on a different p-grid is recomputed, and counting it as done
+    would promise a shorter run than you get.
 
     The bar is scaled to the largest row INCLUDING "no bucket", because that row is
     usually the big one and a bar that silently excluded it would hide the saving.
@@ -180,32 +185,35 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
 
     # no trailing pad on the header: ``_framed`` sizes its box to the longest line, so a
     # run of spaces there would widen the box past what anything prints
-    lines = [f"a tree joins its nearest target if within +-{eta_tol:g}",
-             f"{'bucket':<11}{'found':>7}{'cap':>6}{'sweep':>6}"]
+    ready = done or frozenset()
+    lines = [f"nearest target within +-{eta_tol:g}, at most "
+             + "/".join(str(c) for c in per_bucket) + " per bucket",
+             f"{'bucket':<11}{'have':>7}{'done':>7}{'to run':>7}"]
     total = 0
     short_any = False
     for target, n in rows_out:
         cap = caps.get(target, 0)
-        take = min(n, cap)
-        total += take
-        # no count in the tag: with the columns named, "found 6 / cap 10" already says
-        # it is short, and spelling it out again pushed the row past 80 columns
+        taking = buckets.get(target, [])[:cap]
+        n_done = sum(1 for t in taking if t in ready)
+        to_run = len(taking) - n_done
+        total += to_run
         mark = ""
         if n < cap:
             short_any = True
             mark = "  short"
-        lines.append(f"{label(target):<11}{n:>7}{cap:>6}{take:>6}  {bar(n)}{mark}")
-    lines.append(f"{'no bucket':<11}{n_unb:>7}{'-':>6}{0:>6}  {bar(n_unb)}  skipped")
-    lines.append(f"{'TOTAL':<11}{'':>7}{sum(caps.values()):>6}{total:>6}"
-                 f"  <- will sweep")
+        lines.append(f"{label(target):<11}{n:>7}{n_done:>7}{to_run:>7}  "
+                     f"{bar(n)}{mark}")
+    lines.append(f"{'no bucket':<11}{n_unb:>7}{'-':>7}{'-':>7}  {bar(n_unb)}  skipped")
+    lines.append(f"{'TOTAL':<11}{'':>7}{'':>7}{total:>7}  <- this run")
     if legend:
         lines += [
-            "eta   = larger clan / smaller clan of the tree's reference split",
-            "found = screened trees landing within the tolerance of that target",
-            "cap   = most to sweep from that bucket;  sweep = min(found, cap)",
+            "eta    = larger clan / smaller clan of the tree's reference split",
+            "have   = screened trees landing within the tolerance of that target",
+            "done   = already swept on this p-grid, so this run reuses them",
+            "to run = what this run still computes",
         ]
         if short_any:          # only explain the marker when one is on screen
-            lines.append("short = fewer found than the cap asks for")
+            lines.append("short  = fewer trees than the cap asks for")
         lines += [
             "no bucket = too far from every target, so skipped. That is the time",
             "            saved; widen the tolerance to catch more of them.",

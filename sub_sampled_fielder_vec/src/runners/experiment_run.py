@@ -375,6 +375,7 @@ class PlanRow:
     # -- three independent ones would eventually disagree.
     buckets: Dict = field(default_factory=dict)
     shortfall: Dict = field(default_factory=dict)
+    n_done: int = 0                          # selected trees already swept on this grid
 
     @property
     def name(self) -> str:
@@ -402,7 +403,7 @@ def plan(spec: RunSpec, sources: Sequence[Source],
             per_tree = screen_secs(src.m, src.seq_len)
             secs += len(ids) * per_tree / max(1, spec.workers)
         n_gate, selected = len(ids), list(ids)
-        n_max_eta, buckets, shortfall = len(ids), {}, {}
+        n_max_eta, buckets, shortfall, n_done = len(ids), {}, {}, 0
         if spec.runs_sweep:
             n_gate = len(select_ids(ids, v, spec.gate))
             capped = select_ids(ids, v, spec.gate, spec.max_eta, spec.operators)
@@ -411,11 +412,16 @@ def plan(spec: RunSpec, sources: Sequence[Source],
                 selected, buckets, shortfall = select_buckets(ids, v, spec)
             else:
                 selected = capped
+            # cheap: a header read per selected tree, and the selection is capped
+            n_done = len(already_swept(src.name, src.m, selected, spec))
             # serial: run_sweep walks the trees one at a time, so this is wall time.
             # ``workers`` parallelises the screen only. An UPPER bound when
             # ``early_stop`` is on: how many p's each end skips depends on where that
             # tree's curve turns, which is not knowable before sweeping it.
-            secs += (len(selected) * spec.p_points * spec.reps
+            # Trees already swept on this grid are reused, so they cost nothing -- and
+            # the bucket panel prints that count right beside this estimate, so an
+            # estimate that ignored it would be visibly contradicted on screen.
+            secs += (max(0, len(selected) - n_done) * spec.p_points * spec.reps
                      * SOLVE_SECS_AT_6000 * (src.m / 6000.0) ** 3
                      * (n_fiedler + n_griffing * GRIFFING_COST_SHARE))
         warn = ""
@@ -426,7 +432,7 @@ def plan(spec: RunSpec, sources: Sequence[Source],
                             n_screened=n_screened, n_gate=n_gate,
                             hours=secs / 3600.0, warning=warn,
                             n_max_eta=n_max_eta, buckets=buckets,
-                            shortfall=shortfall))
+                            shortfall=shortfall, n_done=n_done))
     return rows
 
 
@@ -460,6 +466,32 @@ def _run_source(row: PlanRow, spec: RunSpec) -> List[str]:
     return ids
 
 
+def already_swept(source: str, m: int, selected: Sequence[str],
+                  spec: RunSpec) -> set:
+    """Of this source's selected trees, those a sweep would REUSE rather than recompute.
+
+    Not a glob of ``*.npz``: ``load_tree_sweep`` only reuses a cached tree whose p-grid
+    and meta match this run's, so a tree swept on another grid is on disk and still has
+    to be recomputed. Measured on 1000 taxa, two eta15 trees had a cache file and one of
+    them was reusable -- counting the file would have promised half the work that
+    remained.
+    """
+    from ..utils.run_paths import sweep_cache_dir
+    from .operator_sweep import load_tree_sweep, sweep_meta
+
+    pv = spec.p_values()
+    if pv is None or not selected:
+        return set()
+    cache = sweep_cache_dir(source)
+    if not cache.is_dir():
+        return set()
+    grid = np.round(np.asarray(pv, float), 6)
+    meta = dict(sweep_meta(spec.reps, spec.num_gaps, spec.min_split, int(m),
+                           spec.early_stop))
+    return {t for t in selected
+            if load_tree_sweep(cache, t, grid, meta) is not None}
+
+
 def bucket_panel(row: "PlanRow", spec: RunSpec, legend: bool = True) -> List[str]:
     """The bucket occupancy for one planned source, or no lines when it does not apply.
 
@@ -469,7 +501,8 @@ def bucket_panel(row: "PlanRow", spec: RunSpec, legend: bool = True) -> List[str
     if not (spec.bucket and spec.runs_sweep and row.buckets):
         return []
     return panel_lines(row.buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol,
-                       legend=legend)
+                       legend=legend,
+                       done=already_swept(row.source.name, row.m, row.selected, spec))
 
 
 def _selection_row(row: "PlanRow", spec: RunSpec, covered: Sequence[str]) -> dict:
