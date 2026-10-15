@@ -40,7 +40,8 @@ from src.utils.interactive_ui import (                       # noqa: E402
 
 from .real_datasets import describe_search, list_datasets, sweep_cache_dir  # noqa: E402
 from src.runners.eta_buckets import panel_lines                     # noqa: E402
-from src.runners.experiment_run import (EARLY_STOP, GATES, MAX_ETA,  # noqa: E402
+from src.runners.experiment_run import (DEFAULT_GATE, EARLY_STOP,   # noqa: E402
+                                        GATES, MAX_ETA,
                                         P_MIN, P_POINTS, REPS, RunSpec, as_command,
                                         default_gate, execute, gate_label,
                                         gate_operators, plan, select_buckets, verdicts,
@@ -269,6 +270,7 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
     """Screening coverage, verdicts and median imbalance, before anything is picked."""
     print_header("Screening status")
     cap = f"eta<={MAX_ETA:g}"
+    gate_col = "+".join(ARM_OF[k] for k in gate_operators(DEFAULT_GATE)) + " ok"
     if not sources:
         return
     width = max(8, max(len(s.name) for s in sources) + 1)
@@ -280,7 +282,7 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
     head = f"{'source':<{width}}{'trees':>6}{'scrn':>6}"
     for k in shown:
         head += f"{ARM_OF[k] + ' edge':>9}{'eta':>7}"
-    head += f"{'L+B':>5}{cap:>9}{'swept':>7}"
+    head += f"{gate_col:>6}{cap:>9}{'swept':>7}"
     lines = [head]
     for c in sources:
         v, ids = verdicts_by[c.name], c.ids
@@ -291,24 +293,28 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
             etas = [v[t][f"eta_{k}"] for t in done if f"eta_{k}" in v[t]]
             med = float(np.median(etas)) if etas else float("nan")
             line += (f"{n_ok:>9}{med:>7.1f}" if etas else f"{'-':>9}{'-':>7}")
-        n_both = sum(1 for t in done if v[t].get("valid_S") and v[t].get("valid_B"))
+        # the default gate's own predicate, not a hardcoded "both": with the sweep
+        # reading S alone, an L+B column counted trees against an operator no run
+        # touches -- it read 0 for a screen that had just validated all 40 trees.
+        n_gate_ok = sum(1 for t in done if GATES[DEFAULT_GATE][1](v[t]))
         # the same operators the cap will actually weigh, so the panel cannot promise
         # a count the plan then contradicts
-        cap_ops = gate_operators("both")
+        cap_ops = gate_operators(DEFAULT_GATE)
         n_cap = sum(1 for t in done
                     if max((v[t].get(f"eta_{k}", 0.0) for k in cap_ops),
                            default=0.0) <= MAX_ETA)
         swept = (len(list(sweep_cache_dir(c.name).glob("*.npz")))
                  if sweep_cache_dir(c.name).is_dir() else 0)
-        lines.append(line + f"{n_both:>5}{n_cap:>9}{swept:>7}")
+        lines.append(line + f"{n_gate_ok:>6}{n_cap:>9}{swept:>7}")
     lines += [
         "• <arm> edge  - trees whose split of the full matrix is a real edge of",
         "                the true tree; eta is the median imbalance of that split",
         "                (larger clan / smaller clan, so 1 is a perfectly even cut)",
-        "• L+B         - valid under both L(S) and B, the pair the figure compares",
-        f"• eta<={MAX_ETA:<7g}- even enough on L(S) and B to carry a recovery signal;",
-        "                what a 'both' sweep starts from. A gate naming one",
-        "                operator weighs only that one.",
+        f"• {gate_col:<12}- passes the default gate [{gate_label(DEFAULT_GATE)}],",
+        "                which is where a sweep starts",
+        f"• eta<={MAX_ETA:<7g}- and even enough on {'+'.join(gate_operators(DEFAULT_GATE))}"
+        " to carry a recovery signal.",
+        "                A gate naming another operator weighs that one instead.",
         "• swept       - trees the recovery sweep has already covered",
         "• operators with no verdicts yet are not shown; screen to add them",
     ]
@@ -411,15 +417,15 @@ def run_generated_menu() -> None:
     quantity and was not comparable with a real-data curve.
     """
     from src.runners.generated_source import sources_from_plan
-    from src.utils.generated_prompts import (prompt_generated_plan, print_pool_table,
-                                             resolve_pool_ids)
+    from src.utils.generated_prompts import prompt_generated_plan, resolve_pool_ids
 
     print_header("Generated data")
     plan_g = prompt_generated_plan()
     if plan_g.pooled:
         # the eta pool is the only place a rejection-sampled tree exists; top it up
-        # before anything asks for ids, because what comes back is what is on disk
-        print_pool_table(plan_g)
+        # before anything asks for ids, because what comes back is what is on disk.
+        # ``prompt_generated_plan`` has already printed the availability table -- doing
+        # it again here is what printed two identical blocks back to back.
         plan_g.tree_ids = resolve_pool_ids(plan_g)
         if not plan_g.tree_ids:
             print_error("the eta pool is empty for these parameters and nothing could "
