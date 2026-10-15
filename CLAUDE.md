@@ -82,7 +82,17 @@ as data and invites arithmetic across the row. `done` comes from
 `already_swept`, which asks `load_tree_sweep` whether a cached tree is genuinely reusable
 rather than globbing `*.npz` — at 1000 taxa two η15 trees had a cache file and one was
 reusable, so a glob would have promised half the work that remained. `PlanRow.hours` is
-net of `done` for the same reason. The tolerance is promptable — widening to ±2 fills every bucket at m=6000.
+net of `done` for the same reason.
+
+**The panel draws before the "Edit this configuration?" confirm**, not only inside the
+edit branch — its job is to show the tree count before it is agreed to, and the default
+caps keep a minority of the valid trees, so hiding it behind an opt-in edit is how a
+four-tree run gets launched in the belief it was thirty. `default_gate` likewise starts
+from `DEFAULT_GATE` rather than the strictest gate that selects anything: "strictest"
+stopped being right when the sweep went S-only, because `both` filters on B, an operator
+the run never sweeps. Menu and command line now pick the same gate on the same data.
+
+The tolerance is promptable — widening to ±2 fills every bucket at m=6000.
 **Generated pooled sources do not have this problem**: the pool is rejection-sampled *to*
 the targets, and the screened `eta_S` lands in the intended bin every time (measured: 12/12,
 zero unbucketed). The asymmetry is the data, not the code.
