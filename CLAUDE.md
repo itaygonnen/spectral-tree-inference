@@ -139,6 +139,20 @@ stored meta but compared under a partial order: a tree swept with a smaller (or 
 holds strictly more measurement and is reused; a run that asked for measurement is never
 handed an extrapolated tail.
 
+**Ctrl+C during a screen exits immediately and keeps what finished.** `run_screen`
+installs its own SIGINT handler for the life of the pool: it saves the rows, prints the
+count, kills the workers and calls `os._exit(130)`. Raising `KeyboardInterrupt` there
+cannot be made reliable — the interpreter's exit runs
+`concurrent.futures.process._python_exit`, which joins the executor's manager thread, and
+that thread will not finish while multiprocessing's non-daemon queue feeder is blocked
+writing to workers that are gone (confirmed by SIGUSR1 stack dump: main thread in
+`_python_exit -> join -> _wait_for_tstate_lock`, feeder in `queues.py:_feed`). Cancelling
+futures, killing the workers and bounding the queued jobs each helped and none fixed it.
+The screen cache is resumable by design, so the only cost is that an interrupted screen
+writes no run directory; re-running exports it from the same cache. Jobs are also
+submitted a few at a time rather than all at once, which is what keeps the feeder from
+backing up in the first place.
+
 Results land in `results/real_data/runs/<timestamp>-<name>/` (config, summary, screening.csv,
 per_tree.csv, curves.csv, recovery_curve.png, logs), with resumable state in
 `results/real_data/_cache/<source>/`.

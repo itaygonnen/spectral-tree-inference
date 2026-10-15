@@ -22,7 +22,9 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import os
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import signal
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
+from itertools import islice
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
@@ -156,21 +158,106 @@ def run_screen(
     n_done = 0
     bar = create_progress_bar(len(todo), f"  screening {source}".rstrip(),
                               unit="tree", leave=False)
-    with ProcessPoolExecutor(max_workers=workers, mp_context=mp.get_context("spawn"),
-                             initializer=_init, initargs=(loader,)) as ex:
-        futs = {ex.submit(_worker, (t, ops, min_split, rule_policy, num_gaps)): t
-                for t in todo}
-        for f in as_completed(futs):
-            rec = f.result()
-            if rec is not None:
-                done[rec["tree"]] = rec
-                _log_row(rec, ops)
-            n_done += 1
-            bar.update(1)
-            if n_done % progress == 0 or n_done == len(todo):
-                rows = [done[t] for t in ids if t in done]
-                np.savez(cache_path, rows=np.array(rows, dtype=object))
-                log_info("screen", f"[{n_done}/{len(todo)}] saved {len(rows)} rows")
+    def _save() -> int:
+        rows_now = [done[t] for t in ids if t in done]
+        np.savez(cache_path, rows=np.array(rows_now, dtype=object))
+        return len(rows_now)
+
+    ex = ProcessPoolExecutor(max_workers=workers, mp_context=mp.get_context("spawn"),
+                             initializer=_init, initargs=(loader,))
+
+    def _on_sigint(_sig, _frm):
+        """Save, say so, and leave -- without going through the executor's teardown.
+
+        Ctrl+C on a running screen used to hang indefinitely. Raising KeyboardInterrupt
+        here cannot be made reliable: the interpreter's exit runs
+        ``concurrent.futures.process._python_exit``, which joins the executor's manager
+        thread, and that thread will not finish while multiprocessing's non-daemon queue
+        feeder is blocked writing to workers that are gone. Verified with a SIGUSR1 stack
+        dump -- the main thread sat in ``_python_exit -> join -> _wait_for_tstate_lock``
+        while the feeder sat in ``queues.py:_feed``. Cancelling futures, killing the
+        workers and bounding the number of queued jobs each helped and none of them
+        fixed it.
+
+        So: persist what finished (the screen cache is resumable by design and is the
+        only state worth keeping), then ``os._exit``, which skips atexit entirely. The
+        cost is that an interrupted screen writes no run directory; re-running exports it
+        from the same cache.
+        """
+        try:
+            bar.close()
+            kept = _save()
+            print(f"\n  interrupted -- {kept} screened tree(s) kept; "
+                  f"re-run to continue", flush=True)
+            log_info("screen", f"{source}: interrupted, {kept} rows kept")
+        finally:
+            for proc in list(getattr(ex, "_processes", {}).values()):
+                try:
+                    proc.kill()
+                except Exception:          # already gone
+                    pass
+            os._exit(130)                  # 128 + SIGINT, the shell's convention
+
+    try:                                   # only the main thread may set a handler
+        _prev_sigint = signal.signal(signal.SIGINT, _on_sigint)
+    except ValueError:
+        _prev_sigint = None
+    # Submit a bounded number at a time rather than all of ``todo`` up front. Handing
+    # the pool 300 work items fills multiprocessing's call queue, and its feeder thread
+    # -- which is NOT a daemon -- then blocks writing into a pipe. On Ctrl+C the workers
+    # die, nothing drains that pipe, the feeder never returns, the executor's manager
+    # thread never exits, and the atexit hook in concurrent.futures.process joins it
+    # forever: the interpreter hangs with the traceback already printed. Keeping only a
+    # few jobs queued means the feeder is never backed up and cancellation is real.
+    def _submit(tree_id: str):
+        return ex.submit(_worker, (tree_id, ops, min_split, rule_policy, num_gaps))
+
+    queue = iter(todo)
+    try:
+        pending = {_submit(t): t for t in islice(queue, max(2, workers * 2))}
+        while pending:
+            ready, _ = wait(pending, return_when=FIRST_COMPLETED)
+            for f in ready:
+                pending.pop(f)
+                rec = f.result()
+                if rec is not None:
+                    done[rec["tree"]] = rec
+                    _log_row(rec, ops)
+                n_done += 1
+                bar.update(1)
+                if n_done % progress == 0 or n_done == len(todo):
+                    log_info("screen", f"[{n_done}/{len(todo)}] saved {_save()} rows")
+                for nxt in islice(queue, 1):
+                    pending[_submit(nxt)] = nxt
+    except KeyboardInterrupt:          # a Ctrl+C that beat the handler being installed
+        # Ctrl+C used to look like it did nothing. Every tree is submitted up front, and
+        # leaving the pool through a ``with`` block calls shutdown(wait=True), which
+        # waits for ALL of them -- 300 trees on 5 workers -- before the exception
+        # propagates.
+        #
+        # Cancelling the pending futures is NOT enough on its own: ProcessPoolExecutor
+        # registers an atexit hook that joins its management thread, so the interpreter
+        # still blocks until the in-flight tasks finish. Measured on a 4-worker pool of
+        # 3-second tasks: cancel_futures alone exited 12.4 s after the signal, killing
+        # the workers first exited in 0.4 s. At m=1800 a tree is ~2.8 s, and a screen is
+        # the one place a run is interrupted precisely because it is long.
+        #
+        # ``_processes`` is private; if a future Python renames it we fall back to the
+        # slow-but-correct path rather than failing on the way out.
+        bar.close()
+        for proc in list(getattr(ex, "_processes", {}).values()):
+            try:
+                proc.kill()
+            except Exception:
+                pass
+        print(f"\n  interrupted -- {_save()} screened tree(s) kept; re-run to continue",
+              flush=True)
+        os._exit(130)
+    else:
+        ex.shutdown(wait=True)
+    finally:
+        if _prev_sigint is not None:
+            signal.signal(signal.SIGINT, _prev_sigint)
     bar.close()
 
     rows = [done[t] for t in ids if t in done]
