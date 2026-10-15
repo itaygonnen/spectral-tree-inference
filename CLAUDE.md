@@ -73,7 +73,10 @@ target, so ±1 keeps 12–29% of the valid trees. At m=6000 that is 18 swept ins
 numbers via `experiment_run.bucket_panel`) shows three **tree counts** per bucket —
 `have` (screened trees within the tolerance), `done` (already swept on this p-grid, so
 reused) and `to run` — plus a `no bucket` row for the trees too far from every target,
-which is the saving. Neither the window nor the cap is a column: both are constant down
+which is the saving. The bar beside each row is one cell per tree and as long as that
+bucket's cap, so its composition replaces what text flags used to say: `█` swept, `░`
+this run computes, `·` capacity no tree filled. A bucket that cannot fill ends in `·`,
+which is the fact a "short" tag carried, without a word. Neither the window nor the cap is a column: both are constant down
 their column, so they are stated once in the header; a per-row copy of a constant reads
 as data and invites arithmetic across the row. `done` comes from
 `already_swept`, which asks `load_tree_sweep` whether a cached tree is genuinely reusable

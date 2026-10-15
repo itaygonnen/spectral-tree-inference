@@ -167,21 +167,29 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
     on disk: a tree cached on a different p-grid is recomputed, and counting it as done
     would promise a shorter run than you get.
 
-    The bar is scaled to the largest row INCLUDING "no bucket", because that row is
-    usually the big one and a bar that silently excluded it would hide the saving.
+    The bar is one cell per tree and as long as that bucket's cap, so its *composition*
+    says what a "short"/"skipped" tag used to::
 
-    ``bar_width`` 24 keeps the widest row inside 72 characters, which still fits an
-    80-column terminal once ``_framed`` adds its 4 of box. ``legend=False`` drops the
-    footer for a redraw that has already shown it once.
+        full   #   swept already, this run reuses it
+        hollow -   a tree this run has to compute
+        empty  .   capacity asked for that no tree filled
+
+    A bucket that cannot fill therefore ends in empty cells, which is the same fact the
+    word "short" carried, without a word. Scaling to the cap rather than to the biggest
+    row is what makes one cell mean one tree; "no bucket" has no cap and so has no bar.
+
+    ``bar_width`` caps the drawn cells so a large per-bucket count cannot run off an
+    80-column terminal; an overflowing bar is truncated and the count carries the truth.
+    ``legend=False`` drops the footer for a redraw that has already shown it once.
     """
     caps = {int(t): int(c) for t, c in zip(eta_targets, per_bucket)}
     rows_out = [(int(t), len(buckets.get(int(t), []))) for t in eta_targets]
     n_unb = len(buckets.get(UNBUCKETED, []))
-    peak = max([n for _, n in rows_out] + [n_unb, 1])
 
-    def bar(n: int) -> str:
-        filled = int(round(bar_width * n / peak))
-        return "█" * filled + "·" * (bar_width - filled)
+    def bar(n_done: int, n_run: int, cap: int) -> str:
+        """``cap`` cells: swept, then to-run, then the capacity nothing filled."""
+        cells = "█" * n_done + "░" * n_run + "·" * max(0, cap - n_done - n_run)
+        return cells[:bar_width] + ("+" if len(cells) > bar_width else "")
 
     # no trailing pad on the header: ``_framed`` sizes its box to the longest line, so a
     # run of spaces there would widen the box past what anything prints
@@ -190,32 +198,23 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
              + "/".join(str(c) for c in per_bucket) + " per bucket",
              f"{'bucket':<11}{'have':>7}{'done':>7}{'to run':>7}"]
     total = 0
-    short_any = False
     for target, n in rows_out:
         cap = caps.get(target, 0)
         taking = buckets.get(target, [])[:cap]
         n_done = sum(1 for t in taking if t in ready)
         to_run = len(taking) - n_done
         total += to_run
-        mark = ""
-        if n < cap:
-            short_any = True
-            mark = "  short"
         lines.append(f"{label(target):<11}{n:>7}{n_done:>7}{to_run:>7}  "
-                     f"{bar(n)}{mark}")
-    lines.append(f"{'no bucket':<11}{n_unb:>7}{'-':>7}{'-':>7}  {bar(n_unb)}  skipped")
+                     f"{bar(n_done, to_run, cap)}")
+    # no cap, so no bar: these trees are not swept at all, which the dashes say
+    lines.append(f"{'no bucket':<11}{n_unb:>7}{'-':>7}{'-':>7}")
     lines.append(f"{'TOTAL':<11}{'':>7}{'':>7}{total:>7}  <- this run")
     if legend:
         lines += [
-            "eta    = larger clan / smaller clan of the tree's reference split",
-            "have   = screened trees landing within the tolerance of that target",
-            "done   = already swept on this p-grid, so this run reuses them",
-            "to run = what this run still computes",
-        ]
-        if short_any:          # only explain the marker when one is on screen
-            lines.append("short  = fewer trees than the cap asks for")
-        lines += [
-            "no bucket = too far from every target, so skipped. That is the time",
-            "            saved; widen the tolerance to catch more of them.",
+            "bar: one cell per tree, as long as that bucket's cap",
+            "  \u2588 swept already    \u2591 this run computes    \u00b7 no tree to fill it",
+            "eta = larger clan / smaller clan;  'no bucket' = too far from every",
+            "target, so never swept -- that is the time saved. Widen the tolerance",
+            "to catch more of them.",
         ]
     return lines
