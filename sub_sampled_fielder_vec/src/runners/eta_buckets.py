@@ -210,11 +210,6 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
     lines.append(f"{'no bucket':<11}{n_unb:>7}{'-':>7}{'-':>7}")
     lines.append(f"{'TOTAL':<11}{'':>7}{'':>7}{total:>7}  <- this run")
     if legend:
-        lines += [
-            "bar: one cell per tree, as long as that bucket's cap",
-            "  \u2588 swept already    \u2591 this run computes    \u00b7 no tree to fill it",
-            "eta = larger clan / smaller clan;  'no bucket' = too far from every",
-            "target, so never swept -- that is the time saved. Widen the tolerance",
-            "to catch more of them.",
-        ]
+        lines.append("  \u2588 swept already   \u2591 this run computes   "
+                     "\u00b7 no tree to fill it")
     return lines

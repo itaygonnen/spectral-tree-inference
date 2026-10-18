@@ -98,32 +98,20 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict],
                    extra_metrics=True, prefix="", display_mode="progress")
 
     print_divider()
-    print("configuration (applies to every source chosen):")
+    print("configuration (every source):")
     if is_screen:
-        print("  trees      all")
-        print(f"  workers    {spec.workers}")
-        print(f"  operators  {', '.join(OPERATORS[k].key for k in spec.operators)}"
-              "  (each Fiedler arm cut by k-means or sign, whichever is more even)")
+        print(f"  trees      all, {spec.workers} workers")
+        print(f"  operators  {', '.join(spec.operators)}")
     else:
-        _say(f"trees      all, gated on [{gate_label(spec.gate)}], "
-             f"eta <= {spec.max_eta:g}", indent="  ")
-        buck = ("off - every tree clearing the gate is swept" if not spec.bucket else
-                "eta " + "/".join(str(t) for t in spec.eta_targets)
-                + f" +-{spec.eta_tol:g}, at most "
-                + "/".join(str(c) for c in spec.per_bucket)
-                + " trees each; anything matching no bucket is dropped")
-        _say(f"buckets    {buck}", indent="  ")
-        print(f"  p-grid     {spec.p_points} log-spaced points, {spec.p_min:g} .. 1.0")
-        print(f"  reps       {spec.reps} bootstrap replicates per p")
-        print(f"  operators  {', '.join(spec.operators)}"
-              "   (NMI is what the figure plots)")
-        print("  metrics    NMI, ARI, agreement, sign agreement, dot")
-        stop = ("off - every p on the grid is measured" if not spec.early_stop else
-                f"extrapolate an end after {spec.early_stop} settled points "
-                f"(NMI=1 above, NMI<=0.1 below); p_min is always measured")
-        _say(f"early stop {stop}", indent="  ")
-        print("  extras     on - sigma2, ||sub-full||_2, numerical ranks per p")
-        print("  output     one run directory with every source in it")
+        # Only what varies and changes the run. The bucket settings used to be echoed
+        # here as well, and they are the first line of the panel immediately below.
+        _say(f"gate       [{gate_label(spec.gate)}], eta <= {spec.max_eta:g}",
+             indent="  ")
+        stop = (f"early stop {spec.early_stop}" if spec.early_stop else "no early stop")
+        print(f"  p-grid     {spec.p_points} points, {spec.p_min:g} .. 1.0, "
+              f"{spec.reps} reps, {stop}")
+        print(f"  operators  {', '.join(spec.operators)}")
+
     # One status, on every run, real or generated, screening or sweep. It is drawn
     # before the confirm rather than behind "Edit" because its job is to show the tree
     # count before it is agreed to, and on a screening run it answers the same question
@@ -303,58 +291,29 @@ def _framed(lines: List[str], rule_after: int = -1) -> None:
 
 
 def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
-    """Screening coverage, verdicts and median imbalance, before anything is picked."""
+    """One line per source: how much is screened, how much is usable, how much is swept.
+
+    This used to be a framed table of per-operator columns plus eight lines of legend --
+    19 lines for two sources, most of it restating what the bucket panel below it says
+    better. What survives is what the table alone could tell you: coverage, whether the
+    trees are usable at all, and how lopsided they are.
+    """
     print_header("Screening status")
-    cap = f"eta<={MAX_ETA:g}"
-    gate_col = "+".join(ARM_OF[k] for k in gate_operators(DEFAULT_GATE)) + " ok"
-    if not sources:
-        return
-    width = max(8, max(len(s.name) for s in sources) + 1)
-    # only operators some chosen source actually has verdicts for: a column pair of "-"
-    # per unscreened operator is what pushed this panel past an 80-column terminal
-    shown = [k for k in ALL_OPERATORS
-             if any(any(f"valid_{k}" in v for v in verdicts_by[c.name].values())
-                    for c in sources)] or ["S", "B"]
-    head = f"{'source':<{width}}{'trees':>6}{'scrn':>6}"
-    for k in shown:
-        head += f"{ARM_OF[k] + ' edge':>9}{'eta':>7}"
-    head += f"{gate_col:>6}{cap:>9}{'swept':>7}"
-    lines = [head]
     for c in sources:
         v, ids = verdicts_by[c.name], c.ids
         done = [t for t in ids if t in v]
-        line = f"{c.name:<{width}}{len(ids):>6}{len(done):>6}"
-        for k in shown:
-            n_ok = sum(1 for t in done if v[t].get(f"valid_{k}"))
-            etas = [v[t][f"eta_{k}"] for t in done if f"eta_{k}" in v[t]]
-            med = float(np.median(etas)) if etas else float("nan")
-            line += (f"{n_ok:>9}{med:>7.1f}" if etas else f"{'-':>9}{'-':>7}")
-        # the default gate's own predicate, not a hardcoded "both": with the sweep
-        # reading S alone, an L+B column counted trees against an operator no run
-        # touches -- it read 0 for a screen that had just validated all 40 trees.
-        n_gate_ok = sum(1 for t in done if GATES[DEFAULT_GATE][1](v[t]))
-        # the same operators the cap will actually weigh, so the panel cannot promise
-        # a count the plan then contradicts
-        cap_ops = gate_operators(DEFAULT_GATE)
-        n_cap = sum(1 for t in done
-                    if max((v[t].get(f"eta_{k}", 0.0) for k in cap_ops),
-                           default=0.0) <= MAX_ETA)
         swept = (len(list(sweep_cache_dir(c.name).glob("*.npz")))
                  if sweep_cache_dir(c.name).is_dir() else 0)
-        lines.append(line + f"{n_gate_ok:>6}{n_cap:>9}{swept:>7}")
-    lines += [
-        "• <arm> edge  - trees whose split of the full matrix is a real edge of",
-        "                the true tree; eta is the median imbalance of that split",
-        "                (larger clan / smaller clan, so 1 is a perfectly even cut)",
-        f"• {gate_col:<12}- passes the default gate [{gate_label(DEFAULT_GATE)}],",
-        "                which is where a sweep starts",
-        f"• eta<={MAX_ETA:<7g}- and even enough on {'+'.join(gate_operators(DEFAULT_GATE))}"
-        " to carry a recovery signal.",
-        "                A gate naming another operator weighs that one instead.",
-        "• swept       - trees the recovery sweep has already covered",
-        "• operators with no verdicts yet are not shown; screen to add them",
-    ]
-    _framed(lines, rule_after=len(sources))
+        if not done:
+            _say(f"{c.name}: {len(ids)} trees, none screened yet", indent="  ")
+            continue
+        key = f"eta_{gate_operators(DEFAULT_GATE)[0]}"
+        etas = [v[t][key] for t in done if key in v[t]]
+        n_ok = sum(1 for t in done if GATES[DEFAULT_GATE][1](v[t]))
+        med = f", median eta {float(np.median(etas)):.1f}" if etas else ""
+        _say(f"{c.name}: {len(done)}/{len(ids)} screened, {n_ok} usable"
+             f"{med}, {swept} swept", indent="  ")
+    print()
 
 
 def _run(sources, *, batch_hint: str, pooled_as: Optional[tuple] = None) -> None:

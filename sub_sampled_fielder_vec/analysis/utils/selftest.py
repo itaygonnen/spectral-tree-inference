@@ -120,9 +120,17 @@ def menu_config_helpers() -> str:
     verdicts_by = {n: verdicts(n) for n in names}
     gate = default_gate(names, verdicts_by)
 
-    # every RunSpec field the prompts are supposed to set must appear in _ask_config,
-    # so a field added to the spec and forgotten in the menu shows up here, not mid-run
-    src = inspect.getsource(_ask_config)
+    # Every RunSpec field the prompts are supposed to set must appear in the config
+    # dialogue, so a field added to the spec and forgotten in the menu shows up here,
+    # not mid-run. The dialogue is _ask_config PLUS the helpers it delegates to -- the
+    # bucket questions live in _ask_buckets, and checking only _ask_config reported
+    # eta_tol as unset the moment the summary line that happened to name it was trimmed.
+    from analysis.utils import run_menu as _menu
+    src = "\n".join(
+        inspect.getsource(fn) for fn in
+        [_ask_config] + [getattr(_menu, n) for n in dir(_menu)
+                         if n.startswith("_ask_") and n != "_ask_config"
+                         and callable(getattr(_menu, n))])
     asked = {f.name for f in dataclasses.fields(RunSpec)} - {"stage", "num_gaps",
                                                              "min_split"}
     missing = [k for k in sorted(asked) if k not in src]

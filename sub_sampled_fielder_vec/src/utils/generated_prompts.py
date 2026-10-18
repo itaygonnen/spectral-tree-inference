@@ -161,7 +161,10 @@ def _ask_eta(models: Sequence[str]) -> Tuple[Optional[List[int]], int, int]:
         print_warning(f"cannot be eta-pooled: {', '.join(unpoolable)}")
         return None, int(get_input("Trees per (model, size) cell", default="300")), 0
 
-    if not confirm("Use eta pooling?", default=False):
+    # Default yes: the eta buckets are what a run selects on, and a pool built to those
+    # targets is the only way a generated run fills them. Answering no leaves the
+    # imbalance to whatever the model happens to produce, which is the exception.
+    if not confirm("Use eta pooling?", default=True):
         return None, int(get_input("\nTrees per (model, size) cell",
                                    default="300")), 0
 
