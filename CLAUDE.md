@@ -76,7 +76,12 @@ reused) and `to run` — plus a `no bucket` row for the trees too far from every
 which is the saving. The bar beside each row is one cell per tree and as long as that
 bucket's cap, so its composition replaces what text flags used to say: `█` swept, `░`
 this run computes, `·` capacity no tree filled. A bucket that cannot fill ends in `·`,
-which is the fact a "short" tag carried, without a word. Neither the window nor the cap is a column: both are constant down
+which is the fact a "short" tag carried, without a word. **This panel is the launcher's
+status table.** The old framed screening table (per-operator columns plus eight lines of
+legend, 19 lines for two sources) is one line per source now, and the config summary
+carries only the knobs that vary — status + config + panel went from ~48 lines to 26.
+"Use eta pooling?" defaults to **yes**: the buckets are what a run selects on, and a pool
+built to those targets is the only way a generated run fills them. Neither the window nor the cap is a column: both are constant down
 their column, so they are stated once in the header; a per-row copy of a constant reads
 as data and invites arithmetic across the row. `done` comes from
 `already_swept`, which asks `load_tree_sweep` whether a cached tree is genuinely reusable
