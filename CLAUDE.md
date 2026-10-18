@@ -84,10 +84,13 @@ rather than globbing `*.npz` — at 1000 taxa two η15 trees had a cache file an
 reusable, so a glob would have promised half the work that remained. `PlanRow.hours` is
 net of `done` for the same reason.
 
-**The panel draws before the "Edit this configuration?" confirm**, not only inside the
-edit branch — its job is to show the tree count before it is agreed to, and the default
+**The panel draws on EVERY run** — real or generated, screening or sweep — before the
+"Edit this configuration?" confirm, not only inside the edit branch — its job is to show the tree count before it is agreed to, and the default
 caps keep a minority of the valid trees, so hiding it behind an opt-in edit is how a
-four-tree run gets launched in the belief it was thirty. `default_gate` likewise starts
+four-tree run gets launched in the belief it was thirty. On a screening run it selects nothing (a screen screens every tree) and instead reports
+how full the buckets are, with an `unscreened` row for the trees whose eta is not known
+yet — a bucket is a MEASURED eta, so it cannot be guessed before the screen. `default_gate`
+likewise starts
 from `DEFAULT_GATE` rather than the strictest gate that selects anything: "strictest"
 stopped being right when the sweep went S-only, because `both` filters on B, an operator
 the run never sweeps. Menu and command line now pick the same gate on the same data.

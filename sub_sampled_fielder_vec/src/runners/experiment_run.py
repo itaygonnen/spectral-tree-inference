@@ -419,6 +419,12 @@ def plan(spec: RunSpec, sources: Sequence[Source],
             secs += len(ids) * per_tree / max(1, spec.workers)
         n_gate, selected = len(ids), list(ids)
         n_max_eta, buckets, shortfall, n_done = len(ids), {}, {}, 0
+        # Occupancy is computed for a screening run too, so the launcher can show the
+        # same status on every run. It selects nothing there -- a screen screens every
+        # tree -- it reports how full the buckets are, which is the question a screen is
+        # usually run to answer.
+        if spec.bucket and v and not spec.runs_sweep:
+            _kept, buckets, shortfall = select_buckets(ids, v, spec)
         if spec.runs_sweep:
             n_gate = len(select_ids(ids, v, spec.gate))
             capped = select_ids(ids, v, spec.gate, spec.max_eta, spec.operators)
@@ -513,7 +519,7 @@ def bucket_panel(row: "PlanRow", spec: RunSpec, legend: bool = True) -> List[str
     Lives here, beside the selection it describes, so the menu prompt and the
     non-interactive ``--dry-run`` print the same table from the same numbers.
     """
-    if not (spec.bucket and spec.runs_sweep and row.buckets):
+    if not (spec.bucket and row.buckets):
         return []
     return panel_lines(row.buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol,
                        legend=legend,

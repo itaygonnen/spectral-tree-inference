@@ -195,12 +195,12 @@ def main() -> None:
             if spec.bucket:
                 chain += f" -> {len(r.selected)} bucketed"
             print(chain, flush=True)
-            # The occupancy the selection was drawn from, so --dry-run answers "why so
-            # few?" without a second command. Same lines the menu panel draws.
-            # the legend goes under the first dataset only; repeating it per dataset
-            # buries the numbers it is there to explain
-            for line in bucket_panel(r, spec, legend=(r is rows[0])):
-                print("    " + line, flush=True)
+        # The occupancy, on every run rather than only a sweep, so it answers "why so
+        # few?" without a second command. Same lines the menu panel draws.
+        # The legend goes under the first dataset only; repeating it per dataset buries
+        # the numbers it is there to explain.
+        for line in bucket_panel(r, spec, legend=(r is rows[0])):
+            print("    " + line, flush=True)
         if r.warning:
             print(f"  WARNING: {r.warning}", flush=True)
     if args.dry_run:

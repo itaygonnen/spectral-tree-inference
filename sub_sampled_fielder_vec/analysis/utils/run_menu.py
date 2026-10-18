@@ -72,6 +72,10 @@ def _say(text: str, indent: str = "") -> None:
         print(line)
 
 
+_SOURCES_BY_NAME: Dict[str, object] = {}     # set by _run so the panel can count
+                                             # trees that are not screened yet
+
+
 def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict],
                 pooled_as: Optional[tuple] = None) -> RunSpec:
     """One parameter set for every source: show the defaults, edit them only on request.
@@ -120,13 +124,13 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict],
         _say(f"early stop {stop}", indent="  ")
         print("  extras     on - sigma2, ||sub-full||_2, numerical ranks per p")
         print("  output     one run directory with every source in it")
-    # The occupancy BEFORE the confirm, not only behind "Edit": the panel exists so the
-    # tree count is seen before it is agreed to, and the default caps keep a minority of
-    # the valid trees on real data (4 of 32 at m=1000). Hiding it behind an opt-in edit
-    # is how someone launches a four-tree run believing it was thirty.
-    if not is_screen and spec.bucket:
+    # One status, on every run, real or generated, screening or sweep. It is drawn
+    # before the confirm rather than behind "Edit" because its job is to show the tree
+    # count before it is agreed to, and on a screening run it answers the same question
+    # from the other side: how full are the buckets going to be when this finishes.
+    if spec.bucket:
         print()
-        _bucket_panels(spec, names, verdicts_by)
+        _bucket_panels(spec, names, verdicts_by, is_screen=is_screen)
     print()
     if not confirm("Edit this configuration?", default=False):
         return spec
@@ -223,8 +227,13 @@ def _ask_buckets(spec: RunSpec, names, verdicts_by: Dict[str, dict]) -> None:
 
 
 def _bucket_panels(spec: RunSpec, names, verdicts_by: Dict[str, dict],
-                   legend: bool = True) -> None:
+                   legend: bool = True, is_screen: bool = False) -> None:
     """One occupancy panel per source, under the spec as it stands.
+
+    Shown on every run. A tree's bucket is its MEASURED eta, so on a screening run the
+    trees not yet screened have no bucket yet -- they are counted on their own line
+    rather than guessed at, and the table then reads as progress towards the buckets
+    instead of a selection.
 
     ``legend=False`` for a redraw: the dialogue shows each panel up to three times while
     the tolerance and the caps are settled, and three copies of the same footer pushes
@@ -232,19 +241,34 @@ def _bucket_panels(spec: RunSpec, names, verdicts_by: Dict[str, dict],
     """
     for i, name in enumerate(names):
         rows = verdicts_by.get(name) or {}
-        if not rows:
-            _say(f"{name}: not screened yet -- buckets cannot be counted", indent="  ")
-            continue
-        kept, buckets, _short = select_buckets(sorted(rows), rows, spec)
+        n_all = len(_ids_of(name, names, verdicts_by))
+        kept, buckets, _short = (select_buckets(sorted(rows), rows, spec)
+                                 if rows else ([], {}, {}))
         # the screen row carries the taxon count, which the sweep-cache meta is keyed on
         m = next((r.get("m", 0) for r in rows.values() if r.get("m")), 0)
-        done = already_swept(name, m, kept, spec)
+        done = already_swept(name, m, kept, spec) if kept else set()
         todo = len(kept) - len(done)
-        _framed([f"{name}  ->  {todo} tree(s) to sweep"
-                 + (f"  ({len(done)} already done)" if done else "")]
-                + panel_lines(buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol,
-                              legend=(legend and i == 0), done=done),
-                rule_after=0)
+        head = (f"{name}  ->  {len(rows)} of {n_all} screened"
+                if is_screen else
+                f"{name}  ->  {todo} tree(s) to sweep"
+                + (f"  ({len(done)} already done)" if done else ""))
+        body = panel_lines(buckets, spec.eta_targets, spec.per_bucket, spec.eta_tol,
+                           legend=(legend and i == 0), done=done)
+        if is_screen and n_all > len(rows):
+            # inserted after the data rows, before TOTAL/legend, so the column that
+            # cannot be known yet is visible rather than silently missing
+            at = next(j for j, ln in enumerate(body) if ln.startswith("TOTAL"))
+            body.insert(at, f"{'unscreened':<11}{n_all - len(rows):>7}{'-':>7}{'-':>7}"
+                            f"  bucket unknown until screened")
+        _framed([head] + body, rule_after=0)
+
+
+def _ids_of(name, names, verdicts_by) -> list:
+    """Every tree id the source offers, screened or not. Falls back to the screened ones
+    when the caller did not carry the source objects (the panel is also drawn from
+    ``--dry-run``, which has them, and from the menu, which has the names)."""
+    src = _SOURCES_BY_NAME.get(name)
+    return list(src.ids) if src is not None else list(verdicts_by.get(name) or {})
 
 
 def _framed(lines: List[str], rule_after: int = -1) -> None:
@@ -344,6 +368,8 @@ def _run(sources, *, batch_hint: str, pooled_as: Optional[tuple] = None) -> None
                  "(needs screening)"], default_index=0)
     is_screen = stage.startswith("screening")
 
+    _SOURCES_BY_NAME.clear()
+    _SOURCES_BY_NAME.update({c.name: c for c in sources})
     spec = _ask_config([c.name for c in sources], is_screen, verdicts_by, pooled_as)
     if spec.max_trees:
         sources = [replace(c, ids=c.ids[:spec.max_trees]) for c in sources]
