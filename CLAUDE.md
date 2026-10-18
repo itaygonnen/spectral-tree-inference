@@ -93,6 +93,15 @@ stopped being right when the sweep went S-only, because `both` filters on B, an 
 the run never sweeps. Menu and command line now pick the same gate on the same data.
 
 The tolerance is promptable — widening to ±2 fills every bucket at m=6000.
+Bucketing is **the same code for real and generated** — one filter in `select_ids`,
+source-agnostic. What the eta pool changes is not the mechanism but what the buckets are
+expected to hold, and what you can do about an empty one: for generated trees you can
+simulate more (Step 6 of the generated menu, `build_eta_pool`), while a real dataset is
+finite, so the only lever is the tolerance. A run pooled to targets therefore selects on
+the terms it was *built* on — `run_generated_menu` passes the plan's `etas`/`per_cell`
+through as the sweep's `eta_targets`/`per_bucket`. Without that, a pool built at 10 per
+cell was cut to the paper's 10/10/3/3 and silently dropped 14 of its 40 trees.
+
 **Generated pooled sources do not have this problem**: the pool is rejection-sampled *to*
 the targets, and the screened `eta_S` lands in the intended bin every time (measured: 12/12,
 zero unbucketed). The asymmetry is the data, not the code.

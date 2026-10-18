@@ -24,7 +24,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -39,7 +39,8 @@ from src.utils.interactive_ui import (                       # noqa: E402
     print_header, print_option, print_success, print_warning)
 
 from .real_datasets import describe_search, list_datasets, sweep_cache_dir  # noqa: E402
-from src.runners.eta_buckets import panel_lines                     # noqa: E402
+from src.runners.eta_buckets import (ETA_TARGETS, PER_BUCKET,       # noqa: E402
+                                     panel_lines)
 from src.runners.experiment_run import (DEFAULT_GATE, EARLY_STOP,   # noqa: E402
                                         GATES, MAX_ETA,
                                         P_MIN, P_POINTS, REPS, RunSpec, as_command,
@@ -71,14 +72,25 @@ def _say(text: str, indent: str = "") -> None:
         print(line)
 
 
-def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict]) -> RunSpec:
-    """One parameter set for every source: show the defaults, edit them only on request."""
+def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict],
+                pooled_as: Optional[tuple] = None) -> RunSpec:
+    """One parameter set for every source: show the defaults, edit them only on request.
+
+    ``pooled_as`` is ``(eta_targets, per_bucket)`` when the trees were drawn from the eta
+    pool to those targets. The sweep then selects on the same terms they were built on,
+    instead of overriding them with the paper's caps -- a run pooled at 10 per cell was
+    otherwise cut to 10/10/3/3, silently discarding 14 of the 40 trees it had just
+    simulated. Bucketing itself is the same code either way (``select_ids``); what the
+    pool changes is only what the buckets are expected to hold.
+    """
     spec = RunSpec(stage="screen" if is_screen else "sweep",
                    max_trees=0,                   # 0 = every tree in each dataset
                    workers=max(1, min(8, (os.cpu_count() or 4) // 2)),
                    gate=default_gate(names, verdicts_by),
                    max_eta=MAX_ETA, p_min=P_MIN, p_points=P_POINTS, reps=REPS,
                    early_stop=EARLY_STOP,
+                   eta_targets=(pooled_as[0] if pooled_as else ETA_TARGETS),
+                   per_bucket=(pooled_as[1] if pooled_as else PER_BUCKET),
                    extra_metrics=True, prefix="", display_mode="progress")
 
     print_divider()
@@ -321,7 +333,7 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
     _framed(lines, rule_after=len(sources))
 
 
-def _run(sources, *, batch_hint: str) -> None:
+def _run(sources, *, batch_hint: str, pooled_as: Optional[tuple] = None) -> None:
     """Status, stage, one configuration, the plan, then the run. Source-agnostic."""
     verdicts_by = {c.name: verdicts(c.name) for c in sources}
     _print_status(sources, verdicts_by)
@@ -332,7 +344,7 @@ def _run(sources, *, batch_hint: str) -> None:
                  "(needs screening)"], default_index=0)
     is_screen = stage.startswith("screening")
 
-    spec = _ask_config([c.name for c in sources], is_screen, verdicts_by)
+    spec = _ask_config([c.name for c in sources], is_screen, verdicts_by, pooled_as)
     if spec.max_trees:
         sources = [replace(c, ids=c.ids[:spec.max_trees]) for c in sources]
     rows = plan(spec, sources, verdicts_by)
@@ -435,4 +447,7 @@ def run_generated_menu() -> None:
     if not sources:
         print_error("no trees to run")
         return
-    _run(sources, batch_hint="")
+    # selected on the terms they were pooled on, not the paper's caps
+    pooled_as = ((tuple(plan_g.etas), (plan_g.per_cell,) * len(plan_g.etas))
+                 if plan_g.pooled and plan_g.etas else None)
+    _run(sources, batch_hint="", pooled_as=pooled_as)
