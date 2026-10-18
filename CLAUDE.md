@@ -81,8 +81,11 @@ status table, and it is the first thing a run shows** — drawn in `_run` straig
 the source is picked, before the stage menu and the configuration. The generated branch
 starts from `generated_prompts.baseline_plan()` (per-model defaults assembled from
 `MODEL_PROPS` + the pool's own `POOL_*` constants) and prints one line describing it, so
-the six-step dialogue is opt-in behind "Change these settings?" — reaching the table went
-from ten prompts to two. The old framed screening table (per-operator columns plus eight lines of
+**nothing at all is asked before the status**: the six-step dialogue is the third entry
+on the `Run:` menu ("change the data settings"), reached through `_run`'s `reconfigure`
+callback. Changing settings is something you do after seeing the defaults do not suit,
+not before. Reaching the table went from ten prompts to zero on the generated branch,
+and one (the dataset pick) on the real one. The old framed screening table (per-operator columns plus eight lines of
 legend, 19 lines for two sources) is one line per source now, and the config summary
 carries only the knobs that vary — status + config + panel went from ~48 lines to 26.
 "Use eta pooling?" defaults to **yes**: the buckets are what a run selects on, and a pool

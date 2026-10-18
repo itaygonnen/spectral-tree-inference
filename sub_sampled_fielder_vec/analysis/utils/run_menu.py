@@ -309,28 +309,45 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
     print()
 
 
-def _run(sources, *, batch_hint: str, pooled_as: Optional[tuple] = None) -> None:
-    """Status, stage, one configuration, the plan, then the run. Source-agnostic."""
-    verdicts_by = {c.name: verdicts(c.name) for c in sources}
-    _SOURCES_BY_NAME.clear()
-    _SOURCES_BY_NAME.update({c.name: c for c in sources})
-    _print_status(sources, verdicts_by)
+def _run(sources, *, batch_hint: str, pooled_as: Optional[tuple] = None,
+         reconfigure=None) -> None:
+    """Status, stage, one configuration, the plan, then the run. Source-agnostic.
 
-    # The bucket table FIRST -- straight after the source is picked, before the stage
-    # menu and the configuration. It is the status this launcher exists to show, and
-    # burying it behind the prompts meant answering several questions to find out
-    # whether there was anything worth running. The spec here is the default one; the
-    # occupancy it reports does not depend on the stage.
-    _preview = RunSpec(stage="sweep", gate=default_gate(
-        [c.name for c in sources], verdicts_by),
-        **(dict(eta_targets=pooled_as[0], per_bucket=pooled_as[1])
-           if pooled_as else {}))
-    _bucket_panels(_preview, [c.name for c in sources], verdicts_by)
+    ``reconfigure`` is offered as a third choice on the stage menu and returns a fresh
+    ``(sources, pooled_as)`` or None to quit. It is a menu entry rather than a prompt so
+    that NOTHING is asked before the status is on screen: changing the settings is a
+    thing you do after seeing that the defaults do not suit, not before.
+    """
+    while True:
+        verdicts_by = {c.name: verdicts(c.name) for c in sources}
+        _SOURCES_BY_NAME.clear()
+        _SOURCES_BY_NAME.update({c.name: c for c in sources})
+        _print_status(sources, verdicts_by)
 
-    stage = get_menu_choice(
-        "Run:", ["screening - split the full matrix, check eta and validity",
-                 "recovery sweep - sweep trees over p for NMI curve "
-                 "(needs screening)"], default_index=0)
+        # The bucket table FIRST -- straight after the source is picked, before any
+        # question at all. It is the status this launcher exists to show, and burying it
+        # behind prompts meant answering several to find out whether there was anything
+        # worth running. Occupancy does not depend on the stage, so there is nothing to
+        # wait for.
+        _preview = RunSpec(stage="sweep", gate=default_gate(
+            [c.name for c in sources], verdicts_by),
+            **(dict(eta_targets=pooled_as[0], per_bucket=pooled_as[1])
+               if pooled_as else {}))
+        _bucket_panels(_preview, [c.name for c in sources], verdicts_by)
+
+        options = ["screening - split the full matrix, check eta and validity",
+                   "recovery sweep - sweep trees over p for NMI curve "
+                   "(needs screening)"]
+        if reconfigure is not None:
+            options.append("change the data settings - model, size, pooling")
+        stage = get_menu_choice("Run:", options, default_index=0)
+        if reconfigure is not None and stage.startswith("change"):
+            got = reconfigure()
+            if not got or not got[0]:
+                return
+            sources, pooled_as = got
+            continue
+        break
     is_screen = stage.startswith("screening")
 
     spec = _ask_config([c.name for c in sources], is_screen, verdicts_by, pooled_as)
@@ -418,25 +435,36 @@ def run_generated_menu() -> None:
     quantity and was not comparable with a real-data curve.
     """
     from src.runners.generated_source import sources_from_plan
-    from src.utils.generated_prompts import prompt_generated_plan, resolve_pool_ids
+    from src.utils.generated_prompts import (baseline_plan, describe_plan,
+                                             prompt_generated_plan, resolve_pool_ids)
+
+    def _build(plan_g):
+        """A plan -> (sources, pooled_as), or (None, None) when it yields no trees."""
+        _say(describe_plan(plan_g), indent="  ")
+        if plan_g.pooled:
+            # the eta pool is the only place a rejection-sampled tree exists; top it
+            # up before anything asks for ids, because what comes back is what is on
+            # disk
+            plan_g.tree_ids = resolve_pool_ids(plan_g)
+            if not plan_g.tree_ids:
+                print_error("the eta pool is empty for these parameters and nothing "
+                            "could be built -- nothing to run")
+                return None, None
+        srcs = sources_from_plan(plan_g)
+        if not srcs:
+            print_error("no trees to run")
+            return None, None
+        # selected on the terms they were pooled on, not the paper's caps
+        pooled = ((tuple(plan_g.etas), (plan_g.per_cell,) * len(plan_g.etas))
+                  if plan_g.pooled and plan_g.etas else None)
+        return srcs, pooled
 
     print_header("Generated data")
-    plan_g = prompt_generated_plan()
-    if plan_g.pooled:
-        # the eta pool is the only place a rejection-sampled tree exists; top it up
-        # before anything asks for ids, because what comes back is what is on disk.
-        # ``prompt_generated_plan`` has already printed the availability table -- doing
-        # it again here is what printed two identical blocks back to back.
-        plan_g.tree_ids = resolve_pool_ids(plan_g)
-        if not plan_g.tree_ids:
-            print_error("the eta pool is empty for these parameters and nothing could "
-                        "be built -- nothing to run")
-            return
-    sources = sources_from_plan(plan_g)
+    # Start from the model's baseline -- no questions -- so the status is the first
+    # thing on screen. The six-step dialogue is the "change the data settings" entry on
+    # the menu below.
+    sources, pooled_as = _build(baseline_plan())
     if not sources:
-        print_error("no trees to run")
         return
-    # selected on the terms they were pooled on, not the paper's caps
-    pooled_as = ((tuple(plan_g.etas), (plan_g.per_cell,) * len(plan_g.etas))
-                 if plan_g.pooled and plan_g.etas else None)
-    _run(sources, batch_hint="", pooled_as=pooled_as)
+    _run(sources, batch_hint="", pooled_as=pooled_as,
+         reconfigure=lambda: _build(prompt_generated_plan()))
