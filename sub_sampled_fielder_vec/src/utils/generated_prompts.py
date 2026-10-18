@@ -25,7 +25,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple
 from .interactive_ui import (
     Colors, confirm, get_input, print_header, print_option, print_warning,
 )
-from .tree_ids import MODEL_OF_TAG, build_ids, make_tree_id
+from .tree_ids import DEFAULT_TAGS, MODEL_OF_TAG, build_ids, make_tree_id
 
 # tag -> one-line description. Tags are what appear in a tree id; the pool and
 # ``src/models/tree_models.py`` call 'bd' 'birth_death' (hence MODEL_OF_TAG).
@@ -249,6 +249,41 @@ def print_pool_table(plan: GeneratedPlan) -> Dict[Tuple[str, int, int], int]:
                       f"built with mu={POOL_MU}, L={POOL_SEQ_LEN}, "
                       f"pop={POOL_POP}, kingman")
     return counts
+
+
+# The run a model starts from, so the launcher can show a status table before asking
+# anything. Everything here is already a default somewhere in the dialogue below --
+# MODEL_PROPS carries the per-model properties, POOL_* what every pool on disk was built
+# with -- so accepting the baseline lands on the pool that already exists.
+BASELINE_SIZES: List[int] = [1000]
+BASELINE_ETAS: List[int] = [1, 5, 10, 15]
+BASELINE_PER_CELL: int = 10
+
+
+def baseline_plan(models: Optional[Sequence[str]] = None) -> GeneratedPlan:
+    """The configuration a generated run starts from, with nothing asked.
+
+    Six prompts used to stand between choosing "generated data" and seeing a single
+    number about it. The defaults were never in question -- they are the pool's own
+    parameters -- so they are assembled here and the dialogue becomes opt-in.
+    """
+    models = list(models or [DEFAULT_TAGS[0]])
+    params = {name: float(default)
+              for tag in models for name, _label, default in MODEL_PROPS.get(tag, [])}
+    plan = GeneratedPlan(models=models, n_values=list(BASELINE_SIZES),
+                         seq_len=POOL_SEQ_LEN, mutation_rate=POOL_MU, params=params,
+                         etas=list(BASELINE_ETAS), per_cell=BASELINE_PER_CELL)
+    plan.tree_ids = build_ids(models=plan.models, n_values=plan.n_values,
+                              etas=plan.etas, per_cell=plan.per_cell)
+    return plan
+
+
+def describe_plan(plan: GeneratedPlan) -> str:
+    """One line naming what a plan will build. The settings, not a table."""
+    etas = ("eta " + "/".join(str(e) for e in plan.etas) if plan.etas else "no pooling")
+    return (f"{', '.join(plan.models)}  n={','.join(str(n) for n in plan.n_values)}  "
+            f"L={plan.seq_len}  mu={plan.mutation_rate:g}  {etas}  "
+            f"{plan.per_cell}/cell  = {len(plan.tree_ids)} trees")
 
 
 def prompt_generated_plan() -> GeneratedPlan:

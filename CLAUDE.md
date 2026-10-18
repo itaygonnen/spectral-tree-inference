@@ -77,7 +77,12 @@ which is the saving. The bar beside each row is one cell per tree and as long as
 bucket's cap, so its composition replaces what text flags used to say: `█` swept, `░`
 this run computes, `·` capacity no tree filled. A bucket that cannot fill ends in `·`,
 which is the fact a "short" tag carried, without a word. **This panel is the launcher's
-status table.** The old framed screening table (per-operator columns plus eight lines of
+status table, and it is the first thing a run shows** — drawn in `_run` straight after
+the source is picked, before the stage menu and the configuration. The generated branch
+starts from `generated_prompts.baseline_plan()` (per-model defaults assembled from
+`MODEL_PROPS` + the pool's own `POOL_*` constants) and prints one line describing it, so
+the six-step dialogue is opt-in behind "Change these settings?" — reaching the table went
+from ten prompts to two. The old framed screening table (per-operator columns plus eight lines of
 legend, 19 lines for two sources) is one line per source now, and the config summary
 carries only the knobs that vary — status + config + panel went from ~48 lines to 26.
 "Use eta pooling?" defaults to **yes**: the buckets are what a run selects on, and a pool

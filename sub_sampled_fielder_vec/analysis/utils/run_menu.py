@@ -112,13 +112,6 @@ def _ask_config(names, is_screen: bool, verdicts_by: Dict[str, dict],
               f"{spec.reps} reps, {stop}")
         print(f"  operators  {', '.join(spec.operators)}")
 
-    # One status, on every run, real or generated, screening or sweep. It is drawn
-    # before the confirm rather than behind "Edit" because its job is to show the tree
-    # count before it is agreed to, and on a screening run it answers the same question
-    # from the other side: how full are the buckets going to be when this finishes.
-    if spec.bucket:
-        print()
-        _bucket_panels(spec, names, verdicts_by, is_screen=is_screen)
     print()
     if not confirm("Edit this configuration?", default=False):
         return spec
@@ -319,7 +312,20 @@ def _print_status(sources, verdicts_by: Dict[str, dict]) -> None:
 def _run(sources, *, batch_hint: str, pooled_as: Optional[tuple] = None) -> None:
     """Status, stage, one configuration, the plan, then the run. Source-agnostic."""
     verdicts_by = {c.name: verdicts(c.name) for c in sources}
+    _SOURCES_BY_NAME.clear()
+    _SOURCES_BY_NAME.update({c.name: c for c in sources})
     _print_status(sources, verdicts_by)
+
+    # The bucket table FIRST -- straight after the source is picked, before the stage
+    # menu and the configuration. It is the status this launcher exists to show, and
+    # burying it behind the prompts meant answering several questions to find out
+    # whether there was anything worth running. The spec here is the default one; the
+    # occupancy it reports does not depend on the stage.
+    _preview = RunSpec(stage="sweep", gate=default_gate(
+        [c.name for c in sources], verdicts_by),
+        **(dict(eta_targets=pooled_as[0], per_bucket=pooled_as[1])
+           if pooled_as else {}))
+    _bucket_panels(_preview, [c.name for c in sources], verdicts_by)
 
     stage = get_menu_choice(
         "Run:", ["screening - split the full matrix, check eta and validity",
@@ -327,8 +333,6 @@ def _run(sources, *, batch_hint: str, pooled_as: Optional[tuple] = None) -> None
                  "(needs screening)"], default_index=0)
     is_screen = stage.startswith("screening")
 
-    _SOURCES_BY_NAME.clear()
-    _SOURCES_BY_NAME.update({c.name: c for c in sources})
     spec = _ask_config([c.name for c in sources], is_screen, verdicts_by, pooled_as)
     if spec.max_trees:
         sources = [replace(c, ids=c.ids[:spec.max_trees]) for c in sources]
