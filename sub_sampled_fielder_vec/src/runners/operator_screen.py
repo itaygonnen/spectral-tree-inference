@@ -138,7 +138,14 @@ def run_screen(
         log_info("screen", f"{len(stale)} row(s) re-run for {missing}", force=True)
     todo = [t for t in ids if t not in done or t in set(stale)]
     if not todo:
-        print(f"  all {len(ids)} trees already cached", flush=True)
+        # Say what the state IS, not just that nothing ran. "all N trees already cached"
+        # is accurate and reads as a failure -- the screen is complete, and the next step
+        # is the sweep, so point at it rather than leaving the reader to infer it.
+        n_ok = sum(1 for t in ids if any(done[t].get(f"valid_{k}") for k in ops))
+        print(f"  screening complete: {len(ids)} tree(s) already done, {n_ok} with a "
+              f"real tree edge -- nothing to recompute.", flush=True)
+        print("  next: run the recovery sweep over these trees "
+              "(menu option 2, or --stage sweep).", flush=True)
         log_info("screen", f"{source}: nothing to do, all {len(ids)} ids cached")
         return [done[t] for t in ids if t in done]
 
