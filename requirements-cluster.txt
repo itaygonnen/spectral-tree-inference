@@ -20,3 +20,11 @@ python-igraph>=0.10
 pydantic>=2.0
 matplotlib>=3.7
 tqdm>=4.65
+
+# Only for `scripts/generate_dataset.py` / the launcher's "simulate a dataset" branch.
+# Wheels exist for macOS arm64 and manylinux_2_17_x86_64, so no compiler is needed.
+# Its other half is NOT pip-installable: IQ-TREE is a binary that draws the random
+# trees. `module load iqtree` (or conda-forge), then pass --iqtree-bin if it is not
+# called iqtree3/iqtree2/iqtree. Both are checked before a run starts
+# (`sailfish_sim.preflight`); nothing installs them for you.
+msasim>=26.8

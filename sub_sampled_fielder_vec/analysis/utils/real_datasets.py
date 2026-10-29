@@ -121,10 +121,46 @@ class Dataset:
         pr = self.probe()
         return pr["L_min"] != pr["L_max"]
 
-    def loader(self):
+    def manifest(self) -> dict:
+        """``manifest.json`` if a generator wrote one, else ``{}`` (a downloaded set)."""
+        import json
+        path = self.dir / "manifest.json"
+        if not path.exists():
+            return {}
+        try:
+            return json.loads(path.read_text())
+        except (OSError, ValueError):
+            return {}
+
+    def provenance(self) -> str:
+        """``downloaded`` | ``simulated`` | ``simulated, eta-filled``.
+
+        A directory of alignments beside their trees is the same shape whoever made it,
+        so this menu entry used to present a simulator's output under the heading "real
+        data -- FASTA alignments with their true trees". The manifest is the only thing
+        that distinguishes them, and the distinction matters: an eta-filled set is
+        rejection-sampled, so its eta distribution is conditioned, not the population's.
+        """
+        man = self.manifest()
+        if not man:
+            return "downloaded"
+        return "simulated, eta-filled" if man.get("fill") else "simulated"
+
+    def bucket_fill(self) -> str:
+        """``3/3 2/3 ...`` for an eta-filled set, else ``""``."""
+        fill = self.manifest().get("fill") or {}
+        counts, caps = fill.get("counts") or {}, fill.get("per_bucket") or []
+        targets = fill.get("eta_targets") or []
+        if not targets or len(caps) != len(targets):
+            return ""
+        return " ".join(f"{int(counts.get(str(t), counts.get(t, 0)))}/{c}"
+                        for t, c in zip(targets, caps))
+
+    def loader(self, need_distance: bool = True):
         """The callable that turns one of this dataset's ids into its matrices."""
         from src.runners.benchmark_loaders import RealLoader
-        return RealLoader(self.fasta_dir, self.newick_dir)
+        return RealLoader(self.fasta_dir, self.newick_dir,
+                          need_distance=need_distance)
 
     def source(self, limit: Optional[int] = None):
         """This dataset as a :class:`src.runners.experiment_run.Source`."""

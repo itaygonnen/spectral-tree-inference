@@ -38,10 +38,19 @@ def _find(directory: Optional[Path], stem: str, exts) -> Optional[Path]:
 
 @dataclass(frozen=True)
 class RealLoader:
-    """FASTA (+ optional Newick) loader — ports the real notebook's ``_load_all``."""
+    """FASTA (+ optional Newick) loader — ports the real notebook's ``_load_all``.
+
+    ``need_distance=False`` returns ``D=None`` and skips building it. Only the griffing
+    operator ``B`` reads ``D`` (``operators.Operator.vector``); ``S`` and ``Lsym`` never
+    touch it, and it is the more expensive of the two matrices — measured 54% of the load
+    at m=1000 and 58% at m=2000, a second O(m²L) pass over the same alignment. A caller
+    that sweeps the S arm alone pays that for nothing, which matters most when loads are
+    the loop (rejection sampling discards ~90% of what it builds).
+    """
 
     fasta_dir: Path
     newick_dir: Optional[Path] = None
+    need_distance: bool = True
 
     def group_of(self, tree_id: str) -> Optional[str]:  # no cohort grouping
         return None
@@ -78,6 +87,9 @@ class RealLoader:
                                      preserve_underscores=True,
                                      taxon_namespace=cm.taxon_namespace)
             tree.encode_bipartitions()
+
+        if not self.need_distance:
+            return S, labels, tree, None
 
         # fasta_to_distance orders rows by taxon_namespace, charmatrix2array by
         # `meta` — realign D onto `labels` before anything downstream sees it.

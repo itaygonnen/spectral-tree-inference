@@ -38,8 +38,10 @@ from src.utils.interactive_ui import (                       # noqa: E402
     confirm, get_input, get_menu_choice, get_multi_choice, print_divider, print_error,
     print_header, print_option, print_success, print_warning)
 
-from .real_datasets import describe_search, list_datasets, sweep_cache_dir  # noqa: E402
-from src.runners.eta_buckets import (ETA_TARGETS, PER_BUCKET,       # noqa: E402
+from .real_datasets import (DATASETS_ROOT, describe_search,          # noqa: E402
+                            list_datasets, sweep_cache_dir)
+from src.runners.eta_buckets import (ETA_TARGETS, ETA_TOL, PER_BUCKET,  # noqa: E402
+                                     UNBUCKETED, label,
                                      panel_lines)
 from src.runners.experiment_run import (DEFAULT_GATE, EARLY_STOP,   # noqa: E402
                                         GATES, MAX_ETA,
@@ -220,6 +222,10 @@ def _bucket_panels(spec: RunSpec, names, verdicts_by: Dict[str, dict],
     the tolerance and the caps are settled, and three copies of the same footer pushes
     the numbers off the screen.
     """
+    if len(names) > 1:
+        _bucket_matrix(spec, names, verdicts_by, is_screen=is_screen)
+        return
+
     for i, name in enumerate(names):
         rows = verdicts_by.get(name) or {}
         n_all = len(_ids_of(name, names, verdicts_by))
@@ -243,6 +249,69 @@ def _bucket_panels(spec: RunSpec, names, verdicts_by: Dict[str, dict],
                             f"  bucket unknown until screened")
         _framed([head] + body, rule_after=0)
 
+
+
+def _bucket_matrix(spec: RunSpec, names, verdicts_by: Dict[str, dict],
+                   is_screen: bool = False) -> None:
+    """One ROW per dataset, buckets as columns -- the size-series form of the panel.
+
+    The per-dataset bar panel is right for one dataset and unreadable for several: four
+    sizes drew four frames of thirteen lines, each repeating the same window/cap header
+    and the same legend, for ~52 lines of mostly duplicate text. The targets and caps are
+    constant down every column, so they are stated once in the header, exactly as the
+    single panel already does with its window and cap.
+    """
+    targets = list(spec.eta_targets)
+    caps = list(spec.per_bucket)
+    shown = _short_names(list(names))
+    width = max(max((len(v) for v in shown.values()), default=7), 7)
+    head = (f"  {'dataset':<{width}}{'m':>7}"
+            + "".join(f"{label(t):>9}" for t in targets)
+            + f"{'none':>7}{'to run':>9}")
+    print(f"  nearest target within +-{spec.eta_tol:g}, at most "
+          + "/".join(str(c) for c in caps) + " per bucket")
+    print(head)
+    total = 0
+    for name in names:
+        rows = verdicts_by.get(name) or {}
+        n_all = len(_ids_of(name, names, verdicts_by))
+        kept, buckets, _short = (select_buckets(sorted(rows), rows, spec)
+                                 if rows else ([], {}, {}))
+        m = next((r.get("m", 0) for r in rows.values() if r.get("m")), 0)
+        done = already_swept(name, m, kept, spec) if kept else set()
+        todo = len(rows) if is_screen else len(kept) - len(done)
+        total += todo
+        cells = "".join(f"{len(buckets.get(t, [])):>4}/{c:<4}"
+                        for t, c in zip(targets, caps))
+        print(f"  {shown[name]:<{width}}{m:>7}{cells}"
+              f"{len(buckets.get(UNBUCKETED, [])):>7}{todo:>9}")
+        if is_screen and n_all > len(rows):
+            print(f"  {'':<{width}}{'':>7}" + " " * (9 * len(targets))
+                  + f"{'':>7}{n_all - len(rows):>9}  unscreened")
+    print(f"  {'TOTAL':<{width}}{'':>7}" + " " * (9 * len(targets))
+          + f"{'':>7}{total:>9}  <- this run")
+
+
+def _short_names(names: List[str]) -> Dict[str, str]:
+    """Names with the part every selection shares stripped off both ends.
+
+    A size series differs in one field, so printing the full name four times spends the
+    column on text that is identical down it -- and then truncates the only part that is
+    not. What is common is stated once in the heading above instead.
+    """
+    if len(names) < 2:
+        return {n: n for n in names}
+    # Snap to "_" boundaries: a raw common prefix cuts mid-token, turning n200/n250 into
+    # "20"/"25" -- the digits that differ, with the field name they belong to removed.
+    pre = os.path.commonprefix(names)
+    pre = pre[:pre.rfind("_") + 1] if "_" in pre else ""
+    rev = os.path.commonprefix([n[::-1] for n in names])[::-1]
+    suf = rev[rev.find("_"):] if "_" in rev else ""
+    out = {}
+    for n in names:
+        mid = n[len(pre):len(n) - len(suf)] if len(pre) + len(suf) < len(n) else n
+        out[n] = mid or n
+    return out
 
 def _ids_of(name, names, verdicts_by) -> list:
     """Every tree id the source offers, screened or not. Falls back to the screened ones
@@ -405,25 +474,106 @@ def _run(sources, *, batch_hint: str, pooled_as: Optional[tuple] = None,
 
 
 def run_real_data_menu() -> None:
-    """Real datasets: pick the FASTA/newick directories, then run."""
+    """Datasets on disk: pick the FASTA/newick directories, then run.
+
+    Downloaded and simulated sets share one list because they are the same thing to
+    everything downstream -- a directory of alignments beside their trees. They are
+    *labelled* apart because they are not the same evidence, and an eta-filled set is
+    labelled again because its eta distribution is conditioned by rejection sampling.
+
+    A size series is the normal case once you can simulate one, so sizes of the same
+    family are grouped under one letter and sorted by m. Each size stays its OWN source:
+    the cost model and every per-row output are keyed on the taxon count, so merging two
+    sizes into one source would make both meaningless.
+    """
     datasets = list_datasets()
     if not datasets:
-        print_error("No real datasets found.")
+        print_error("No datasets found.")
         print(describe_search())
         return
 
-    print_header("Real data")
-    _say("Tip: select several with commas (e.g. '1,2') to run every size in turn",
-         indent="  ")
+    groups = _group_datasets(datasets)
+    ordered = [c for _, members in groups for c in members]
+
+    print_header("Datasets on disk")
+    _say("Select with commas, a range ('5-8'), a family letter, or 'all'", indent="  ")
     print()
-    for i, c in enumerate(datasets, 1):
-        m, seq_len = c.shape()
-        print_option(str(i), f"{c.name}  ({len(c.ids())} trees, m={m}, L={seq_len})",
-                     highlight=(i == len(datasets)))
+    letters, n = {}, 0
+    for family, members in groups:
+        if len(members) > 1:
+            letter = chr(ord("a") + len(letters))
+            letters[letter] = list(range(n + 1, n + 1 + len(members)))
+            sizes = ", ".join(str(c.shape()[0]) for c in members)
+            print(f"  [{letter}] {family}  —  {len(members)} sizes: m = {sizes}")
+        for c in members:
+            n += 1
+            m, seq_len = c.shape()
+            print_option(str(n),
+                         f"{c.name}  ({len(c.ids())} trees, m={m}, L={seq_len})",
+                         highlight=False)
+            fill = c.bucket_fill()
+            print(f"      {c.provenance()}{'   buckets ' + fill if fill else ''}")
+        if len(members) > 1:
+            print()
+
     print()
-    picks = get_multi_choice("Dataset(s)", [str(i) for i in range(1, len(datasets) + 1)])
-    chosen = [datasets[int(i) - 1] for i in picks]
+    picks = _pick_datasets(len(ordered), letters)
+    if not picks:
+        return
+    chosen = [ordered[i - 1] for i in picks]
+    _say(f"running {len(chosen)}: " + ", ".join(c.name for c in chosen), indent="  ")
     _run([c.source() for c in chosen], batch_hint="python scripts/run_sweep.py")
+
+
+def _family_of(dataset) -> str:
+    """The name with its taxon count removed -- what two sizes of one series share."""
+    import re
+    return re.sub(r"_n\d+_", "_", dataset.name) or dataset.name
+
+
+def _group_datasets(datasets):
+    """``[(family, [dataset sorted by m])]``, families in first-seen order.
+
+    Sorting matters: plain alphabetical puts n1000 before n200, which reads as a bug the
+    first time you generate a size series.
+    """
+    fams: Dict[str, list] = {}
+    for c in datasets:
+        fams.setdefault(_family_of(c), []).append(c)
+    return [(fam, sorted(members, key=lambda d: d.shape()[0]))
+            for fam, members in fams.items()]
+
+
+def _pick_datasets(count: int, letters: Dict[str, list]):
+    """Numbers, ranges, family letters and 'all' -> a list of 1-based indices."""
+    while True:
+        raw = (get_input("Dataset(s)") or "").strip().lower()
+        if not raw:
+            continue
+        if raw in ("q", "quit", "back"):
+            return []
+        if raw == "all":
+            return list(range(1, count + 1))
+        picked, bad = [], []
+        for tok in (t.strip() for t in raw.split(",") if t.strip()):
+            if tok in letters:
+                picked += letters[tok]
+            elif "-" in tok and all(part.strip().isdigit()
+                                    for part in tok.split("-", 1)):
+                lo, hi = (int(part) for part in tok.split("-", 1))
+                picked += list(range(min(lo, hi), max(lo, hi) + 1))
+            elif tok.isdigit():
+                picked.append(int(tok))
+            else:
+                bad.append(tok)
+        picked = [i for i in dict.fromkeys(picked) if 1 <= i <= count]
+        if bad:
+            print_warning(f"not a number, range, family letter or 'all': "
+                          f"{', '.join(bad)}")
+        elif picked:
+            return picked
+        else:
+            print_warning(f"nothing in range 1-{count}")
 
 
 def run_generated_menu() -> None:
@@ -468,3 +618,139 @@ def run_generated_menu() -> None:
         return
     _run(sources, batch_hint="", pooled_as=pooled_as,
          reconfigure=lambda: _build(prompt_generated_plan()))
+
+
+# ---------------------------------------------------------------------------
+# Simulate a dataset (IQ-TREE + Sailfish), filled to the eta buckets
+# ---------------------------------------------------------------------------
+
+def run_simulate_menu() -> bool:
+    """Ask for a size, measure the hit rate, then fill the buckets. True if it wrote one.
+
+    Calibration is a prompt rather than a flag because the acceptance rate is the number
+    that decides the run and it is not knowable in advance: at m=1000 the measured eta
+    median is 19.8, above every target, and only ~7% of trees are kept. Showing that
+    before the fill is the difference between a 2-minute job and an abandoned overnight
+    one. The CLI twin is ``scripts/generate_dataset.py --fill-buckets``.
+    """
+    from src.models.sailfish_sim import SailfishSpec, preflight
+    from src.runners.sailfish_pool import fill_buckets
+
+    print_header("Simulate a dataset")
+    missing = preflight()
+    if missing:
+        print_error("this branch needs two things that are not installed:")
+        for line in missing:
+            print(f"    - {line}")
+        return False
+
+    # Start from the defaults and show them, rather than asking seven questions nobody
+    # wants to answer twice -- the same shape as the generated branch, where the status
+    # is the first thing on screen and editing is a menu entry.
+    cfg = dict(sizes=[1000], seq_len=1000, targets=list(ETA_TARGETS),
+               caps=list(PER_BUCKET), tol=ETA_TOL, workers=4, max_attempts=2000)
+    while True:
+        _show_sim_config(cfg)
+        pick = get_menu_choice("Run:", ["start", "change these settings", "back"],
+                               default_index=0)
+        if pick.startswith("back"):
+            return False
+        if pick.startswith("start"):
+            break
+        cfg = _edit_sim_config(cfg)
+
+    specs = [SailfishSpec(n_taxa=n, root_seq_size=cfg["seq_len"], pooled=True)
+             for n in cfg["sizes"]]
+    wrote = False
+    for spec in specs:
+        if len(specs) > 1:
+            print_divider()
+            _say(f"{spec.n_taxa} taxa", indent="  ")
+        stats = fill_buckets(spec, DATASETS_ROOT, targets=cfg["targets"],
+                             per_bucket=cfg["caps"], tol=cfg["tol"],
+                             workers=cfg["workers"],
+                             max_attempts=cfg["max_attempts"])
+        got = [stats["counts"][int(t)] for t in cfg["targets"]]
+        wrote = True
+        print()
+        if stats["complete"]:
+            print_success(f"{spec.name}: every bucket full {got} "
+                          f"({stats['accepted']} kept of {stats['attempts']} tried)")
+        else:
+            print_warning(f"{spec.name}: incomplete {got} of {cfg['caps']} -- re-run "
+                          f"to continue from seed {stats['last_seed'] + 1}, or widen "
+                          f"the half-width")
+    return wrote
+
+
+def _show_sim_config(cfg: Dict) -> None:
+    """The whole configuration in four lines, so starting needs no reading."""
+    sizes = ", ".join(str(n) for n in cfg["sizes"])
+    buckets = ", ".join(f"{c} at eta{t}"
+                        for t, c in zip(cfg["targets"], cfg["caps"]))
+    print()
+    _say(f"taxa      {sizes}    alignment L = {cfg['seq_len']}", indent="  ")
+    _say(f"collect   {buckets}   (+-{cfg['tol']:g})", indent="  ")
+    _say(f"          {sum(cfg['caps'])} trees per size, "
+         f"{cfg['workers']} workers, up to {cfg['max_attempts']} attempts",
+         indent="  ")
+    for n in cfg["sizes"]:
+        _say(f"-> sailfish_yule_n{n}_L{cfg['seq_len']}_g1x4_buckets", indent="  ")
+    print()
+
+
+def _edit_sim_config(cfg: Dict) -> Dict:
+    """The full dialogue, reached only by asking for it."""
+    cfg = dict(cfg)
+    cfg["sizes"] = _ask_ints("Taxa per tree - comma-separated for several sizes",
+                             ",".join(map(str, cfg["sizes"])))
+    cfg["seq_len"] = _ask_ints("Alignment length L (root sequence size)",
+                               str(cfg["seq_len"]))[0]
+    cfg["targets"] = _ask_ints("Eta targets - the imbalance levels to collect at",
+                               ",".join(map(str, cfg["targets"])))
+    named = ", ".join(f"eta{t}" for t in cfg["targets"])
+    default_caps = (",".join(map(str, cfg["caps"]))
+                    if len(cfg["caps"]) == len(cfg["targets"]) else "10")
+    while True:
+        caps = _ask_ints(f"How many trees at each of {named}"
+                         f"\n  (one number per target, or a single number for all)",
+                         default_caps)
+        if len(caps) == 1:
+            caps = caps * len(cfg["targets"])
+        if len(caps) == len(cfg["targets"]):
+            cfg["caps"] = caps
+            break
+        print_warning(f"give {len(cfg['targets'])} numbers, one per target ({named}), "
+                      f"or a single number for all - got {len(caps)}")
+    cfg["tol"] = _ask_float("Bucket half-width - a tree counts as eta5 within +-",
+                            str(cfg["tol"]))
+    cfg["workers"] = _ask_ints("Workers", str(cfg["workers"]))[0]
+    cfg["max_attempts"] = _ask_ints("Max attempts per size",
+                                    str(cfg["max_attempts"]))[0]
+    return cfg
+
+
+def _ask_ints(prompt: str, default: str) -> List[int]:
+    """One or more integers. Re-prompts instead of raising.
+
+    A menu that tracebacks on a typo is a menu you cannot use: the prompt invites a
+    comma-separated list, so ``int(get_input(...))`` crashed on exactly what it asked for.
+    """
+    while True:
+        raw = get_input(prompt, default=default)
+        try:
+            vals = [int(tok) for tok in str(raw).split(",") if tok.strip()]
+        except ValueError:
+            print_warning(f"not a list of whole numbers: {raw!r}")
+            continue
+        if vals:
+            return vals
+
+
+def _ask_float(prompt: str, default: str) -> float:
+    while True:
+        raw = get_input(prompt, default=default)
+        try:
+            return float(str(raw).strip())
+        except ValueError:
+            print_warning(f"not a number: {raw!r}")

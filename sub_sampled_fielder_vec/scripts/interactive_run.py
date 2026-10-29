@@ -474,8 +474,9 @@ def run_experiment(config: Dict[str, Any]):
 # Kept short on purpose: the menu appends "(default)" and an index, and the whole line
 # has to clear an 80-column terminal without wrapping.
 DATA_SOURCES = [
-    "real data - FASTA alignments with their true trees",
-    "generated data - simulated trees and sequences",
+    "simulate a dataset - IQ-TREE + Sailfish, filled to the eta buckets",
+    "datasets on disk - alignments + trees (downloaded or simulated)",
+    "generated data - simulated trees and sequences, in memory",
 ]
 
 
@@ -498,8 +499,14 @@ def main():
     # Both branches run one stage and exit: each already asked for every source at
     # once, so there is nothing left to offer. They differ only in where the trees come
     # from -- everything after that is the same screen, gate, sweep and run directory.
-    from analysis.utils.run_menu import run_generated_menu, run_real_data_menu
-    if choose_data_source() == DATA_SOURCES[0]:
+    from analysis.utils.run_menu import (run_generated_menu, run_real_data_menu,
+                                         run_simulate_menu)
+    choice = choose_data_source()
+    if choice == DATA_SOURCES[0]:
+        # writes one dataset per size, then hands straight over to the list below
+        if run_simulate_menu():
+            run_real_data_menu()
+    elif choice == DATA_SOURCES[1]:
         run_real_data_menu()
     else:
         run_generated_menu()

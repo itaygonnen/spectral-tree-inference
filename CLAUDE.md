@@ -35,6 +35,121 @@ loader (`RealLoader` / `GeneratedLoader`). `scripts/run_sweep.py` is the non-int
 twin and takes `--dataset-rule` (`both`, `valid_L`, `valid_Lsym`, `valid_B`, `any`, `all`)
 plus `--dry-run` to see the selection without starting anything.
 
+**Simulating a dataset (Sailfish, 2026-10-25).** A third way to get trees, beside the
+downloaded FASTA sets and the in-process `GeneratedLoader`:
+
+```bash
+python scripts/generate_dataset.py --n-taxa 1000 --n-trees 10 --dry-run   # cost, no write
+python scripts/generate_dataset.py --n-taxa 1000 --n-trees 10             # generate + check
+python scripts/generate_dataset.py --check --name sailfish_yule_n1000_L1000_g1x4
+```
+
+IQ-TREE random (Yule–Harding) trees with `-rlen 0.001 0.1 0.5`, then
+[Sailfish/msasim](https://github.com/elyawy/Sailfish-backend) for JC + Γ(4) alignments —
+the lab's cluster recipe (`~/Downloads/create_{trees,msa}_10k.sh`, `README_shared.md`),
+run locally. Needs `pip install msasim` and `brew install iqtree3`. Core is
+`src/models/sailfish_sim.py`; the CLI is `scripts/generate_dataset.py`.
+
+It writes `data/tree_sets/<name>/{fasta,newick}` + `manifest.json`, and **that is the whole
+integration** — `list_datasets()` claims any dir with those two subdirectories, so
+`RealLoader`, the screen, the gate, the η buckets and the p-sweep all run unchanged. No new
+`Source` type, no menu branch. The dataset name carries the parameters
+(`sailfish_yule_n{m}_L{L}_g{alpha}x{cats}`) so two generations cannot share a screen cache.
+
+What this adds that nothing else here has: **Γ rate heterogeneity across sites**
+(`sequence_models.py` registers no `+G`) and **IQ-TREE's topology/branch-length model**
+(none of the four builders in `generated_trees.py` is Yule–Harding). `--root-seq-size` is
+the alignment length L, and it is a CLI argument, so L is sweepable.
+
+**Indels are off and that is load-bearing.** `JC_similarity_matrix` takes k from the data
+(`spectraltree/similarities.py:39`), so one gap character makes k=5: the JC correction is
+then wrong and gap-vs-base scores as a substitution. With `insertion_rate = deletion_rate
+= 0` msasim takes an explicit no-indel path and every sequence is exactly `root_seq_size`
+long over {A,C,G,T}. `--indels` exists but refuses without `--i-know-about-k5`.
+
+⚠️ **This already bites the existing data.** `data/tree_sets/1000 taxa` is **88.3% gap**
+(1000×8675, k=5 confirmed through `charmatrix2array`), while `6000 taxa` is pure ACGT — so
+the two datasets the pipeline compares are not measuring the same quantity. Unresolved;
+nothing here changes it.
+
+**`--fill-buckets` rejection-samples to the η targets** instead of drawing blind, which is
+what you usually want: the sweep only reports η ∈ {1, 5, 10, 15}, so a blind run pays the
+O(m³) screen for trees `select_ids` then discards (49 of 69 valid trees unbucketed at
+m=6000). The loop is generate → screen → bucket? → valid split? → keep or delete and
+advance the seed (`src/runners/sailfish_pool.py`), the sibling of
+`scripts/build_eta_pool.py` for the file-based source.
+
+```bash
+python scripts/generate_dataset.py --n-taxa 1000 --fill-buckets --calibrate 200  # hit rate
+python scripts/generate_dataset.py --n-taxa 1000 --fill-buckets --workers 6      # fill
+```
+
+**Acceptance runs the SCREEN's η, not the pool's, and that is the whole correctness
+argument.** `build_eta_pool.py` accepts on `estimate_features_from_M` (the sign rule alone),
+while the screen scores both cut rules and keeps the more balanced (`operators.choose_cut`,
+`rule_policy="best"`). A tree admitted on sign-η can be re-scored under k-means into a
+different bucket or out of every bucket, and the sampling would be silently pointless. So
+the loop calls `operator_screen.screen_one` and `eta_buckets.bucket_of` — the same functions
+`select_ids` uses — and **writes the row it gets into the screen cache**, so an accepted tree
+is never screened twice. `run_sweep --stage sweep` then goes straight to sweeping. Measured:
+10 screened → 10 bucketed, `no bucket` = 0.
+
+**Always `--calibrate` before a long fill.** Measured at m=1000 over 200 attempts: η_S median
+19.8 (the mass sits *above* every target), 40% of splits valid, 7% accepted overall — η01 was
+inside its window 3 times and valid 0 times, η05 2.0%, η10 3.5%, η15 1.5%. The report
+separates "window never reached" (widen `--eta-tol`) from "reached, never valid" (more
+attempts); they call for opposite actions. Filling 3/3/2/2 took 335 attempts and 56 s at
+m=1000 with 6 workers; the same at m=10000 is ~100 s/attempt, so calibrate first.
+
+Accepted trees are named `eta05_003` so `ls` answers which bucket a tree is in, the dataset
+name gains `_buckets` (a conditioned population must never share a screen cache with an
+i.i.d. one), and `manifest.json` carries a `fill` block with the targets, caps, cumulative
+attempts, acceptance rate and `last_seed`. Re-running the same command **resumes** from that
+seed — raising `--per-bucket` tops the buckets up without re-drawing anything.
+
+The launcher reaches all of this: `interactive_run.py` → "simulate a dataset" asks the size,
+offers the calibration, fills, then hands over to the dataset list. That list now labels
+every entry `downloaded` / `simulated` / `simulated, eta-filled` with its bucket counts — it
+used to present a simulator's output under the heading "real data — FASTA alignments with
+their true trees", which is the one thing a reader must not believe.
+
+**Running a fill on the cluster.** The loop is built to survive one, and the three things
+that make it so were each a measured bug first:
+
+- **SIGTERM** (what SLURM sends at the time limit) is caught and unwound like Ctrl+C, so the
+  final checkpoint and the staging cleanup still run.
+- **The manifest is written on every accept**, not at the end. It is the only record of
+  which seeds were tried; leaving it to the end meant a killed job resumed by re-drawing
+  every tree it had already rejected.
+- **Output is flushed per line.** Python block-buffers stdout when it is not a TTY — exactly
+  the `nohup … > run.log` case. Measured before the fix: a run killed after accepting 18
+  trees had *zero* progress lines in its log.
+
+So a job that hits its time limit is resumed by **re-submitting the same script**; nothing
+is recomputed. `brew install iqtree3` is Mac-only — on a cluster use `module load iqtree`
+or a conda env and pass `--iqtree-bin`. Set `--workers` to `--cpus-per-task`; the loop pins
+BLAS to one thread per worker so they do not oversubscribe.
+
+```bash
+#SBATCH --cpus-per-task=8 --mem=16G --time=12:00:00
+python scripts/generate_dataset.py --n-taxa 6000 --fill-buckets \
+    --workers 8 --iqtree-bin iqtree2 --max-attempts 5000 > fill.log 2>&1
+```
+
+**One attempt does not build the distance matrix.** Only the griffing arm `B` reads `D`
+(`operators.Operator.vector`); `S` and `Lsym` never touch it, and it is a second O(m²L) pass
+— measured **54% of the load at m=1000, 58% at m=2000**. `RealLoader(…, need_distance=False)`
+skips it, which made an S-only attempt 33% faster at m=1000 and 47% at m=2000 with
+bit-identical η. The default is still `True`, so the ordinary screen and the three-operator
+benchmark are unchanged; `sailfish_pool.needs_distance()` decides per run. The same saving is
+available to `operator_screen.run_screen` for S-only screens and is **not** taken yet.
+
+Generation is free (~0.2 s/tree at m=10000, 10 MB of FASTA); **reading** it is the cost, so
+`--dry-run` reports disk and the downstream screening estimate rather than its own runtime.
+`-r` is undocumented in IQ-TREE 3's `-h` but still generates a Yule–Harding tree (verified
+on 3.1.4); AliSim's `-t RANDOM{...}` would insist on simulating an alignment too. For sizes
+this Mac cannot carry, the SLURM route in `README_shared.md` is still the way.
+
 A sweep reads **the similarity arm L(S) alone** (`experiment_run.DEFAULT_OPERATORS`,
 2026-10-14 — the distance route is no longer run), and the default gate is
 **`valid_L`**, not `both` (`DEFAULT_GATE`): gating on B's validity while never sweeping B
