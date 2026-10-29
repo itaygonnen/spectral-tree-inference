@@ -26,6 +26,7 @@ would select from without running anything.
 from __future__ import annotations
 
 import argparse
+import pathlib
 import sys
 from pathlib import Path
 
@@ -111,6 +112,12 @@ def build_parser() -> argparse.ArgumentParser:
                     help="skip sigma2, ||sub-full||_2 and the numerical ranks at every p "
                          "(the diagnostics the original experiment kept). They cost ~4%% "
                          "of a sweep at m=6000, so this is rarely worth it")
+    ap.add_argument("--config", metavar="FILE",
+                    help="replay a saved config.json (every run writes one); flags "
+                         "given alongside it still win, so one file can run with "
+                         "--workers matched to whatever node it lands on")
+    ap.add_argument("--save-config", metavar="FILE",
+                    help="write the configuration and exit without running it")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the plan -- grid, operators, and how many trees each "
                          "gate step keeps -- then exit without running or writing "
@@ -168,14 +175,63 @@ def _warn_unscreened(spec, rows) -> None:
                   flush=True)
 
 
+# Keys config.json carries that are NOT RunSpec fields -- provenance and the dataset
+# list, which is an argument to the run rather than part of its spec.
+_NOT_SPEC = ("datasets", "commit", "started")
+
+
+def load_config(path, args) -> tuple:
+    """A saved ``config.json`` -> ``(RunSpec, dataset names)``.
+
+    Every run already writes this file before it starts, so replaying one is reading
+    back what it wrote -- no second format to keep in step. Flags passed alongside
+    --config still win, which is what lets one file run with --workers matched to
+    whatever node it lands on.
+    """
+    import json
+    raw = json.loads(pathlib.Path(path).read_text())
+    datasets = list(raw.get("datasets") or [])
+    fields = {k: v for k, v in raw.items() if k not in _NOT_SPEC}
+
+    given = _explicit_flags()
+    for name, flag in (("stage", "--stage"), ("workers", "--workers"),
+                       ("gate", "--dataset-rule"), ("prefix", "--prefix"),
+                       ("display_mode", "--display-mode"), ("limit", "--limit")):
+        if flag in given and hasattr(args, name):
+            fields[name] = getattr(args, name)
+    if "--dataset" in given and args.dataset:
+        datasets = [d.strip() for d in args.dataset.split(",") if d.strip()]
+    fields.pop("limit", None)
+    return RunSpec(**fields), datasets
+
+
+def _explicit_flags() -> set:
+    """Which flags the user actually typed, so they can override the file."""
+    return {a.split("=", 1)[0] for a in sys.argv[1:] if a.startswith("-")}
+
+
+def save_config(path, spec, names) -> None:
+    import json
+    from dataclasses import asdict
+    pathlib.Path(path).write_text(
+        json.dumps(dict(asdict(spec), datasets=list(names), stage=spec.stage,
+                        commit=_commit()), indent=2, default=str) + "\n")
+    print(f"wrote {path}\n  run it with: python scripts/run_sweep.py --config {path}",
+          flush=True)
+
+
 def main() -> None:
     args = build_parser().parse_args()
     if args.list:
         _list()
         return
 
-    spec = spec_from_args(args)
-    sources = sources_from_args(args)
+    if args.config:
+        spec, names = load_config(args.config, args)
+        sources = [get_dataset(n).source(spec.max_trees or None) for n in names]
+    else:
+        spec = spec_from_args(args)
+        sources = sources_from_args(args)
     rows = plan(spec, sources)
     _warn_unscreened(spec, rows)
     # Print the grid, not just the knobs. A checkout from before --p-min existed sweeps
@@ -203,6 +259,9 @@ def main() -> None:
             print("    " + line, flush=True)
         if r.warning:
             print(f"  WARNING: {r.warning}", flush=True)
+    if args.save_config:
+        save_config(args.save_config, spec, [s.name for s in sources])
+        return
     if args.dry_run:
         print("\ndry run -- nothing was run and nothing was written", flush=True)
         return

@@ -461,6 +461,13 @@ def _run(sources, *, batch_hint: str, pooled_as: Optional[tuple] = None,
                                       indent="      ")
               + f" \\\n      > logs/{spec.stage}.log 2>&1 &")
         print()
+        # A file beats a long command line for an sbatch script: it survives editing,
+        # it is diffable, and it is the same shape every run already writes.
+        where = get_input("Save this as a config file? (path, or Enter to skip)",
+                          default="")
+        if where:
+            _save_run_config(where, spec, [c.name for c in sources])
+        print()
         _say("Add --dry-run to either one to see the selection without running it. "
              "Nothing has been written.")
         return
@@ -754,3 +761,17 @@ def _ask_float(prompt: str, default: str) -> float:
             return float(str(raw).strip())
         except ValueError:
             print_warning(f"not a number: {raw!r}")
+
+
+def _save_run_config(path: str, spec, names) -> None:
+    """Write a config.json the non-interactive runner can replay verbatim."""
+    import json
+    from dataclasses import asdict
+    from src.utils.run_export import _commit
+    dest = Path(path).expanduser()
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(dict(asdict(spec), datasets=list(names),
+                                    stage=spec.stage, commit=_commit()),
+                               indent=2, default=str) + "\n")
+    print_success(f"wrote {dest}")
+    print(f"    python scripts/run_sweep.py --config {dest}")

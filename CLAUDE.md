@@ -268,6 +268,23 @@ fully measured directory. It keeps all three operators and
 `rule_policy="kmeans"`/`aggregation="per_rep"` — those are like-for-like with Figs 2/4 and
 are not the sweep default.
 
+**A run is replayable from its own `config.json`** (2026-10-29). Every run already
+wrote that file before starting, so `--config` reads back what it wrote rather than
+inventing a second format:
+
+```bash
+python scripts/run_sweep.py --dataset <name> --stage sweep --save-config run.json
+python scripts/run_sweep.py --config run.json                    # no prompts
+python scripts/run_sweep.py --config run.json --workers 16       # flags still win
+python scripts/run_sweep.py --config results/real_data/runs/<ts>/config.json
+```
+
+Flags typed alongside `--config` override the file (tracked by inspecting `sys.argv`, so
+a default never silently beats a saved value) — one file runs on any node with `--workers`
+matched to it. The last form replays **any past run** straight from its directory. The
+menu offers to write one after "Not running here", which is the shape an sbatch script
+wants: diffable, editable, and not a 200-character command line.
+
 **The sweep's progress is the curve forming** (`operator_sweep.SweepProgress`,
 2026-10-29). One row per tree, one cell per p, shaded by NMI
 (`·` <0.1, `░` <0.4, `▒` <0.7, `▓` <0.95, `█` ~1.0), grouped **by eta bucket** with the
