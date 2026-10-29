@@ -2,10 +2,10 @@
 % sub-sampling -- the measurement behind the eta values the sweeps of §7 use.
 \section{Which Split the Fiedler Rule Picks}\label{app:eta}
 
-Two cohorts of 1000 trees, Kingman and birth--death, at $m=1000$ and $L=10^4$ under
+Two cohorts of 1000 trees, Kingman and birth--death, at $m=1000$ and $\ell=10^4$ under
 \Cref{asm:gtr,asm:clock}, with no sub-sampling. The split is taken as \Cref{thm:main-sim}
 prescribes: $k$-means on the Fiedler vector of $L(S)$. Per tree we record the imbalance of the
-returned split, $\eta=\max(n_1,n_2)/\min(n_1,n_2)$, and whether that split is an edge of the true
+returned split, $\eta=|C_2|/|C_1|$ with $|C_1|\le|C_2|$, and whether that split is an edge of the true
 tree. \Cref{fig:eta-hist} reports both, per cohort.
 
 \begin{figure}[t]

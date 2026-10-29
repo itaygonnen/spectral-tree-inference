@@ -18,8 +18,8 @@ run on a phylogeny. Build a similarity matrix $S$ over the leaves, form the
 Laplacian $L=D-S$, split the leaf set by the sign pattern of the Fiedler vector
 of $L$, recurse on each side, and merge \cite{aizenbud2023spectral,
 vonluxburg2007tutorial, fiedler1975property}. The split is provably consistent:
-the two sides are complementary \emph{clans}, the unrooted analogue of a clade
-\cite{wilkinson2007clades}, which is what keeps the merge tractable. Both the
+the two sides are the two halves of a single edge cut --- a \emph{split} of the tree
+\cite{wilkinson2007clades} --- which is what keeps the merge tractable. Both the
 error and the cost of the recursion land on the top split, since no parent call
 corrects it and it is the only call that sees all $m$ leaves. Every entry of $S$
 is a sequence-pair estimate over a length-$\ell$ alignment rather than a lookup,
@@ -33,7 +33,7 @@ matrix completion \cite{candes2008exact, candes2009power, candes2009matrix,
 recht2011simpler, keshavan2010matrix, bhojanapalli2014universal}. Does its sign
 pattern still recover the split, and how small can $p$ be? There is reason to
 expect an answer well below $1$: under a molecular clock the population matrix
-has exactly two blocks and the Fiedler vector is constant on each clan
+has exactly two blocks and the Fiedler vector is constant on each clade
 (\Cref{sec:assumptions}), so the signal being sampled is extremely concentrated.
 
 Two things keep this from being routine. What decides recoverability from a
@@ -44,7 +44,7 @@ spectral bipartitioning are stated for clusters of comparable size
 phylogenies are markedly more imbalanced than standard null models predict
 \cite{blum2006which, yule1925mathematical, kingman1982coalescent,
 steel2001properties, aldous2001stochastic}. Imbalance pushes both governing
-quantities the wrong way: it concentrates the split signal onto the smaller clan,
+quantities the wrong way: it concentrates the split signal onto the smaller clade,
 raising the sampling cost, and it shrinks the eigenvalue gap that isolates the
 Fiedler vector, degrading the signal itself. The two failures are distinct ---
 one leaves the eigenvector informative but unaffordable to sample, the other
@@ -81,7 +81,7 @@ rather than pooling (\Cref{sec:empirical}).
 \end{itemize}
 
 \Cref{sec:background} fixes the objects: the tree, the substitution model, the similarity graph
-and its Fiedler vector, and the result that the Fiedler split is always a clan pair.
+and its Fiedler vector, and the result that the Fiedler split is always a split of the tree.
 \Cref{sec:problem} builds the STDR recursion on that result and states the problem --- the
 quadratic cost of its top-level call, the sampling scheme that answers it, and the entry-wise
 criterion that decides whether the sampled split is the right one. \Cref{sec:assumptions} collects every hypothesis the

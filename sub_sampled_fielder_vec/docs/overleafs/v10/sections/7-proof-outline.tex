@@ -62,25 +62,25 @@ strong-signal regime of Stage 1.
 
 \emph{Stage 3 (per-node concentration).} The surviving scalar $(\EL\vv)_i$ is a
 sum of independent, mean-zero increments, each carrying the factor $\vv_i-\vv_j$.
-Every within-clan increment therefore vanishes \emph{exactly} --- this is a
+Every within-block increment therefore vanishes \emph{exactly} --- this is a
 cancellation, not a bound, and it rests on the clock (\Cref{asm:clock}) making
 $\vv$ exactly piecewise constant, so it is the one step that would degrade if the
-cross-clan block were only approximately constant. Only cross-clan pairs survive,
+cross-block were only approximately constant. Only cross-block pairs survive,
 Bernstein's inequality applies node by node, and since this is the only place the
 sampling rate $p$ enters the final condition, we state the bound in the main text.
 
 \begin{lemma}[Per-node concentration]\label{lem:pernode}
-With scale $R_B=\bze(1+\eta)/(p\sqrt{m\eta})$, for each $i\in B$ and $\delta>0$,
+With scale $R_2=\bze(1+\eta)/(p\sqrt{m\eta})$, for each $i\in C_2$ and $\delta>0$,
 with probability $\ge1-\delta$,
-$|(\EL\vv)_i|\le2\sqrt{2\sigma_B^2\ln(2/\delta)}+\tfrac23R_B\ln(2/\delta)$. In the
+$|(\EL\vv)_i|\le2\sqrt{2\sigma_2^2\ln(2/\delta)}+\tfrac23R_2\ln(2/\delta)$. In the
 variance-dominated regime ($p=\Theta(\log m/m)$), a union bound over all $m$ nodes
 at $\delta=\delta_0/m$ gives, \hp\ uniformly over $i$,
 \begin{equation}\label{eq:concentration-bound}
    |(\EL\vv)_i|\lesssim\sqrt{\frac{8(1+\eta)\bze^2\log(2m/\delta_0)}{\eta\,p}}.
 \end{equation}
 \end{lemma}
-\noindent The increment representation, the cancellation of the within-clan
-pairs, the per-node variance $\sigma_B^2$ and the proof are in
+\noindent The increment representation, the cancellation of the within-block
+pairs, the per-node variance $\sigma_2^2$ and the proof are in
 \Cref{app:comp3b}. This is the step that realises the $\sqrt m$ saving that the
 Davis--Kahan route forfeits: the variance of the increment sum is smaller than
 $\opnorm{\EL}^2$ by a factor $m$, and it is this per-coordinate saving that turns
@@ -90,26 +90,26 @@ stages now combine.
 
 \begin{proof}[Proof of \Cref{thm:main-sim}]
 \emph{Step 1 (population geometry).} \Cref{lem:A-decomp,lem:gap} supply the
-right-hand side of \eqref{eq:entrywise} as $\min_i|\vv_i|=c_B$ and a spectral gap
+right-hand side of \eqref{eq:entrywise} as $\min_i|\vv_i|=c_2$ and a spectral gap
 $\Dlam$ that is positive under \Cref{asm:margin}, and \Cref{lem:B-bernstein}
 places $\opnorm{\EL}$ below it.
 
 \emph{Step 2 (entry-wise reduction).} \Cref{lem:neumann} is therefore applicable
 and gives $w_i=-(\EL\vv)_i/\Dlam+R_i$; discarding $R$ as lower order against
-$c_B$ reduces \eqref{eq:entrywise} to the per-node condition
+$c_2$ reduces \eqref{eq:entrywise} to the per-node condition
 $|(\EL\vv)_i|<\Dlam|\vv_i|$ holding at every node $i$.
 
 \emph{Step 3 (concentration).} \Cref{lem:pernode} bounds the left-hand side of
 that condition uniformly over the $m$ nodes.
 
-\emph{Step 4 (synthesis).} The per-node condition is tightest on clan $B$, since
-$\eta\ge1$. Squaring $\sqrt{8\sigma_B^2\log m}<\Dlam c_B$ and substituting
-$\sigma_B^2$, $c_B^2=1/(m\eta)$ and the gap bound
-$\Dlam\ge m_{\min}(\rho-\eta\Sout^{\max})$, the factor $\eta$ cancels and solving
+\emph{Step 4 (synthesis).} The per-node condition is tightest on clade $C_2$, since
+$\eta\ge1$. Squaring $\sqrt{8\sigma_2^2\log m}<\Dlam c_2$ and substituting
+$\sigma_2^2$, $c_2^2=1/(m\eta)$ and the gap bound
+$\Dlam\ge m_{\min}(\rho-\eta\bze)$, the factor $\eta$ cancels and solving
 for $p$ gives exactly \eqref{eq:main_rate}
 (\Cref{prop:C-bind} and \Cref{cor:C-cond}). Under \eqref{eq:main_rate} every node satisfies
 $|w_i|<|\vv_i|$, hence $\vvh_i$ and $\vv_i$ share a sign; since $\vv$ is
-sign-constant on each clan (\Cref{lem:A-decomp}), the zero-threshold partition of
-$\vvh$ is $(A,B)$ exactly.
+sign-constant on each clade (\Cref{lem:A-decomp}), the zero-threshold partition of
+$\vvh$ is $(C_1,C_2)$ exactly.
 \end{proof}
 

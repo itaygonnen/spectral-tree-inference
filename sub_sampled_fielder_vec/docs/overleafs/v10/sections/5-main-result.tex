@@ -9,7 +9,7 @@ margin $\rho$ of \eqref{eq:margin_definition} and the imbalance $\eta$ of
 \eqref{eq:imbalance_ratio}.
 
 \begin{theorem}[Exact recovery of the full-data split]\label{thm:main-sim}
-Let $S$ satisfy the non-balanced CFBM of \Cref{def:cfbm} with $m$ terminal nodes and
+Let $S$ satisfy the constant block model of \Cref{def:cfbm} with $m$ terminal nodes and
 imbalance $\eta\ge1$, let $\rho$
 be the structural margin and let $\vvh$ be the empirical Fiedler vector --- the
 unit eigenvector belonging to the second-smallest eigenvalue of the sampled
@@ -19,7 +19,7 @@ $p$ as in the observation model \eqref{eq:sampling_estimator}. Assume
 \eqref{eq:entrywise} to hold \hp, i.e.\
 $\norm{\vvh-\vv}_\infty<\min_i|\vv_i|$, it suffices that
 \begin{equation}\label{eq:main_rate}
-   p\;>\;\frac{8(1+\eta)^3\,\bze^2\,\log m}{m\,(\rho-\eta\,\Sout^{\max})^2}
+   p\;>\;\frac{8(1+\eta)^3\,\bze^2\,\log m}{m\,(\rho-\eta\,\bze)^2}
        \;=\;\Theta\!\left(\frac{\log m}{m}\right).
 \end{equation}
 \end{theorem}

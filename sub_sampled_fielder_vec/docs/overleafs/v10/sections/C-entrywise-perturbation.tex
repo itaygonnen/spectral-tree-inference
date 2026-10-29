@@ -46,12 +46,12 @@ $|\langle\vv,\EL\vv\rangle|\le\opnorm{\EL}\norm{\vv}_2^2=\opnorm{\EL}$,
 $|(P_\perp\EL\vv)_i|\le|(\EL\vv)_i|+\opnorm{\EL}|\vv_i|$.
 \end{proof}
 
-\begin{remark}[Asymmetric correction in the non-balanced CFBM]\label{rem:C-asym}
-The correction $\opnorm{\EL}|\vv_i|$ equals $\opnorm{\EL}c_A$ for $i\in A$ and
-$\opnorm{\EL}c_B$ for $i\in B$. For the binding clan $B$ this is
-$\opnorm{\EL}/\sqrt{m\eta}$, strictly sub-dominant to the recovery target $c_B$
+\begin{remark}[Asymmetric correction in the constant block model]\label{rem:C-asym}
+The correction $\opnorm{\EL}|\vv_i|$ equals $\opnorm{\EL}c_1$ for $i\in C_1$ and
+$\opnorm{\EL}c_2$ for $i\in C_2$. For the binding clade $C_2$ this is
+$\opnorm{\EL}/\sqrt{m\eta}$, strictly sub-dominant to the recovery target $c_2$
 when $\opnorm{\EL}\ll\Dlam$. Throughout \Cref{app:comp3b} we therefore use the
-leading-order simplification $|w^{(1)}_i|\lesssim|(\EL\vv)_i|/\Dlam$ for $i\in B$.
+leading-order simplification $|w^{(1)}_i|\lesssim|(\EL\vv)_i|/\Dlam$ for $i\in C_2$.
 \end{remark}
 
 \subsection{Per-node Bernstein concentration}\label{app:comp3b}
@@ -71,37 +71,36 @@ $(\EL\vv)_i=\sum_{k\ne i}(\ES)_{ik}\vv_i-\sum_{j\ne i}(\ES)_{ij}\vv_j
 =\sum_{j\ne i}(\ES)_{ij}(\vv_i-\vv_j)$.
 \end{proof}
 
-\begin{proposition}[Within-clan terms vanish]\label{prop:C-within}
-Under \Cref{def:cfbm}, $\vv$ is constant on each clan (\Cref{lem:A-decomp}), so
-$X_{ij}=0$ for same-clan pairs; only cross-clan pairs survive:
-$(\EL\vv)_i=\sum_{j\in A}X_{ij}$ for $i\in B$, and
-$(\EL\vv)_i=\sum_{j\in B}X_{ij}$ for $i\in A$.
+\begin{proposition}[Within-block terms vanish]\label{prop:C-within}
+Under \Cref{def:cfbm}, $\vv$ is constant on each clade (\Cref{lem:A-decomp}), so
+$X_{ij}=0$ for within-block pairs; only cross-block pairs survive:
+$(\EL\vv)_i=\sum_{j\in C_1}X_{ij}$ for $i\in C_2$, and
+$(\EL\vv)_i=\sum_{j\in C_2}X_{ij}$ for $i\in C_1$.
 \end{proposition}
 
 \begin{proposition}[Per-node variance]\label{prop:C-var}
-Under \Cref{def:cfbm} and the observation model \eqref{eq:sampling_estimator}, with
-$\bze=\Sout^{\max}$ and using
-$(c_A+c_B)^2=m/(|A||B|)=(1+\eta)^2/(m\eta)$,
+Under \Cref{def:cfbm} and the observation model \eqref{eq:sampling_estimator}, using
+$(c_1+c_2)^2=m/(|C_1||C_2|)=(1+\eta)^2/(m\eta)$,
 \begin{equation}
-   \sigma_B^2:=\operatorname{Var}\bigl((\EL\vv)_i\bigr)\big|_{i\in B}
+   \sigma_2^2:=\operatorname{Var}\bigl((\EL\vv)_i\bigr)\big|_{i\in C_2}
    =\frac{(1-p)(1+\eta)\bze^2}{\eta\,p},
    \qquad
-   \sigma_A^2=\frac{(1-p)(1+\eta)\bze^2}{p}=\eta\,\sigma_B^2,
+   \sigma_1^2=\frac{(1-p)(1+\eta)\bze^2}{p}=\eta\,\sigma_2^2,
 \end{equation}
-so clan $B$ has strictly smaller per-node variance;
-$\sigma_B^2=(1-p)\rhotil/p$ with $\rhotil=(1+\eta)\bze^2/\eta$.
+so clade $C_2$ has strictly smaller per-node variance;
+$\sigma_2^2=(1-p)\rhotil/p$ with $\rhotil=(1+\eta)\bze^2/\eta$.
 \end{proposition}
 \begin{proof}
-For $i\in B$ each of the $a$ surviving terms has $S_{ij}=\bze$ and
-$|\vv_i-\vv_j|=c_A+c_B$, so $\sigma_B^2=\tfrac{1-p}{p}(c_A+c_B)^2|A|\bze^2$;
-substituting $|A|=m/(1+\eta)$ and $(c_A+c_B)^2=(1+\eta)^2/(m\eta)$ gives the stated
-value. Clan $A$ follows symmetrically with $b$ in place of $a$.
+For $i\in C_2$ each of the $|C_1|$ surviving terms has $S_{ij}=\bze$ and
+$|\vv_i-\vv_j|=c_1+c_2$, so $\sigma_2^2=\tfrac{1-p}{p}(c_1+c_2)^2|C_1|\bze^2$;
+substituting $|C_1|=m/(1+\eta)$ and $(c_1+c_2)^2=(1+\eta)^2/(m\eta)$ gives the stated
+value. Clade $C_1$ follows symmetrically, with its $|C_2|$ cross-block terms.
 \end{proof}
 
 \begin{proof}[Proof of \Cref{lem:pernode}]
-By \Cref{lem:C-inc,prop:C-within}, for $i\in B$ the quantity
-$(\EL\vv)_i=\sum_{j\in A}X_{ij}$ is a sum of independent, mean-zero summands with
-$|X_{ij}|\le\bze(c_A+c_B)/p=R_B$ and total variance $\sigma_B^2$
+By \Cref{lem:C-inc,prop:C-within}, for $i\in C_2$ the quantity
+$(\EL\vv)_i=\sum_{j\in C_1}X_{ij}$ is a sum of independent, mean-zero summands with
+$|X_{ij}|\le\bze(c_1+c_2)/p=R_2$ and total variance $\sigma_2^2$
 (\Cref{prop:C-var}). Bernstein's inequality for bounded independent summands gives
 the stated two-term deviation bound at confidence $1-\delta$. In the
 variance-dominated regime $p=\Theta(\log m/m)$ the linear term is of lower order,
@@ -109,16 +108,16 @@ and a union bound over the $m$ nodes at $\delta=\delta_0/m$ yields
 \eqref{eq:concentration-bound}.
 \end{proof}
 
-\begin{proposition}[Clan $B$ is binding]\label{prop:C-bind}
-Under \Cref{lem:A-decomp}, $\min_i|\vv_i|=|c_B|$, attained on the larger clan $B$. The
+\begin{proposition}[Clade $C_2$ is binding]\label{prop:C-bind}
+Under \Cref{lem:A-decomp}, $\min_i|\vv_i|=|c_2|$, attained on the larger clade $C_2$. The
 per-node condition $|(\EL\vv)_i|<\Dlam|\vv_i|$ requires
-$p>8m(1+\eta)\bze^2\log m/\Dlam^2$ on $B$ (the clan-$A$ condition carries an extra
-$1/\eta$), so since $\eta\ge1$, clan $B$ binds.
+$p>8m(1+\eta)\bze^2\log m/\Dlam^2$ on $C_2$ (the clade-$C_1$ condition carries an extra
+$1/\eta$), so since $\eta\ge1$, clade $C_2$ binds.
 \end{proposition}
 \begin{proof}
-Squaring $\sqrt{8\sigma_B^2\log m}<\Dlam c_B$ and substituting $\sigma_B^2$ with
-$c_B^2=1/(m\eta)$: the $\eta$ cancels, giving
-$p>8m(1+\eta)\bze^2\log m/\Dlam^2$. Clan $A$ follows with $c_A^2=\eta/m$.
+Squaring $\sqrt{8\sigma_2^2\log m}<\Dlam c_2$ and substituting $\sigma_2^2$ with
+$c_2^2=1/(m\eta)$: the $\eta$ cancels, giving
+$p>8m(1+\eta)\bze^2\log m/\Dlam^2$. Clade $C_1$ follows with $c_1^2=\eta/m$.
 \end{proof}
 
 \begin{corollary}[Per-node recovery condition]\label{cor:C-cond}
@@ -127,7 +126,7 @@ $\operatorname{sign}(\vvh)=\operatorname{sign}(\vv)$. Combining
 \Cref{lem:pernode,prop:C-bind} with the gap bound
 $\Dlam\ge m(\rho-\eta\bze)/(1+\eta)$ (\Cref{lem:gap}) yields
 \begin{equation}\label{eq:per-node-p}
-   p>\frac{8(1+\eta)^3\bze^2\log m}{m(\rho-\eta\Sout^{\max})^2}
+   p>\frac{8(1+\eta)^3\bze^2\log m}{m(\rho-\eta\bze)^2}
     =\Theta\!\left(\frac{\log m}{m}\right),
 \end{equation}
 which is the rate \eqref{eq:main_rate} of \Cref{thm:main-sim}. This computation is

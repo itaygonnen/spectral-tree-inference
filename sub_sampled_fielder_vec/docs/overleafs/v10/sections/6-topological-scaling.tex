@@ -1,5 +1,5 @@
 % §5 Topological scaling and spectral gap.  No sampling enters.  Exact statements about
-% the population Laplacian, delivering which clan pair Pi(S) is and how eta moves the
+% the population Laplacian, delivering which split Pi(S) is and how eta moves the
 % coherence and the gap until recovery becomes impossible.
 % §6 consumes lem:A-decomp and lem:gap from here.
 \section{Topological Scaling and Spectral Gap}\label{sec:bridging}
@@ -10,13 +10,13 @@ separating $\lambda_2$ from $\lambda_3$. The whole dependence runs through the s
 structural parameter $\eta$ of \Cref{def:imbalance}.
 
 \begin{lemma}[Spectral decomposition of the imbalanced Laplacian]\label{lem:A-decomp}
-Let $S$ satisfy \Cref{def:cfbm} at a bipartition $\mathcal{X}=A\cup B$, as \Cref{prop:cfbm}
+Let $S$ satisfy \Cref{def:cfbm} at a bipartition $\mathcal{X}=C_1\cup C_2$, as \Cref{prop:cfbm}
 guarantees at the root split
 under \Cref{asm:gtr,asm:clock}. Then (i) the smallest eigenvalue of $L$ is
 $\lambda_1=0$, simple, with $v^{(1)}=\tfrac1{\sqrt m}\1_m$; (ii) $m\bze$ is an
 eigenvalue of $L$ whose eigenvector is piecewise constant on the split,
-$\vv_i=+c_A$ for $i\in A$ and $\vv_i=-c_B$ for $i\in B$, with $c_A=\sqrt{|B|/(|A|m)}$
-and $c_B=\sqrt{|A|/(|B|m)}$; and (iii) consequently
+$\vv_i=+c_1$ for $i\in C_1$ and $\vv_i=-c_2$ for $i\in C_2$, with $c_1=\sqrt{|C_2|/(|C_1|m)}$
+and $c_2=\sqrt{|C_1|/(|C_2|m)}$; and (iii) consequently
 \begin{equation}\label{eq:lambda2_upper}
    \lambda_2 \le m\bze .
 \end{equation}
@@ -26,13 +26,16 @@ similarity graph.
 \end{lemma}
 
 \noindent The proof is in \Cref{app:comp1}. Clauses (i)--(iii) are a direct
-computation, and they use only the constancy of the cross-clan block, not the floor:
-the identity $(D_A-S_A)\1_{|A|}=|B|\bze\1_{|A|}$ holds for an arbitrary symmetric diagonal
-block, because $D_A$ already carries the row sums of that block. Clause (iv) is where
+computation, and they use only the constancy of the cross-block, not the floor:
+the identity $(D_{C_1}-S_{C_1})\1_{|C_1|}=|C_2|\bze\1_{|C_1|}$ holds for an arbitrary symmetric diagonal
+block, because $D_{C_1}$ already carries the row sums of that block. Clause (iv) is where
 \Cref{asm:margin} enters, as the statement that $m_{\min}\Sin^{\min}>m\bze$: it puts
 the interlacing lower bound on $\lambda_3$ used in \Cref{lem:gap} strictly above
 $m\bze$, leaving no eigenvalue between $0$ and $m\bze$. It is what makes
-$\min_i|\vv_i|=c_B$ available to the proof of \Cref{thm:main-sim}.
+$\min_i|\vv_i|=c_2$ available to the proof of \Cref{thm:main-sim}. Since $\vv$ is
+non-negative exactly on $C_1$, the sign rule \eqref{eq:sign_rule} returns $C_1$ as its
+first block, so the labelling of \Cref{def:imbalance} and that of \Cref{thm:stdr-split}
+agree: $C_1$ is the smaller clade.
 
 \subsection{Coherence and the spectral gap under imbalance}\label{sec:bridging-scaling}
 
@@ -85,17 +88,17 @@ drives it toward zero.
 
 \begin{lemma}[Spectral-gap lower bound]\label{lem:gap}
 Let $L$ be the combinatorial Laplacian of a similarity matrix satisfying the
-molecular clock, with structural margin $\rho=\Sin^{\min}-\Sout^{\max}$. For
-$m_{\min}=\min(|A|,|B|)$ and imbalance $\eta$, the spectral gap isolating the Fiedler
+molecular clock, with structural margin $\rho$ as in \eqref{eq:margin_definition}. For
+$m_{\min}=\min(|C_1|,|C_2|)$ and imbalance $\eta$, the spectral gap isolating the Fiedler
 vector satisfies
 \begin{equation}\label{eq:spectral_gap_margin}
-   \Dlam \ge m_{\min}\rho-\eta\,m_{\min}\,\Sout^{\max}.
+   \Dlam \ge m_{\min}\rho-\eta\,m_{\min}\,\bze.
 \end{equation}
 \end{lemma}
 \noindent The full algebraic-connectivity derivation is given in \Cref{app:comp1},
 building on the eigenpairs of \Cref{lem:A-decomp}. The bound
-\eqref{eq:spectral_gap_margin} is purely a CFBM statement, controlling the gap
-through the abstract minimum intra-clan similarity $\Sin^{\min}$ of
+\eqref{eq:spectral_gap_margin} is purely a CBM statement, controlling the gap
+through the abstract minimum within-block similarity $\Sin^{\min}$ of
 \eqref{eq:cfbm_floor}.
 
 \subsection{Two failure modes}\label{sec:bridging-failure}
@@ -107,16 +110,17 @@ $(m,\eta)$. The first is \emph{structural collapse},
 $\Dlam\to0$, which we state here as a corollary of the gap lemma; the second is
 \emph{statistical infeasibility}, $p>1$, which is a consequence of
 \Cref{thm:main-sim}. A positive gap requires the structural margin to
-dominate the imbalance-weighted cross-clan boundary,
-$m_{\min}\rho>\eta\,m_{\min}\Sout^{\max}$, i.e.\
-$\eta<\Sin^{\min}/\Sout^{\max}$ --- precisely what \Cref{asm:margin} records.
+dominate the imbalance-weighted cross-block boundary,
+$m_{\min}\rho>\eta\,m_{\min}\bze$, i.e.\
+$\eta<\Sin^{\min}/\bze$ --- precisely what \Cref{asm:margin} records.
 Translating this
 ratio into tree distances bounds the imbalance the topology can sustain.
 
 \begin{corollary}[Structural imbalance tolerance]\label{cor:tolerance}
-Write similarities as distances, $S_{ij}=e^{-d(x_i,x_j)}$, and let
-$r(\mathcal T)=\max_{i,j}(-\log S_{ij})$ be the diameter and $h(\mathcal T)$ the
-depth of $\mathcal T$ \cite{aizenbud2023spectral}, with $h(\mathcal T)<r(\mathcal T)$.
+Measure the tree in log-similarity units: by \eqref{eq:similarity_gtr},
+$r(\mathcal T):=\max_{i,j}(-\log S_{ij})=|\mathrm{tr}(Q)|\max_{i,j}d_{ij}$ is its diameter,
+and $h(\mathcal T)$ its depth in the same units \cite{aizenbud2023spectral}, with
+$h(\mathcal T)<r(\mathcal T)$.
 Then a positive spectral gap is possible only if
 \begin{equation}\label{eq:eta_distance_bound}
    \eta\le\mathcal O\!\bigl(e^{\mathcal O(h(\mathcal T))-r(\mathcal T)}\bigr).
@@ -127,7 +131,7 @@ $r(\mathcal T),h(\mathcal T)=\mathcal O(\log m)$
 a model-dependent constant $c$.
 \end{corollary}
 \noindent The proof sketch (substituting the diameter/depth bounds into
-$\eta<\Sin^{\min}/\Sout^{\max}$) is given in \Cref{app:comp1}.
+$\eta<\Sin^{\min}/\bze$) is given in \Cref{app:comp1}.
 
 So under balanced generative models the gap survives polynomial imbalance. A
 positive gap is necessary but not sufficient: even when $\Dlam>0$, the rate
@@ -136,12 +140,12 @@ past which that demand exceeds $p=1$.
 
 \begin{corollary}[Vacuity of the certificate under imbalance]\label{cor:infeasible}
 Under the hypotheses of \Cref{thm:main-sim}, with $\bze$ and the margin
-$\rho-\eta\Sout^{\max}$ held bounded away from $0$ independently of $\eta$, the
+$\rho-\eta\bze$ held bounded away from $0$ independently of $\eta$, the
 right-hand side of \eqref{eq:main_rate} exceeds $1$ once
 $\eta=\Omega\!\bigl(\sqrt[3]{m/\log m}\bigr)$; in general the threshold is
-reached when $\eta^3\bze^2/(\rho-\eta\Sout^{\max})^2=\Omega(m/\log m)$. No admissible sampling rate
+reached when $\eta^3\bze^2/(\rho-\eta\bze)^2=\Omega(m/\log m)$. No admissible sampling rate
 $p\in(0,1]$ then satisfies the sufficient condition, so \Cref{thm:main-sim}
 certifies nothing in that regime. What the theorem stops certifying there is the
-sampling: \Cref{thm:stdr-split} continues to make $\Pisp{S}$ a clan pair of
+sampling: \Cref{thm:stdr-split} continues to make $\Pisp{S}$ a split of
 $\mathcal{T}$ whatever $\eta$ does.
 \end{corollary}

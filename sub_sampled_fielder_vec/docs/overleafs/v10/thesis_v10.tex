@@ -47,13 +47,10 @@
 \newtheorem{remark}{Remark}
 
 %------------------------------ notation shortcuts ----------------------------
+% \Sin always carries a superscript: \Sin^{\min} is the weakest within-block
+% similarity of def:cfbm.  \Smax is the largest off-diagonal entry, max_{i!=j} S_ij.
+% The cross-block baseline has one name, \bze; \Sout is retired with it.
 \newcommand{\Sin}{S_{\mathrm{in}}}
-\newcommand{\Sout}{S_{\mathrm{out}}}
-% \Smin was never used and is retired.  \Smax is defined in sec:model as
-% max_{i!=j} S_ij.  Bare \Sin (no superscript) is a DIFFERENT quantity from
-% \Sin^{\min} -- it is the per-clan top-level baseline of the HBM -- and is
-% confined to appendix-D, bridging.tex's HBM coda and the lem:gap proof.
-% It must not appear in sec:model or sec:problem.
 \newcommand{\Smax}{S_{\max}}
 \newcommand{\bze}{\beta_0}
 \newcommand{\Dlam}{\Delta\lambda}
@@ -71,9 +68,6 @@
 \newcommand{\opnorm}[1]{\norm{#1}_{2}}
 \newcommand{\hp}{with high probability}
 \newcommand{\R}{\mathbb{R}}
-% Pairwise distance matrix D_ij = -log S_ij (§2.3).  Distinct from the degree
-% matrix D of L = D - S.
-\newcommand{\Dmat}{\mathcal{D}}
 \newcommand{\1}{\mathbf{1}}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\Prob}{\mathbb{P}}

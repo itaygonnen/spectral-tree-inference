@@ -4,7 +4,7 @@
 % the section is one argument and headings would restart it.
 \section{Problem definition}\label{sec:problem}
 
-Because the Fiedler split of the full similarity matrix is always a clan pair
+Because the Fiedler split of the full similarity matrix is always a split of $\mathcal{T}$
 (\Cref{thm:stdr-split}), tree reconstruction becomes a divide-and-conquer recursion. Spectral
 Top-Down Reconstruction (STDR) \cite{aizenbud2023spectral} forms the similarity matrix over the
 current node set, splits it by the sign pattern of the Fiedler vector, solves each side
@@ -12,9 +12,13 @@ independently by any accurate reconstruction method once the subproblem is small
 the two subtrees along the recovered edge (\Cref{alg:stdr}).
 
 \begin{algorithm}[t]
-\caption{Spectral Top-Down Reconstruction (STDR) \cite{aizenbud2023spectral}}
+\caption{Spectral Top-Down Reconstruction (STDR) for Latent Tree Models. The algorithm recursively partitions terminal nodes using the Fiedler vector of the similarity graph until the subset size falls below $m_0$. A base method recovers the small subtrees, which are then deterministically merged by identifying optimal placeholder edges via singular vectors of the cross-similarity matrix \cite{aizenbud2023spectral}.}
+
+
 \label{alg:stdr}
 \begin{algorithmic}[1]
+\State \textbf{Input:} $\mathcal{X}$, a set of terminal nodes with associated sequence data of length $\ell$; $m_0$, the maximum partition size for base reconstruction.
+\State \textbf{Output:} $\mathcal{T}$, a rooted binary latent tree spanning the terminal nodes $\mathcal{X}$.
 \Procedure{STDR}{$\mathcal{X}$}
   \If{$|\mathcal{X}| \le m_0$}
     \State \Return $\textsc{BaseReconstruct}(\mathcal{X})$
@@ -25,11 +29,11 @@ the two subtrees along the recovered edge (\Cref{alg:stdr}).
   \State $L \gets D - S$ \Comment{$D_{ii}=\sum_j S_{ij}$, \Cref{def:fiedler}}
   \State $v \gets$ eigenvector of $L$ at $\lambda_2$ \Comment{the Fiedler vector}
   \State $C_1 \gets \{x_i : v_i \ge 0\}$, \quad $C_2 \gets \{x_j : v_j < 0\}$
-         \Comment{adjacent clans, \Cref{thm:stdr-split}}
+         \Comment{a split of $\mathcal{T}$, \Cref{thm:stdr-split}}
   \State $\mathcal{T}_1 \gets \textsc{STDR}(C_1)$, \quad
          $\mathcal{T}_2 \gets \textsc{STDR}(C_2)$
-  \State \Return $\textsc{Merge}(\mathcal{T}_1, \mathcal{T}_2)$
-         \Comment{join the two subtrees at the recovered edge}
+  \State \Return $\textsc{Merge}(\mathcal{T}_1, \mathcal{T}_2, S(C_1, C_2))$
+         \Comment{join the two subtrees at recovered placeholder edges}
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -43,10 +47,7 @@ The top-level call of \Cref{alg:stdr} is the one that governs both the error and
 only call that sees all $m$ terminal nodes, and no parent call corrects it: a wrong split at the
 root cannot be repaired further down. It is also where the similarity matrix is largest.
 
-That is the bottleneck, and it sits on line 5. An entry of $S$ is not a table lookup but a statistic
-of a pair of sequences: the similarity of \Cref{def:similarity} is estimated from the joint
-character counts of terminal nodes $i$ and $j$ over a length-$\ell$ alignment. Forming the full
-matrix at the top level therefore costs
+Forming the full matrix at the top level therefore costs
 \begin{equation}\label{eq:cost}
    \binom{m}{2} = \Theta(m^2) \ \text{pairwise estimates},
    \qquad \Theta(m^2\ell) \ \text{character comparisons},
@@ -82,7 +83,7 @@ $p\to0$ (\Cref{prop:C-var}).
 pattern of the Fiedler vector $\vvh$ of $\hat L$. We ask for the minimal sampling rate $p$ at which
 $\Pisp{\hat S}=\Pisp{S}$ \hp. Since $\E[\hat S]=S$, the question reduces to an
 eigenvector-perturbation problem over $\EL=\hat L-L$, which the remainder of the paper analyzes.
-The full-data split $\Pisp{S}$ is already a clan pair of $\mathcal{T}$ (\Cref{thm:stdr-split}), so a
+The full-data split $\Pisp{S}$ is already a split of $\mathcal{T}$ (\Cref{thm:stdr-split}), so a
 rate at which $\Pisp{\hat S}=\Pisp{S}$ is a rate at which the sub-sampled operator returns a genuine
 split of the tree.
 

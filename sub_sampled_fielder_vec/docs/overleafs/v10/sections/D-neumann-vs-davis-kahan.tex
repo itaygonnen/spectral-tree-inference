@@ -3,8 +3,8 @@
 \section{The Neumann trick --- comparison with standard bounds}\label{app:compare}
 
 The recovery criterion \eqref{eq:entrywise} constrains $w=\vvh-\vv$ in the
-entry-wise sense, $\norm{w}_\infty<c_B$, where $c_B=\min_i|\vv_i|$ is the
-entry-wise margin, attained on the binding clan $B$ with $c_B^2=1/(m\eta)$, while
+entry-wise sense, $\norm{w}_\infty<c_2$, where $c_2=\min_i|\vv_i|$ is the
+entry-wise margin, attained on the binding clade $C_2$ with $c_2^2=1/(m\eta)$, while
 the sampled-Laplacian noise satisfies $\opnorm{\EL}\le\tilde C\sqrt{m\log
 m/p}$ (\Cref{lem:B-bernstein}). The two routes below bound the same $w$, differing
 only in how they relate the entry-wise constraint to $\EL$.
@@ -12,16 +12,16 @@ only in how they relate the entry-wise constraint to $\EL$.
 \paragraph{The standard ($\ell_2$) route.} Davis--Kahan controls only the Euclidean
 norm, $\norm{w}_2\le\opnorm{\EL}/(\Dlam-\opnorm{\EL})$. Because the criterion is in
 the supremum norm, this must be transferred via $\norm{w}_\infty\le\norm{w}_2$;
-imposing $\norm{w}_2<c_B$ and substituting the noise bound in the regime
+imposing $\norm{w}_2<c_2$ and substituting the noise bound in the regime
 $\opnorm{\EL}\ll\Dlam$ yields $p_{\mathrm{naive}}\gtrsim m^2\eta\log m/\Dlam^2$,
 i.e.\ $\eta(1+\eta)^2\log m/(\rho-\eta\bze)^2$ after the gap bound of \Cref{lem:gap}.
 
 \paragraph{The entry-wise (Neumann) route.} \Cref{lem:neumann} bounds each
 coordinate directly, replacing $\opnorm{\EL}$ by the scalar $(\EL\vv)_i$ at the
-tightest coordinate $i\in B$. This scalar is a sum of $O(m)$ independent mean-zero
-contributions concentrating at $\sigma_B^2=(1-p)(1+\eta)\bze^2/(\eta p)$
+tightest coordinate $i\in C_2$. This scalar is a sum of $O(m)$ independent mean-zero
+contributions concentrating at $\sigma_2^2=(1-p)(1+\eta)\bze^2/(\eta p)$
 (\Cref{prop:C-var}), smaller than $\opnorm{\EL}^2$ by a factor $m$; imposing
-$|w_i|<c_B$ and the gap bound recovers the rate of \Cref{cor:C-cond}.
+$|w_i|<c_2$ and the gap bound recovers the rate of \Cref{cor:C-cond}.
 
 \begin{remark}[$\ell_2$ vs.\ entry-wise]\label{rem:E-compare}
 Comparing the two rates gives
