@@ -501,15 +501,21 @@ def main():
     # from -- everything after that is the same screen, gate, sweep and run directory.
     from analysis.utils.run_menu import (run_generated_menu, run_real_data_menu,
                                          run_simulate_menu)
-    choice = choose_data_source()
-    if choice == DATA_SOURCES[0]:
-        # writes one dataset per size, then hands straight over to the list below
-        if run_simulate_menu():
+    # Looped so "back" returns here. It used to fall out of main() and quit the
+    # launcher, which is not what a menu entry called "back" can mean.
+    while True:
+        choice = choose_data_source()
+        if choice == DATA_SOURCES[0]:
+            outcome = run_simulate_menu()
+            if outcome == "back":
+                continue
+            if outcome:                 # wrote a dataset -> straight to the list
+                run_real_data_menu()
+        elif choice == DATA_SOURCES[1]:
             run_real_data_menu()
-    elif choice == DATA_SOURCES[1]:
-        run_real_data_menu()
-    else:
-        run_generated_menu()
+        else:
+            run_generated_menu()
+        return
 
 
 def single_tree_menu():

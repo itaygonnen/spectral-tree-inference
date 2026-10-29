@@ -642,7 +642,7 @@ def run_simulate_menu() -> bool:
         print_error("this branch needs two things that are not installed:")
         for line in missing:
             print(f"    - {line}")
-        return False
+        return "back"
 
     # Start from the defaults and show them, rather than asking seven questions nobody
     # wants to answer twice -- the same shape as the generated branch, where the status
@@ -654,7 +654,7 @@ def run_simulate_menu() -> bool:
         pick = get_menu_choice("Run:", ["start", "change these settings", "back"],
                                default_index=0)
         if pick.startswith("back"):
-            return False
+            return "back"
         if pick.startswith("start"):
             break
         cfg = _edit_sim_config(cfg)
