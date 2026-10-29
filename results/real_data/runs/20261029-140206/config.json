@@ -1,0 +1,38 @@
+{
+  "stage": "screen",
+  "max_trees": 0,
+  "workers": 5,
+  "gate": "valid_L",
+  "max_eta": 20.0,
+  "bucket": true,
+  "eta_targets": [
+    1,
+    5,
+    10,
+    15
+  ],
+  "per_bucket": [
+    10,
+    10,
+    3,
+    3
+  ],
+  "eta_tol": 1.0,
+  "p_min": 0.0001,
+  "p_points": 20,
+  "reps": 10,
+  "num_gaps": 10,
+  "min_split": 5,
+  "operators": [
+    "S"
+  ],
+  "early_stop": 2,
+  "extra_metrics": true,
+  "prefix": "",
+  "display_mode": "progress",
+  "datasets": [
+    "sailfish_yule_n1000_L1000_g1x4_buckets"
+  ],
+  "commit": "4120e61",
+  "started": "2026-10-29T14:02:06"
+}

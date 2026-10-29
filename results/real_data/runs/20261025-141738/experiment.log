@@ -1,0 +1,17 @@
+================================================================================
+Experiment Log Started: 2026-10-25 14:17:38
+================================================================================
+
+[14:17:38] SCREEN | INFO | sailfish_yule_n1000_L1000_g1x4: computing 4 trees on 4 workers, operators ('S',) (0 already cached)
+[14:17:41] SCREEN | INFO | random_tree_0002: S eta=49.00/not-an-edge (sign)
+[14:17:41] SCREEN | INFO | [1/4] saved 1 rows
+[14:17:41] SCREEN | INFO | random_tree_0003: S eta=10.76/edge (sign)
+[14:17:41] SCREEN | INFO | [2/4] saved 2 rows
+[14:17:41] SCREEN | INFO | random_tree_0001: S eta=20.28/not-an-edge (sign)
+[14:17:41] SCREEN | INFO | [3/4] saved 3 rows
+[14:17:41] SCREEN | INFO | random_tree_0004: S eta=4.15/edge (sign)
+[14:17:41] SCREEN | INFO | [4/4] saved 4 rows
+
+================================================================================
+Experiment Log Ended: 2026-10-25 14:17:42
+================================================================================

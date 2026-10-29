@@ -1,0 +1,15 @@
+dataset,m,tree,eta_L,valid_L,rule_L,eta_L_kmeans,valid_L_kmeans,eta_L_sign,valid_L_sign
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta01_001,1.3419,1,sign,999.0000,1,1.3419,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta01_002,1.5773,1,sign,110.1111,0,1.5773,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta01_003,1.3419,1,sign,499.0000,1,1.3419,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta01_004,1.4691,1,sign,999.0000,1,1.4691,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta05_001,5.1350,1,sign,999.0000,1,5.1350,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta05_002,5.4103,1,sign,999.0000,1,5.4103,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta05_003,4.7471,1,sign,999.0000,1,4.7471,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta05_004,4.9172,1,sign,999.0000,1,4.9172,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta10_001,9.9890,1,sign,999.0000,1,9.9890,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta10_002,9.0000,1,sign,999.0000,1,9.0000,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta10_003,9.3093,1,sign,249.0000,0,9.3093,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta15_001,15.3934,1,sign,999.0000,1,15.3934,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta15_002,14.8730,1,sign,332.3333,1,14.8730,1
+sailfish_yule_n1000_L1000_g1x4_buckets,1000,eta15_003,14.6250,1,sign,249.0000,0,14.6250,1

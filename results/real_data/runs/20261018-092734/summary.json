@@ -1,0 +1,17 @@
+{
+  "status": "completed",
+  "commit": "e7e39bc",
+  "datasets": {
+    "kingman n1000 L10000 mu0.1 eta1-5-10-15 #c987ce": {
+      "trees_selected": 40,
+      "screening": {
+        "trees": 40,
+        "m": 1000,
+        "valid_L": 40,
+        "median_eta_L": 7.451865594722737,
+        "valid_L_and_B": 0
+      }
+    }
+  },
+  "finished": "2026-10-18T09:27:34"
+}

@@ -1,0 +1,6 @@
+[96m════════════════════════════════════════════════════════════[0m
+
+[1m[93m[1/1] sailfish_yule_n1000_L1000_g1x4_buckets[0m
+────────────────────────────────────────────
+  screening complete: 14 tree(s) already done, 14 with a real tree edge -- nothing to recompute.
+  next: run the recovery sweep over these trees (menu option 2, or --stage sweep).

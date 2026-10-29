@@ -1,0 +1,940 @@
+================================================================================
+Experiment Log Started: 2026-10-18 09:50:05
+================================================================================
+
+[09:50:05] BOOTSTRAP_SWEEP | INFO | kingman n1000 L10000 mu0.1 eta1-5-10-15 #c987ce: 0/40 cached, 40 to run, operators ('S',), p=0.0001..1, reps=10
+[09:50:05] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000: loaded m=1000, true-tree top split 650/350
+[09:50:06] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000: S reference kmeans eta=1.86, sign eta=1.86 -> using kmeans
+[09:50:06] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.01274 results: nmi=0.0273, ari=0.0157, agr=65.90%, dot=0.1050, sign=59.50%, s2_full=3.7930, s2_sub=47.6220, opnorm=331.4944, eta=110.11, split=9-991
+[09:50:06] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.02069 results: nmi=0.0273, ari=0.0157, agr=65.90%, dot=0.1437, sign=65.40%, s2_full=4.8535, s2_sub=35.5066, opnorm=252.9699, eta=110.11, split=9-991
+[09:50:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.007848 results: nmi=0.0064, ari=-0.0045, agr=64.50%, dot=0.0400, sign=65.10%, s2_full=5.4793, s2_sub=66.8363, opnorm=439.4614, eta=199.00, split=5-995
+[09:50:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.0336 results: nmi=0.0273, ari=0.0157, agr=65.90%, dot=0.5379, sign=99.20%, s2_full=5.7475, s2_sub=30.9850, opnorm=195.4863, eta=110.11, split=9-991
+[09:50:07] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[09:50:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.0001 results: nmi=0.0032, ari=0.0017, agr=65.10%, dot=0.1017, sign=52.80%, s2_full=0.0000, s2_sub=0.0000, opnorm=11162.9168, eta=999.00, split=1-999
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.05456 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9974, sign=100.00%, s2_full=0.1933, s2_sub=12.2674, opnorm=150.1380, eta=1.86, split=350-650
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9990, sign=100.00%, s2_full=0.1933, s2_sub=9.2932, opnorm=114.7777, eta=1.86, split=350-650
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1933, s2_sub=0.1933, opnorm=0.0000, eta=1.86, split=350-650
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.1438 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.86, split=350-650
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.86, split=350-650
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.86, split=350-650
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.86, split=350-650
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.000162 EXTRAPOLATED: nmi=0.0168, ari=0.0056, agr=65.20%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.000264 EXTRAPOLATED: nmi=0.0168, ari=0.0056, agr=65.20%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.000428 EXTRAPOLATED: nmi=0.0168, ari=0.0056, agr=65.20%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.000695 EXTRAPOLATED: nmi=0.0168, ari=0.0056, agr=65.20%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.001129 EXTRAPOLATED: nmi=0.0168, ari=0.0056, agr=65.20%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.001833 EXTRAPOLATED: nmi=0.0168, ari=0.0056, agr=65.20%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.002976 EXTRAPOLATED: nmi=0.0168, ari=0.0056, agr=65.20%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_000 [L] p=0.004833 EXTRAPOLATED: nmi=0.0168, ari=0.0056, agr=65.20%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:08] BOOTSTRAP_SWEEP | INFO | [1/40] kingman_n1000_eta01_000 done in 3 s (elapsed 0.00 h, ETA 0.03 h)
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001: loaded m=1000, true-tree top split 624/376
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001: S reference kmeans eta=1.66, sign eta=1.66 -> using kmeans
+[09:50:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.01274 results: nmi=0.0081, ari=-0.0046, agr=61.80%, dot=0.0810, sign=38.90%, s2_full=8.6939, s2_sub=48.8584, opnorm=330.5384, eta=165.67, split=6-994
+[09:50:09] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.02069 results: nmi=0.0169, ari=0.0080, agr=63.00%, dot=0.1190, sign=57.90%, s2_full=2.6570, s2_sub=40.1850, opnorm=253.2664, eta=165.67, split=6-994
+[09:50:09] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.007848 results: nmi=0.0107, ari=-0.0061, agr=61.60%, dot=0.0692, sign=37.30%, s2_full=9.0576, s2_sub=66.0339, opnorm=442.1308, eta=124.00, split=8-992
+[09:50:09] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.0336 results: nmi=0.0081, ari=-0.0046, agr=61.80%, dot=0.1984, sign=71.00%, s2_full=9.1138, s2_sub=27.8483, opnorm=193.6430, eta=165.67, split=6-994
+[09:50:10] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.0001 results: nmi=0.0081, ari=0.0120, agr=63.00%, dot=0.0875, sign=47.70%, s2_full=31.2963, s2_sub=996.1088, opnorm=10449.7348, eta=44.45, split=22-978
+[09:50:10] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.05456 results: nmi=0.9616, ari=0.9840, agr=99.60%, dot=0.6964, sign=98.90%, s2_full=7.4706, s2_sub=23.2199, opnorm=148.0399, eta=1.65, split=378-622
+[09:50:10] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9720, sign=100.00%, s2_full=0.4505, s2_sub=12.9787, opnorm=114.5853, eta=1.66, split=376-624
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9984, sign=100.00%, s2_full=0.4505, s2_sub=9.9343, opnorm=86.2679, eta=1.66, split=376-624
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.4505, s2_sub=0.4505, opnorm=0.0000, eta=1.66, split=376-624
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.66, split=376-624
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.66, split=376-624
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.66, split=376-624
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.000162 EXTRAPOLATED: nmi=0.0094, ari=-0.0054, agr=61.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.000264 EXTRAPOLATED: nmi=0.0094, ari=-0.0054, agr=61.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.000428 EXTRAPOLATED: nmi=0.0094, ari=-0.0054, agr=61.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.000695 EXTRAPOLATED: nmi=0.0094, ari=-0.0054, agr=61.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.001129 EXTRAPOLATED: nmi=0.0094, ari=-0.0054, agr=61.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.001833 EXTRAPOLATED: nmi=0.0094, ari=-0.0054, agr=61.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.002976 EXTRAPOLATED: nmi=0.0094, ari=-0.0054, agr=61.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_001 [L] p=0.004833 EXTRAPOLATED: nmi=0.0094, ari=-0.0054, agr=61.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:11] BOOTSTRAP_SWEEP | INFO | [2/40] kingman_n1000_eta01_001 done in 3 s (elapsed 0.00 h, ETA 0.03 h)
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002: loaded m=1000, true-tree top split 499/501
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002: S reference kmeans eta=1.00, sign eta=1.00 -> using kmeans
+[09:50:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.01274 results: nmi=0.0133, ari=0.0002, agr=50.80%, dot=0.0725, sign=37.80%, s2_full=6.1657, s2_sub=48.2362, opnorm=313.1989, eta=141.86, split=7-993
+[09:50:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.02069 results: nmi=0.0133, ari=0.0002, agr=50.80%, dot=0.0819, sign=48.50%, s2_full=9.0352, s2_sub=36.6674, opnorm=236.3053, eta=141.86, split=7-993
+[09:50:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.007848 results: nmi=0.0114, ari=0.0001, agr=50.50%, dot=0.0877, sign=50.30%, s2_full=10.2827, s2_sub=59.1998, opnorm=413.1036, eta=165.67, split=6-994
+[09:50:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.0336 results: nmi=0.9631, ari=0.9840, agr=99.60%, dot=0.7552, sign=99.60%, s2_full=9.4600, s2_sub=30.1932, opnorm=180.0269, eta=1.00, split=499-501
+[09:50:13] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[09:50:13] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.0001 results: nmi=0.0020, ari=-0.0000, agr=50.00%, dot=0.0718, sign=42.50%, s2_full=0.0000, s2_sub=0.0000, opnorm=10654.6921, eta=999.00, split=1-999
+[09:50:13] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.05456 results: nmi=0.9896, ari=0.9960, agr=99.90%, dot=0.9732, sign=99.90%, s2_full=5.3912, s2_sub=19.5511, opnorm=138.7333, eta=1.00, split=500-500
+[09:50:13] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9988, sign=100.00%, s2_full=0.3200, s2_sub=9.5828, opnorm=106.3091, eta=1.00, split=499-501
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9994, sign=100.00%, s2_full=0.3200, s2_sub=7.1919, opnorm=80.1247, eta=1.00, split=499-501
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.3200, s2_sub=0.3200, opnorm=0.0000, eta=1.00, split=499-501
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.00, split=499-501
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.00, split=499-501
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.00, split=499-501
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.000162 EXTRAPOLATED: nmi=0.0124, ari=0.0001, agr=50.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.000264 EXTRAPOLATED: nmi=0.0124, ari=0.0001, agr=50.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.000428 EXTRAPOLATED: nmi=0.0124, ari=0.0001, agr=50.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.000695 EXTRAPOLATED: nmi=0.0124, ari=0.0001, agr=50.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.001129 EXTRAPOLATED: nmi=0.0124, ari=0.0001, agr=50.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.001833 EXTRAPOLATED: nmi=0.0124, ari=0.0001, agr=50.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.002976 EXTRAPOLATED: nmi=0.0124, ari=0.0001, agr=50.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_002 [L] p=0.004833 EXTRAPOLATED: nmi=0.0124, ari=0.0001, agr=50.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:14] BOOTSTRAP_SWEEP | INFO | [3/40] kingman_n1000_eta01_002 done in 3 s (elapsed 0.00 h, ETA 0.03 h)
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003: loaded m=1000, true-tree top split 383/617
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003: S reference kmeans eta=1.61, sign eta=1.61 -> using kmeans
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.01274 results: nmi=0.0109, ari=-0.0058, agr=60.90%, dot=0.0835, sign=42.10%, s2_full=13.7130, s2_sub=53.1100, opnorm=326.5322, eta=124.00, split=8-992
+[09:50:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.02069 results: nmi=0.0028, ari=0.0034, agr=61.90%, dot=0.0884, sign=55.70%, s2_full=14.8071, s2_sub=42.7060, opnorm=251.4512, eta=165.67, split=6-994
+[09:50:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.007848 results: nmi=0.0083, ari=-0.0044, agr=61.10%, dot=0.0712, sign=61.80%, s2_full=11.7761, s2_sub=70.8808, opnorm=439.7967, eta=165.67, split=6-994
+[09:50:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.0336 results: nmi=0.0135, ari=-0.0072, agr=60.70%, dot=0.1538, sign=53.10%, s2_full=12.3606, s2_sub=34.7743, opnorm=192.4728, eta=99.00, split=10-990
+[09:50:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.0001 results: nmi=0.0054, ari=-0.0063, agr=60.70%, dot=0.0772, sign=49.50%, s2_full=17.5107, s2_sub=735.6318, opnorm=10951.7885, eta=70.43, split=14-986
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.05456 results: nmi=0.0083, ari=-0.0044, agr=61.10%, dot=0.3770, sign=86.00%, s2_full=8.8275, s2_sub=24.7055, opnorm=145.9442, eta=165.67, split=6-994
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9191, sign=100.00%, s2_full=0.2407, s2_sub=15.4446, opnorm=112.1346, eta=1.61, split=383-617
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9899, sign=100.00%, s2_full=0.2407, s2_sub=11.7078, opnorm=84.9944, eta=1.61, split=383-617
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.2407, s2_sub=0.2407, opnorm=0.0000, eta=1.61, split=383-617
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.61, split=383-617
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.61, split=383-617
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.61, split=383-617
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.000162 EXTRAPOLATED: nmi=0.0096, ari=-0.0051, agr=61.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.000264 EXTRAPOLATED: nmi=0.0096, ari=-0.0051, agr=61.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.000428 EXTRAPOLATED: nmi=0.0096, ari=-0.0051, agr=61.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.000695 EXTRAPOLATED: nmi=0.0096, ari=-0.0051, agr=61.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.001129 EXTRAPOLATED: nmi=0.0096, ari=-0.0051, agr=61.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.001833 EXTRAPOLATED: nmi=0.0096, ari=-0.0051, agr=61.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.002976 EXTRAPOLATED: nmi=0.0096, ari=-0.0051, agr=61.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_003 [L] p=0.004833 EXTRAPOLATED: nmi=0.0096, ari=-0.0051, agr=61.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:16] BOOTSTRAP_SWEEP | INFO | [4/40] kingman_n1000_eta01_003 done in 3 s (elapsed 0.00 h, ETA 0.03 h)
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004: loaded m=1000, true-tree top split 596/404
+[09:50:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004: S reference kmeans eta=1.48, sign eta=1.48 -> using kmeans
+[09:50:17] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.01274 results: nmi=0.0202, ari=0.0078, agr=60.40%, dot=0.0953, sign=53.20%, s2_full=12.6939, s2_sub=42.7796, opnorm=308.8406, eta=124.00, split=8-992
+[09:50:17] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.02069 results: nmi=0.0274, ari=0.0109, agr=60.70%, dot=0.1386, sign=58.80%, s2_full=11.5323, s2_sub=34.9798, opnorm=233.5776, eta=89.91, split=11-989
+[09:50:17] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.007848 results: nmi=0.0129, ari=0.0048, agr=60.10%, dot=0.0835, sign=40.80%, s2_full=2.6416, s2_sub=48.4902, opnorm=411.4369, eta=199.00, split=5-995
+[09:50:18] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.0336 results: nmi=0.0250, ari=0.0099, agr=60.60%, dot=0.1135, sign=59.20%, s2_full=15.3701, s2_sub=29.2862, opnorm=177.9112, eta=99.00, split=10-990
+[09:50:18] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.0001 results: nmi=0.0225, ari=0.0149, agr=61.00%, dot=0.0828, sign=51.10%, s2_full=21.1929, s2_sub=938.8897, opnorm=10717.4387, eta=49.00, split=20-980
+[09:50:18] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.05456 results: nmi=0.0226, ari=0.0088, agr=60.50%, dot=0.2594, sign=82.30%, s2_full=14.5205, s2_sub=21.9162, opnorm=137.4613, eta=110.11, split=9-991
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.08859 results: nmi=0.9893, ari=0.9960, agr=99.90%, dot=0.8736, sign=99.90%, s2_full=4.6620, s2_sub=12.0649, opnorm=104.3385, eta=1.48, split=403-597
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9942, sign=100.00%, s2_full=0.4323, s2_sub=7.9181, opnorm=80.1191, eta=1.48, split=404-596
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9991, sign=100.00%, s2_full=0.4323, s2_sub=5.9124, opnorm=58.3235, eta=1.48, split=404-596
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.4323, s2_sub=0.4323, opnorm=0.0000, eta=1.48, split=404-596
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.48, split=404-596
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.48, split=404-596
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.000162 EXTRAPOLATED: nmi=0.0166, ari=0.0063, agr=60.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.000264 EXTRAPOLATED: nmi=0.0166, ari=0.0063, agr=60.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.000428 EXTRAPOLATED: nmi=0.0166, ari=0.0063, agr=60.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.000695 EXTRAPOLATED: nmi=0.0166, ari=0.0063, agr=60.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.001129 EXTRAPOLATED: nmi=0.0166, ari=0.0063, agr=60.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.001833 EXTRAPOLATED: nmi=0.0166, ari=0.0063, agr=60.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.002976 EXTRAPOLATED: nmi=0.0166, ari=0.0063, agr=60.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_004 [L] p=0.004833 EXTRAPOLATED: nmi=0.0166, ari=0.0063, agr=60.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:19] BOOTSTRAP_SWEEP | INFO | [5/40] kingman_n1000_eta01_004 done in 3 s (elapsed 0.00 h, ETA 0.03 h)
+[09:50:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005: loaded m=1000, true-tree top split 363/637
+[09:50:20] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005: S reference kmeans eta=1.75, sign eta=1.75 -> using kmeans
+[09:50:20] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.01274 results: nmi=0.0177, ari=0.0092, agr=64.30%, dot=0.1152, sign=55.70%, s2_full=2.8926, s2_sub=53.2937, opnorm=372.4031, eta=165.67, split=6-994
+[09:50:20] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.02069 results: nmi=0.0287, ari=0.0154, agr=64.70%, dot=0.0858, sign=55.60%, s2_full=5.1011, s2_sub=42.0366, opnorm=282.7642, eta=99.00, split=10-990
+[09:50:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.007848 results: nmi=0.0079, ari=-0.0050, agr=63.10%, dot=0.0861, sign=41.40%, s2_full=3.3940, s2_sub=76.6351, opnorm=488.0489, eta=165.67, split=6-994
+[09:50:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.0336 results: nmi=0.0233, ari=0.0123, agr=64.50%, dot=0.2131, sign=75.30%, s2_full=3.9658, s2_sub=31.7565, opnorm=217.6826, eta=124.00, split=8-992
+[09:50:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.0001 results: nmi=0.0140, ari=-0.0090, agr=62.60%, dot=0.0557, sign=48.30%, s2_full=3.9838, s2_sub=859.7934, opnorm=11150.0134, eta=89.91, split=11-989
+[09:50:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.05456 results: nmi=0.0260, ari=0.0138, agr=64.60%, dot=0.2949, sign=80.90%, s2_full=3.8887, s2_sub=24.8852, opnorm=167.8117, eta=110.11, split=9-991
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9782, sign=100.00%, s2_full=0.1691, s2_sub=14.2879, opnorm=127.6596, eta=1.75, split=363-637
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9981, sign=100.00%, s2_full=0.1691, s2_sub=10.9735, opnorm=97.1160, eta=1.75, split=363-637
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1691, s2_sub=0.1691, opnorm=0.0000, eta=1.75, split=363-637
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.75, split=363-637
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.75, split=363-637
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.75, split=363-637
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.000162 EXTRAPOLATED: nmi=0.0128, ari=0.0021, agr=63.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.000264 EXTRAPOLATED: nmi=0.0128, ari=0.0021, agr=63.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.000428 EXTRAPOLATED: nmi=0.0128, ari=0.0021, agr=63.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.000695 EXTRAPOLATED: nmi=0.0128, ari=0.0021, agr=63.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.001129 EXTRAPOLATED: nmi=0.0128, ari=0.0021, agr=63.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.001833 EXTRAPOLATED: nmi=0.0128, ari=0.0021, agr=63.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.002976 EXTRAPOLATED: nmi=0.0128, ari=0.0021, agr=63.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_005 [L] p=0.004833 EXTRAPOLATED: nmi=0.0128, ari=0.0021, agr=63.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:22] BOOTSTRAP_SWEEP | INFO | [6/40] kingman_n1000_eta01_005 done in 3 s (elapsed 0.00 h, ETA 0.03 h)
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006: loaded m=1000, true-tree top split 624/376
+[09:50:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006: S reference kmeans eta=1.66, sign eta=1.66 -> using kmeans
+[09:50:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.01274 results: nmi=0.0169, ari=0.0080, agr=63.00%, dot=0.6090, sign=99.90%, s2_full=8.3439, s2_sub=42.1464, opnorm=334.2164, eta=165.67, split=6-994
+[09:50:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.02069 results: nmi=0.9891, ari=0.9960, agr=99.90%, dot=0.9847, sign=99.90%, s2_full=2.0282, s2_sub=7.4836, opnorm=255.1518, eta=1.67, split=375-625
+[09:50:23] P_SWEEP_INNER | WARNING | k-means split smaller side 4 < min_split 5
+[09:50:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.007848 results: nmi=0.0055, ari=-0.0031, agr=62.00%, dot=0.0670, sign=62.50%, s2_full=4.1924, s2_sub=59.5485, opnorm=436.9725, eta=249.00, split=4-996
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.0336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0485, s2_sub=1.2645, opnorm=194.1797, eta=1.66, split=376-624
+[09:50:24] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.0001 results: nmi=0.0029, ari=0.0013, agr=62.50%, dot=0.0693, sign=38.40%, s2_full=0.0000, s2_sub=0.0000, opnorm=11801.3454, eta=999.00, split=1-999
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.05456 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0485, s2_sub=0.9719, opnorm=148.5437, eta=1.66, split=376-624
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0485, s2_sub=0.0485, opnorm=0.0000, eta=1.66, split=376-624
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.08859 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.66, split=376-624
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.1438 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.66, split=376-624
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.66, split=376-624
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.66, split=376-624
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.66, split=376-624
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.000162 EXTRAPOLATED: nmi=0.0112, ari=0.0024, agr=62.50%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.000264 EXTRAPOLATED: nmi=0.0112, ari=0.0024, agr=62.50%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.000428 EXTRAPOLATED: nmi=0.0112, ari=0.0024, agr=62.50%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.000695 EXTRAPOLATED: nmi=0.0112, ari=0.0024, agr=62.50%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.001129 EXTRAPOLATED: nmi=0.0112, ari=0.0024, agr=62.50%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.001833 EXTRAPOLATED: nmi=0.0112, ari=0.0024, agr=62.50%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.002976 EXTRAPOLATED: nmi=0.0112, ari=0.0024, agr=62.50%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_006 [L] p=0.004833 EXTRAPOLATED: nmi=0.0112, ari=0.0024, agr=62.50%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:24] BOOTSTRAP_SWEEP | INFO | [7/40] kingman_n1000_eta01_006 done in 2 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007: loaded m=1000, true-tree top split 564/436
+[09:50:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007: S reference kmeans eta=1.29, sign eta=1.29 -> using kmeans
+[09:50:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.01274 results: nmi=0.0183, ari=0.0049, agr=57.20%, dot=0.1095, sign=54.90%, s2_full=8.8335, s2_sub=51.6011, opnorm=376.6451, eta=124.00, split=8-992
+[09:50:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.02069 results: nmi=0.0226, ari=0.0062, agr=57.40%, dot=0.1078, sign=55.80%, s2_full=11.2104, s2_sub=41.0688, opnorm=286.7867, eta=99.00, split=10-990
+[09:50:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.007848 results: nmi=0.0111, ari=-0.0030, agr=55.70%, dot=0.0804, sign=44.00%, s2_full=1.3659, s2_sub=79.6391, opnorm=498.2629, eta=141.86, split=7-993
+[09:50:26] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.0336 results: nmi=0.0161, ari=0.0043, agr=57.10%, dot=0.1203, sign=62.40%, s2_full=7.1676, s2_sub=30.3366, opnorm=221.4457, eta=141.86, split=7-993
+[09:50:26] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.0001 results: nmi=0.0196, ari=0.0085, agr=57.70%, dot=0.1175, sign=47.40%, s2_full=23.1531, s2_sub=948.5099, opnorm=12240.5480, eta=57.82, split=17-983
+[09:50:26] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.05456 results: nmi=0.0161, ari=0.0043, agr=57.10%, dot=0.5437, sign=98.20%, s2_full=8.8295, s2_sub=24.0005, opnorm=167.9848, eta=141.86, split=7-993
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9900, sign=100.00%, s2_full=0.2134, s2_sub=13.1316, opnorm=128.6734, eta=1.29, split=436-564
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9988, sign=100.00%, s2_full=0.2134, s2_sub=9.8405, opnorm=98.9415, eta=1.29, split=436-564
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.2134, s2_sub=0.2134, opnorm=0.0000, eta=1.29, split=436-564
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.29, split=436-564
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.29, split=436-564
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.29, split=436-564
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.000162 EXTRAPOLATED: nmi=0.0147, ari=0.0010, agr=56.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.000264 EXTRAPOLATED: nmi=0.0147, ari=0.0010, agr=56.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.000428 EXTRAPOLATED: nmi=0.0147, ari=0.0010, agr=56.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.000695 EXTRAPOLATED: nmi=0.0147, ari=0.0010, agr=56.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.001129 EXTRAPOLATED: nmi=0.0147, ari=0.0010, agr=56.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.001833 EXTRAPOLATED: nmi=0.0147, ari=0.0010, agr=56.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.002976 EXTRAPOLATED: nmi=0.0147, ari=0.0010, agr=56.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_007 [L] p=0.004833 EXTRAPOLATED: nmi=0.0147, ari=0.0010, agr=56.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:27] BOOTSTRAP_SWEEP | INFO | [8/40] kingman_n1000_eta01_007 done in 3 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008: loaded m=1000, true-tree top split 68/932
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008: S reference kmeans eta=1.79, sign eta=1.79 -> using kmeans
+[09:50:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.01274 results: nmi=0.0184, ari=0.0136, agr=65.00%, dot=0.1404, sign=62.00%, s2_full=14.1886, s2_sub=49.7402, opnorm=373.1500, eta=99.00, split=10-990
+[09:50:28] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.02069 results: nmi=0.0265, ari=0.0145, agr=65.10%, dot=0.2059, sign=68.20%, s2_full=12.5144, s2_sub=31.2012, opnorm=284.7892, eta=110.11, split=9-991
+[09:50:28] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.007848 results: nmi=0.0151, ari=0.0080, agr=64.70%, dot=0.1101, sign=60.20%, s2_full=8.7607, s2_sub=50.0380, opnorm=496.8407, eta=199.00, split=5-995
+[09:50:28] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.0336 results: nmi=0.0293, ari=0.0162, agr=65.20%, dot=0.2115, sign=62.00%, s2_full=12.5874, s2_sub=27.5756, opnorm=219.6629, eta=99.00, split=10-990
+[09:50:29] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[09:50:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.0001 results: nmi=0.0031, ari=0.0016, agr=64.30%, dot=0.0551, sign=37.50%, s2_full=0.0000, s2_sub=0.0000, opnorm=11326.1619, eta=999.00, split=1-999
+[09:50:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.05456 results: nmi=0.0320, ari=0.0178, agr=65.30%, dot=0.2519, sign=67.50%, s2_full=13.3520, s2_sub=23.1341, opnorm=168.1843, eta=89.91, split=11-989
+[09:50:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.08859 results: nmi=0.0209, ari=0.0112, agr=64.90%, dot=0.2962, sign=74.10%, s2_full=0.7011, s2_sub=13.2444, opnorm=128.9523, eta=141.86, split=7-993
+[09:50:30] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.1438 results: nmi=0.0180, ari=0.0096, agr=64.80%, dot=0.5656, sign=98.70%, s2_full=0.6679, s2_sub=9.5959, opnorm=98.7466, eta=165.67, split=6-994
+[09:50:30] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.2336 results: nmi=0.1610, ari=0.1193, agr=70.80%, dot=0.7913, sign=89.80%, s2_full=0.3858, s2_sub=7.0012, opnorm=73.0059, eta=14.15, split=66-934
+[09:50:30] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.3793 results: nmi=0.1652, ari=0.1234, agr=71.00%, dot=0.9375, sign=100.00%, s2_full=0.1157, s2_sub=4.4923, opnorm=51.1211, eta=13.71, split=68-932
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.6158 results: nmi=0.1652, ari=0.1234, agr=71.00%, dot=0.9683, sign=100.00%, s2_full=0.1157, s2_sub=2.6995, opnorm=31.6944, eta=13.71, split=68-932
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.3411, s2_sub=0.3411, opnorm=0.0000, eta=1.79, split=358-642
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.000162 EXTRAPOLATED: nmi=0.0167, ari=0.0108, agr=64.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.000264 EXTRAPOLATED: nmi=0.0167, ari=0.0108, agr=64.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.000428 EXTRAPOLATED: nmi=0.0167, ari=0.0108, agr=64.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.000695 EXTRAPOLATED: nmi=0.0167, ari=0.0108, agr=64.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.001129 EXTRAPOLATED: nmi=0.0167, ari=0.0108, agr=64.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.001833 EXTRAPOLATED: nmi=0.0167, ari=0.0108, agr=64.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.002976 EXTRAPOLATED: nmi=0.0167, ari=0.0108, agr=64.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_008 [L] p=0.004833 EXTRAPOLATED: nmi=0.0167, ari=0.0108, agr=64.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:31] BOOTSTRAP_SWEEP | INFO | [9/40] kingman_n1000_eta01_008 done in 4 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009: loaded m=1000, true-tree top split 533/467
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009: S reference kmeans eta=1.14, sign eta=1.14 -> using kmeans
+[09:50:31] P_SWEEP_INNER | WARNING | k-means split smaller side 4 < min_split 5
+[09:50:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.01274 results: nmi=0.0070, ari=-0.0009, agr=52.90%, dot=0.0742, sign=45.90%, s2_full=3.7560, s2_sub=57.7775, opnorm=360.5216, eta=249.00, split=4-996
+[09:50:32] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.02069 results: nmi=0.0121, ari=-0.0016, agr=52.60%, dot=0.1073, sign=47.80%, s2_full=5.1091, s2_sub=48.8468, opnorm=276.3783, eta=141.86, split=7-993
+[09:50:32] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.007848 results: nmi=0.0121, ari=-0.0016, agr=52.60%, dot=0.0848, sign=48.20%, s2_full=4.4642, s2_sub=75.1673, opnorm=473.7630, eta=141.86, split=7-993
+[09:50:32] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.0336 results: nmi=0.0106, ari=0.0015, agr=53.80%, dot=0.0922, sign=49.40%, s2_full=3.3065, s2_sub=35.9996, opnorm=213.9558, eta=199.00, split=5-995
+[09:50:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.0001 results: nmi=0.0252, ari=0.0107, agr=56.00%, dot=0.1337, sign=46.00%, s2_full=23.0049, s2_sub=1283.2420, opnorm=10829.4600, eta=21.22, split=45-955
+[09:50:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.05456 results: nmi=0.0146, ari=0.0021, agr=54.00%, dot=0.1170, sign=52.90%, s2_full=4.8389, s2_sub=27.0231, opnorm=165.6945, eta=141.86, split=7-993
+[09:50:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.08859 results: nmi=0.0080, ari=0.0018, agr=53.90%, dot=0.1815, sign=61.00%, s2_full=8.0355, s2_sub=21.6802, opnorm=126.2852, eta=124.00, split=8-992
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.1438 results: nmi=0.8537, ari=0.9138, agr=97.80%, dot=0.6345, sign=98.40%, s2_full=6.0787, s2_sub=18.9885, opnorm=95.8574, eta=1.21, split=453-547
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9823, sign=100.00%, s2_full=0.4332, s2_sub=12.4886, opnorm=71.0434, eta=1.14, split=467-533
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9973, sign=100.00%, s2_full=0.4332, s2_sub=8.8910, opnorm=50.2275, eta=1.14, split=467-533
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.4332, s2_sub=0.4332, opnorm=0.0000, eta=1.14, split=467-533
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=1.14, split=467-533
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.000162 EXTRAPOLATED: nmi=0.0096, ari=-0.0013, agr=52.75%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.000264 EXTRAPOLATED: nmi=0.0096, ari=-0.0013, agr=52.75%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.000428 EXTRAPOLATED: nmi=0.0096, ari=-0.0013, agr=52.75%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.000695 EXTRAPOLATED: nmi=0.0096, ari=-0.0013, agr=52.75%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.001129 EXTRAPOLATED: nmi=0.0096, ari=-0.0013, agr=52.75%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.001833 EXTRAPOLATED: nmi=0.0096, ari=-0.0013, agr=52.75%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.002976 EXTRAPOLATED: nmi=0.0096, ari=-0.0013, agr=52.75%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta01_009 [L] p=0.004833 EXTRAPOLATED: nmi=0.0096, ari=-0.0013, agr=52.75%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:34] BOOTSTRAP_SWEEP | INFO | [10/40] kingman_n1000_eta01_009 done in 4 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000: loaded m=1000, true-tree top split 176/824
+[09:50:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000: S reference kmeans eta=4.68, sign eta=4.68 -> using kmeans
+[09:50:35] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.01274 results: nmi=0.0676, ari=0.0719, agr=83.40%, dot=0.1817, sign=83.40%, s2_full=1.4245, s2_sub=34.3241, opnorm=357.5937, eta=99.00, split=10-990
+[09:50:35] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.02069 results: nmi=0.0738, ari=0.0790, agr=83.50%, dot=0.1345, sign=83.50%, s2_full=1.5642, s2_sub=30.9267, opnorm=273.8553, eta=89.91, split=11-989
+[09:50:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.007848 results: nmi=0.0091, ari=0.0186, agr=82.50%, dot=0.0683, sign=17.00%, s2_full=20.8796, s2_sub=64.5537, opnorm=461.9810, eta=199.00, split=5-995
+[09:50:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.0336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9515, sign=100.00%, s2_full=0.0354, s2_sub=1.6664, opnorm=209.8544, eta=4.68, split=176-824
+[09:50:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.0001 results: nmi=0.0081, ari=-0.0163, agr=81.30%, dot=0.0362, sign=48.20%, s2_full=4.4784, s2_sub=713.5583, opnorm=10651.3948, eta=89.91, split=11-989
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.05456 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0354, s2_sub=1.3221, opnorm=161.8550, eta=4.68, split=176-824
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0354, s2_sub=0.0354, opnorm=0.0000, eta=4.68, split=176-824
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.08859 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=4.68, split=176-824
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.1438 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=4.68, split=176-824
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=4.68, split=176-824
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=4.68, split=176-824
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=4.68, split=176-824
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.000162 EXTRAPOLATED: nmi=0.0383, ari=0.0453, agr=82.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.000264 EXTRAPOLATED: nmi=0.0383, ari=0.0453, agr=82.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.000428 EXTRAPOLATED: nmi=0.0383, ari=0.0453, agr=82.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.000695 EXTRAPOLATED: nmi=0.0383, ari=0.0453, agr=82.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.001129 EXTRAPOLATED: nmi=0.0383, ari=0.0453, agr=82.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.001833 EXTRAPOLATED: nmi=0.0383, ari=0.0453, agr=82.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.002976 EXTRAPOLATED: nmi=0.0383, ari=0.0453, agr=82.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_000 [L] p=0.004833 EXTRAPOLATED: nmi=0.0383, ari=0.0453, agr=82.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:37] BOOTSTRAP_SWEEP | INFO | [11/40] kingman_n1000_eta05_000 done in 2 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001: loaded m=1000, true-tree top split 147/853
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001: S reference kmeans eta=5.80, sign eta=5.80 -> using kmeans
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.01274 results: nmi=0.0526, ari=0.0796, agr=86.00%, dot=0.2039, sign=78.80%, s2_full=11.3636, s2_sub=59.2040, opnorm=390.6242, eta=89.91, split=11-989
+[09:50:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.02069 results: nmi=0.0746, ari=0.0838, agr=86.20%, dot=0.2149, sign=79.00%, s2_full=8.2978, s2_sub=30.4222, opnorm=303.8377, eta=110.11, split=9-991
+[09:50:38] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.007848 results: nmi=0.0036, ari=-0.0080, agr=84.80%, dot=0.1056, sign=65.60%, s2_full=4.3085, s2_sub=79.4530, opnorm=522.1221, eta=199.00, split=5-995
+[09:50:38] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.0336 results: nmi=0.0822, ari=0.0928, agr=86.30%, dot=0.2308, sign=74.40%, s2_full=7.4613, s2_sub=23.7822, opnorm=232.4868, eta=99.00, split=10-990
+[09:50:38] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.0001 results: nmi=0.0156, ari=-0.0367, agr=82.70%, dot=0.0428, sign=51.10%, s2_full=10.6613, s2_sub=1002.6189, opnorm=11424.4658, eta=37.46, split=26-974
+[09:50:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.05456 results: nmi=0.0898, ari=0.1017, agr=86.40%, dot=0.2061, sign=75.80%, s2_full=6.2579, s2_sub=19.0555, opnorm=180.2329, eta=89.91, split=11-989
+[09:50:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.08859 results: nmi=0.1045, ari=0.1194, agr=86.60%, dot=0.3014, sign=85.50%, s2_full=9.5254, s2_sub=15.7258, opnorm=138.3001, eta=75.92, split=13-987
+[09:50:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.1438 results: nmi=0.0746, ari=0.0838, agr=86.20%, dot=0.3101, sign=90.80%, s2_full=8.3049, s2_sub=11.9057, opnorm=104.3854, eta=110.11, split=9-991
+[09:50:40] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.2336 results: nmi=0.0822, ari=0.0928, agr=86.30%, dot=0.4713, sign=97.00%, s2_full=7.5006, s2_sub=10.4938, opnorm=77.6270, eta=99.00, split=10-990
+[09:50:40] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.3793 results: nmi=0.9262, ari=0.9679, agr=99.40%, dot=0.8270, sign=100.00%, s2_full=5.7046, s2_sub=7.7490, opnorm=54.7776, eta=6.09, split=141-859
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9942, sign=100.00%, s2_full=0.2510, s2_sub=3.6579, opnorm=33.8451, eta=5.80, split=147-853
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.2510, s2_sub=0.2510, opnorm=0.0000, eta=5.80, split=147-853
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.000162 EXTRAPOLATED: nmi=0.0281, ari=0.0358, agr=85.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.000264 EXTRAPOLATED: nmi=0.0281, ari=0.0358, agr=85.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.000428 EXTRAPOLATED: nmi=0.0281, ari=0.0358, agr=85.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.000695 EXTRAPOLATED: nmi=0.0281, ari=0.0358, agr=85.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.001129 EXTRAPOLATED: nmi=0.0281, ari=0.0358, agr=85.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.001833 EXTRAPOLATED: nmi=0.0281, ari=0.0358, agr=85.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.002976 EXTRAPOLATED: nmi=0.0281, ari=0.0358, agr=85.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_001 [L] p=0.004833 EXTRAPOLATED: nmi=0.0281, ari=0.0358, agr=85.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:41] BOOTSTRAP_SWEEP | INFO | [12/40] kingman_n1000_eta05_001 done in 4 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002: loaded m=1000, true-tree top split 196/804
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002: S reference kmeans eta=4.10, sign eta=4.10 -> using kmeans
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.01274 results: nmi=0.0371, ari=0.0368, agr=81.00%, dot=0.1550, sign=63.30%, s2_full=4.2405, s2_sub=48.9764, opnorm=350.9360, eta=165.67, split=6-994
+[09:50:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.02069 results: nmi=0.0429, ari=0.0429, agr=81.10%, dot=0.1664, sign=64.60%, s2_full=4.6568, s2_sub=39.9001, opnorm=267.4121, eta=141.86, split=7-993
+[09:50:42] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.007848 results: nmi=0.0049, ari=-0.0088, agr=79.80%, dot=0.0388, sign=80.60%, s2_full=7.5076, s2_sub=73.2796, opnorm=462.3902, eta=165.67, split=6-994
+[09:50:42] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.0336 results: nmi=0.0042, ari=-0.0074, agr=79.90%, dot=0.1233, sign=52.00%, s2_full=7.2911, s2_sub=34.8036, opnorm=207.7725, eta=199.00, split=5-995
+[09:50:42] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.0001 results: nmi=0.0162, ari=-0.0299, agr=78.20%, dot=0.0564, sign=51.80%, s2_full=13.6826, s2_sub=978.9358, opnorm=10341.7790, eta=44.45, split=22-978
+[09:50:43] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.05456 results: nmi=0.0534, ari=0.0652, agr=81.40%, dot=0.2194, sign=68.60%, s2_full=7.3824, s2_sub=26.4418, opnorm=160.1728, eta=82.33, split=12-988
+[09:50:43] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.08859 results: nmi=0.0487, ari=0.0489, agr=81.20%, dot=0.1813, sign=69.50%, s2_full=4.7886, s2_sub=18.8479, opnorm=123.0150, eta=124.00, split=8-992
+[09:50:43] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.1438 results: nmi=0.0543, ari=0.0550, agr=81.30%, dot=0.2546, sign=75.90%, s2_full=5.2690, s2_sub=14.4356, opnorm=93.0502, eta=110.11, split=9-991
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.2336 results: nmi=0.0599, ari=0.0610, agr=81.40%, dot=0.3070, sign=85.30%, s2_full=5.4374, s2_sub=10.6630, opnorm=68.9887, eta=99.00, split=10-990
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.3793 results: nmi=0.0543, ari=0.0550, agr=81.30%, dot=0.6293, sign=99.60%, s2_full=0.1855, s2_sub=6.6838, opnorm=48.4540, eta=110.11, split=9-991
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9864, sign=100.00%, s2_full=0.3100, s2_sub=4.8497, opnorm=30.0548, eta=4.10, split=196-804
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.3100, s2_sub=0.3100, opnorm=0.0000, eta=4.10, split=196-804
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.000162 EXTRAPOLATED: nmi=0.0210, ari=0.0140, agr=80.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.000264 EXTRAPOLATED: nmi=0.0210, ari=0.0140, agr=80.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.000428 EXTRAPOLATED: nmi=0.0210, ari=0.0140, agr=80.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.000695 EXTRAPOLATED: nmi=0.0210, ari=0.0140, agr=80.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.001129 EXTRAPOLATED: nmi=0.0210, ari=0.0140, agr=80.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.001833 EXTRAPOLATED: nmi=0.0210, ari=0.0140, agr=80.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.002976 EXTRAPOLATED: nmi=0.0210, ari=0.0140, agr=80.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_002 [L] p=0.004833 EXTRAPOLATED: nmi=0.0210, ari=0.0140, agr=80.40%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:44] BOOTSTRAP_SWEEP | INFO | [13/40] kingman_n1000_eta05_002 done in 4 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003: loaded m=1000, true-tree top split 169/831
+[09:50:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003: S reference kmeans eta=4.92, sign eta=4.92 -> using kmeans
+[09:50:45] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.01274 results: nmi=0.0118, ari=0.0258, agr=83.20%, dot=0.0861, sign=65.70%, s2_full=14.7651, s2_sub=58.6972, opnorm=369.1488, eta=141.86, split=7-993
+[09:50:45] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.02069 results: nmi=0.0574, ari=0.0614, agr=83.90%, dot=0.1866, sign=70.40%, s2_full=3.0203, s2_sub=35.8475, opnorm=281.9553, eta=124.00, split=8-992
+[09:50:45] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.007848 results: nmi=0.0045, ari=-0.0093, agr=82.50%, dot=0.0679, sign=18.30%, s2_full=15.9739, s2_sub=75.9532, opnorm=490.9232, eta=165.67, split=6-994
+[09:50:46] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.0336 results: nmi=0.0574, ari=0.0614, agr=83.90%, dot=0.2131, sign=70.60%, s2_full=3.0399, s2_sub=27.7228, opnorm=216.9934, eta=124.00, split=8-992
+[09:50:46] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.0001 results: nmi=0.0153, ari=-0.0324, agr=80.80%, dot=0.0496, sign=48.40%, s2_full=16.3569, s2_sub=1301.4181, opnorm=11482.8753, eta=42.48, split=23-977
+[09:50:46] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.05456 results: nmi=0.0707, ari=0.0763, agr=84.10%, dot=0.2471, sign=71.70%, s2_full=3.2100, s2_sub=22.0016, opnorm=166.2036, eta=99.00, split=10-990
+[09:50:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.08859 results: nmi=0.0641, ari=0.0689, agr=84.00%, dot=0.2715, sign=78.30%, s2_full=3.2145, s2_sub=16.5515, opnorm=127.5767, eta=110.11, split=9-991
+[09:50:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.1438 results: nmi=0.0836, ari=0.0912, agr=84.30%, dot=0.7142, sign=99.70%, s2_full=3.1907, s2_sub=12.7881, opnorm=96.8627, eta=82.33, split=12-988
+[09:50:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9738, sign=100.00%, s2_full=0.2975, s2_sub=8.8785, opnorm=71.9300, eta=4.92, split=169-831
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9976, sign=100.00%, s2_full=0.2975, s2_sub=6.2296, opnorm=50.4496, eta=4.92, split=169-831
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.2975, s2_sub=0.2975, opnorm=0.0000, eta=4.92, split=169-831
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=4.92, split=169-831
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.000162 EXTRAPOLATED: nmi=0.0081, ari=0.0083, agr=82.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.000264 EXTRAPOLATED: nmi=0.0081, ari=0.0083, agr=82.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.000428 EXTRAPOLATED: nmi=0.0081, ari=0.0083, agr=82.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.000695 EXTRAPOLATED: nmi=0.0081, ari=0.0083, agr=82.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.001129 EXTRAPOLATED: nmi=0.0081, ari=0.0083, agr=82.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.001833 EXTRAPOLATED: nmi=0.0081, ari=0.0083, agr=82.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.002976 EXTRAPOLATED: nmi=0.0081, ari=0.0083, agr=82.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_003 [L] p=0.004833 EXTRAPOLATED: nmi=0.0081, ari=0.0083, agr=82.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:48] BOOTSTRAP_SWEEP | INFO | [14/40] kingman_n1000_eta05_003 done in 3 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004: loaded m=1000, true-tree top split 809/191
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004: S reference kmeans eta=4.24, sign eta=4.24 -> using kmeans
+[09:50:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.01274 results: nmi=0.0333, ari=0.0430, agr=81.50%, dot=0.1406, sign=71.90%, s2_full=9.7514, s2_sub=50.8708, opnorm=358.4137, eta=124.00, split=8-992
+[09:50:49] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.02069 results: nmi=0.0272, ari=0.0413, agr=81.40%, dot=0.1512, sign=68.40%, s2_full=12.6671, s2_sub=44.8898, opnorm=273.1625, eta=110.11, split=9-991
+[09:50:49] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.007848 results: nmi=0.0056, ari=-0.0103, agr=80.20%, dot=0.0714, sign=20.70%, s2_full=8.6058, s2_sub=73.9962, opnorm=477.2939, eta=141.86, split=7-993
+[09:50:49] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.0336 results: nmi=0.0617, ari=0.0635, agr=81.90%, dot=0.2137, sign=69.60%, s2_full=2.9549, s2_sub=28.5513, opnorm=212.3248, eta=99.00, split=10-990
+[09:50:50] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.0001 results: nmi=0.0275, ari=0.0458, agr=81.40%, dot=0.1201, sign=50.50%, s2_full=15.4532, s2_sub=1139.2211, opnorm=10640.2457, eta=89.91, split=11-989
+[09:50:50] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.05456 results: nmi=0.0617, ari=0.0635, agr=81.90%, dot=0.2935, sign=76.60%, s2_full=3.6396, s2_sub=22.7871, opnorm=163.5555, eta=99.00, split=10-990
+[09:50:50] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.08859 results: nmi=0.0674, ari=0.0698, agr=82.00%, dot=0.4692, sign=90.40%, s2_full=2.9876, s2_sub=17.9195, opnorm=125.5308, eta=89.91, split=11-989
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.1438 results: nmi=0.9539, ari=0.9813, agr=99.60%, dot=0.8205, sign=100.00%, s2_full=2.5278, s2_sub=13.5756, opnorm=95.6692, eta=4.35, split=187-813
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9655, sign=100.00%, s2_full=0.3110, s2_sub=9.2473, opnorm=70.3878, eta=4.24, split=191-809
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9974, sign=100.00%, s2_full=0.3110, s2_sub=6.6177, opnorm=49.2134, eta=4.24, split=191-809
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.3110, s2_sub=0.3110, opnorm=0.0000, eta=4.24, split=191-809
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=4.24, split=191-809
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.000162 EXTRAPOLATED: nmi=0.0194, ari=0.0163, agr=80.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.000264 EXTRAPOLATED: nmi=0.0194, ari=0.0163, agr=80.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.000428 EXTRAPOLATED: nmi=0.0194, ari=0.0163, agr=80.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.000695 EXTRAPOLATED: nmi=0.0194, ari=0.0163, agr=80.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.001129 EXTRAPOLATED: nmi=0.0194, ari=0.0163, agr=80.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.001833 EXTRAPOLATED: nmi=0.0194, ari=0.0163, agr=80.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.002976 EXTRAPOLATED: nmi=0.0194, ari=0.0163, agr=80.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_004 [L] p=0.004833 EXTRAPOLATED: nmi=0.0194, ari=0.0163, agr=80.85%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:51] BOOTSTRAP_SWEEP | INFO | [15/40] kingman_n1000_eta05_004 done in 3 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005: loaded m=1000, true-tree top split 187/813
+[09:50:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005: S reference kmeans eta=4.35, sign eta=4.35 -> using kmeans
+[09:50:52] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.01274 results: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=0.1137, sign=32.40%, s2_full=6.2206, s2_sub=64.1120, opnorm=410.9864, eta=165.67, split=6-994
+[09:50:52] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.02069 results: nmi=0.0632, ari=0.0656, agr=82.30%, dot=0.1777, sign=72.50%, s2_full=5.1821, s2_sub=38.9580, opnorm=314.5341, eta=99.00, split=10-990
+[09:50:52] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.007848 results: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=0.0831, sign=27.40%, s2_full=4.6499, s2_sub=89.5293, opnorm=535.7363, eta=165.67, split=6-994
+[09:50:53] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.0336 results: nmi=0.0632, ari=0.0656, agr=82.30%, dot=0.1995, sign=71.90%, s2_full=4.5194, s2_sub=30.7100, opnorm=243.1620, eta=99.00, split=10-990
+[09:50:53] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.0001 results: nmi=0.0169, ari=-0.0328, agr=78.90%, dot=0.0437, sign=49.50%, s2_full=10.4461, s2_sub=1259.3169, opnorm=11777.4861, eta=40.67, split=24-976
+[09:50:53] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.05456 results: nmi=0.0632, ari=0.0656, agr=82.30%, dot=0.2010, sign=70.30%, s2_full=5.3055, s2_sub=22.9189, opnorm=187.2501, eta=99.00, split=10-990
+[09:50:54] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.08859 results: nmi=0.0690, ari=0.0721, agr=82.40%, dot=0.2890, sign=81.00%, s2_full=5.3272, s2_sub=17.9607, opnorm=142.8124, eta=89.91, split=11-989
+[09:50:54] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.1438 results: nmi=0.0690, ari=0.0721, agr=82.40%, dot=0.6951, sign=99.90%, s2_full=5.4342, s2_sub=13.9162, opnorm=108.7929, eta=89.91, split=11-989
+[09:50:54] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9256, sign=100.00%, s2_full=0.3074, s2_sub=9.6266, opnorm=80.5289, eta=4.35, split=187-813
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9959, sign=100.00%, s2_full=0.3074, s2_sub=6.9691, opnorm=57.0115, eta=4.35, split=187-813
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.3074, s2_sub=0.3074, opnorm=0.0000, eta=4.35, split=187-813
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=4.35, split=187-813
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.000162 EXTRAPOLATED: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.000264 EXTRAPOLATED: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.000428 EXTRAPOLATED: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.000695 EXTRAPOLATED: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.001129 EXTRAPOLATED: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.001833 EXTRAPOLATED: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.002976 EXTRAPOLATED: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_005 [L] p=0.004833 EXTRAPOLATED: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:55] BOOTSTRAP_SWEEP | INFO | [16/40] kingman_n1000_eta05_005 done in 4 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006: loaded m=1000, true-tree top split 813/187
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006: S reference kmeans eta=4.35, sign eta=4.35 -> using kmeans
+[09:50:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.01274 results: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=0.0841, sign=45.80%, s2_full=5.1762, s2_sub=60.1456, opnorm=365.1346, eta=165.67, split=6-994
+[09:50:56] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.02069 results: nmi=0.0056, ari=-0.0104, agr=80.60%, dot=0.1046, sign=37.30%, s2_full=7.2022, s2_sub=50.0079, opnorm=280.0295, eta=141.86, split=7-993
+[09:50:56] P_SWEEP_INNER | WARNING | k-means split smaller side 4 < min_split 5
+[09:50:56] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.007848 results: nmi=0.0033, ari=-0.0060, agr=80.90%, dot=0.0452, sign=20.30%, s2_full=7.2216, s2_sub=72.2114, opnorm=478.1319, eta=249.00, split=4-996
+[09:50:56] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.0336 results: nmi=0.0048, ari=-0.0090, agr=80.70%, dot=0.0988, sign=43.90%, s2_full=6.5880, s2_sub=36.1267, opnorm=217.0487, eta=165.67, split=6-994
+[09:50:57] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.0001 results: nmi=0.0079, ari=0.0264, agr=81.10%, dot=0.1148, sign=44.90%, s2_full=14.4471, s2_sub=738.6775, opnorm=11148.5448, eta=70.43, split=14-986
+[09:50:57] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.05456 results: nmi=0.0342, ari=0.0445, agr=81.90%, dot=0.1448, sign=60.90%, s2_full=6.5225, s2_sub=26.9682, opnorm=166.6381, eta=124.00, split=8-992
+[09:50:57] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.08859 results: nmi=0.0513, ari=0.0527, agr=82.10%, dot=0.2570, sign=69.40%, s2_full=0.9621, s2_sub=20.5958, opnorm=127.6099, eta=124.00, split=8-992
+[09:50:58] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.1438 results: nmi=0.0748, ari=0.0785, agr=82.50%, dot=0.3962, sign=79.80%, s2_full=0.8243, s2_sub=16.2485, opnorm=97.0432, eta=82.33, split=12-988
+[09:50:58] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9251, sign=100.00%, s2_full=0.2095, s2_sub=12.2475, opnorm=71.6266, eta=4.35, split=187-813
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9884, sign=100.00%, s2_full=0.2095, s2_sub=8.5416, opnorm=50.7276, eta=4.35, split=187-813
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.2095, s2_sub=0.2095, opnorm=0.0000, eta=4.35, split=187-813
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=4.35, split=187-813
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.000162 EXTRAPOLATED: nmi=0.0040, ari=-0.0075, agr=80.80%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.000264 EXTRAPOLATED: nmi=0.0040, ari=-0.0075, agr=80.80%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.000428 EXTRAPOLATED: nmi=0.0040, ari=-0.0075, agr=80.80%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.000695 EXTRAPOLATED: nmi=0.0040, ari=-0.0075, agr=80.80%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.001129 EXTRAPOLATED: nmi=0.0040, ari=-0.0075, agr=80.80%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.001833 EXTRAPOLATED: nmi=0.0040, ari=-0.0075, agr=80.80%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.002976 EXTRAPOLATED: nmi=0.0040, ari=-0.0075, agr=80.80%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_006 [L] p=0.004833 EXTRAPOLATED: nmi=0.0040, ari=-0.0075, agr=80.80%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:50:59] BOOTSTRAP_SWEEP | INFO | [17/40] kingman_n1000_eta05_006 done in 4 s (elapsed 0.01 h, ETA 0.02 h)
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007: loaded m=1000, true-tree top split 817/183
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007: S reference kmeans eta=4.46, sign eta=4.46 -> using kmeans
+[09:50:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.01274 results: nmi=0.0464, ari=0.0478, agr=82.40%, dot=0.1774, sign=72.70%, s2_full=3.1494, s2_sub=50.0819, opnorm=358.2515, eta=141.86, split=7-993
+[09:51:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.02069 results: nmi=0.0526, ari=0.0545, agr=82.50%, dot=0.1366, sign=62.20%, s2_full=2.9262, s2_sub=40.6611, opnorm=273.4156, eta=124.00, split=8-992
+[09:51:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.007848 results: nmi=0.0055, ari=-0.0105, agr=81.00%, dot=0.0523, sign=19.10%, s2_full=7.6519, s2_sub=79.5930, opnorm=472.3840, eta=141.86, split=7-993
+[09:51:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.0336 results: nmi=0.0351, ari=0.0460, agr=82.30%, dot=0.1345, sign=67.80%, s2_full=8.4999, s2_sub=35.7046, opnorm=212.3318, eta=124.00, split=8-992
+[09:51:01] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.0001 results: nmi=0.0230, ari=0.0715, agr=81.40%, dot=0.1069, sign=51.90%, s2_full=24.5992, s2_sub=1153.9247, opnorm=10835.1387, eta=27.57, split=35-965
+[09:51:01] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.05456 results: nmi=0.0524, ari=0.0660, agr=82.60%, dot=0.2540, sign=69.90%, s2_full=9.8902, s2_sub=27.0101, opnorm=162.1638, eta=89.91, split=11-989
+[09:51:02] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.08859 results: nmi=0.0707, ari=0.0745, agr=82.80%, dot=0.2696, sign=72.10%, s2_full=4.0516, s2_sub=18.6901, opnorm=124.3540, eta=89.91, split=11-989
+[09:51:02] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.1438 results: nmi=0.0707, ari=0.0745, agr=82.80%, dot=0.4083, sign=87.30%, s2_full=5.6239, s2_sub=14.7604, opnorm=94.7993, eta=89.91, split=11-989
+[09:51:02] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.2336 results: nmi=0.9736, ari=0.9905, agr=99.80%, dot=0.8016, sign=100.00%, s2_full=1.9508, s2_sub=10.5434, opnorm=70.2476, eta=4.52, split=181-819
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9891, sign=100.00%, s2_full=0.2291, s2_sub=7.4675, opnorm=50.0018, eta=4.46, split=183-817
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9985, sign=100.00%, s2_full=0.2291, s2_sub=4.6619, opnorm=30.5655, eta=4.46, split=183-817
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.2291, s2_sub=0.2291, opnorm=0.0000, eta=4.46, split=183-817
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.000162 EXTRAPOLATED: nmi=0.0259, ari=0.0186, agr=81.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.000264 EXTRAPOLATED: nmi=0.0259, ari=0.0186, agr=81.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.000428 EXTRAPOLATED: nmi=0.0259, ari=0.0186, agr=81.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.000695 EXTRAPOLATED: nmi=0.0259, ari=0.0186, agr=81.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.001129 EXTRAPOLATED: nmi=0.0259, ari=0.0186, agr=81.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.001833 EXTRAPOLATED: nmi=0.0259, ari=0.0186, agr=81.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.002976 EXTRAPOLATED: nmi=0.0259, ari=0.0186, agr=81.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_007 [L] p=0.004833 EXTRAPOLATED: nmi=0.0259, ari=0.0186, agr=81.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:03] BOOTSTRAP_SWEEP | INFO | [18/40] kingman_n1000_eta05_007 done in 5 s (elapsed 0.02 h, ETA 0.02 h)
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008: loaded m=1000, true-tree top split 194/806
+[09:51:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008: S reference kmeans eta=4.15, sign eta=4.15 -> using kmeans
+[09:51:04] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.01274 results: nmi=0.0266, ari=0.0402, agr=81.10%, dot=0.1448, sign=76.50%, s2_full=6.6975, s2_sub=65.8886, opnorm=409.4500, eta=110.11, split=9-991
+[09:51:04] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.02069 results: nmi=0.0049, ari=-0.0089, agr=80.00%, dot=0.1106, sign=45.60%, s2_full=2.5463, s2_sub=52.5815, opnorm=316.0010, eta=165.67, split=6-994
+[09:51:04] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.007848 results: nmi=0.0064, ari=-0.0117, agr=79.80%, dot=0.0833, sign=43.80%, s2_full=3.9464, s2_sub=91.2969, opnorm=534.6090, eta=124.00, split=8-992
+[09:51:05] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.0336 results: nmi=0.0218, ari=0.0296, agr=81.00%, dot=0.1192, sign=54.00%, s2_full=5.8181, s2_sub=39.1496, opnorm=242.6569, eta=165.67, split=6-994
+[09:51:05] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.0001 results: nmi=0.0245, ari=-0.0458, agr=77.00%, dot=0.0533, sign=43.00%, s2_full=6.9959, s2_sub=1480.8354, opnorm=11624.3576, eta=26.78, split=36-964
+[09:51:05] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.05456 results: nmi=0.0218, ari=0.0296, agr=81.00%, dot=0.1245, sign=51.60%, s2_full=5.2242, s2_sub=32.0047, opnorm=187.3766, eta=165.67, split=6-994
+[09:51:06] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.08859 results: nmi=0.0218, ari=0.0296, agr=81.00%, dot=0.1392, sign=60.10%, s2_full=4.7496, s2_sub=23.9320, opnorm=144.0992, eta=165.67, split=6-994
+[09:51:06] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.1438 results: nmi=0.0326, ari=0.0419, agr=81.20%, dot=0.2002, sign=64.10%, s2_full=4.8478, s2_sub=18.6738, opnorm=109.3485, eta=124.00, split=8-992
+[09:51:06] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.2336 results: nmi=0.0772, ari=0.0802, agr=81.90%, dot=0.3218, sign=74.10%, s2_full=1.2547, s2_sub=13.6160, opnorm=81.0183, eta=75.92, split=13-987
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.3793 results: nmi=0.0662, ari=0.0681, agr=81.70%, dot=0.6470, sign=98.40%, s2_full=1.2775, s2_sub=9.5586, opnorm=57.2302, eta=89.91, split=11-989
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9841, sign=100.00%, s2_full=0.1439, s2_sub=6.5272, opnorm=35.2304, eta=4.15, split=194-806
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1439, s2_sub=0.1439, opnorm=0.0000, eta=4.15, split=194-806
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.000162 EXTRAPOLATED: nmi=0.0165, ari=0.0142, agr=80.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.000264 EXTRAPOLATED: nmi=0.0165, ari=0.0142, agr=80.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.000428 EXTRAPOLATED: nmi=0.0165, ari=0.0142, agr=80.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.000695 EXTRAPOLATED: nmi=0.0165, ari=0.0142, agr=80.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.001129 EXTRAPOLATED: nmi=0.0165, ari=0.0142, agr=80.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.001833 EXTRAPOLATED: nmi=0.0165, ari=0.0142, agr=80.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.002976 EXTRAPOLATED: nmi=0.0165, ari=0.0142, agr=80.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_008 [L] p=0.004833 EXTRAPOLATED: nmi=0.0165, ari=0.0142, agr=80.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:07] BOOTSTRAP_SWEEP | INFO | [19/40] kingman_n1000_eta05_008 done in 4 s (elapsed 0.02 h, ETA 0.02 h)
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009: loaded m=1000, true-tree top split 843/157
+[09:51:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009: S reference kmeans eta=6.04, sign eta=5.37 -> using sign
+[09:51:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.01274 results: nmi=0.0000, ari=-0.0005, agr=65.50%, dot=0.0946, sign=65.50%, s2_full=38.9766, s2_sub=88.2257, opnorm=389.5489, eta=2.65, split=274-726
+[09:51:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.02069 results: nmi=0.0002, ari=0.0005, agr=52.50%, dot=0.1178, sign=52.50%, s2_full=43.6005, s2_sub=71.0520, opnorm=298.5764, eta=1.12, split=472-528
+[09:51:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.007848 results: nmi=0.0203, ari=0.0485, agr=84.40%, dot=0.0673, sign=84.40%, s2_full=9.9567, s2_sub=89.4045, opnorm=509.5466, eta=75.92, split=13-987
+[09:51:09] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.0336 results: nmi=0.0039, ari=0.0338, agr=70.00%, dot=0.1794, sign=70.00%, s2_full=35.7670, s2_sub=54.7963, opnorm=232.0456, eta=3.22, split=237-763
+[09:51:09] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.0001 results: nmi=0.0130, ari=-0.0149, agr=52.10%, dot=0.0549, sign=41.40%, s2_full=42.1923, s2_sub=1439.4739, opnorm=10985.8927, eta=1.45, split=408-592
+[09:51:09] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.05456 results: nmi=0.0085, ari=0.0452, agr=68.10%, dot=0.2216, sign=68.10%, s2_full=38.6936, s2_sub=49.3214, opnorm=178.8520, eta=2.55, split=282-718
+[09:51:10] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.08859 results: nmi=0.0097, ari=0.0466, agr=67.60%, dot=0.2350, sign=67.60%, s2_full=38.6286, s2_sub=44.2667, opnorm=136.5165, eta=2.41, split=293-707
+[09:51:10] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.1438 results: nmi=0.0234, ari=0.0714, agr=68.10%, dot=0.2194, sign=68.10%, s2_full=39.2656, s2_sub=42.0701, opnorm=103.8334, eta=2.16, split=316-684
+[09:51:10] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.2336 results: nmi=0.0596, ari=0.1427, agr=73.40%, dot=0.2609, sign=73.40%, s2_full=35.7604, s2_sub=37.7497, opnorm=77.1759, eta=2.53, split=283-717
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.3793 results: nmi=0.3808, ari=0.5675, agr=90.20%, dot=0.3449, sign=90.20%, s2_full=23.0821, s2_sub=24.6297, opnorm=54.3205, eta=4.29, split=189-811
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.6158 results: nmi=0.9387, ari=0.9742, agr=99.50%, dot=0.8770, sign=99.50%, s2_full=2.4815, s2_sub=5.6106, opnorm=33.5291, eta=5.58, split=152-848
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.2008, s2_sub=0.2008, opnorm=0.0000, eta=5.37, split=157-843
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.000162 EXTRAPOLATED: nmi=0.0101, ari=0.0240, agr=74.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.000264 EXTRAPOLATED: nmi=0.0101, ari=0.0240, agr=74.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.000428 EXTRAPOLATED: nmi=0.0101, ari=0.0240, agr=74.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.000695 EXTRAPOLATED: nmi=0.0101, ari=0.0240, agr=74.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.001129 EXTRAPOLATED: nmi=0.0101, ari=0.0240, agr=74.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.001833 EXTRAPOLATED: nmi=0.0101, ari=0.0240, agr=74.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.002976 EXTRAPOLATED: nmi=0.0101, ari=0.0240, agr=74.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta05_009 [L] p=0.004833 EXTRAPOLATED: nmi=0.0101, ari=0.0240, agr=74.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:11] BOOTSTRAP_SWEEP | INFO | [20/40] kingman_n1000_eta05_009 done in 4 s (elapsed 0.02 h, ETA 0.02 h)
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000: loaded m=1000, true-tree top split 901/99
+[09:51:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000: S reference kmeans eta=9.10, sign eta=9.10 -> using kmeans
+[09:51:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.01274 results: nmi=0.1246, ari=0.1516, agr=91.10%, dot=0.2483, sign=86.50%, s2_full=1.0531, s2_sub=32.6289, opnorm=314.3211, eta=99.00, split=10-990
+[09:51:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.02069 results: nmi=0.1133, ari=0.1373, agr=91.00%, dot=0.3434, sign=96.30%, s2_full=1.0698, s2_sub=24.3243, opnorm=238.8118, eta=110.11, split=9-991
+[09:51:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.007848 results: nmi=0.0505, ari=0.0759, agr=90.50%, dot=0.1438, sign=90.50%, s2_full=16.7018, s2_sub=41.6368, opnorm=414.6322, eta=165.67, split=6-994
+[09:51:13] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.0336 results: nmi=0.1466, ari=0.1796, agr=91.30%, dot=0.4275, sign=97.30%, s2_full=0.9090, s2_sub=18.2408, opnorm=183.6689, eta=82.33, split=12-988
+[09:51:13] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.004833 results: nmi=0.0040, ari=-0.0117, agr=89.40%, dot=0.0538, sign=12.50%, s2_full=16.5981, s2_sub=95.9834, opnorm=554.5767, eta=141.86, split=7-993
+[09:51:13] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.05456 results: nmi=0.9792, ari=0.9932, agr=99.90%, dot=0.9398, sign=99.90%, s2_full=0.4250, s2_sub=9.9929, opnorm=140.5963, eta=9.20, split=98-902
+[09:51:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.0001 results: nmi=0.0007, ari=0.0122, agr=88.50%, dot=0.0385, sign=47.30%, s2_full=23.2062, s2_sub=1019.6068, opnorm=10827.2770, eta=44.45, split=22-978
+[09:51:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.08859 results: nmi=0.9792, ari=0.9932, agr=99.90%, dot=0.9844, sign=99.90%, s2_full=0.4203, s2_sub=8.1357, opnorm=108.0595, eta=9.20, split=98-902
+[09:51:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9997, sign=100.00%, s2_full=0.0559, s2_sub=1.8965, opnorm=81.8170, eta=9.10, split=99-901
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9999, sign=100.00%, s2_full=0.0559, s2_sub=1.3888, opnorm=60.4868, eta=9.10, split=99-901
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0559, s2_sub=0.0559, opnorm=0.0000, eta=9.10, split=99-901
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.10, split=99-901
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.10, split=99-901
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.000162 EXTRAPOLATED: nmi=0.0272, ari=0.0321, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.000264 EXTRAPOLATED: nmi=0.0272, ari=0.0321, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.000428 EXTRAPOLATED: nmi=0.0272, ari=0.0321, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.000695 EXTRAPOLATED: nmi=0.0272, ari=0.0321, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.001129 EXTRAPOLATED: nmi=0.0272, ari=0.0321, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.001833 EXTRAPOLATED: nmi=0.0272, ari=0.0321, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_000 [L] p=0.002976 EXTRAPOLATED: nmi=0.0272, ari=0.0321, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:15] BOOTSTRAP_SWEEP | INFO | [21/40] kingman_n1000_eta10_000 done in 4 s (elapsed 0.02 h, ETA 0.02 h)
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001: loaded m=1000, true-tree top split 907/93
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001: S reference kmeans eta=9.75, sign eta=9.75 -> using kmeans
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.01274 results: nmi=0.0034, ari=-0.0102, agr=90.10%, dot=0.1183, sign=44.70%, s2_full=10.5181, s2_sub=48.5710, opnorm=357.9916, eta=165.67, split=6-994
+[09:51:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.02069 results: nmi=0.1208, ari=0.1475, agr=91.60%, dot=0.2616, sign=77.80%, s2_full=2.7693, s2_sub=28.4265, opnorm=279.5632, eta=110.11, split=9-991
+[09:51:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.007848 results: nmi=0.0039, ari=-0.0118, agr=90.00%, dot=0.0418, sign=11.40%, s2_full=12.2380, s2_sub=63.5216, opnorm=488.1804, eta=141.86, split=7-993
+[09:51:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.0336 results: nmi=0.1208, ari=0.1475, agr=91.60%, dot=0.2471, sign=75.00%, s2_full=2.8557, s2_sub=21.6679, opnorm=211.5761, eta=110.11, split=9-991
+[09:51:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.0001 results: nmi=0.0080, ari=-0.0247, agr=89.10%, dot=0.0772, sign=48.40%, s2_full=19.2292, s2_sub=1005.6711, opnorm=11310.2714, eta=61.50, split=16-984
+[09:51:17] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.05456 results: nmi=0.1328, ari=0.1628, agr=91.70%, dot=0.2907, sign=76.50%, s2_full=2.8901, s2_sub=17.6508, opnorm=164.6883, eta=99.00, split=10-990
+[09:51:17] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.08859 results: nmi=0.1562, ari=0.1927, agr=91.90%, dot=0.4318, sign=87.20%, s2_full=2.8902, s2_sub=14.0166, opnorm=126.2288, eta=82.33, split=12-988
+[09:51:18] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.1438 results: nmi=0.1562, ari=0.1927, agr=91.90%, dot=0.5799, sign=96.80%, s2_full=3.5121, s2_sub=11.0317, opnorm=95.3980, eta=82.33, split=12-988
+[09:51:18] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.2336 results: nmi=0.1328, ari=0.1628, agr=91.70%, dot=0.7869, sign=100.00%, s2_full=2.8960, s2_sub=7.5504, opnorm=70.6833, eta=99.00, split=10-990
+[09:51:18] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9863, sign=100.00%, s2_full=0.4302, s2_sub=5.0314, opnorm=49.5564, eta=9.75, split=93-907
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9970, sign=100.00%, s2_full=0.4302, s2_sub=3.0102, opnorm=30.8822, eta=9.75, split=93-907
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.4302, s2_sub=0.4302, opnorm=0.0000, eta=9.75, split=93-907
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.000162 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=90.05%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.000264 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=90.05%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.000428 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=90.05%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.000695 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=90.05%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.001129 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=90.05%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.001833 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=90.05%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.002976 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=90.05%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_001 [L] p=0.004833 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=90.05%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:19] BOOTSTRAP_SWEEP | INFO | [22/40] kingman_n1000_eta10_001 done in 4 s (elapsed 0.02 h, ETA 0.02 h)
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002: loaded m=1000, true-tree top split 95/905
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002: S reference kmeans eta=9.53, sign eta=9.53 -> using kmeans
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.01274 results: nmi=0.1182, ari=0.1440, agr=91.40%, dot=0.2522, sign=91.10%, s2_full=1.0975, s2_sub=29.9787, opnorm=349.0532, eta=110.11, split=9-991
+[09:51:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.02069 results: nmi=0.1299, ari=0.1589, agr=91.50%, dot=0.2626, sign=91.50%, s2_full=1.0797, s2_sub=24.3372, opnorm=267.8739, eta=99.00, split=10-990
+[09:51:20] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.007848 results: nmi=0.0096, ari=0.0275, agr=90.40%, dot=0.0691, sign=9.90%, s2_full=12.4592, s2_sub=66.5451, opnorm=458.3350, eta=199.00, split=5-995
+[09:51:20] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.0336 results: nmi=0.1415, ari=0.1736, agr=91.60%, dot=0.5567, sign=99.90%, s2_full=1.1084, s2_sub=16.8037, opnorm=206.6865, eta=89.91, split=11-989
+[09:51:20] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.004833 results: nmi=0.0086, ari=-0.0260, agr=88.80%, dot=0.0585, sign=88.60%, s2_full=14.7265, s2_sub=101.9771, opnorm=609.0437, eta=57.82, split=17-983
+[09:51:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.05456 results: nmi=0.9787, ari=0.9930, agr=99.90%, dot=0.9143, sign=100.00%, s2_full=0.2409, s2_sub=6.0374, opnorm=158.6853, eta=9.64, split=94-906
+[09:51:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.0001 results: nmi=0.0077, ari=-0.0234, agr=89.00%, dot=0.0195, sign=49.80%, s2_full=13.7875, s2_sub=947.7378, opnorm=10762.6669, eta=65.67, split=15-985
+[09:51:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9999, sign=100.00%, s2_full=0.0317, s2_sub=1.0243, opnorm=121.7941, eta=9.53, split=95-905
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0317, s2_sub=0.7628, opnorm=91.4049, eta=9.53, split=95-905
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0317, s2_sub=0.0317, opnorm=0.0000, eta=9.53, split=95-905
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.53, split=95-905
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.53, split=95-905
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.53, split=95-905
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.000162 EXTRAPOLATED: nmi=0.0091, ari=0.0007, agr=89.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.000264 EXTRAPOLATED: nmi=0.0091, ari=0.0007, agr=89.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.000428 EXTRAPOLATED: nmi=0.0091, ari=0.0007, agr=89.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.000695 EXTRAPOLATED: nmi=0.0091, ari=0.0007, agr=89.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.001129 EXTRAPOLATED: nmi=0.0091, ari=0.0007, agr=89.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.001833 EXTRAPOLATED: nmi=0.0091, ari=0.0007, agr=89.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_002 [L] p=0.002976 EXTRAPOLATED: nmi=0.0091, ari=0.0007, agr=89.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:22] BOOTSTRAP_SWEEP | INFO | [23/40] kingman_n1000_eta10_002 done in 3 s (elapsed 0.02 h, ETA 0.02 h)
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003: loaded m=1000, true-tree top split 92/908
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003: S reference kmeans eta=9.87, sign eta=9.87 -> using kmeans
+[09:51:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.01274 results: nmi=0.1342, ari=0.1648, agr=91.80%, dot=0.2756, sign=87.10%, s2_full=1.8514, s2_sub=28.0533, opnorm=380.1710, eta=99.00, split=10-990
+[09:51:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.02069 results: nmi=0.1221, ari=0.1493, agr=91.70%, dot=0.2187, sign=87.80%, s2_full=1.8548, s2_sub=21.9791, opnorm=293.9780, eta=110.11, split=9-991
+[09:51:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.007848 results: nmi=0.0672, ari=0.0990, agr=91.30%, dot=0.1699, sign=91.10%, s2_full=17.8706, s2_sub=34.6355, opnorm=502.9585, eta=141.86, split=7-993
+[09:51:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.0336 results: nmi=0.1579, ari=0.1950, agr=92.00%, dot=0.2960, sign=92.50%, s2_full=1.8485, s2_sub=18.0759, opnorm=224.0280, eta=82.33, split=12-988
+[09:51:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.004833 results: nmi=0.0039, ari=-0.0118, agr=90.10%, dot=0.0808, sign=10.70%, s2_full=11.9256, s2_sub=102.5809, opnorm=665.1298, eta=141.86, split=7-993
+[09:51:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.05456 results: nmi=0.9608, ari=0.9855, agr=99.80%, dot=0.8295, sign=99.90%, s2_full=0.8836, s2_sub=11.7733, opnorm=172.9158, eta=10.11, split=90-910
+[09:51:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.0001 results: nmi=0.0088, ari=-0.0273, agr=89.00%, dot=0.0265, sign=48.30%, s2_full=20.2051, s2_sub=953.1513, opnorm=11832.4075, eta=54.56, split=18-982
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9642, sign=100.00%, s2_full=0.0384, s2_sub=3.3980, opnorm=133.5721, eta=9.87, split=92-908
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9972, sign=100.00%, s2_full=0.0384, s2_sub=2.5620, opnorm=99.8559, eta=9.87, split=92-908
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0384, s2_sub=0.0384, opnorm=0.0000, eta=9.87, split=92-908
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.87, split=92-908
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.87, split=92-908
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.87, split=92-908
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.000162 EXTRAPOLATED: nmi=0.0355, ari=0.0436, agr=90.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.000264 EXTRAPOLATED: nmi=0.0355, ari=0.0436, agr=90.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.000428 EXTRAPOLATED: nmi=0.0355, ari=0.0436, agr=90.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.000695 EXTRAPOLATED: nmi=0.0355, ari=0.0436, agr=90.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.001129 EXTRAPOLATED: nmi=0.0355, ari=0.0436, agr=90.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.001833 EXTRAPOLATED: nmi=0.0355, ari=0.0436, agr=90.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_003 [L] p=0.002976 EXTRAPOLATED: nmi=0.0355, ari=0.0436, agr=90.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:25] BOOTSTRAP_SWEEP | INFO | [24/40] kingman_n1000_eta10_003 done in 3 s (elapsed 0.02 h, ETA 0.01 h)
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004: loaded m=1000, true-tree top split 94/906
+[09:51:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004: S reference kmeans eta=9.64, sign eta=9.64 -> using kmeans
+[09:51:26] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.01274 results: nmi=0.1195, ari=0.1457, agr=91.50%, dot=0.2589, sign=84.70%, s2_full=0.2753, s2_sub=33.9986, opnorm=355.9899, eta=110.11, split=9-991
+[09:51:26] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.02069 results: nmi=0.1545, ari=0.1904, agr=91.80%, dot=0.2801, sign=81.70%, s2_full=0.3584, s2_sub=24.9444, opnorm=274.8832, eta=82.33, split=12-988
+[09:51:26] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.007848 results: nmi=0.0244, ari=0.0579, agr=90.60%, dot=0.1207, sign=90.30%, s2_full=16.6777, s2_sub=69.7019, opnorm=469.4475, eta=124.00, split=8-992
+[09:51:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.0336 results: nmi=0.1545, ari=0.1904, agr=91.80%, dot=0.2939, sign=89.70%, s2_full=0.3571, s2_sub=20.9298, opnorm=211.8501, eta=82.33, split=12-988
+[09:51:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.004833 results: nmi=0.0054, ari=-0.0163, agr=89.60%, dot=0.0477, sign=12.20%, s2_full=20.0559, s2_sub=100.9801, opnorm=645.4572, eta=99.00, split=10-990
+[09:51:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.05456 results: nmi=0.1195, ari=0.1457, agr=91.50%, dot=0.3746, sign=96.10%, s2_full=0.3175, s2_sub=15.8703, opnorm=162.9104, eta=110.11, split=9-991
+[09:51:28] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.0001 results: nmi=0.0089, ari=-0.0273, agr=88.80%, dot=0.0192, sign=46.70%, s2_full=6.2789, s2_sub=926.2891, opnorm=10972.6885, eta=54.56, split=18-982
+[09:51:28] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.08859 results: nmi=0.9785, ari=0.9929, agr=99.90%, dot=0.9530, sign=100.00%, s2_full=0.1032, s2_sub=10.9976, opnorm=124.7801, eta=9.75, split=93-907
+[09:51:28] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9862, sign=100.00%, s2_full=0.0352, s2_sub=4.9089, opnorm=94.8100, eta=9.64, split=94-906
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9989, sign=100.00%, s2_full=0.0352, s2_sub=3.6739, opnorm=69.6464, eta=9.64, split=94-906
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0352, s2_sub=0.0352, opnorm=0.0000, eta=9.64, split=94-906
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.64, split=94-906
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.64, split=94-906
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.000162 EXTRAPOLATED: nmi=0.0149, ari=0.0208, agr=90.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.000264 EXTRAPOLATED: nmi=0.0149, ari=0.0208, agr=90.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.000428 EXTRAPOLATED: nmi=0.0149, ari=0.0208, agr=90.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.000695 EXTRAPOLATED: nmi=0.0149, ari=0.0208, agr=90.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.001129 EXTRAPOLATED: nmi=0.0149, ari=0.0208, agr=90.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.001833 EXTRAPOLATED: nmi=0.0149, ari=0.0208, agr=90.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_004 [L] p=0.002976 EXTRAPOLATED: nmi=0.0149, ari=0.0208, agr=90.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:29] BOOTSTRAP_SWEEP | INFO | [25/40] kingman_n1000_eta10_004 done in 4 s (elapsed 0.02 h, ETA 0.01 h)
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005: loaded m=1000, true-tree top split 86/914
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005: S reference kmeans eta=10.63, sign eta=10.63 -> using kmeans
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.01274 results: nmi=0.0043, ari=-0.0133, agr=90.60%, dot=0.0954, sign=20.30%, s2_full=7.5548, s2_sub=66.7817, opnorm=378.9509, eta=124.00, split=8-992
+[09:51:29] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.02069 results: nmi=0.0623, ari=0.1043, agr=91.80%, dot=0.2079, sign=78.10%, s2_full=10.5065, s2_sub=46.1039, opnorm=291.9919, eta=124.00, split=8-992
+[09:51:30] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.007848 results: nmi=0.0038, ari=-0.0118, agr=90.70%, dot=0.0613, sign=13.60%, s2_full=8.1267, s2_sub=84.7455, opnorm=496.5154, eta=141.86, split=7-993
+[09:51:30] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.0336 results: nmi=0.1308, ari=0.1611, agr=92.30%, dot=0.2395, sign=73.60%, s2_full=0.9584, s2_sub=28.1889, opnorm=224.3889, eta=110.11, split=9-991
+[09:51:30] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.0001 results: nmi=0.0100, ari=-0.0320, agr=89.20%, dot=0.0298, sign=42.40%, s2_full=9.7908, s2_sub=1255.7542, opnorm=11763.3626, eta=44.45, split=22-978
+[09:51:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.05456 results: nmi=0.1437, ari=0.1776, agr=92.40%, dot=0.3333, sign=74.50%, s2_full=0.5285, s2_sub=21.6757, opnorm=173.4654, eta=99.00, split=10-990
+[09:51:31] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.08859 results: nmi=0.1437, ari=0.1776, agr=92.40%, dot=0.3561, sign=81.10%, s2_full=0.7513, s2_sub=16.5473, opnorm=132.3507, eta=99.00, split=10-990
+[09:51:32] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.1438 results: nmi=0.2052, ari=0.2566, agr=92.90%, dot=0.5629, sign=93.30%, s2_full=0.9629, s2_sub=12.9376, opnorm=100.5568, eta=65.67, split=15-985
+[09:51:32] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.2336 results: nmi=0.2515, ari=0.3159, agr=93.30%, dot=0.7346, sign=99.90%, s2_full=0.7993, s2_sub=9.5645, opnorm=74.7154, eta=51.63, split=19-981
+[09:51:32] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9544, sign=100.00%, s2_full=0.1128, s2_sub=6.5508, opnorm=52.7176, eta=10.63, split=86-914
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9958, sign=100.00%, s2_full=0.1128, s2_sub=3.9828, opnorm=32.6523, eta=10.63, split=86-914
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1128, s2_sub=0.1128, opnorm=0.0000, eta=10.63, split=86-914
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.000162 EXTRAPOLATED: nmi=0.0040, ari=-0.0126, agr=90.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.000264 EXTRAPOLATED: nmi=0.0040, ari=-0.0126, agr=90.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.000428 EXTRAPOLATED: nmi=0.0040, ari=-0.0126, agr=90.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.000695 EXTRAPOLATED: nmi=0.0040, ari=-0.0126, agr=90.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.001129 EXTRAPOLATED: nmi=0.0040, ari=-0.0126, agr=90.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.001833 EXTRAPOLATED: nmi=0.0040, ari=-0.0126, agr=90.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.002976 EXTRAPOLATED: nmi=0.0040, ari=-0.0126, agr=90.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_005 [L] p=0.004833 EXTRAPOLATED: nmi=0.0040, ari=-0.0126, agr=90.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:33] BOOTSTRAP_SWEEP | INFO | [26/40] kingman_n1000_eta10_005 done in 4 s (elapsed 0.02 h, ETA 0.01 h)
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006: loaded m=1000, true-tree top split 907/93
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006: S reference kmeans eta=9.75, sign eta=9.75 -> using kmeans
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.01274 results: nmi=0.0961, ari=0.1164, agr=91.40%, dot=0.2334, sign=9.80%, s2_full=1.7015, s2_sub=32.2472, opnorm=340.7249, eta=141.86, split=7-993
+[09:51:33] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.02069 results: nmi=0.1328, ari=0.1628, agr=91.70%, dot=0.2865, sign=83.00%, s2_full=1.7462, s2_sub=25.2038, opnorm=260.1336, eta=99.00, split=10-990
+[09:51:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.007848 results: nmi=0.0344, ari=0.0632, agr=90.90%, dot=0.1342, sign=9.80%, s2_full=15.2265, s2_sub=54.8991, opnorm=447.8598, eta=165.67, split=6-994
+[09:51:34] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.0336 results: nmi=0.1328, ari=0.1628, agr=91.70%, dot=0.2271, sign=83.40%, s2_full=1.3776, s2_sub=18.2464, opnorm=200.7531, eta=99.00, split=10-990
+[09:51:35] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.0001 results: nmi=0.0167, ari=-0.0504, agr=86.70%, dot=0.0628, sign=44.90%, s2_full=11.7462, s2_sub=1246.2406, opnorm=11581.1013, eta=24.00, split=40-960
+[09:51:35] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.05456 results: nmi=0.1208, ari=0.1475, agr=91.60%, dot=0.3433, sign=91.40%, s2_full=1.9741, s2_sub=14.0717, opnorm=155.2008, eta=110.11, split=9-991
+[09:51:35] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.08859 results: nmi=0.9784, ari=0.9928, agr=99.90%, dot=0.9189, sign=99.90%, s2_full=0.8333, s2_sub=9.6143, opnorm=118.3057, eta=9.87, split=92-908
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9960, sign=100.00%, s2_full=0.1406, s2_sub=4.1954, opnorm=89.8160, eta=9.75, split=93-907
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9992, sign=100.00%, s2_full=0.1406, s2_sub=3.1108, opnorm=66.4508, eta=9.75, split=93-907
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1406, s2_sub=0.1406, opnorm=0.0000, eta=9.75, split=93-907
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.75, split=93-907
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.75, split=93-907
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.000162 EXTRAPOLATED: nmi=0.0652, ari=0.0898, agr=91.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.000264 EXTRAPOLATED: nmi=0.0652, ari=0.0898, agr=91.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.000428 EXTRAPOLATED: nmi=0.0652, ari=0.0898, agr=91.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.000695 EXTRAPOLATED: nmi=0.0652, ari=0.0898, agr=91.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.001129 EXTRAPOLATED: nmi=0.0652, ari=0.0898, agr=91.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.001833 EXTRAPOLATED: nmi=0.0652, ari=0.0898, agr=91.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.002976 EXTRAPOLATED: nmi=0.0652, ari=0.0898, agr=91.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_006 [L] p=0.004833 EXTRAPOLATED: nmi=0.0652, ari=0.0898, agr=91.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:36] BOOTSTRAP_SWEEP | INFO | [27/40] kingman_n1000_eta10_006 done in 4 s (elapsed 0.03 h, ETA 0.01 h)
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007: loaded m=1000, true-tree top split 904/96
+[09:51:36] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007: S reference kmeans eta=9.42, sign eta=9.42 -> using kmeans
+[09:51:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.01274 results: nmi=0.1286, ari=0.1570, agr=91.40%, dot=0.2793, sign=86.50%, s2_full=0.4542, s2_sub=31.7111, opnorm=357.9848, eta=99.00, split=10-990
+[09:51:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.02069 results: nmi=0.1286, ari=0.1570, agr=91.40%, dot=0.2561, sign=83.10%, s2_full=0.4530, s2_sub=27.1682, opnorm=273.4626, eta=99.00, split=10-990
+[09:51:37] P_SWEEP_INNER | WARNING | k-means split smaller side 4 < min_split 5
+[09:51:37] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.007848 results: nmi=0.0125, ari=0.0291, agr=90.40%, dot=0.0571, sign=10.80%, s2_full=12.7116, s2_sub=76.3232, opnorm=472.1814, eta=249.00, split=4-996
+[09:51:38] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.0336 results: nmi=0.1169, ari=0.1422, agr=91.30%, dot=0.3214, sign=92.10%, s2_full=0.4337, s2_sub=19.9358, opnorm=211.2096, eta=110.11, split=9-991
+[09:51:38] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.004833 results: nmi=0.0077, ari=-0.0234, agr=88.90%, dot=0.0293, sign=13.40%, s2_full=22.3031, s2_sub=98.9224, opnorm=611.5154, eta=65.67, split=15-985
+[09:51:38] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.05456 results: nmi=0.7917, ari=0.8832, agr=98.40%, dot=0.7454, sign=99.90%, s2_full=0.5630, s2_sub=15.5143, opnorm=160.3498, eta=11.50, split=80-920
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.0001 results: nmi=0.0012, ari=-0.0130, agr=88.70%, dot=0.0947, sign=52.10%, s2_full=22.2397, s2_sub=820.7269, opnorm=11708.1630, eta=51.63, split=19-981
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9640, sign=100.00%, s2_full=0.0630, s2_sub=5.0545, opnorm=123.2035, eta=9.42, split=96-904
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9983, sign=100.00%, s2_full=0.0630, s2_sub=3.7828, opnorm=94.5600, eta=9.42, split=96-904
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0630, s2_sub=0.0630, opnorm=0.0000, eta=9.42, split=96-904
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.42, split=96-904
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.42, split=96-904
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=9.42, split=96-904
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.000162 EXTRAPOLATED: nmi=0.0101, ari=0.0029, agr=89.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.000264 EXTRAPOLATED: nmi=0.0101, ari=0.0029, agr=89.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.000428 EXTRAPOLATED: nmi=0.0101, ari=0.0029, agr=89.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.000695 EXTRAPOLATED: nmi=0.0101, ari=0.0029, agr=89.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.001129 EXTRAPOLATED: nmi=0.0101, ari=0.0029, agr=89.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.001833 EXTRAPOLATED: nmi=0.0101, ari=0.0029, agr=89.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_007 [L] p=0.002976 EXTRAPOLATED: nmi=0.0101, ari=0.0029, agr=89.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:39] BOOTSTRAP_SWEEP | INFO | [28/40] kingman_n1000_eta10_007 done in 3 s (elapsed 0.03 h, ETA 0.01 h)
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008: loaded m=1000, true-tree top split 906/94
+[09:51:39] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008: S reference kmeans eta=9.64, sign eta=9.64 -> using kmeans
+[09:51:40] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.01274 results: nmi=0.0034, ari=-0.0102, agr=90.00%, dot=0.1166, sign=74.50%, s2_full=9.2739, s2_sub=57.6547, opnorm=356.8609, eta=165.67, split=6-994
+[09:51:40] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.02069 results: nmi=0.0029, ari=-0.0086, agr=90.10%, dot=0.1201, sign=49.90%, s2_full=8.5079, s2_sub=44.8858, opnorm=270.2752, eta=199.00, split=5-995
+[09:51:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.007848 results: nmi=0.0039, ari=-0.0117, agr=89.90%, dot=0.0903, sign=21.10%, s2_full=11.3340, s2_sub=82.9870, opnorm=465.5697, eta=141.86, split=7-993
+[09:51:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.0336 results: nmi=0.0950, ari=0.1149, agr=91.30%, dot=0.2270, sign=71.90%, s2_full=2.0051, s2_sub=25.9404, opnorm=209.2787, eta=141.86, split=7-993
+[09:51:41] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.0001 results: nmi=0.0105, ari=-0.0322, agr=88.40%, dot=0.0248, sign=48.70%, s2_full=12.1927, s2_sub=1035.9157, opnorm=10871.3450, eta=44.45, split=22-978
+[09:51:42] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.05456 results: nmi=0.1313, ari=0.1608, agr=91.60%, dot=0.3157, sign=72.50%, s2_full=2.1877, s2_sub=22.7495, opnorm=160.2405, eta=99.00, split=10-990
+[09:51:42] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.08859 results: nmi=0.1430, ari=0.1757, agr=91.70%, dot=0.3543, sign=80.30%, s2_full=2.4910, s2_sub=17.2076, opnorm=123.0591, eta=89.91, split=11-989
+[09:51:42] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.1438 results: nmi=0.1313, ari=0.1608, agr=91.60%, dot=0.5139, sign=93.70%, s2_full=1.8846, s2_sub=12.7916, opnorm=93.4347, eta=99.00, split=10-990
+[09:51:43] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.2336 results: nmi=0.1880, ari=0.2333, agr=92.10%, dot=0.6790, sign=99.00%, s2_full=1.9117, s2_sub=9.8001, opnorm=69.2011, eta=65.67, split=15-985
+[09:51:43] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9592, sign=100.00%, s2_full=0.1459, s2_sub=6.5602, opnorm=48.8634, eta=9.64, split=94-906
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9960, sign=100.00%, s2_full=0.1459, s2_sub=4.0833, opnorm=30.1681, eta=9.64, split=94-906
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1459, s2_sub=0.1459, opnorm=0.0000, eta=9.64, split=94-906
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.000162 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.000264 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.000428 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.000695 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.001129 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.001833 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.002976 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_008 [L] p=0.004833 EXTRAPOLATED: nmi=0.0037, ari=-0.0110, agr=89.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:44] BOOTSTRAP_SWEEP | INFO | [29/40] kingman_n1000_eta10_008 done in 4 s (elapsed 0.03 h, ETA 0.01 h)
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009: loaded m=1000, true-tree top split 913/87
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009: S reference kmeans eta=10.49, sign eta=10.49 -> using kmeans
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.01274 results: nmi=0.0715, ari=0.1057, agr=91.80%, dot=0.2075, sign=87.90%, s2_full=14.9114, s2_sub=40.9110, opnorm=415.4375, eta=141.86, split=7-993
+[09:51:44] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.02069 results: nmi=0.1420, ari=0.1753, agr=92.30%, dot=0.3442, sign=86.40%, s2_full=0.8267, s2_sub=25.9958, opnorm=318.0672, eta=99.00, split=10-990
+[09:51:45] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.007848 results: nmi=0.0316, ari=0.0661, agr=91.40%, dot=0.1523, sign=8.70%, s2_full=15.2922, s2_sub=78.8579, opnorm=543.2902, eta=141.86, split=7-993
+[09:51:45] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.0336 results: nmi=0.1162, ari=0.1424, agr=92.10%, dot=0.2812, sign=86.20%, s2_full=0.8230, s2_sub=20.2682, opnorm=246.8173, eta=124.00, split=8-992
+[09:51:46] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.0001 results: nmi=0.0082, ari=-0.0259, agr=89.60%, dot=0.0985, sign=35.00%, s2_full=8.3903, s2_sub=1305.7394, opnorm=11584.2929, eta=57.82, split=17-983
+[09:51:46] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.05456 results: nmi=0.1420, ari=0.1753, agr=92.30%, dot=0.3412, sign=92.40%, s2_full=0.8289, s2_sub=15.4841, opnorm=189.6761, eta=99.00, split=10-990
+[09:51:46] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.08859 results: nmi=0.1546, ari=0.1914, agr=92.40%, dot=0.6366, sign=99.90%, s2_full=1.2865, s2_sub=12.6156, opnorm=145.1042, eta=89.91, split=11-989
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9694, sign=100.00%, s2_full=0.0784, s2_sub=6.1955, opnorm=110.1122, eta=10.49, split=87-913
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9964, sign=100.00%, s2_full=0.0784, s2_sub=4.6246, opnorm=82.0016, eta=10.49, split=87-913
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0784, s2_sub=0.0784, opnorm=0.0000, eta=10.49, split=87-913
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=10.49, split=87-913
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=10.49, split=87-913
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.000162 EXTRAPOLATED: nmi=0.0516, ari=0.0859, agr=91.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.000264 EXTRAPOLATED: nmi=0.0516, ari=0.0859, agr=91.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.000428 EXTRAPOLATED: nmi=0.0516, ari=0.0859, agr=91.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.000695 EXTRAPOLATED: nmi=0.0516, ari=0.0859, agr=91.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.001129 EXTRAPOLATED: nmi=0.0516, ari=0.0859, agr=91.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.001833 EXTRAPOLATED: nmi=0.0516, ari=0.0859, agr=91.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.002976 EXTRAPOLATED: nmi=0.0516, ari=0.0859, agr=91.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta10_009 [L] p=0.004833 EXTRAPOLATED: nmi=0.0516, ari=0.0859, agr=91.60%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:47] BOOTSTRAP_SWEEP | INFO | [30/40] kingman_n1000_eta10_009 done in 3 s (elapsed 0.03 h, ETA 0.01 h)
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000: loaded m=1000, true-tree top split 65/935
+[09:51:47] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000: S reference kmeans eta=14.38, sign eta=14.38 -> using kmeans
+[09:51:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.01274 results: nmi=0.0033, ari=-0.0118, agr=92.80%, dot=0.1087, sign=26.50%, s2_full=10.7268, s2_sub=58.6391, opnorm=348.5751, eta=141.86, split=7-993
+[09:51:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.02069 results: nmi=0.0029, ari=-0.0103, agr=92.90%, dot=0.0648, sign=41.20%, s2_full=11.0404, s2_sub=45.2153, opnorm=269.3564, eta=165.67, split=6-994
+[09:51:48] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.007848 results: nmi=0.0046, ari=-0.0162, agr=92.50%, dot=0.0311, sign=92.90%, s2_full=12.7243, s2_sub=76.0473, opnorm=453.8496, eta=99.00, split=10-990
+[09:51:49] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.0336 results: nmi=0.0029, ari=-0.0103, agr=92.90%, dot=0.1599, sign=47.30%, s2_full=7.3884, s2_sub=34.1999, opnorm=204.8825, eta=165.67, split=6-994
+[09:51:49] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.0001 results: nmi=0.0077, ari=-0.0276, agr=91.60%, dot=0.0461, sign=50.40%, s2_full=14.6142, s2_sub=1076.1067, opnorm=11240.4819, eta=51.63, split=19-981
+[09:51:49] P_SWEEP_INNER | WARNING | k-means split smaller side 4 < min_split 5
+[09:51:49] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.05456 results: nmi=0.0456, ari=0.0746, agr=93.70%, dot=0.2041, sign=62.70%, s2_full=4.6900, s2_sub=21.4337, opnorm=157.8616, eta=249.00, split=4-996
+[09:51:50] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.08859 results: nmi=0.1018, ari=0.1647, agr=94.00%, dot=0.3449, sign=70.00%, s2_full=6.5998, s2_sub=18.5574, opnorm=120.2978, eta=110.11, split=9-991
+[09:51:50] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.1438 results: nmi=0.1807, ari=0.2548, agr=94.50%, dot=0.4126, sign=72.70%, s2_full=5.0017, s2_sub=13.7157, opnorm=92.3534, eta=82.33, split=12-988
+[09:51:50] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.2336 results: nmi=0.1728, ari=0.2171, agr=94.40%, dot=0.5400, sign=85.10%, s2_full=0.8295, s2_sub=9.4978, opnorm=68.1980, eta=110.11, split=9-991
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.3793 results: nmi=0.1895, ari=0.2386, agr=94.50%, dot=0.7200, sign=97.90%, s2_full=0.7273, s2_sub=6.9645, opnorm=48.0626, eta=99.00, split=10-990
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9706, sign=100.00%, s2_full=0.0915, s2_sub=4.3710, opnorm=29.5105, eta=14.38, split=65-935
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0915, s2_sub=0.0915, opnorm=0.0000, eta=14.38, split=65-935
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.000162 EXTRAPOLATED: nmi=0.0040, ari=-0.0140, agr=92.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.000264 EXTRAPOLATED: nmi=0.0040, ari=-0.0140, agr=92.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.000428 EXTRAPOLATED: nmi=0.0040, ari=-0.0140, agr=92.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.000695 EXTRAPOLATED: nmi=0.0040, ari=-0.0140, agr=92.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.001129 EXTRAPOLATED: nmi=0.0040, ari=-0.0140, agr=92.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.001833 EXTRAPOLATED: nmi=0.0040, ari=-0.0140, agr=92.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.002976 EXTRAPOLATED: nmi=0.0040, ari=-0.0140, agr=92.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_000 [L] p=0.004833 EXTRAPOLATED: nmi=0.0040, ari=-0.0140, agr=92.65%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:51] BOOTSTRAP_SWEEP | INFO | [31/40] kingman_n1000_eta15_000 done in 4 s (elapsed 0.03 h, ETA 0.01 h)
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001: loaded m=1000, true-tree top split 62/938
+[09:51:51] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001: S reference kmeans eta=15.13, sign eta=15.13 -> using kmeans
+[09:51:52] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.01274 results: nmi=0.0029, ari=-0.0103, agr=93.20%, dot=0.1371, sign=45.00%, s2_full=7.5789, s2_sub=59.2305, opnorm=359.6954, eta=165.67, split=6-994
+[09:51:52] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.02069 results: nmi=0.0029, ari=-0.0103, agr=93.20%, dot=0.1315, sign=37.00%, s2_full=6.8896, s2_sub=45.7815, opnorm=276.7967, eta=165.67, split=6-994
+[09:51:52] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.007848 results: nmi=0.0024, ari=-0.0087, agr=93.30%, dot=0.1327, sign=8.30%, s2_full=7.4618, s2_sub=69.6943, opnorm=478.1876, eta=199.00, split=5-995
+[09:51:53] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.0336 results: nmi=0.1033, ari=0.1534, agr=94.30%, dot=0.2371, sign=67.50%, s2_full=6.6672, s2_sub=33.7783, opnorm=213.2302, eta=141.86, split=7-993
+[09:51:53] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.0001 results: nmi=0.0126, ari=-0.0441, agr=90.00%, dot=0.0255, sign=47.70%, s2_full=16.7276, s2_sub=1279.0432, opnorm=10612.2739, eta=25.32, split=38-962
+[09:51:53] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.05456 results: nmi=0.0033, ari=-0.0118, agr=93.10%, dot=0.1252, sign=35.20%, s2_full=7.3482, s2_sub=25.7232, opnorm=163.7709, eta=141.86, split=7-993
+[09:51:54] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.08859 results: nmi=0.1809, ari=0.2278, agr=94.70%, dot=0.3795, sign=73.30%, s2_full=0.3265, s2_sub=16.3389, opnorm=125.4649, eta=110.11, split=9-991
+[09:51:54] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.1438 results: nmi=0.1448, ari=0.1813, agr=94.50%, dot=0.4118, sign=77.30%, s2_full=0.3883, s2_sub=12.8026, opnorm=94.8276, eta=141.86, split=7-993
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.2336 results: nmi=0.1809, ari=0.2278, agr=94.70%, dot=0.5709, sign=90.40%, s2_full=0.3209, s2_sub=9.5169, opnorm=70.5465, eta=110.11, split=9-991
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.3793 results: nmi=0.7799, ari=0.8747, agr=98.80%, dot=0.8373, sign=99.30%, s2_full=0.4191, s2_sub=7.0162, opnorm=49.7189, eta=19.00, split=50-950
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9869, sign=100.00%, s2_full=0.0797, s2_sub=4.2276, opnorm=30.5804, eta=15.13, split=62-938
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0797, s2_sub=0.0797, opnorm=0.0000, eta=15.13, split=62-938
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.000162 EXTRAPOLATED: nmi=0.0026, ari=-0.0095, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.000264 EXTRAPOLATED: nmi=0.0026, ari=-0.0095, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.000428 EXTRAPOLATED: nmi=0.0026, ari=-0.0095, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.000695 EXTRAPOLATED: nmi=0.0026, ari=-0.0095, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.001129 EXTRAPOLATED: nmi=0.0026, ari=-0.0095, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.001833 EXTRAPOLATED: nmi=0.0026, ari=-0.0095, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.002976 EXTRAPOLATED: nmi=0.0026, ari=-0.0095, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_001 [L] p=0.004833 EXTRAPOLATED: nmi=0.0026, ari=-0.0095, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:51:55] BOOTSTRAP_SWEEP | INFO | [32/40] kingman_n1000_eta15_001 done in 4 s (elapsed 0.03 h, ETA 0.01 h)
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002: loaded m=1000, true-tree top split 64/936
+[09:51:55] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002: S reference kmeans eta=14.62, sign eta=14.62 -> using kmeans
+[09:51:56] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.01274 results: nmi=0.1581, ari=0.1983, agr=94.40%, dot=0.3011, sign=87.60%, s2_full=0.1702, s2_sub=27.5516, opnorm=327.9320, eta=124.00, split=8-992
+[09:51:56] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.02069 results: nmi=0.1342, ari=0.1939, agr=94.30%, dot=0.2732, sign=85.90%, s2_full=13.6162, s2_sub=28.8212, opnorm=249.9232, eta=110.11, split=9-991
+[09:51:57] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.007848 results: nmi=0.0025, ari=-0.0087, agr=93.10%, dot=0.0189, sign=7.30%, s2_full=19.7688, s2_sub=56.9739, opnorm=445.1078, eta=199.00, split=5-995
+[09:51:57] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.0336 results: nmi=0.2253, ari=0.2847, agr=94.80%, dot=0.3985, sign=92.40%, s2_full=0.3938, s2_sub=16.7517, opnorm=192.2831, eta=82.33, split=12-988
+[09:51:57] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.004833 results: nmi=0.0073, ari=-0.0264, agr=91.80%, dot=0.0346, sign=91.10%, s2_full=37.7698, s2_sub=97.6620, opnorm=585.3416, eta=54.56, split=18-982
+[09:51:58] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.05456 results: nmi=0.2571, ari=0.3253, agr=95.00%, dot=0.6765, sign=99.40%, s2_full=0.3995, s2_sub=12.4421, opnorm=147.8679, eta=70.43, split=14-986
+[09:51:58] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.0001 results: nmi=0.0070, ari=-0.0252, agr=91.90%, dot=0.0349, sign=48.70%, s2_full=36.3412, s2_sub=1289.6620, opnorm=10082.2188, eta=57.82, split=17-983
+[09:51:58] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9052, sign=100.00%, s2_full=0.0349, s2_sub=4.2108, opnorm=113.5692, eta=14.62, split=64-936
+[09:51:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.1438 results: nmi=0.9725, ari=0.9905, agr=99.90%, dot=0.9886, sign=100.00%, s2_full=0.1791, s2_sub=6.1851, opnorm=85.7211, eta=14.87, split=63-937
+[09:51:59] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9991, sign=100.00%, s2_full=0.0349, s2_sub=2.3457, opnorm=63.5312, eta=14.62, split=64-936
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9996, sign=100.00%, s2_full=0.0349, s2_sub=1.6865, opnorm=44.5829, eta=14.62, split=64-936
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0349, s2_sub=0.0349, opnorm=0.0000, eta=14.62, split=64-936
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=14.62, split=64-936
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.000162 EXTRAPOLATED: nmi=0.0049, ari=-0.0175, agr=92.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.000264 EXTRAPOLATED: nmi=0.0049, ari=-0.0175, agr=92.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.000428 EXTRAPOLATED: nmi=0.0049, ari=-0.0175, agr=92.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.000695 EXTRAPOLATED: nmi=0.0049, ari=-0.0175, agr=92.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.001129 EXTRAPOLATED: nmi=0.0049, ari=-0.0175, agr=92.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.001833 EXTRAPOLATED: nmi=0.0049, ari=-0.0175, agr=92.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_002 [L] p=0.002976 EXTRAPOLATED: nmi=0.0049, ari=-0.0175, agr=92.45%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:00] BOOTSTRAP_SWEEP | INFO | [33/40] kingman_n1000_eta15_002 done in 4 s (elapsed 0.03 h, ETA 0.01 h)
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003: loaded m=1000, true-tree top split 940/60
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003: S reference kmeans eta=15.67, sign eta=15.67 -> using kmeans
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.01274 results: nmi=0.1684, ari=0.2118, agr=94.80%, dot=0.3110, sign=88.00%, s2_full=0.1347, s2_sub=30.1378, opnorm=386.6075, eta=124.00, split=8-992
+[09:52:00] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.02069 results: nmi=0.1684, ari=0.2118, agr=94.80%, dot=0.2362, sign=84.60%, s2_full=0.0612, s2_sub=22.6779, opnorm=295.4079, eta=124.00, split=8-992
+[09:52:01] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.007848 results: nmi=0.0935, ari=0.1548, agr=94.40%, dot=0.2086, sign=89.90%, s2_full=15.3395, s2_sub=79.2862, opnorm=507.8240, eta=124.00, split=8-992
+[09:52:01] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.0336 results: nmi=0.1496, ari=0.1876, agr=94.70%, dot=0.3643, sign=92.90%, s2_full=0.0458, s2_sub=15.2983, opnorm=228.6801, eta=141.86, split=7-993
+[09:52:01] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.004833 results: nmi=0.0044, ari=-0.0162, agr=93.00%, dot=0.1239, sign=93.70%, s2_full=10.3463, s2_sub=103.9259, opnorm=671.0310, eta=99.00, split=10-990
+[09:52:02] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.05456 results: nmi=0.1868, ari=0.2355, agr=94.90%, dot=0.5005, sign=98.10%, s2_full=0.1374, s2_sub=13.8714, opnorm=176.5037, eta=110.11, split=9-991
+[09:52:02] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[09:52:02] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.0001 results: nmi=0.0240, ari=0.0289, agr=94.10%, dot=0.1239, sign=47.40%, s2_full=0.0000, s2_sub=0.0000, opnorm=11838.9044, eta=999.00, split=1-999
+[09:52:02] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.08859 results: nmi=0.2223, ari=0.2811, agr=95.10%, dot=0.6927, sign=99.90%, s2_full=0.2006, s2_sub=10.2789, opnorm=136.1634, eta=89.91, split=11-989
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9308, sign=100.00%, s2_full=0.0349, s2_sub=4.8235, opnorm=102.7403, eta=15.67, split=60-940
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9939, sign=100.00%, s2_full=0.0349, s2_sub=3.5268, opnorm=76.4839, eta=15.67, split=60-940
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0349, s2_sub=0.0349, opnorm=0.0000, eta=15.67, split=60-940
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=15.67, split=60-940
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=15.67, split=60-940
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.000162 EXTRAPOLATED: nmi=0.0489, ari=0.0693, agr=93.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.000264 EXTRAPOLATED: nmi=0.0489, ari=0.0693, agr=93.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.000428 EXTRAPOLATED: nmi=0.0489, ari=0.0693, agr=93.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.000695 EXTRAPOLATED: nmi=0.0489, ari=0.0693, agr=93.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.001129 EXTRAPOLATED: nmi=0.0489, ari=0.0693, agr=93.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.001833 EXTRAPOLATED: nmi=0.0489, ari=0.0693, agr=93.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_003 [L] p=0.002976 EXTRAPOLATED: nmi=0.0489, ari=0.0693, agr=93.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:03] BOOTSTRAP_SWEEP | INFO | [34/40] kingman_n1000_eta15_003 done in 4 s (elapsed 0.03 h, ETA 0.01 h)
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004: loaded m=1000, true-tree top split 941/59
+[09:52:03] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004: S reference kmeans eta=15.95, sign eta=15.95 -> using kmeans
+[09:52:04] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.01274 results: nmi=0.1521, ari=0.1909, agr=94.80%, dot=0.2796, sign=84.90%, s2_full=0.8357, s2_sub=35.4493, opnorm=408.3648, eta=141.86, split=7-993
+[09:52:04] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.02069 results: nmi=0.2259, ari=0.2858, agr=95.20%, dot=0.3838, sign=83.70%, s2_full=1.0739, s2_sub=29.4891, opnorm=314.1999, eta=89.91, split=11-989
+[09:52:04] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.007848 results: nmi=0.0028, ari=-0.0103, agr=93.50%, dot=0.0637, sign=20.40%, s2_full=4.3190, s2_sub=88.3987, opnorm=541.1994, eta=165.67, split=6-994
+[09:52:05] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.0336 results: nmi=0.2081, ari=0.2629, agr=95.10%, dot=0.3896, sign=80.50%, s2_full=1.0539, s2_sub=23.0825, opnorm=244.8486, eta=99.00, split=10-990
+[09:52:05] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.004833 results: nmi=0.0047, ari=-0.0175, agr=93.00%, dot=0.0533, sign=8.30%, s2_full=4.2425, s2_sub=117.1064, opnorm=722.2450, eta=89.91, split=11-989
+[09:52:05] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.05456 results: nmi=0.1712, ari=0.2155, agr=94.90%, dot=0.3411, sign=83.80%, s2_full=0.9341, s2_sub=16.2335, opnorm=188.5759, eta=124.00, split=8-992
+[09:52:06] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.0001 results: nmi=0.0093, ari=-0.0341, agr=91.50%, dot=0.0609, sign=43.40%, s2_full=7.4189, s2_sub=1151.2236, opnorm=11375.5913, eta=37.46, split=26-974
+[09:52:06] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.08859 results: nmi=0.2259, ari=0.2858, agr=95.20%, dot=0.4388, sign=91.70%, s2_full=1.0675, s2_sub=12.9013, opnorm=145.4810, eta=89.91, split=11-989
+[09:52:06] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.1438 results: nmi=0.2259, ari=0.2858, agr=95.20%, dot=0.5517, sign=99.00%, s2_full=1.1117, s2_sub=10.2768, opnorm=110.8059, eta=89.91, split=11-989
+[09:52:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.2336 results: nmi=0.6968, ari=0.8075, agr=98.30%, dot=0.8541, sign=99.90%, s2_full=1.3119, s2_sub=8.1443, opnorm=81.6677, eta=22.81, split=42-958
+[09:52:07] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9683, sign=100.00%, s2_full=0.0750, s2_sub=5.0114, opnorm=57.4686, eta=15.95, split=59-941
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9956, sign=100.00%, s2_full=0.0750, s2_sub=3.0758, opnorm=35.7491, eta=15.95, split=59-941
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0750, s2_sub=0.0750, opnorm=0.0000, eta=15.95, split=59-941
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.000162 EXTRAPOLATED: nmi=0.0038, ari=-0.0139, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.000264 EXTRAPOLATED: nmi=0.0038, ari=-0.0139, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.000428 EXTRAPOLATED: nmi=0.0038, ari=-0.0139, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.000695 EXTRAPOLATED: nmi=0.0038, ari=-0.0139, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.001129 EXTRAPOLATED: nmi=0.0038, ari=-0.0139, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.001833 EXTRAPOLATED: nmi=0.0038, ari=-0.0139, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_004 [L] p=0.002976 EXTRAPOLATED: nmi=0.0038, ari=-0.0139, agr=93.25%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:08] BOOTSTRAP_SWEEP | INFO | [35/40] kingman_n1000_eta15_004 done in 4 s (elapsed 0.03 h, ETA 0.00 h)
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005: loaded m=1000, true-tree top split 63/937
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005: S reference kmeans eta=14.87, sign eta=14.87 -> using kmeans
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.01274 results: nmi=0.0041, ari=-0.0148, agr=92.80%, dot=0.0747, sign=18.10%, s2_full=7.5989, s2_sub=67.4696, opnorm=404.0035, eta=110.11, split=9-991
+[09:52:08] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.02069 results: nmi=0.0024, ari=-0.0087, agr=93.20%, dot=0.1386, sign=51.30%, s2_full=5.9876, s2_sub=53.5215, opnorm=310.7790, eta=199.00, split=5-995
+[09:52:09] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.007848 results: nmi=0.0029, ari=-0.0103, agr=93.10%, dot=0.0885, sign=7.80%, s2_full=6.2149, s2_sub=84.1303, opnorm=527.7942, eta=165.67, split=6-994
+[09:52:09] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.0336 results: nmi=0.1053, ari=0.1702, agr=94.20%, dot=0.2263, sign=62.30%, s2_full=5.5955, s2_sub=33.0886, opnorm=239.5386, eta=110.11, split=9-991
+[09:52:09] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.0001 results: nmi=0.0096, ari=-0.0346, agr=91.10%, dot=0.0610, sign=47.20%, s2_full=14.1482, s2_sub=1153.1007, opnorm=11260.4215, eta=37.46, split=26-974
+[09:52:10] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.05456 results: nmi=0.0037, ari=-0.0133, agr=92.90%, dot=0.1061, sign=31.70%, s2_full=6.9036, s2_sub=26.4845, opnorm=184.7294, eta=124.00, split=8-992
+[09:52:10] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.08859 results: nmi=0.0719, ari=0.1234, agr=94.00%, dot=0.1811, sign=55.90%, s2_full=5.8043, s2_sub=19.8366, opnorm=141.4149, eta=141.86, split=7-993
+[09:52:10] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.1438 results: nmi=0.1015, ari=0.1508, agr=94.20%, dot=0.2854, sign=65.50%, s2_full=4.4317, s2_sub=15.6660, opnorm=107.8977, eta=141.86, split=7-993
+[09:52:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.2336 results: nmi=0.1605, ari=0.2015, agr=94.50%, dot=0.4435, sign=74.20%, s2_full=0.1968, s2_sub=10.9325, opnorm=79.9204, eta=124.00, split=8-992
+[09:52:11] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.3793 results: nmi=0.1605, ari=0.2015, agr=94.50%, dot=0.4884, sign=79.90%, s2_full=0.2040, s2_sub=7.6595, opnorm=56.0995, eta=124.00, split=8-992
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.6158 results: nmi=0.9502, ari=0.9806, agr=99.80%, dot=0.8718, sign=99.40%, s2_full=0.1600, s2_sub=5.1445, opnorm=34.7143, eta=15.39, split=61-939
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1209, s2_sub=0.1209, opnorm=0.0000, eta=14.87, split=63-937
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.000162 EXTRAPOLATED: nmi=0.0035, ari=-0.0125, agr=92.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.000264 EXTRAPOLATED: nmi=0.0035, ari=-0.0125, agr=92.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.000428 EXTRAPOLATED: nmi=0.0035, ari=-0.0125, agr=92.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.000695 EXTRAPOLATED: nmi=0.0035, ari=-0.0125, agr=92.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.001129 EXTRAPOLATED: nmi=0.0035, ari=-0.0125, agr=92.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.001833 EXTRAPOLATED: nmi=0.0035, ari=-0.0125, agr=92.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.002976 EXTRAPOLATED: nmi=0.0035, ari=-0.0125, agr=92.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_005 [L] p=0.004833 EXTRAPOLATED: nmi=0.0035, ari=-0.0125, agr=92.95%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:12] BOOTSTRAP_SWEEP | INFO | [36/40] kingman_n1000_eta15_005 done in 4 s (elapsed 0.04 h, ETA 0.00 h)
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006: loaded m=1000, true-tree top split 935/65
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006: S reference kmeans eta=14.38, sign eta=14.38 -> using kmeans
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.01274 results: nmi=0.1728, ari=0.2171, agr=94.40%, dot=0.2987, sign=92.70%, s2_full=0.1579, s2_sub=27.0022, opnorm=330.0886, eta=110.11, split=9-991
+[09:52:12] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.02069 results: nmi=0.1895, ari=0.2386, agr=94.50%, dot=0.3375, sign=94.10%, s2_full=0.9628, s2_sub=19.7518, opnorm=248.4984, eta=99.00, split=10-990
+[09:52:13] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.007848 results: nmi=0.0310, ari=0.0691, agr=93.50%, dot=0.1241, sign=6.90%, s2_full=13.1009, s2_sub=61.4258, opnorm=436.0309, eta=165.67, split=6-994
+[09:52:13] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.0336 results: nmi=0.2220, ari=0.2804, agr=94.70%, dot=0.3320, sign=94.70%, s2_full=0.7608, s2_sub=17.1335, opnorm=192.2266, eta=82.33, split=12-988
+[09:52:13] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.004833 results: nmi=0.0067, ari=-0.0241, agr=91.90%, dot=0.0720, sign=92.10%, s2_full=20.6263, s2_sub=96.6235, opnorm=595.6414, eta=61.50, split=16-984
+[09:52:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.05456 results: nmi=0.1895, ari=0.2386, agr=94.50%, dot=0.4098, sign=96.40%, s2_full=0.9277, s2_sub=11.4985, opnorm=147.2747, eta=99.00, split=10-990
+[09:52:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.0001 results: nmi=0.0071, ari=-0.0253, agr=91.80%, dot=0.0661, sign=46.50%, s2_full=16.1513, s2_sub=792.9942, opnorm=11447.4062, eta=57.82, split=17-983
+[09:52:14] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.08859 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9913, sign=100.00%, s2_full=0.0206, s2_sub=1.4736, opnorm=113.4965, eta=14.38, split=65-935
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9997, sign=100.00%, s2_full=0.0206, s2_sub=1.1431, opnorm=85.4834, eta=14.38, split=65-935
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0206, s2_sub=0.0206, opnorm=0.0000, eta=14.38, split=65-935
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.2336 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=14.38, split=65-935
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=14.38, split=65-935
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=14.38, split=65-935
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.000162 EXTRAPOLATED: nmi=0.0189, ari=0.0225, agr=92.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.000264 EXTRAPOLATED: nmi=0.0189, ari=0.0225, agr=92.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.000428 EXTRAPOLATED: nmi=0.0189, ari=0.0225, agr=92.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.000695 EXTRAPOLATED: nmi=0.0189, ari=0.0225, agr=92.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.001129 EXTRAPOLATED: nmi=0.0189, ari=0.0225, agr=92.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.001833 EXTRAPOLATED: nmi=0.0189, ari=0.0225, agr=92.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_006 [L] p=0.002976 EXTRAPOLATED: nmi=0.0189, ari=0.0225, agr=92.70%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:15] BOOTSTRAP_SWEEP | INFO | [37/40] kingman_n1000_eta15_006 done in 3 s (elapsed 0.04 h, ETA 0.00 h)
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007: loaded m=1000, true-tree top split 65/935
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007: S reference kmeans eta=14.38, sign eta=14.38 -> using kmeans
+[09:52:15] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.01274 results: nmi=0.0037, ari=0.0180, agr=93.20%, dot=0.0588, sign=52.90%, s2_full=8.4591, s2_sub=49.1032, opnorm=374.3990, eta=199.00, split=5-995
+[09:52:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.02069 results: nmi=0.1382, ari=0.1726, agr=94.20%, dot=0.2563, sign=80.90%, s2_full=0.2604, s2_sub=29.1917, opnorm=287.3020, eta=141.86, split=7-993
+[09:52:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.007848 results: nmi=0.0033, ari=-0.0118, agr=92.80%, dot=0.0311, sign=7.90%, s2_full=12.3234, s2_sub=75.4578, opnorm=492.0515, eta=141.86, split=7-993
+[09:52:16] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.0336 results: nmi=0.1203, ari=0.1496, agr=94.10%, dot=0.2719, sign=60.00%, s2_full=0.2813, s2_sub=21.4268, opnorm=220.9489, eta=165.67, split=6-994
+[09:52:17] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.0001 results: nmi=0.0132, ari=-0.0454, agr=89.60%, dot=0.0247, sign=50.00%, s2_full=20.0005, s2_sub=1237.7214, opnorm=12279.1290, eta=24.64, split=39-961
+[09:52:17] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.05456 results: nmi=0.1728, ari=0.2171, agr=94.40%, dot=0.3306, sign=76.30%, s2_full=0.3031, s2_sub=17.2819, opnorm=169.6954, eta=110.11, split=9-991
+[09:52:17] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.08859 results: nmi=0.1728, ari=0.2171, agr=94.40%, dot=0.3937, sign=82.70%, s2_full=0.2817, s2_sub=13.7403, opnorm=129.0878, eta=110.11, split=9-991
+[09:52:18] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.1438 results: nmi=0.1557, ari=0.1951, agr=94.30%, dot=0.5521, sign=96.60%, s2_full=0.3142, s2_sub=10.4397, opnorm=98.2350, eta=124.00, split=8-992
+[09:52:18] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.2336 results: nmi=0.2059, ari=0.2597, agr=94.60%, dot=0.7476, sign=99.00%, s2_full=0.3130, s2_sub=7.8504, opnorm=72.9674, eta=89.91, split=11-989
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9904, sign=100.00%, s2_full=0.1215, s2_sub=4.8676, opnorm=51.7919, eta=14.38, split=65-935
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9975, sign=100.00%, s2_full=0.1215, s2_sub=3.0388, opnorm=31.6147, eta=14.38, split=65-935
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1215, s2_sub=0.1215, opnorm=0.0000, eta=14.38, split=65-935
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.000162 EXTRAPOLATED: nmi=0.0035, ari=0.0031, agr=93.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.000264 EXTRAPOLATED: nmi=0.0035, ari=0.0031, agr=93.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.000428 EXTRAPOLATED: nmi=0.0035, ari=0.0031, agr=93.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.000695 EXTRAPOLATED: nmi=0.0035, ari=0.0031, agr=93.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.001129 EXTRAPOLATED: nmi=0.0035, ari=0.0031, agr=93.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.001833 EXTRAPOLATED: nmi=0.0035, ari=0.0031, agr=93.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.002976 EXTRAPOLATED: nmi=0.0035, ari=0.0031, agr=93.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_007 [L] p=0.004833 EXTRAPOLATED: nmi=0.0035, ari=0.0031, agr=93.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:19] BOOTSTRAP_SWEEP | INFO | [38/40] kingman_n1000_eta15_007 done in 4 s (elapsed 0.04 h, ETA 0.00 h)
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008: loaded m=1000, true-tree top split 938/62
+[09:52:19] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008: S reference kmeans eta=15.13, sign eta=15.13 -> using kmeans
+[09:52:20] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.01274 results: nmi=0.1033, ari=0.1534, agr=94.30%, dot=0.2405, sign=25.20%, s2_full=9.7257, s2_sub=37.6100, opnorm=391.2694, eta=141.86, split=7-993
+[09:52:20] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.02069 results: nmi=0.1809, ari=0.2278, agr=94.70%, dot=0.3465, sign=83.70%, s2_full=2.8532, s2_sub=20.2214, opnorm=297.8055, eta=110.11, split=9-991
+[09:52:20] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.007848 results: nmi=0.0029, ari=-0.0103, agr=93.20%, dot=0.1144, sign=13.30%, s2_full=16.4426, s2_sub=89.3341, opnorm=516.3502, eta=165.67, split=6-994
+[09:52:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.0336 results: nmi=0.2322, ari=0.2937, agr=95.00%, dot=0.3738, sign=85.20%, s2_full=3.2809, s2_sub=16.9062, opnorm=229.5392, eta=82.33, split=12-988
+[09:52:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.004833 results: nmi=0.0037, ari=-0.0133, agr=93.00%, dot=0.0492, sign=90.80%, s2_full=21.0163, s2_sub=98.1612, opnorm=687.2587, eta=124.00, split=8-992
+[09:52:21] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.05456 results: nmi=0.1984, ari=0.2503, agr=94.80%, dot=0.4457, sign=91.50%, s2_full=2.4602, s2_sub=14.0428, opnorm=174.8917, eta=99.00, split=10-990
+[09:52:22] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[09:52:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.0001 results: nmi=0.0232, ari=0.0279, agr=93.90%, dot=0.0962, sign=43.60%, s2_full=0.0000, s2_sub=0.0000, opnorm=11927.2856, eta=999.00, split=1-999
+[09:52:22] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.08859 results: nmi=0.2155, ari=0.2722, agr=94.90%, dot=0.4166, sign=92.50%, s2_full=2.9761, s2_sub=9.6583, opnorm=134.6916, eta=89.91, split=11-989
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.1438 results: nmi=0.1984, ari=0.2503, agr=94.80%, dot=0.7336, sign=100.00%, s2_full=2.9575, s2_sub=7.6349, opnorm=102.8615, eta=99.00, split=10-990
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9734, sign=100.00%, s2_full=0.1896, s2_sub=4.0724, opnorm=76.4614, eta=15.13, split=62-938
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9973, sign=100.00%, s2_full=0.1896, s2_sub=2.8904, opnorm=53.1113, eta=15.13, split=62-938
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1896, s2_sub=0.1896, opnorm=0.0000, eta=15.13, split=62-938
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=15.13, split=62-938
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.000162 EXTRAPOLATED: nmi=0.0033, ari=-0.0118, agr=93.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.000264 EXTRAPOLATED: nmi=0.0033, ari=-0.0118, agr=93.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.000428 EXTRAPOLATED: nmi=0.0033, ari=-0.0118, agr=93.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.000695 EXTRAPOLATED: nmi=0.0033, ari=-0.0118, agr=93.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.001129 EXTRAPOLATED: nmi=0.0033, ari=-0.0118, agr=93.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.001833 EXTRAPOLATED: nmi=0.0033, ari=-0.0118, agr=93.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_008 [L] p=0.002976 EXTRAPOLATED: nmi=0.0033, ari=-0.0118, agr=93.10%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:23] BOOTSTRAP_SWEEP | INFO | [39/40] kingman_n1000_eta15_008 done in 4 s (elapsed 0.04 h, ETA 0.00 h)
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009: loaded m=1000, true-tree top split 936/64
+[09:52:23] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009: S reference kmeans eta=14.62, sign eta=14.62 -> using kmeans
+[09:52:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.01274 results: nmi=0.1403, ari=0.1754, agr=94.30%, dot=0.2540, sign=88.90%, s2_full=0.3134, s2_sub=24.9658, opnorm=409.7621, eta=141.86, split=7-993
+[09:52:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.02069 results: nmi=0.1924, ari=0.2424, agr=94.60%, dot=0.3622, sign=89.70%, s2_full=0.4667, s2_sub=23.7762, opnorm=313.7889, eta=99.00, split=10-990
+[09:52:24] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.007848 results: nmi=0.0409, ari=0.0915, agr=93.60%, dot=0.1639, sign=6.50%, s2_full=13.9146, s2_sub=80.7007, opnorm=537.0722, eta=124.00, split=8-992
+[09:52:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.0336 results: nmi=0.1754, ari=0.2206, agr=94.50%, dot=0.3341, sign=92.30%, s2_full=0.3745, s2_sub=18.3583, opnorm=244.0027, eta=110.11, split=9-991
+[09:52:25] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.004833 results: nmi=0.0041, ari=-0.0148, agr=92.70%, dot=0.0719, sign=8.90%, s2_full=4.1904, s2_sub=115.2147, opnorm=707.4517, eta=110.11, split=9-991
+[09:52:26] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.05456 results: nmi=0.1924, ari=0.2424, agr=94.60%, dot=0.3945, sign=96.20%, s2_full=0.3746, s2_sub=13.1706, opnorm=188.6218, eta=99.00, split=10-990
+[09:52:26] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.0001 results: nmi=0.0001, ari=-0.0050, agr=91.90%, dot=0.0563, sign=44.00%, s2_full=7.3747, s2_sub=1413.9673, opnorm=11153.5447, eta=51.63, split=19-981
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.08859 results: nmi=0.3326, ari=0.4198, agr=95.50%, dot=0.6753, sign=99.70%, s2_full=0.4323, s2_sub=11.8244, opnorm=144.3611, eta=51.63, split=19-981
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.1438 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9770, sign=100.00%, s2_full=0.0401, s2_sub=4.7833, opnorm=109.2052, eta=14.62, split=64-936
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.2336 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9957, sign=100.00%, s2_full=0.0401, s2_sub=3.5692, opnorm=80.9587, eta=14.62, split=64-936
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0401, s2_sub=0.0401, opnorm=0.0000, eta=14.62, split=64-936
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.3793 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=14.62, split=64-936
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.6158 EXTRAPOLATED: nmi=1.0000, ari=1.0000, agr=100.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=14.62, split=64-936
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.000162 EXTRAPOLATED: nmi=0.0225, ari=0.0383, agr=93.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.000264 EXTRAPOLATED: nmi=0.0225, ari=0.0383, agr=93.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.000428 EXTRAPOLATED: nmi=0.0225, ari=0.0383, agr=93.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.000695 EXTRAPOLATED: nmi=0.0225, ari=0.0383, agr=93.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.001129 EXTRAPOLATED: nmi=0.0225, ari=0.0383, agr=93.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.001833 EXTRAPOLATED: nmi=0.0225, ari=0.0383, agr=93.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:27] BOOTSTRAP_SWEEP | INFO | kingman_n1000_eta15_009 [L] p=0.002976 EXTRAPOLATED: nmi=0.0225, ari=0.0383, agr=93.15%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[09:52:27] BOOTSTRAP_SWEEP | INFO | [40/40] kingman_n1000_eta15_009 done in 4 s (elapsed 0.04 h, ETA 0.00 h)
+
+================================================================================
+Experiment Log Ended: 2026-10-18 09:52:27
+================================================================================

@@ -1,0 +1,89 @@
+================================================================================
+Experiment Log Started: 2026-10-15 17:49:14
+================================================================================
+
+[17:49:14] SCREEN | INFO | kingman n1000 L10000 mu0.1 eta1-5-10-15 #c987ce: computing 40 trees on 5 workers, operators ('S',) (0 already cached)
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_000: S eta=1.86/edge (kmeans)
+[17:49:16] SCREEN | INFO | [1/40] saved 1 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_003: S eta=1.61/edge (kmeans)
+[17:49:16] SCREEN | INFO | [2/40] saved 2 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_001: S eta=1.66/edge (kmeans)
+[17:49:16] SCREEN | INFO | [3/40] saved 3 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_002: S eta=1.00/edge (kmeans)
+[17:49:16] SCREEN | INFO | [4/40] saved 4 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_004: S eta=1.48/edge (kmeans)
+[17:49:16] SCREEN | INFO | [5/40] saved 5 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_007: S eta=1.29/edge (kmeans)
+[17:49:16] SCREEN | INFO | [6/40] saved 6 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_006: S eta=1.66/edge (kmeans)
+[17:49:16] SCREEN | INFO | [7/40] saved 7 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_005: S eta=1.75/edge (kmeans)
+[17:49:16] SCREEN | INFO | [8/40] saved 8 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_009: S eta=1.14/edge (kmeans)
+[17:49:16] SCREEN | INFO | [9/40] saved 9 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta01_008: S eta=1.79/edge (kmeans)
+[17:49:16] SCREEN | INFO | [10/40] saved 10 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_000: S eta=4.68/edge (kmeans)
+[17:49:16] SCREEN | INFO | [11/40] saved 11 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_001: S eta=5.80/edge (kmeans)
+[17:49:16] SCREEN | INFO | [12/40] saved 12 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_002: S eta=4.10/edge (kmeans)
+[17:49:16] SCREEN | INFO | [13/40] saved 13 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_003: S eta=4.92/edge (kmeans)
+[17:49:16] SCREEN | INFO | [14/40] saved 14 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_004: S eta=4.24/edge (kmeans)
+[17:49:16] SCREEN | INFO | [15/40] saved 15 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_005: S eta=4.35/edge (kmeans)
+[17:49:16] SCREEN | INFO | [16/40] saved 16 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_006: S eta=4.35/edge (kmeans)
+[17:49:16] SCREEN | INFO | [17/40] saved 17 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_007: S eta=4.46/edge (kmeans)
+[17:49:16] SCREEN | INFO | [18/40] saved 18 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_008: S eta=4.15/edge (kmeans)
+[17:49:16] SCREEN | INFO | [19/40] saved 19 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta05_009: S eta=5.37/edge (sign)
+[17:49:16] SCREEN | INFO | [20/40] saved 20 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_000: S eta=9.10/edge (kmeans)
+[17:49:16] SCREEN | INFO | [21/40] saved 21 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_002: S eta=9.53/edge (kmeans)
+[17:49:16] SCREEN | INFO | [22/40] saved 22 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_001: S eta=9.75/edge (kmeans)
+[17:49:16] SCREEN | INFO | [23/40] saved 23 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_003: S eta=9.87/edge (kmeans)
+[17:49:16] SCREEN | INFO | [24/40] saved 24 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_004: S eta=9.64/edge (kmeans)
+[17:49:16] SCREEN | INFO | [25/40] saved 25 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_005: S eta=10.63/edge (kmeans)
+[17:49:16] SCREEN | INFO | [26/40] saved 26 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_007: S eta=9.42/edge (kmeans)
+[17:49:16] SCREEN | INFO | [27/40] saved 27 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_006: S eta=9.75/edge (kmeans)
+[17:49:16] SCREEN | INFO | [28/40] saved 28 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_008: S eta=9.64/edge (kmeans)
+[17:49:16] SCREEN | INFO | [29/40] saved 29 rows
+[17:49:16] SCREEN | INFO | kingman_n1000_eta10_009: S eta=10.49/edge (kmeans)
+[17:49:16] SCREEN | INFO | [30/40] saved 30 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_000: S eta=14.38/edge (kmeans)
+[17:49:17] SCREEN | INFO | [31/40] saved 31 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_001: S eta=15.13/edge (kmeans)
+[17:49:17] SCREEN | INFO | [32/40] saved 32 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_002: S eta=14.62/edge (kmeans)
+[17:49:17] SCREEN | INFO | [33/40] saved 33 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_003: S eta=15.67/edge (kmeans)
+[17:49:17] SCREEN | INFO | [34/40] saved 34 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_004: S eta=15.95/edge (kmeans)
+[17:49:17] SCREEN | INFO | [35/40] saved 35 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_005: S eta=14.87/edge (kmeans)
+[17:49:17] SCREEN | INFO | [36/40] saved 36 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_006: S eta=14.38/edge (kmeans)
+[17:49:17] SCREEN | INFO | [37/40] saved 37 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_008: S eta=15.13/edge (kmeans)
+[17:49:17] SCREEN | INFO | [38/40] saved 38 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_007: S eta=14.38/edge (kmeans)
+[17:49:17] SCREEN | INFO | [39/40] saved 39 rows
+[17:49:17] SCREEN | INFO | kingman_n1000_eta15_009: S eta=14.62/edge (kmeans)
+[17:49:17] SCREEN | INFO | [40/40] saved 40 rows
+
+================================================================================
+Experiment Log Ended: 2026-10-15 17:49:17
+================================================================================

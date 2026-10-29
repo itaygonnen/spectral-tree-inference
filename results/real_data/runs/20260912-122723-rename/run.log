@@ -1,0 +1,10 @@
+dataset '1000 taxa': 2 trees, m=1000, L=8675
+ERROR: 1000 taxa failed:
+Traceback (most recent call last):
+  File "/Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/scripts/run_real_sweep.py", line 141, in main
+    selected[name] = _run_cohort(get_dataset(name), args)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/scripts/run_real_sweep.py", line 187, in _run_cohort
+    sweep_ids = select_ids(dataset.name, ids, args.cohort_rule, args.max_eta)
+                                              ^^^^^^^^^^^^^^^^
+AttributeError: 'Namespace' object has no attribute 'cohort_rule'

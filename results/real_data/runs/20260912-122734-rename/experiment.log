@@ -1,0 +1,16 @@
+================================================================================
+Experiment Log Started: 2026-09-12 12:27:34
+================================================================================
+
+[12:27:34] BOOTSTRAP_SWEEP | INFO | 1000 taxa: 0/1 cached, 1 to run, p=0.0001..1, reps=1
+[12:27:39] BOOTSTRAP_SWEEP | INFO | random_tree_002: loaded m=1000, true-tree top split 997/3
+[12:27:39] P_SWEEP_INNER | WARNING | k-means split smaller side 1 < min_split 5
+[12:27:39] BOOTSTRAP_SWEEP | INFO | random_tree_002: L(S) reference k-means eta=999.00, sign eta=6.46 -> using sign
+[12:27:39] BOOTSTRAP_SWEEP | INFO | random_tree_002: L(S) reference split 134/866 (sign)
+[12:27:39] BOOTSTRAP_SWEEP | INFO | random_tree_002: B reference split 696/304 (eta=2.29)
+[12:27:39] BOOTSTRAP_SWEEP | INFO | random_tree_002: L rule sign, eta_ref L=6.46 B=2.29
+[12:27:39] BOOTSTRAP_SWEEP | INFO | [1/1] random_tree_002 done in 5 s (elapsed 0.00 h, ETA 0.00 h)
+
+================================================================================
+Experiment Log Ended: 2026-09-12 12:27:39
+================================================================================

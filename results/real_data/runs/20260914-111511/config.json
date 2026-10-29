@@ -1,0 +1,25 @@
+{
+  "stage": "sweep",
+  "max_trees": 1,
+  "workers": 4,
+  "gate": "all",
+  "max_eta": 20.0,
+  "p_min": 0.0001,
+  "p_points": 20,
+  "reps": 10,
+  "num_gaps": 10,
+  "min_split": 5,
+  "operators": [
+    "S",
+    "Lsym",
+    "B"
+  ],
+  "extra_metrics": true,
+  "prefix": "",
+  "display_mode": "progress",
+  "datasets": [
+    "1000 taxa"
+  ],
+  "commit": "8a7a9ab",
+  "started": "2026-09-14T11:15:11"
+}

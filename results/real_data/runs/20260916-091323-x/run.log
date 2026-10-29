@@ -1,0 +1,122 @@
+  1/3 trees cached, 2 to run (20 p x 10 reps x 3 operators, p=0.0001..1)
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.0001 results: nmi=0.0005, ari=-0.0013, agr=52.40%, dot=0.0072, sign=47.60%, s2_full=6.5214, s2_sub=1411.0195, opnorm=9034.2180, eta=1.14, split=467-533
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.000162 results: nmi=0.0008, ari=-0.0003, agr=50.20%, dot=0.0178, sign=50.20%, s2_full=6.6217, s2_sub=969.9021, opnorm=6497.9037, eta=1.02, split=495-505
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.000264 results: nmi=0.0003, ari=0.0011, agr=54.20%, dot=0.0535, sign=54.20%, s2_full=6.6431, s2_sub=766.5557, opnorm=4438.8983, eta=1.19, split=457-543
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.000428 results: nmi=0.0000, ari=0.0001, agr=53.20%, dot=0.0310, sign=53.20%, s2_full=6.6311, s2_sub=499.4405, opnorm=3060.7304, eta=1.15, split=465-535
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.000695 results: nmi=0.0039, ari=-0.0003, agr=50.60%, dot=0.0423, sign=49.40%, s2_full=6.6618, s2_sub=388.6947, opnorm=2176.1416, eta=1.04, split=491-509
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.001129 results: nmi=0.0016, ari=0.0011, agr=52.30%, dot=0.0300, sign=52.30%, s2_full=6.6690, s2_sub=287.8855, opnorm=1511.2725, eta=1.07, split=484-516
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.001833 results: nmi=0.0003, ari=0.0014, agr=55.50%, dot=0.0252, sign=55.50%, s2_full=6.6030, s2_sub=227.1770, opnorm=1098.2159, eta=1.26, split=442-558
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.002976 results: nmi=0.0018, ari=-0.0175, agr=73.10%, dot=0.0506, sign=26.90%, s2_full=5.9812, s2_sub=159.0682, opnorm=819.5038, eta=3.35, split=230-770
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.004833 results: nmi=0.0064, ari=-0.0238, agr=92.50%, dot=0.0032, sign=7.50%, s2_full=2.0205, s2_sub=98.2337, opnorm=606.5054, eta=61.50, split=16-984
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.007848 results: nmi=0.0000, ari=0.0035, agr=91.40%, dot=0.0060, sign=8.60%, s2_full=2.5096, s2_sub=80.4333, opnorm=457.6756, eta=31.26, split=31-969
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.01274 results: nmi=0.0019, ari=0.0230, agr=79.00%, dot=0.0089, sign=21.00%, s2_full=4.8942, s2_sub=74.3151, opnorm=346.9689, eta=4.59, split=179-821
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.02069 results: nmi=0.0001, ari=-0.0014, agr=58.20%, dot=0.0144, sign=41.80%, s2_full=6.4243, s2_sub=61.5479, opnorm=266.7551, eta=1.47, split=405-595
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.0336 results: nmi=0.0003, ari=0.0071, agr=72.90%, dot=0.0221, sign=27.10%, s2_full=5.7998, s2_sub=45.6251, opnorm=207.3310, eta=3.10, split=244-756
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.05456 results: nmi=0.0010, ari=-0.0060, agr=60.10%, dot=0.0331, sign=39.90%, s2_full=6.4020, s2_sub=37.0798, opnorm=160.5994, eta=1.65, split=378-622
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.08859 results: nmi=0.0008, ari=-0.0034, agr=55.80%, dot=0.0361, sign=44.20%, s2_full=6.5453, s2_sub=28.8053, opnorm=123.5416, eta=1.34, split=427-573
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.1438 results: nmi=0.0009, ari=0.0006, agr=51.90%, dot=0.0453, sign=48.10%, s2_full=6.6590, s2_sub=22.1602, opnorm=94.0756, eta=1.06, split=486-514
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.2336 results: nmi=0.0006, ari=0.0025, agr=56.70%, dot=0.0544, sign=43.30%, s2_full=6.6487, s2_sub=16.4948, opnorm=69.4361, eta=1.33, split=430-570
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.3793 results: nmi=0.0054, ari=0.0083, agr=57.20%, dot=0.3570, sign=57.20%, s2_full=6.3392, s2_sub=11.6019, opnorm=48.6997, eta=1.29, split=437-563
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=0.6158 results: nmi=0.0072, ari=0.0213, agr=64.70%, dot=0.3770, sign=64.70%, s2_full=6.3261, s2_sub=8.2371, opnorm=30.3185, eta=1.82, split=354-646
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.8235, s2_sub=0.8235, opnorm=0.0000, eta=15.95, split=59-941
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.0001 results: nmi=0.0019, ari=0.0007, agr=52.00%, dot=0.1236, sign=49.80%, s2_full=6.6509, s2_sub=1280.3605, opnorm=9034.2180, eta=1.03, split=492-508
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.000162 results: nmi=0.0011, ari=-0.0013, agr=50.60%, dot=0.0695, sign=47.70%, s2_full=6.6216, s2_sub=969.5816, opnorm=6497.9037, eta=1.13, split=470-530
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.000264 results: nmi=0.0008, ari=0.0001, agr=51.50%, dot=0.0505, sign=51.50%, s2_full=6.6581, s2_sub=700.8552, opnorm=4438.8983, eta=1.00, split=499-501
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.000428 results: nmi=0.0072, ari=0.0073, agr=54.50%, dot=0.0711, sign=54.50%, s2_full=6.5551, s2_sub=526.4283, opnorm=3060.7304, eta=1.00, split=499-501
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.000695 results: nmi=0.0001, ari=-0.0001, agr=52.50%, dot=0.0521, sign=52.50%, s2_full=6.6493, s2_sub=374.4945, opnorm=2176.1416, eta=1.24, split=447-553
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.001129 results: nmi=0.0044, ari=0.0024, agr=52.90%, dot=0.0555, sign=52.90%, s2_full=6.4728, s2_sub=290.4901, opnorm=1511.2725, eta=1.06, split=485-515
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.001833 results: nmi=0.0011, ari=0.0027, agr=53.40%, dot=0.0424, sign=53.40%, s2_full=6.6575, s2_sub=225.6955, opnorm=1098.2159, eta=1.18, split=458-542
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.002976 results: nmi=0.0001, ari=0.0034, agr=60.80%, dot=0.0702, sign=60.80%, s2_full=6.0153, s2_sub=161.6115, opnorm=819.5038, eta=3.24, split=236-764
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.004833 results: nmi=0.0048, ari=0.0155, agr=69.50%, dot=0.1003, sign=69.50%, s2_full=3.1400, s2_sub=100.6201, opnorm=606.5054, eta=39.00, split=25-975
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.007848 results: nmi=0.0052, ari=0.0037, agr=53.40%, dot=0.0911, sign=53.40%, s2_full=6.5494, s2_sub=98.9616, opnorm=457.6756, eta=1.04, split=490-510
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.01274 results: nmi=0.0010, ari=-0.0006, agr=51.00%, dot=0.0700, sign=51.00%, s2_full=6.5894, s2_sub=77.5392, opnorm=346.9689, eta=1.07, split=484-516
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.02069 results: nmi=0.0028, ari=0.0016, agr=52.50%, dot=0.0682, sign=52.50%, s2_full=6.5594, s2_sub=61.0983, opnorm=266.7551, eta=1.03, split=493-507
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.0336 results: nmi=0.0080, ari=0.0091, agr=55.00%, dot=0.0705, sign=55.00%, s2_full=6.6071, s2_sub=48.0114, opnorm=207.3310, eta=1.03, split=492-508
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.05456 results: nmi=0.0075, ari=0.0054, agr=54.00%, dot=0.0986, sign=54.00%, s2_full=6.6078, s2_sub=37.5102, opnorm=160.5994, eta=1.06, split=486-514
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.08859 results: nmi=0.0075, ari=0.0044, agr=53.70%, dot=0.0928, sign=53.70%, s2_full=6.5442, s2_sub=28.4992, opnorm=123.5416, eta=1.09, split=479-521
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.1438 results: nmi=0.0089, ari=0.0100, agr=55.20%, dot=0.1052, sign=55.20%, s2_full=6.4562, s2_sub=21.8245, opnorm=94.0756, eta=1.02, split=494-506
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.2336 results: nmi=0.0036, ari=0.0020, agr=52.70%, dot=0.1434, sign=52.70%, s2_full=6.5377, s2_sub=16.4449, opnorm=69.4361, eta=1.04, split=489-511
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.3793 results: nmi=0.0180, ari=0.0176, agr=56.80%, dot=0.1910, sign=56.80%, s2_full=6.2374, s2_sub=11.8636, opnorm=48.6997, eta=1.02, split=494-506
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=0.6158 results: nmi=0.0399, ari=0.0358, agr=59.60%, dot=0.3228, sign=59.60%, s2_full=5.9083, s2_sub=7.9886, opnorm=30.3185, eta=1.08, split=480-520
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [Lsym] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=1.5775, s2_sub=1.5775, opnorm=0.0000, eta=2.29, split=304-696
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.0001 results: nmi=0.0000, ari=-0.0004, agr=68.80%, dot=0.0081, s2_full=2.2998, s2_sub=151.6477, opnorm=3538878.6704, eta=49.00, split=20-980
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.000162 results: nmi=0.0012, ari=-0.0069, agr=68.30%, dot=0.0729, s2_full=2.8246, s2_sub=78.8615, opnorm=2214471.9187, eta=42.48, split=23-977
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.000264 results: nmi=0.0008, ari=0.0059, agr=69.00%, dot=0.0066, s2_full=2.6975, s2_sub=53.3793, opnorm=1353294.9678, eta=40.67, split=24-976
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.000428 results: nmi=0.0007, ari=-0.0056, agr=68.30%, dot=0.0168, s2_full=2.9384, s2_sub=61.6011, opnorm=833029.5518, eta=39.00, split=25-975
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.000695 results: nmi=0.0041, ari=-0.0139, agr=67.60%, dot=0.0354, s2_full=2.7658, s2_sub=44.8024, opnorm=509129.3342, eta=32.33, split=30-970
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.001129 results: nmi=0.0024, ari=0.0125, agr=69.00%, dot=0.1013, s2_full=3.9588, s2_sub=29.9288, opnorm=315068.2891, eta=28.41, split=34-966
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.001833 results: nmi=0.0041, ari=-0.0199, agr=65.60%, dot=0.0413, s2_full=3.9297, s2_sub=23.3746, opnorm=193867.5085, eta=13.71, split=68-932
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.002976 results: nmi=0.0000, ari=0.0007, agr=65.60%, dot=0.0487, s2_full=5.2559, s2_sub=18.4786, opnorm=119510.1987, eta=8.62, split=104-896
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.004833 results: nmi=0.0000, ari=-0.0004, agr=61.50%, dot=0.0829, s2_full=6.2257, s2_sub=13.8762, opnorm=73534.1216, eta=3.83, split=207-793
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.007848 results: nmi=0.0066, ari=0.0262, agr=60.30%, dot=0.1298, s2_full=7.9398, s2_sub=10.7283, opnorm=45144.1720, eta=1.95, split=339-661
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.01274 results: nmi=0.0030, ari=0.0138, agr=57.90%, dot=0.1033, s2_full=8.0522, s2_sub=9.4585, opnorm=27664.0750, eta=1.71, split=369-631
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.02069 results: nmi=0.0000, ari=-0.0017, agr=53.80%, dot=0.0082, s2_full=8.0534, s2_sub=8.5261, opnorm=16898.1288, eta=1.53, split=396-604
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.0336 results: nmi=0.4507, ari=0.5523, agr=87.30%, dot=0.8570, s2_full=4.4011, s2_sub=5.5449, opnorm=10264.3977, eta=1.62, split=381-619
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.05456 results: nmi=0.8042, ari=0.8776, agr=96.90%, dot=0.9684, s2_full=3.7141, s2_sub=4.2883, opnorm=6184.6456, eta=2.02, split=331-669
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.08859 results: nmi=0.8874, ari=0.9357, agr=98.40%, dot=0.9889, s2_full=2.9551, s2_sub=3.1816, opnorm=3671.8194, eta=2.12, split=320-680
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.1438 results: nmi=0.9791, ari=0.9918, agr=99.80%, dot=0.9949, s2_full=2.8441, s2_sub=2.4993, opnorm=2124.2036, eta=2.27, split=306-694
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.2336 results: nmi=0.9884, ari=0.9959, agr=99.90%, dot=0.9973, s2_full=2.8280, s2_sub=2.3462, opnorm=1170.8240, eta=2.28, split=305-695
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.3793 results: nmi=0.9791, ari=0.9918, agr=99.80%, dot=0.9991, s2_full=2.8482, s2_sub=2.4172, opnorm=584.1195, eta=2.27, split=306-694
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=0.6158 results: nmi=0.9884, ari=0.9959, agr=99.90%, dot=0.9996, s2_full=2.8195, s2_sub=2.5097, opnorm=222.5925, eta=2.28, split=305-695
+BOOTSTRAP_SWEEP | INFO | random_tree_004 [B] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, s2_full=2.8214, s2_sub=2.8214, opnorm=0.0000, eta=2.29, split=304-696
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.0001 results: nmi=0.0000, ari=-0.0008, agr=51.30%, dot=0.0115, sign=48.70%, s2_full=10.8457, s2_sub=1470.7056, opnorm=10111.7943, eta=1.12, split=472-528
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.000162 results: nmi=0.0000, ari=-0.0010, agr=50.70%, dot=0.0056, sign=50.70%, s2_full=10.8875, s2_sub=980.5039, opnorm=6739.6640, eta=1.09, split=478-522
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.000264 results: nmi=0.0000, ari=-0.0008, agr=50.30%, dot=0.0071, sign=50.30%, s2_full=10.8989, s2_sub=718.4600, opnorm=4730.4206, eta=1.04, split=490-510
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.000428 results: nmi=0.0006, ari=-0.0005, agr=50.90%, dot=0.0394, sign=50.90%, s2_full=10.8963, s2_sub=504.9810, opnorm=3314.4765, eta=1.03, split=492-508
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.000695 results: nmi=0.0003, ari=-0.0007, agr=50.60%, dot=0.0278, sign=50.60%, s2_full=10.8883, s2_sub=397.7819, opnorm=2209.7817, eta=1.02, split=495-505
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.001129 results: nmi=0.0016, ari=-0.0034, agr=50.70%, dot=0.0748, sign=50.70%, s2_full=10.7536, s2_sub=303.8683, opnorm=1606.8607, eta=1.26, split=442-558
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.001833 results: nmi=0.0032, ari=0.0039, agr=53.50%, dot=0.0382, sign=53.50%, s2_full=10.7841, s2_sub=227.6150, opnorm=1135.1432, eta=1.06, split=486-514
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.002976 results: nmi=0.0021, ari=-0.0193, agr=61.80%, dot=0.0225, sign=38.20%, s2_full=8.0899, s2_sub=164.1158, opnorm=838.7494, eta=3.88, split=205-795
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.004833 results: nmi=0.0002, ari=-0.0044, agr=71.00%, dot=0.0034, sign=29.00%, s2_full=4.2223, s2_sub=109.3420, opnorm=623.0379, eta=26.03, split=37-963
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.007848 results: nmi=0.0078, ari=-0.0234, agr=70.10%, dot=0.0061, sign=29.90%, s2_full=3.3820, s2_sub=90.0621, opnorm=470.2697, eta=26.78, split=36-964
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.01274 results: nmi=0.0005, ari=-0.0100, agr=63.70%, dot=0.0084, sign=36.30%, s2_full=8.3141, s2_sub=77.2649, opnorm=360.7093, eta=4.43, split=184-816
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.02069 results: nmi=0.0003, ari=-0.0069, agr=59.70%, dot=0.0145, sign=40.30%, s2_full=9.7275, s2_sub=61.9474, opnorm=276.6634, eta=2.68, split=272-728
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.0336 results: nmi=0.0004, ari=0.0084, agr=63.70%, dot=0.0266, sign=63.70%, s2_full=9.1441, s2_sub=47.8564, opnorm=215.4511, eta=3.59, split=218-782
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.05456 results: nmi=0.0003, ari=0.0001, agr=51.70%, dot=0.0495, sign=48.30%, s2_full=10.8920, s2_sub=39.0029, opnorm=165.0988, eta=1.07, split=482-518
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.08859 results: nmi=0.0039, ari=0.0066, agr=54.50%, dot=0.0813, sign=54.50%, s2_full=10.8373, s2_sub=29.6595, opnorm=127.1770, eta=1.13, split=470-530
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.1438 results: nmi=0.0010, ari=0.0017, agr=52.80%, dot=0.1030, sign=52.80%, s2_full=10.8760, s2_sub=22.9645, opnorm=96.3134, eta=1.11, split=473-527
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.2336 results: nmi=0.0109, ari=0.0218, agr=58.00%, dot=0.4216, sign=58.00%, s2_full=10.7533, s2_sub=17.2071, opnorm=71.6883, eta=1.28, split=439-561
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.3793 results: nmi=0.0001, ari=0.0013, agr=55.40%, dot=0.2561, sign=44.60%, s2_full=10.6782, s2_sub=13.7777, opnorm=50.4489, eta=1.54, split=393-607
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=0.6158 results: nmi=0.0000, ari=-0.0015, agr=52.90%, dot=0.3042, sign=47.10%, s2_full=10.7922, s2_sub=11.9240, opnorm=31.2353, eta=1.33, split=430-570
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=1.2233, s2_sub=1.2233, opnorm=0.0000, eta=2.69, split=271-729
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.0001 results: nmi=0.0050, ari=0.0071, agr=54.50%, dot=0.0722, sign=54.10%, s2_full=10.7483, s2_sub=1342.0280, opnorm=10111.7943, eta=1.08, split=480-520
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.000162 results: nmi=0.0018, ari=-0.0007, agr=51.30%, dot=0.0948, sign=51.10%, s2_full=10.8072, s2_sub=1012.1545, opnorm=6739.6640, eta=1.17, split=460-540
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.000264 results: nmi=0.0037, ari=0.0021, agr=52.80%, dot=0.0799, sign=52.80%, s2_full=10.7675, s2_sub=692.0228, opnorm=4730.4206, eta=1.10, split=477-523
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.000428 results: nmi=0.0030, ari=0.0027, agr=53.00%, dot=0.1203, sign=53.00%, s2_full=10.8547, s2_sub=512.4978, opnorm=3314.4765, eta=1.01, split=497-503
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.000695 results: nmi=0.0006, ari=-0.0005, agr=51.10%, dot=0.0574, sign=51.10%, s2_full=10.8375, s2_sub=402.4144, opnorm=2209.7817, eta=1.05, split=488-512
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.001129 results: nmi=0.0032, ari=0.0032, agr=53.20%, dot=0.1021, sign=53.20%, s2_full=10.8043, s2_sub=298.9125, opnorm=1606.8607, eta=1.00, split=499-501
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.001833 results: nmi=0.0001, ari=-0.0014, agr=51.10%, dot=0.0793, sign=48.90%, s2_full=10.7654, s2_sub=228.0977, opnorm=1135.1432, eta=1.27, split=440-560
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.002976 results: nmi=0.0000, ari=0.0009, agr=56.50%, dot=0.0947, sign=56.50%, s2_full=9.5923, s2_sub=166.3147, opnorm=838.7494, eta=2.79, split=264-736
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.004833 results: nmi=0.0014, ari=0.0084, agr=62.10%, dot=0.0786, sign=62.10%, s2_full=5.8396, s2_sub=118.7891, opnorm=623.0379, eta=12.89, split=72-928
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.007848 results: nmi=0.0038, ari=0.0045, agr=53.70%, dot=0.1176, sign=53.70%, s2_full=10.7287, s2_sub=103.4124, opnorm=470.2697, eta=1.04, split=490-510
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.01274 results: nmi=0.0049, ari=0.0061, agr=54.20%, dot=0.1067, sign=54.20%, s2_full=10.7242, s2_sub=80.4145, opnorm=360.7093, eta=1.04, split=489-511
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.02069 results: nmi=0.0008, ari=-0.0000, agr=51.50%, dot=0.0793, sign=51.50%, s2_full=10.8329, s2_sub=63.2424, opnorm=276.6634, eta=1.02, split=496-504
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.0336 results: nmi=0.0058, ari=0.0061, agr=54.20%, dot=0.1162, sign=54.20%, s2_full=10.6939, s2_sub=49.8827, opnorm=215.4511, eta=1.01, split=497-503
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.05456 results: nmi=0.0089, ari=0.0099, agr=55.20%, dot=0.1358, sign=55.20%, s2_full=10.6363, s2_sub=38.4372, opnorm=165.0988, eta=1.01, split=497-503
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.08859 results: nmi=0.0106, ari=0.0112, agr=55.50%, dot=0.1287, sign=55.50%, s2_full=10.7006, s2_sub=29.7806, opnorm=127.1770, eta=1.04, split=490-510
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.1438 results: nmi=0.0070, ari=0.0079, agr=54.70%, dot=0.1436, sign=54.70%, s2_full=10.6430, s2_sub=22.9539, opnorm=96.3134, eta=1.00, split=500-500
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.2336 results: nmi=0.0080, ari=0.0067, agr=54.40%, dot=0.1805, sign=54.40%, s2_full=10.5305, s2_sub=17.5817, opnorm=71.6883, eta=1.10, split=477-523
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.3793 results: nmi=0.0506, ari=0.0596, agr=62.30%, dot=0.4261, sign=62.30%, s2_full=8.9229, s2_sub=12.8942, opnorm=50.4489, eta=1.03, split=492-508
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=0.6158 results: nmi=0.4820, ari=0.6064, agr=89.00%, dot=0.9314, sign=89.00%, s2_full=3.3534, s2_sub=7.1289, opnorm=31.2353, eta=1.65, split=377-623
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [Lsym] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=1.6274, s2_sub=1.6274, opnorm=0.0000, eta=1.71, split=369-631
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.0001 results: nmi=0.0003, ari=-0.0023, agr=62.20%, dot=0.0042, s2_full=4.1107, s2_sub=169.4612, opnorm=3274757.1282, eta=51.63, split=19-981
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.000162 results: nmi=0.0031, ari=-0.0064, agr=61.80%, dot=0.0396, s2_full=3.5307, s2_sub=101.9995, opnorm=2029192.4094, eta=51.63, split=19-981
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.000264 results: nmi=0.0001, ari=0.0009, agr=62.40%, dot=0.0346, s2_full=3.7840, s2_sub=69.4332, opnorm=1253527.9781, eta=42.48, split=23-977
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.000428 results: nmi=0.0149, ari=-0.0144, agr=60.80%, dot=0.0465, s2_full=3.5589, s2_sub=46.7802, opnorm=769119.5206, eta=39.00, split=25-975
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.000695 results: nmi=0.0058, ari=-0.0118, agr=60.70%, dot=0.0483, s2_full=3.8388, s2_sub=27.8227, opnorm=472959.4460, eta=25.32, split=38-962
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.001129 results: nmi=0.0011, ari=-0.0069, agr=60.60%, dot=0.0775, s2_full=5.4185, s2_sub=27.9308, opnorm=290606.6587, eta=15.39, split=61-939
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.001833 results: nmi=0.0031, ari=0.0129, agr=62.40%, dot=0.1138, s2_full=7.8983, s2_sub=23.2933, opnorm=179453.1095, eta=13.08, split=71-929
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.002976 results: nmi=0.0000, ari=-0.0015, agr=60.00%, dot=0.0309, s2_full=9.0455, s2_sub=17.3170, opnorm=110098.4856, eta=8.35, split=107-893
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.004833 results: nmi=0.0223, ari=0.0560, agr=63.80%, dot=0.1063, s2_full=11.2473, s2_sub=14.8080, opnorm=67723.7913, eta=3.52, split=221-779
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.007848 results: nmi=0.0803, ari=0.1229, agr=67.70%, dot=0.2284, s2_full=10.6540, s2_sub=12.4195, opnorm=41588.9068, eta=1.39, split=418-582
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.01274 results: nmi=0.4756, ari=0.6002, agr=88.80%, dot=0.8653, s2_full=4.1035, s2_sub=8.6167, opnorm=25484.5774, eta=1.67, split=375-625
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.02069 results: nmi=0.7067, ari=0.8012, agr=94.80%, dot=0.9648, s2_full=3.4796, s2_sub=6.7533, opnorm=15569.6422, eta=1.97, split=337-663
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.0336 results: nmi=0.7379, ari=0.8343, agr=95.70%, dot=0.9867, s2_full=3.3163, s2_sub=5.1622, opnorm=9456.7983, eta=1.84, split=352-648
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.05456 results: nmi=0.8061, ari=0.8867, agr=97.10%, dot=0.9941, s2_full=3.1229, s2_sub=3.9758, opnorm=5696.9969, eta=1.79, split=358-642
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.08859 results: nmi=0.8480, ari=0.9173, agr=97.90%, dot=0.9971, s2_full=2.9131, s2_sub=3.0554, opnorm=3383.1553, eta=1.75, split=364-636
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.1438 results: nmi=0.8611, ari=0.9250, agr=98.10%, dot=0.9984, s2_full=2.8206, s2_sub=2.6218, opnorm=1956.2482, eta=1.76, split=362-638
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.2336 results: nmi=0.8959, ari=0.9484, agr=98.70%, dot=0.9992, s2_full=2.7196, s2_sub=2.4480, opnorm=1078.8092, eta=1.72, split=368-632
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.3793 results: nmi=0.9372, ari=0.9720, agr=99.30%, dot=0.9996, s2_full=2.6878, s2_sub=2.3010, opnorm=538.1897, eta=1.70, split=370-630
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=0.6158 results: nmi=0.9539, ari=0.9800, agr=99.50%, dot=0.9998, s2_full=2.6802, s2_sub=2.4416, opnorm=205.0629, eta=1.72, split=368-632
+BOOTSTRAP_SWEEP | INFO | random_tree_014 [B] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, s2_full=2.6826, s2_sub=2.6826, opnorm=0.3290, eta=1.70, split=371-629
+  2 tree(s) swept in 0.01 h
