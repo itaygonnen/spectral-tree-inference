@@ -268,6 +268,21 @@ fully measured directory. It keeps all three operators and
 `rule_policy="kmeans"`/`aggregation="per_rep"` — those are like-for-like with Figs 2/4 and
 are not the sweep default.
 
+**The sweep's progress is the curve forming** (`operator_sweep.SweepProgress`,
+2026-10-29). One row per tree, one cell per p, shaded by NMI
+(`·` <0.1, `░` <0.4, `▒` <0.7, `▓` <0.95, `█` ~1.0), grouped **by eta bucket** with the
+bucket's median `p̂*` beside its header — the quantity the paper reports. Trees are grouped
+by reading `etaNN_` off the stem, so a downloaded set named `random_tree_001` groups flat
+and nothing had to be plumbed through `run_sweep`. Repaints in place on a TTY; one line
+per finished tree otherwise, because a repainting block in a cluster log is noise (the
+`isatty` probe is a `getattr`: a run tees stdout through a wrapper that has none, and
+treating that as "not a terminal" is also the right answer).
+
+The per-(tree, p) `BOOTSTRAP_SWEEP` line is no longer `force=True` — 161 of them on an
+8-tree run buried the display. It still reaches **`experiment.log`** in full, including
+every `EXTRAPOLATED` marker, and `--display-mode debug` still prints it to the terminal.
+`run.log` is the tee of what you saw; `experiment.log` is the detail.
+
 **The fill contract is load-bearing** (`p_sweep_inner.MiddleOut`): an extrapolated p carries
 only what its side's rule supports — nmi/ari/agreement and, on the high side, the reference
 partition — and NaN for `dot`, `sign_agreement` and every S-side diagnostic, none of which

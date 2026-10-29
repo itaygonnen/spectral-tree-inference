@@ -26,6 +26,10 @@ operator or a diagnostic existed still counts as swept and simply lacks those co
 """
 from __future__ import annotations
 
+import re
+import sys
+import time
+
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -191,7 +195,7 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
                    progress_cb=None) -> Dict[str, np.ndarray]:
     """Every selected operator on one tree. Returns ``{column: one value per p}``.
 
-    ``progress_cb(arm, p_index, p)`` is called after every p of every arm, so a caller
+    ``progress_cb(arm, p_index, p, nmi)`` is called after every p of every arm, so a caller
     can show movement inside a tree that takes half an hour.
     """
     from ..utils.bpart_sweep_cache import bpart_sweep_raw
@@ -249,9 +253,13 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
             if v is not None:
                 bits.append(f"{label}={v:.4f}")
         kind = "results" if row.get("measured", 1.0) else "EXTRAPOLATED"
+        # NOT force=True: that flag is for important final messages, and this is one
+        # line per (tree, p) -- 160 of them on an 8-tree run at 20 p, which buried the
+        # progress display it now sits behind. It still reaches run.log either way, and
+        # --display-mode debug still prints it.
         log_info("bootstrap",
                  f"{tree_id} [{arm}] p={p:.4g} {kind}: " + ", ".join(bits)
-                 + f", eta={eta}, split={split}", force=True)
+                 + f", eta={eta}, split={split}")
 
     out: Dict[str, np.ndarray] = {}
     n_p = len(list(p_values))
@@ -259,7 +267,7 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
         op = OPERATORS[key]
         arm = op.arm
         cb = (None if progress_cb is None
-              else (lambda i, p, _a=arm: progress_cb(_a, i, p)))
+              else (lambda i, p, nmi, _a=arm: progress_cb(_a, i, p, nmi)))
         vec = op.vector(S, D)
         rule, _part, etas = choose_cut(op, vec, min_split, S, num_gaps,
                                        rule_policy)
@@ -336,6 +344,157 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
     return out
 
 
+# The arm the progress shades. DEFAULT_OPERATORS is ("S",) whose arm is "L"; a run
+# sweeping several arms still draws one grid, because the figure reads one curve.
+REF_ARM = "L"
+
+
+class SweepProgress:
+    """The p-grid filling in, one row per tree, NMI shaded into the cell.
+
+    The sibling of ``sailfish_pool.Progress``, and for the same reason: the sweep used to
+    emit one INFO line per (tree, p), so a modest 8-tree run at 20 p scrolled 160 lines of
+    numbers nobody reads while it ran. The recovery curve is the point of the sweep, so
+    the progress IS the curve: cells go dark as NMI rises, and the transition appears from
+    the left as it is measured.
+
+    Two modes, as elsewhere -- repaint on a TTY, one line per finished tree in a log,
+    because a repainting block in a cluster log is noise.
+    """
+
+    # NMI -> glyph. The ramp is deliberately coarse: it reads as a curve, not a table.
+    RAMP = ((0.10, "\u00b7"), (0.40, "\u2591"), (0.70, "\u2592"),
+            (0.95, "\u2593"), (1.01, "\u2588"))
+    PENDING = " "
+
+    def __init__(self, tree_ids, p_values, threshold: float = 0.90,
+                 tty: Optional[bool] = None):
+        self.ids = list(tree_ids)
+        self.p = list(p_values)
+        self.threshold = threshold
+        self.cells: Dict[str, List[str]] = {t: [self.PENDING] * len(self.p)
+                                            for t in self.ids}
+        self.nmi: Dict[str, List[float]] = {t: [float("nan")] * len(self.p)
+                                            for t in self.ids}
+        self.done: List[str] = []
+        self.current: Optional[str] = None
+        self.t0 = time.time()
+        # getattr, not sys.stdout.isatty(): a run tees stdout into run.log through a
+        # wrapper with no isatty, and treating that as "not a terminal" is also the right
+        # answer -- repainting would write escape codes into the log file.
+        self.tty = (getattr(sys.stdout, "isatty", lambda: False)()
+                    if tty is None else tty)
+        self._drawn = 0
+
+    @classmethod
+    def _glyph(cls, nmi: float) -> str:
+        if nmi != nmi:                       # NaN
+            return cls.PENDING
+        for bound, ch in cls.RAMP:
+            if nmi < bound:
+                return ch
+        return cls.RAMP[-1][1]
+
+    def p_star(self, tree_id: str) -> Optional[float]:
+        """Smallest measured p whose NMI clears the threshold -- the run's read-off."""
+        for value, nmi in zip(self.p, self.nmi[tree_id]):
+            if nmi == nmi and nmi >= self.threshold:
+                return value
+        return None
+
+    @staticmethod
+    def _bucket_of(tree_id: str) -> Optional[int]:
+        """The eta bucket from the stem ``eta05_003``, or None for an unbucketed set.
+
+        Read off the name rather than plumbed through, because ``run_sweep`` is given ids
+        and a loader and deliberately knows nothing about where they came from -- a
+        downloaded set named ``random_tree_001`` simply groups flat.
+        """
+        m = re.match(r"^eta(\d+)_", str(tree_id))
+        return int(m.group(1)) if m else None
+
+    def _groups(self) -> List[Tuple[Optional[int], List[str]]]:
+        """``[(bucket, tree ids)]`` in bucket order; one flat group when unbucketed."""
+        by: Dict[Optional[int], List[str]] = {}
+        for t in self.ids:
+            by.setdefault(self._bucket_of(t), []).append(t)
+        if list(by) == [None]:
+            return [(None, self.ids)]
+        return sorted(by.items(), key=lambda kv: (kv[0] is None, kv[0] or 0))
+
+    def _lines(self) -> List[str]:
+        width = max((len(t) for t in self.ids), default=4) + 4
+        head = (f"  {'tree':<{width}}  p {self.p[0]:.0e} "
+                + "-" * max(len(self.p) - 12, 1) + f"> {self.p[-1]:g}"
+                + f"   p*>={self.threshold:g}")
+        out = [head]
+        for bucket, members in self._groups():
+            stars = [self.p_star(t) for t in members]
+            got = [v for v in stars if v is not None]
+            if bucket is not None:
+                out.append(f"  eta{bucket:02d}  {len(members)} tree(s)"
+                           + (f"   median p* {float(np.median(got)):.4g}"
+                              if len(got) == len(members) else
+                              f"   {len(got)}/{len(members)} past threshold"))
+            for t, star in zip(members, stars):
+                mark = "<" if t == self.current else " "
+                indent = "    " if bucket is not None else "  "
+                out.append(f"{indent}{t:<{width - len(indent) + 2}}{mark}"
+                           + "".join(self.cells[t])
+                           + "  " + (f"{star:.4g}" if star is not None else "-"))
+        el = time.time() - self.t0
+        eta = (el / len(self.done) * (len(self.ids) - len(self.done))
+               if self.done else 0.0)
+        out.append(f"  {len(self.done)}/{len(self.ids)} trees, {_clock(el)} elapsed"
+                   + (f", ETA {_clock(eta)}" if self.done and
+                      len(self.done) < len(self.ids) else ""))
+        return out
+
+    def _redraw(self) -> None:
+        if self._drawn:
+            sys.stdout.write(f"\033[{self._drawn}A")
+        lines = self._lines()
+        for line in lines:
+            sys.stdout.write("\033[2K" + line + "\n")
+        sys.stdout.flush()
+        self._drawn = len(lines)
+
+    def start(self, tree_id: str) -> None:
+        self.current = tree_id
+        if self.tty:
+            self._redraw()
+
+    def point(self, tree_id: str, index: int, nmi: float) -> None:
+        if 0 <= index < len(self.p):
+            self.nmi[tree_id][index] = nmi
+            self.cells[tree_id][index] = self._glyph(nmi)
+        if self.tty:
+            self._redraw()
+
+    def finish(self, tree_id: str, secs: float) -> None:
+        self.done.append(tree_id)
+        self.current = None
+        if self.tty:
+            self._redraw()
+        else:
+            star = self.p_star(tree_id)
+            print(f"  [{len(self.done)}/{len(self.ids)}] {tree_id} "
+                  f"{secs:.0f}s  p*={star:.4g}" if star is not None
+                  else f"  [{len(self.done)}/{len(self.ids)}] {tree_id} "
+                       f"{secs:.0f}s  p*=-", flush=True)
+
+    def close(self) -> None:
+        if self.tty:
+            self._redraw()
+        print(f"  shading: {chr(183)} NMI<0.1  {chr(9617)} <0.4  {chr(9618)} <0.7  "
+              f"{chr(9619)} <0.95  {chr(9608)} ~1.0", flush=True)
+
+
+def _clock(seconds: float) -> str:
+    m, s = divmod(int(max(seconds, 0)), 60)
+    h, m = divmod(m, 60)
+    return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
+
 def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], *,
               reps: int = 10, num_gaps: int = 10, min_split: int = MIN_SPLIT,
               operators: Sequence[str] = (), source: str = "", m: int = 6000,
@@ -369,25 +528,28 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
     # output is piped to a log. The tree counter lives in the description, the ETA in
     # the postfix, and each bar covers the |arms| x |p| steps of its own tree -- so it
     # moves several times a minute even at m=6000.
+    bar = SweepProgress(todo, pv)
+    bar.start(todo[0]) if todo else None
     for k, tree_id in enumerate(todo, 1):
         t_tree = time.time()
-        inner = create_progress_bar(len(arms) * len(pv),
-                                    f"  [{k}/{len(todo)}] {tree_id}", unit="p",
-                                    leave=False)
+        bar.start(tree_id)
         curves = sweep_one_tree(
             tree_id, loader, seed=seed_for(tree_id, seed_stride), p_values=pv,
             reps=reps, num_gaps=num_gaps, min_split=min_split, operators=ops,
             extra_metrics=extra_metrics, rule_policy=rule_policy,
             eigsolver=eigsolver, aggregation=aggregation, early_stop=early_stop,
-            progress_cb=lambda arm, i, p: inner.update(1))
-        inner.close()
+            progress_cb=lambda arm, i, p, nmi, _t=tree_id: (
+                bar.point(_t, i, nmi) if arm == REF_ARM else None))
         np.savez(_cache_file(cache_dir, tree_id), p_values=pv,
                  meta=np.array(meta, dtype=object), **curves)
         finished.append(tree_id)
         el = time.time() - t0
+        bar.finish(tree_id, time.time() - t_tree)
         log_info("bootstrap",
                  f"[{k}/{len(todo)}] {tree_id} done in {time.time() - t_tree:.0f} s "
                  f"(elapsed {el/3600:.2f} h, ETA {(el/k)*(len(todo)-k)/3600:.2f} h)")
+    if todo:
+        bar.close()
     print(f"  {len(finished)} tree(s) swept in {(time.time() - t0)/3600:.2f} h",
           flush=True)
     return finished

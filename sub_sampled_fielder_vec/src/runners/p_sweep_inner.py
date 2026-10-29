@@ -247,7 +247,7 @@ def bootstrap_p_sweep_simple(
     partition_method: str = "sigma2",
     laplacian: str = "unnormalized",
     extra_metrics: bool = False,
-    progress_cb: Optional[Callable[[int, float], None]] = None,
+    progress_cb: Optional[Callable[[int, float, float], None]] = None,
     on_p_result: Optional[Callable[[int, float, Dict[str, Any]], None]] = None,
 ) -> Dict[str, Any]:
     """Bootstrap p-sweep with precomputed (M, fiedler_ref). Uniform sampling.
@@ -286,7 +286,7 @@ def bootstrap_p_sweep_simple(
         default, and when off this function's arithmetic is unchanged -- it backs a
         published figure. Costs one extra n x n accumulator and O(n^2) work per
         replicate.
-    progress_cb : optional ``f(p_index, p)`` called after each p value, so a caller can
+    progress_cb : optional ``f(p_index, p, nmi)`` called after each p value, so a caller can
         drive a progress bar over a sweep that otherwise runs silently for minutes.
     on_p_result : optional ``f(p_index, p, row)`` called with that p's metrics the moment
         it finishes, so a caller can log them live. Separate from ``progress_cb`` because
@@ -433,7 +433,7 @@ def bootstrap_p_sweep_simple(
             _set_extra(idx, sigma2_ref_M, sigma2_ref_M, [0.0], [rank_M], [rank_L_M])
             trav.observe(idx, 1.0)
             if progress_cb is not None:
-                progress_cb(idx, p)
+                progress_cb(idx, p, 1.0)
             _emit(idx, p)
             continue
 
@@ -511,7 +511,7 @@ def bootstrap_p_sweep_simple(
                            op_errs, rank_S_vals, rank_LS_vals)
         trav.observe(idx, nmi_M)
         if progress_cb is not None:
-            progress_cb(idx, float(p))
+            progress_cb(idx, float(p), float(nmi_M))
         _emit(idx, p)
 
     # --- extrapolate the ends the traversal skipped ---------------------------------
@@ -533,7 +533,8 @@ def bootstrap_p_sweep_simple(
                 partition_agreement_M[i] = 100.0
                 partitions[i] = partition_ref.copy()
             if progress_cb is not None:
-                progress_cb(i, float(p_values[i]))
+                progress_cb(i, float(p_values[i]),
+                            float(partition_nmi_M[i]))
             _emit(i, float(p_values[i]))
     if trav.low_fill:
         # the low rule says only "still on the floor", so the floor's own measured level
@@ -547,7 +548,8 @@ def bootstrap_p_sweep_simple(
             partition_ari_M[i] = held["ari"]
             partition_agreement_M[i] = held["agreement"]
             if progress_cb is not None:
-                progress_cb(i, float(p_values[i]))
+                progress_cb(i, float(p_values[i]),
+                            float(partition_nmi_M[i]))
             _emit(i, float(p_values[i]))
 
     return {

@@ -106,7 +106,11 @@ class Progress:
         self.attempts = 0
         self.kept = 0
         self.t0 = time.time()
-        self.tty = sys.stdout.isatty() if tty is None else tty
+        # getattr, not sys.stdout.isatty(): a run tees stdout into run.log through a
+        # wrapper with no isatty, and treating that as "not a terminal" is also the right
+        # answer -- repainting would write escape codes into the log file.
+        self.tty = (getattr(sys.stdout, "isatty", lambda: False)()
+                    if tty is None else tty)
         self._drawn = 0
         self._last_beat = 0
 
