@@ -268,10 +268,36 @@ fully measured directory. It keeps all three operators and
 `rule_policy="kmeans"`/`aggregation="per_rep"` — those are like-for-like with Figs 2/4 and
 are not the sweep default.
 
+**The sweep parallelises across trees** (`operator_sweep.run_sweep(workers=...)`,
+2026-11-03). It used to loop trees serially — `--workers` fed the screen only — so a
+50-core node sat 98% idle through the job's dominant cost. Trees are independent
+(`seed_for` keys the RNG on the tree's own number, each tree writes its own cache file),
+so the curves do not depend on ordering or worker count; BLAS is pinned to one thread per
+worker, since oversubscribing the eigensolve costs more than the parallelism gains. At
+m=8000 with 40 trees this turns ~47 h into ~1.2 h. Memory is the limit, not cores: ~2 GB
+per concurrent tree at m=8000.
+
+Verified by running the same dataset at `--workers 1` and `--workers 6` and comparing
+every cached array: **every metric the paper scores is exactly equal** — nmi, ari,
+agreement, dot, sign_agreement, eta, split, measured. What did *not* match were the
+`extra_metrics` diagnostics, and chasing that found a **pre-existing** reproducibility
+hole: `metrics.top_singular_value` called `eigsh` with no `v0`, so ARPACK started from a
+vector drawn from numpy's GLOBAL RNG and the result moved in its last digits with call
+order (measured spread 3e-11, up to 5e-6 through `sigma2`). `v0` is pinned now.
+A second source remains and is **not** fixed, because it is in paper-backing code:
+`spectraltree/spectral_tree_reconstruction.py:76` builds `SVD2_OBJ = TruncatedSVD(...)`
+with no `random_state`, so the randomized SVD behind `sigma2_of_partition` also draws from
+the global RNG. It affects `sigma2_*` and `rank_op_sub_std` only — never a paper metric.
+
 **The size series ships as a cluster job** (`sub_sampled_fielder_vec/cluster/`,
 2026-11-03): `sailfish_sizes.sbatch` is a SLURM array with one task per taxon count
 (1000/2000/4000/6000/8000), each filling 10 trees per eta bucket, then screening, then
-sweeping. `run_sizes.sh` is the same work without SLURM. One task per size because they
+sweeping. **Everything is configured by one file, `cluster/series.json`** — sizes, buckets,
+alignment length, p-grid, workers — read by `scripts/run_series.py`, which is also the
+no-SLURM entry point (`--only 8000`, `--dry-run`). One file because the job has two halves
+that used to be configured differently: the simulation took CLI flags while the sweep took
+a `config.json`, which is how a series gets launched with the caps you meant and the p-grid
+you did not. One task per size because they
 are independent and unequal — extrapolated from measured attempt costs (0.57 s at
 m=1000, 1.08 s at m=2000, 3.48 s at m=4000) and the measured ~30 min/tree sweep at
 m=6000, the total is **~74 h of sweep with 90% of it in m=6000 and m=8000**, while m=1000

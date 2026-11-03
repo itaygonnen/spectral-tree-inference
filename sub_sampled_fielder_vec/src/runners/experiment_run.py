@@ -436,7 +436,8 @@ def plan(spec: RunSpec, sources: Sequence[Source],
             # cheap: a header read per selected tree, and the selection is capped
             n_done = len(already_swept(src.name, src.m, selected, spec))
             # serial: run_sweep walks the trees one at a time, so this is wall time.
-            # ``workers`` parallelises the screen only. An UPPER bound when
+            # ``workers`` parallelises the screen AND, since 2026-11-03, the sweep
+            # (one tree per worker). An UPPER bound when
             # ``early_stop`` is on: how many p's each end skips depends on where that
             # tree's curve turns, which is not knowable before sweeping it.
             # Trees already swept on this grid are reused, so they cost nothing -- and
@@ -483,7 +484,8 @@ def _run_source(row: PlanRow, spec: RunSpec) -> List[str]:
     run_sweep(ids, sweep_cache_dir(src.name), src.loader, spec.p_values(),
               reps=spec.reps, num_gaps=spec.num_gaps, min_split=spec.min_split,
               operators=spec.operators, source=src.name, m=row.m,
-              extra_metrics=spec.extra_metrics, early_stop=spec.early_stop)
+              extra_metrics=spec.extra_metrics, early_stop=spec.early_stop,
+              workers=spec.workers)
     return ids
 
 

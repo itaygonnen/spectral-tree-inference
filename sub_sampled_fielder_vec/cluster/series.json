@@ -1,0 +1,23 @@
+{
+  "_comment": "One file describing the whole job. Edit this, not the scripts.",
+
+  "sizes":        [1000, 2000, 4000, 6000, 8000],
+  "seq_len":      1000,
+
+  "eta_targets":  [1, 5, 10, 15],
+  "per_bucket":   [10, 10, 10, 10],
+  "eta_tol":      1.0,
+  "max_attempts": 20000,
+
+  "workers":      50,
+  "stage":        "both",
+
+  "p_min":        0.0001,
+  "p_points":     20,
+  "reps":         10,
+  "early_stop":   2,
+  "operators":    ["S"],
+  "gate":         "valid_L",
+
+  "iqtree_bin":   "iqtree3"
+}

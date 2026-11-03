@@ -26,6 +26,7 @@ operator or a diagnostic existed still counts as swept and simply lacks those co
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 import time
@@ -495,13 +496,53 @@ def _clock(seconds: float) -> str:
     h, m = divmod(m, 60)
     return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
 
+# Worker state. A sweep worker is handed the loader once by the initializer rather than
+# per task, because at m=8000 the loader is the only thing in the payload worth pickling.
+_SWEEP_CTX: Dict = {}
+
+
+def _sweep_init(loader, kwargs) -> None:
+    _SWEEP_CTX["loader"] = loader
+    _SWEEP_CTX["kwargs"] = kwargs
+
+
+def _sweep_worker(tree_id: str):
+    """One tree, start to cached file. Returns its reference-arm NMI curve for the bar.
+
+    Safe to run concurrently with any other tree: ``seed_for`` keys the RNG on the
+    tree's own number, so a tree's curve does not depend on which trees run beside it
+    or in what order, and each tree writes its own cache file.
+    """
+    import numpy as _np
+    kw = dict(_SWEEP_CTX["kwargs"])
+    cache_dir, pv, meta, stride = (kw.pop("cache_dir"), kw.pop("pv"),
+                                   kw.pop("meta"), kw.pop("seed_stride"))
+    try:
+        curves = sweep_one_tree(tree_id, _SWEEP_CTX["loader"],
+                                seed=seed_for(tree_id, stride), p_values=pv, **kw)
+    except Exception as exc:                        # one tree must not end the run
+        return tree_id, None, f"{type(exc).__name__}: {exc}"
+    _np.savez(_cache_file(cache_dir, tree_id), p_values=pv,
+              meta=_np.array(meta, dtype=object), **curves)
+    key = f"nmi_{REF_FULL}_{REF_ARM}"
+    curve = curves.get(key)
+    return tree_id, (None if curve is None else _np.asarray(curve).tolist()), None
+
+
 def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], *,
               reps: int = 10, num_gaps: int = 10, min_split: int = MIN_SPLIT,
               operators: Sequence[str] = (), source: str = "", m: int = 6000,
               extra_metrics: bool = False, rule_policy: str = "best",
               eigsolver: str = "lm_k1", aggregation: str = "avg_vector",
-              early_stop: int = 0, seed_stride: int = 1000) -> List[str]:
-    """Sweep every id in ``ids``, skipping trees already cached. Returns ids done."""
+              early_stop: int = 0, seed_stride: int = 1000,
+              workers: int = 1) -> List[str]:
+    """Sweep every id in ``ids``, skipping trees already cached. Returns ids done.
+
+    ``workers > 1`` sweeps trees concurrently. They are independent -- per-tree seeds,
+    per-tree cache files, no shared state -- so the curves are bit-identical to a serial
+    run; only the order they finish in changes. This is the job's dominant cost (a tree
+    at m=8000 is ~70 min), so a serial sweep leaves a 50-core node 98% idle.
+    """
     import time
 
     ops = resolve(operators)
@@ -529,6 +570,19 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
     # the postfix, and each bar covers the |arms| x |p| steps of its own tree -- so it
     # moves several times a minute even at m=6000.
     bar = SweepProgress(todo, pv)
+    inner_kw = dict(reps=reps, num_gaps=num_gaps, min_split=min_split, operators=ops,
+                    extra_metrics=extra_metrics, rule_policy=rule_policy,
+                    eigsolver=eigsolver, aggregation=aggregation,
+                    early_stop=early_stop)
+
+    if workers > 1 and len(todo) > 1:
+        finished += _sweep_parallel(todo, loader, cache_dir, pv, meta, seed_stride,
+                                    inner_kw, workers, bar, t0)
+        bar.close()
+        print(f"  {len(finished)} tree(s) swept in {(time.time() - t0)/3600:.2f} h",
+              flush=True)
+        return finished
+
     bar.start(todo[0]) if todo else None
     for k, tree_id in enumerate(todo, 1):
         t_tree = time.time()
@@ -553,6 +607,38 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
     print(f"  {len(finished)} tree(s) swept in {(time.time() - t0)/3600:.2f} h",
           flush=True)
     return finished
+
+
+def _sweep_parallel(todo, loader, cache_dir, pv, meta, seed_stride, inner_kw,
+                    workers, bar, t0) -> List[str]:
+    """Trees across a process pool, main process drawing and nothing else."""
+    import multiprocessing as mp
+
+    # One BLAS thread per worker. Without this each of N workers starts its own
+    # thread pool over the same cores and they fight; the eigensolve is the hot loop,
+    # so oversubscription there costs more than the parallelism gains.
+    for var in ("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "OMP_NUM_THREADS",
+                "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
+        os.environ.setdefault(var, "1")
+
+    kwargs = dict(inner_kw, cache_dir=cache_dir, pv=pv, meta=meta,
+                  seed_stride=seed_stride)
+    done: List[str] = []
+    print(f"  {workers} workers, {len(todo)} trees", flush=True)
+    ctx = mp.get_context("spawn")
+    with ctx.Pool(processes=int(workers), initializer=_sweep_init,
+                  initargs=(loader, kwargs)) as pool:
+        for tree_id, curve, err in pool.imap_unordered(_sweep_worker, todo):
+            if err:
+                bar.note(f"  {tree_id} FAILED: {err}")
+                continue
+            if curve is not None:
+                for i, nmi in enumerate(curve):
+                    bar.point(tree_id, i, float(nmi))
+            done.append(tree_id)
+            bar.finish(tree_id, (time.time() - t0) / max(len(done), 1))
+            log_info("bootstrap", f"[{len(done)}/{len(todo)}] {tree_id} done")
+    return done
 
 
 def collect(ids: Sequence[str], cache_dir, p_values: Sequence[float], meta: Dict,

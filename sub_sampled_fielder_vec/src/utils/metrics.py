@@ -518,8 +518,14 @@ def top_singular_value(matrix: np.ndarray, n_iter: int = 40, seed: int = 0) -> f
         return float(np.linalg.norm(a, 2))
     try:
         from scipy.sparse.linalg import eigsh
+        # v0 is FIXED, not left to ARPACK's random start. Without it the result moves
+        # in its last digits between calls (measured spread 3e-11 on one matrix, and up
+        # to 5e-6 through sigma2 downstream), because the start vector is drawn from
+        # numpy's GLOBAL RNG -- so the diagnostics built on this were never reproducible
+        # across a change in call order, which running trees in parallel makes obvious.
+        # The paper's metrics never touched this path; sigma2 and the numerical ranks do.
         val = eigsh(a, k=1, which='LM', return_eigenvectors=False,
-                    maxiter=5000, tol=1e-6)
+                    maxiter=5000, tol=1e-6, v0=np.ones(n, dtype=float))
         return float(abs(val[0]))
     except Exception as exc:
         log_warning('metrics', f"eigsh failed for ||A||_2 ({exc}); power-iterating")
