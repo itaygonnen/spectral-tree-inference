@@ -268,6 +268,17 @@ fully measured directory. It keeps all three operators and
 `rule_policy="kmeans"`/`aggregation="per_rep"` — those are like-for-like with Figs 2/4 and
 are not the sweep default.
 
+**The size series ships as a cluster job** (`sub_sampled_fielder_vec/cluster/`,
+2026-11-03): `sailfish_sizes.sbatch` is a SLURM array with one task per taxon count
+(1000/2000/4000/6000/8000), each filling 10 trees per eta bucket, then screening, then
+sweeping. `run_sizes.sh` is the same work without SLURM. One task per size because they
+are independent and unequal — extrapolated from measured attempt costs (0.57 s at
+m=1000, 1.08 s at m=2000, 3.48 s at m=4000) and the measured ~30 min/tree sweep at
+m=6000, the total is **~74 h of sweep with 90% of it in m=6000 and m=8000**, while m=1000
+finishes in minutes. The fill parallelises across cores; the sweep does not, so more cores
+do not shorten it. Every stage resumes, so a killed task is fixed by resubmitting the
+identical command. `cluster/README.md` carries the per-size table and the install.
+
 **A run is replayable from its own `config.json`** (2026-10-29). Every run already
 wrote that file before starting, so `--config` reads back what it wrote rather than
 inventing a second format:
