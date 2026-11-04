@@ -2,7 +2,7 @@
   "_comment": "One file describing the whole job. Edit this, not the scripts.",
 
   "sizes":        [1000, 2000, 4000, 6000, 8000],
-  "seq_len":      1000,
+  "seq_len":      10000,
 
   "eta_targets":  [1, 5, 10, 15],
   "per_bucket":   [10, 10, 10, 10],

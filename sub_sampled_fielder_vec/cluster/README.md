@@ -34,13 +34,22 @@ One array task per size, because they are independent and wildly unequal. Extrap
 from measured single-core times (0.57 s per fill attempt at m=1000, 1.08 s at m=2000,
 3.48 s at m=4000) and the project's measured ~30 min/tree sweep at m=6000:
 
+At **L=10000** (`seq_len` in `series.json`). The alignment length multiplies the
+O(m²L) matrix build on *every* attempt, so it is the second-biggest lever after `m` —
+roughly 4–8× the L=1000 figures on the fill, less on the sweep where the O(m³)
+eigensolve dominates.
+
 | m | fill (40 trees) | sweep / tree | sweep, 50 workers |
 |---|---|---|---|
-| 1000 | ~5 min | <1 min | ~1 min |
-| 2000 | ~12 min | 1 min | ~1 min |
-| 4000 | ~30 min | 9 min | ~9 min |
-| 6000 | ~55 min | 30 min | ~30 min |
-| 8000 | ~1.2 h | 71 min | ~1.2 h |
+| 1000 | ~30 min | ~1 min | ~1 min |
+| 2000 | ~1.5 h | ~2 min | ~2 min |
+| 4000 | ~3 h | ~11 min | ~11 min |
+| 6000 | ~5 h | ~34 min | ~34 min |
+| 8000 | ~6 h | ~78 min | ~1.3 h |
+
+**The fill now dominates, not the sweep** — it is ~16 h in total against ~2.5 h of
+sweeping, the reverse of the L=1000 case. The fill parallelises across workers, so that
+16 h is wall-clock-divided by `workers`; the per-size numbers above are single-core.
 
 **The sweep runs one tree per worker** (since 2026-11-03). With 50 cores and 40 trees per
 size, every tree of a size runs at once, so a size costs about one tree's time rather than
