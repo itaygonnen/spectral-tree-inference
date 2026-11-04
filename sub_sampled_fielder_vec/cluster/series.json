@@ -19,5 +19,6 @@
   "operators":    ["S"],
   "gate":         "valid_L",
 
-  "iqtree_bin":   "iqtree3"
+  "_iqtree_bin":  "a name on PATH, or a full path; ~ and $HOME are expanded",
+  "iqtree_bin":   "~/iqtree-3.1.4-Linux-intel/bin/iqtree3"
 }

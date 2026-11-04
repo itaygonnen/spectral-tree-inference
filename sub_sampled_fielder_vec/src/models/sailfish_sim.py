@@ -16,6 +16,7 @@ path (``msasim/protocol.py:43``) and every sequence is exactly ``root_seq_size``
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import time
@@ -100,9 +101,16 @@ class SailfishSpec:
 def find_iqtree(spec: SailfishSpec) -> str:
     """The IQ-TREE binary to shell out to, or a message naming how to get one."""
     if spec.iqtree_bin:
-        if shutil.which(spec.iqtree_bin) is None:
-            raise FileNotFoundError(f"iqtree binary not found: {spec.iqtree_bin!r}")
-        return spec.iqtree_bin
+        # shutil.which does NOT expand ~ or $VARS, so a perfectly good path written the
+        # way everyone writes it ("~/iqtree-3.1.4-Linux-intel/bin/iqtree3") would be
+        # reported as "not found". Expand before looking, and hand back the expanded
+        # form so the subprocess gets something it can execute.
+        cand = os.path.expanduser(os.path.expandvars(str(spec.iqtree_bin)))
+        if shutil.which(cand) is None:
+            extra = ("" if cand == str(spec.iqtree_bin) else f" (expanded to {cand!r})")
+            raise FileNotFoundError(
+                f"iqtree binary not found: {spec.iqtree_bin!r}{extra}")
+        return cand
     for cand in IQTREE_CANDIDATES:
         if shutil.which(cand):
             return cand
