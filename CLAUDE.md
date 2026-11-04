@@ -329,15 +329,19 @@ matched to it. The last form replays **any past run** straight from its director
 menu offers to write one after "Not running here", which is the shape an sbatch script
 wants: diffable, editable, and not a 200-character command line.
 
-**The sweep's progress is the curve forming** (`operator_sweep.SweepProgress`,
-2026-10-29). One row per tree, one cell per p, shaded by NMI
-(`·` <0.1, `░` <0.4, `▒` <0.7, `▓` <0.95, `█` ~1.0), grouped **by eta bucket** with the
-bucket's median `p̂*` beside its header — the quantity the paper reports. Trees are grouped
-by reading `etaNN_` off the stem, so a downloaded set named `random_tree_001` groups flat
-and nothing had to be plumbed through `run_sweep`. Repaints in place on a TTY; one line
-per finished tree otherwise, because a repainting block in a cluster log is noise (the
-`isatty` probe is a `getattr`: a run tees stdout through a wrapper that has none, and
-treating that as "not a terminal" is also the right answer).
+**The sweep's progress is the occupancy panel, filling in**
+(`operator_sweep.SweepProgress`, rebuilt 2026-11-04). Not a new picture: it draws
+`eta_buckets.panel_lines` — the same table the run already showed before it started —
+with `done` growing as trees finish, so cells cross from `░` to `█` and TOTAL counts
+down. The first version here invented a five-level NMI shading that reused `█`, `░` and
+`·` with *different* meanings from the panel's own legend; two vocabularies for the same
+glyphs in one run is a defect, not a richer display.
+
+It repaints to **`sys.__stdout__`**, not `sys.stdout`: a run replaces the latter with a
+`Tee` into `run.log`, so repainting there fills the log with escape codes, while testing
+it for `isatty` reports "not a terminal" and the panel never draws at all. Writing to the
+real terminal gives the live panel on screen and leaves `run.log` plain (verified: zero
+escape bytes). Per-tree lines still reach `experiment.log` through `log_info`.
 
 The per-(tree, p) `BOOTSTRAP_SWEEP` line is no longer `force=True` — 161 of them on an
 8-tree run buried the display. It still reaches **`experiment.log`** in full, including

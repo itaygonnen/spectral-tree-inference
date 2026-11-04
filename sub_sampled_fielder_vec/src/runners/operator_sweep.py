@@ -351,144 +351,109 @@ REF_ARM = "L"
 
 
 class SweepProgress:
-    """The p-grid filling in, one row per tree, NMI shaded into the cell.
+    """The occupancy panel again, filling in as trees finish.
 
-    The sibling of ``sailfish_pool.Progress``, and for the same reason: the sweep used to
-    emit one INFO line per (tree, p), so a modest 8-tree run at 20 p scrolled 160 lines of
-    numbers nobody reads while it ran. The recovery curve is the point of the sweep, so
-    the progress IS the curve: cells go dark as NMI rises, and the transition appears from
-    the left as it is measured.
+    Deliberately NOT a new picture. ``eta_buckets.panel_lines`` is what the run already
+    showed before it started -- one row per bucket, one cell per tree, ``full`` = swept,
+    ``hollow`` = this run computes -- so a sweep in progress is that same table with
+    cells crossing from hollow to full. Drawing it any other way meant two vocabularies
+    in one run: an earlier version here shaded cells by NMI, which gave the panel's own
+    glyphs a second, conflicting meaning.
 
-    Two modes, as elsewhere -- repaint on a TTY, one line per finished tree in a log,
-    because a repainting block in a cluster log is noise.
+    Repaints on a TTY; one line per finished tree in a log.
     """
 
-    # NMI -> glyph. The ramp is deliberately coarse: it reads as a curve, not a table.
-    RAMP = ((0.10, "\u00b7"), (0.40, "\u2591"), (0.70, "\u2592"),
-            (0.95, "\u2593"), (1.01, "\u2588"))
-    PENDING = " "
-
-    def __init__(self, tree_ids, p_values, threshold: float = 0.90,
-                 tty: Optional[bool] = None):
+    def __init__(self, tree_ids, p_values, tty: Optional[bool] = None):
         self.ids = list(tree_ids)
         self.p = list(p_values)
-        self.threshold = threshold
-        self.cells: Dict[str, List[str]] = {t: [self.PENDING] * len(self.p)
-                                            for t in self.ids}
-        self.nmi: Dict[str, List[float]] = {t: [float("nan")] * len(self.p)
-                                            for t in self.ids}
         self.done: List[str] = []
-        self.current: Optional[str] = None
         self.t0 = time.time()
-        # getattr, not sys.stdout.isatty(): a run tees stdout into run.log through a
-        # wrapper with no isatty, and treating that as "not a terminal" is also the right
-        # answer -- repainting would write escape codes into the log file.
-        self.tty = (getattr(sys.stdout, "isatty", lambda: False)()
-                    if tty is None else tty)
+        # Repaint to the REAL terminal, not to sys.stdout: a run replaces sys.stdout
+        # with a Tee into run.log, so repainting there would fill the log with escape
+        # codes, while testing it for isatty says "not a terminal" and the panel never
+        # draws at all. Writing to sys.__stdout__ gives the live panel on screen and
+        # leaves run.log clean; the per-tree lines still reach experiment.log through
+        # log_info.
+        self._out = sys.__stdout__
+        self.tty = (bool(self._out) and
+                    getattr(self._out, "isatty", lambda: False)()
+                    ) if tty is None else tty
         self._drawn = 0
-
-    @classmethod
-    def _glyph(cls, nmi: float) -> str:
-        if nmi != nmi:                       # NaN
-            return cls.PENDING
-        for bound, ch in cls.RAMP:
-            if nmi < bound:
-                return ch
-        return cls.RAMP[-1][1]
-
-    def p_star(self, tree_id: str) -> Optional[float]:
-        """Smallest measured p whose NMI clears the threshold -- the run's read-off."""
-        for value, nmi in zip(self.p, self.nmi[tree_id]):
-            if nmi == nmi and nmi >= self.threshold:
-                return value
-        return None
 
     @staticmethod
     def _bucket_of(tree_id: str) -> Optional[int]:
-        """The eta bucket from the stem ``eta05_003``, or None for an unbucketed set.
-
-        Read off the name rather than plumbed through, because ``run_sweep`` is given ids
-        and a loader and deliberately knows nothing about where they came from -- a
-        downloaded set named ``random_tree_001`` simply groups flat.
-        """
+        """The eta bucket from the stem ``eta05_003``, or None for an unbucketed set."""
         m = re.match(r"^eta(\d+)_", str(tree_id))
         return int(m.group(1)) if m else None
 
-    def _groups(self) -> List[Tuple[Optional[int], List[str]]]:
-        """``[(bucket, tree ids)]`` in bucket order; one flat group when unbucketed."""
-        by: Dict[Optional[int], List[str]] = {}
+    def _panel(self) -> List[str]:
+        """``panel_lines`` over the trees this sweep owns, ``done`` = finished so far.
+
+        The caps are the group sizes, because everything handed to ``run_sweep`` has
+        already been through ``select_ids`` -- these trees ARE the selection, so each
+        bucket's capacity is exactly what it holds.
+        """
+        from .eta_buckets import UNBUCKETED, panel_lines
+        groups: Dict[Optional[int], List[str]] = {}
         for t in self.ids:
-            by.setdefault(self._bucket_of(t), []).append(t)
-        if list(by) == [None]:
-            return [(None, self.ids)]
-        return sorted(by.items(), key=lambda kv: (kv[0] is None, kv[0] or 0))
+            groups.setdefault(self._bucket_of(t), []).append(t)
+        targets = sorted(k for k in groups if k is not None)
+        if not targets:                      # unbucketed set: one row, no eta structure
+            groups = {UNBUCKETED: [], 0: self.ids}
+            targets = [0]
+        buckets = {t: groups.get(t, []) for t in targets}
+        buckets[UNBUCKETED] = groups.get(None, [])
+        lines = panel_lines(buckets, targets, [len(buckets[t]) for t in targets],
+                            legend=True, done=set(self.done))
+        # Drop the "at most A/B/C per bucket" header: here the caps are the group sizes,
+        # so it would print the selection back as if it were the configured cap. The
+        # panel drawn BEFORE the run already stated the real one.
+        return lines[1:]
 
     def _lines(self) -> List[str]:
-        width = max((len(t) for t in self.ids), default=4) + 4
-        head = (f"  {'tree':<{width}}  p {self.p[0]:.0e} "
-                + "-" * max(len(self.p) - 12, 1) + f"> {self.p[-1]:g}"
-                + f"   p*>={self.threshold:g}")
-        out = [head]
-        for bucket, members in self._groups():
-            stars = [self.p_star(t) for t in members]
-            got = [v for v in stars if v is not None]
-            if bucket is not None:
-                out.append(f"  eta{bucket:02d}  {len(members)} tree(s)"
-                           + (f"   median p* {float(np.median(got)):.4g}"
-                              if len(got) == len(members) else
-                              f"   {len(got)}/{len(members)} past threshold"))
-            for t, star in zip(members, stars):
-                mark = "<" if t == self.current else " "
-                indent = "    " if bucket is not None else "  "
-                out.append(f"{indent}{t:<{width - len(indent) + 2}}{mark}"
-                           + "".join(self.cells[t])
-                           + "  " + (f"{star:.4g}" if star is not None else "-"))
         el = time.time() - self.t0
         eta = (el / len(self.done) * (len(self.ids) - len(self.done))
                if self.done else 0.0)
-        out.append(f"  {len(self.done)}/{len(self.ids)} trees, {_clock(el)} elapsed"
-                   + (f", ETA {_clock(eta)}" if self.done and
-                      len(self.done) < len(self.ids) else ""))
-        return out
+        tail = (f"  {len(self.done)}/{len(self.ids)} trees, {_clock(el)} elapsed"
+                + (f", ETA {_clock(eta)}" if self.done and
+                   len(self.done) < len(self.ids) else ""))
+        return ["  " + ln for ln in self._panel()] + [tail]
 
     def _redraw(self) -> None:
         if self._drawn:
-            sys.stdout.write(f"\033[{self._drawn}A")
+            self._out.write(f"\033[{self._drawn}A")
         lines = self._lines()
         for line in lines:
-            sys.stdout.write("\033[2K" + line + "\n")
-        sys.stdout.flush()
+            self._out.write("\033[2K" + line + "\n")
+        self._out.flush()
         self._drawn = len(lines)
 
-    def start(self, tree_id: str) -> None:
-        self.current = tree_id
+    def start(self, tree_id: str = "") -> None:
         if self.tty:
             self._redraw()
 
     def point(self, tree_id: str, index: int, nmi: float) -> None:
-        if 0 <= index < len(self.p):
-            self.nmi[tree_id][index] = nmi
-            self.cells[tree_id][index] = self._glyph(nmi)
-        if self.tty:
-            self._redraw()
+        """A p finished. The panel counts trees, not points, so nothing to redraw."""
 
     def finish(self, tree_id: str, secs: float) -> None:
         self.done.append(tree_id)
-        self.current = None
         if self.tty:
             self._redraw()
         else:
-            star = self.p_star(tree_id)
-            print(f"  [{len(self.done)}/{len(self.ids)}] {tree_id} "
-                  f"{secs:.0f}s  p*={star:.4g}" if star is not None
-                  else f"  [{len(self.done)}/{len(self.ids)}] {tree_id} "
-                       f"{secs:.0f}s  p*=-", flush=True)
+            print(f"  [{len(self.done)}/{len(self.ids)}] {tree_id} {secs:.0f}s",
+                  flush=True)
 
     def close(self) -> None:
         if self.tty:
             self._redraw()
-        print(f"  shading: {chr(183)} NMI<0.1  {chr(9617)} <0.4  {chr(9618)} <0.7  "
-              f"{chr(9619)} <0.95  {chr(9608)} ~1.0", flush=True)
+
+    def note(self, msg: str) -> None:
+        """A line that must survive the repaint (an error, the closing summary)."""
+        if self.tty and self._drawn:
+            self._out.write(f"\033[{self._drawn}A\033[J")
+            self._out.flush()
+            self._drawn = 0
+        print(msg, flush=True)
 
 
 def _clock(seconds: float) -> str:
