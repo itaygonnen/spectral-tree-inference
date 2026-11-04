@@ -154,9 +154,13 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
     Columns -- all three are counts of trees, nothing else::
 
         bucket      the target, named as the eta pool names its bins
-        have        screened trees whose eta lands within the tolerance of it
-        done        of the ones this run would take, how many are already swept
+        matched     screened trees whose eta lands within the tolerance of it
+        using       how many of those the cap lets this run take (min(matched, cap))
+        done        of the ones it is using, how many are already swept
         to run      what this run still has to compute
+
+    ``matched`` and ``using`` differ exactly when the cap bites, and the row reads
+    ``matched >= using == done + to_run`` throughout.
 
     Neither the window nor the cap is a column. The window is ``target +- eta_tol`` and
     the cap is a setting, identical down its own column; both belong in the header line,
@@ -196,7 +200,7 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
     ready = done or frozenset()
     lines = [f"nearest target within +-{eta_tol:g}, at most "
              + "/".join(str(c) for c in per_bucket) + " per bucket",
-             f"{'bucket':<11}{'have':>7}{'done':>7}{'to run':>7}"]
+             f"{'bucket':<11}{'matched':>8}{'using':>7}{'done':>7}{'to run':>7}"]
     total = 0
     for target, n in rows_out:
         cap = caps.get(target, 0)
@@ -204,11 +208,15 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
         n_done = sum(1 for t in taking if t in ready)
         to_run = len(taking) - n_done
         total += to_run
-        lines.append(f"{label(target):<11}{n:>7}{n_done:>7}{to_run:>7}  "
+        # ``using`` is the column the row needs to add up. Without it the row mixed two
+        # populations -- ``matched`` counted every tree in the window while ``done`` and
+        # ``to run`` counted only the ones left after the cap -- so "10 matched, 3 done,
+        # 0 to run" read as 7 trees gone missing. They were capped away; now that says so.
+        lines.append(f"{label(target):<11}{n:>8}{len(taking):>7}{n_done:>7}{to_run:>7}  "
                      f"{bar(n_done, to_run, cap)}")
     # no cap, so no bar: these trees are not swept at all, which the dashes say
-    lines.append(f"{'no bucket':<11}{n_unb:>7}{'-':>7}{'-':>7}")
-    lines.append(f"{'TOTAL':<11}{'':>7}{'':>7}{total:>7}  <- this run")
+    lines.append(f"{'no bucket':<11}{n_unb:>8}{'-':>7}{'-':>7}{'-':>7}")
+    lines.append(f"{'TOTAL':<11}{'':>8}{'':>7}{'':>7}{total:>7}  <- this run")
     if legend:
         lines.append("  \u2588 swept already   \u2591 this run computes   "
                      "\u00b7 no tree to fill it")

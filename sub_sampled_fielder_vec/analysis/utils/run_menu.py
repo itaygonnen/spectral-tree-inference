@@ -281,7 +281,10 @@ def _bucket_matrix(spec: RunSpec, names, verdicts_by: Dict[str, dict],
         done = already_swept(name, m, kept, spec) if kept else set()
         todo = len(rows) if is_screen else len(kept) - len(done)
         total += todo
-        cells = "".join(f"{len(buckets.get(t, [])):>4}/{c:<4}"
+        # min(matched, cap), not the raw match count: a bucket that matched 10 trees
+        # under a cap of 3 printed "10/3", which reads as an overflow rather than as
+        # "3 of a possible 3, and 7 capped away".
+        cells = "".join(f"{min(len(buckets.get(t, [])), c):>4}/{c:<4}"
                         for t, c in zip(targets, caps))
         print(f"  {shown[name]:<{width}}{m:>7}{cells}"
               f"{len(buckets.get(UNBUCKETED, [])):>7}{todo:>9}")

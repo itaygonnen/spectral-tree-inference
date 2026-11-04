@@ -185,9 +185,10 @@ tol=1 on `eta_S`:
 target, so ±1 keeps 12–29% of the valid trees. At m=6000 that is 18 swept instead of 38
 (9 h instead of 19 h); at m=1000 it is a four-tree run with two empty buckets. So the panel
 (`eta_buckets.panel_lines`, drawn by the menu prompt *and* by `--dry-run`, from the same
-numbers via `experiment_run.bucket_panel`) shows three **tree counts** per bucket —
-`have` (screened trees within the tolerance), `done` (already swept on this p-grid, so
-reused) and `to run` — plus a `no bucket` row for the trees too far from every target,
+numbers via `experiment_run.bucket_panel`) shows four **tree counts** per bucket —
+`matched` (screened trees within the tolerance), `using` (how many of those the cap lets
+this run take), `done` (already swept on this p-grid, so reused) and `to run` — plus a
+`no bucket` row for the trees too far from every target,
 which is the saving. The bar beside each row is one cell per tree and as long as that
 bucket's cap, so its composition replaces what text flags used to say: `█` swept, `░`
 this run computes, `·` capacity no tree filled. A bucket that cannot fill ends in `·`,
@@ -206,7 +207,13 @@ carries only the knobs that vary — status + config + panel went from ~48 lines
 "Use eta pooling?" defaults to **yes**: the buckets are what a run selects on, and a pool
 built to those targets is the only way a generated run fills them. Neither the window nor the cap is a column: both are constant down
 their column, so they are stated once in the header; a per-row copy of a constant reads
-as data and invites arithmetic across the row. `done` comes from
+as data and invites arithmetic across the row. **`using` is not that** and was added
+2026-11-04: without it the row mixed two populations — `matched` counted every tree in
+the window while `done`/`to run` counted only what survived the cap — so a bucket reading
+`10 matched, 3 done, 0 to run` looked like seven trees had vanished. They were capped
+away. The row now reads `matched >= using == done + to run` throughout, and the
+multi-dataset table prints `min(matched, cap)/cap` for the same reason: it used to print
+`10/3`, which reads as an overflow rather than as a cap. `done` comes from
 `already_swept`, which asks `load_tree_sweep` whether a cached tree is genuinely reusable
 rather than globbing `*.npz` — at 1000 taxa two η15 trees had a cache file and one was
 reusable, so a glob would have promised half the work that remained. `PlanRow.hours` is
