@@ -1,0 +1,9 @@
+{
+  "file": "sections/4-assumptions.tex",
+  "hunks": [
+    {
+      "anchor_old": "the imbalance ratio and the and the structural margin",
+      "replacement_new": "the imbalance ratio and the structural margin"
+    }
+  ]
+}

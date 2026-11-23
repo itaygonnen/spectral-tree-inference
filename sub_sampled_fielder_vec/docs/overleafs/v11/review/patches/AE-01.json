@@ -1,0 +1,9 @@
+{
+  "file": "sections/E-split-choice.tex",
+  "hunks": [
+    {
+      "anchor_old": "\\item \\textbf{The rule returns an edge of the tree essentially always} --- $99.6\\%$ on both\n      cohorts --- which is \\Cref{thm:stdr-split} measured under estimation noise rather than on the\n      population matrix.",
+      "replacement_new": "\\item \\textbf{The rule returns an edge of the tree in $99.6\\%$ of trees on both cohorts}, which\n      is \\Cref{thm:stdr-split} measured under estimation noise rather than on the population\n      matrix."
+    }
+  ]
+}

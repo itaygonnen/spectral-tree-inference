@@ -1,0 +1,9 @@
+{
+  "file": "sections/5-main-result.tex",
+  "hunks": [
+    {
+      "anchor_old": "The entry-wise recovery criterion \\eqref{eq:entrywise} is what the sampling rate\nhas to buy. This section converts it into a sufficient condition on $p$ for the\nLaplacian $L=D-S$, stated in the structural quantities of \\Cref{sec:assumptions}: the",
+      "replacement_new": "This section converts the entry-wise recovery criterion \\eqref{eq:entrywise} into a\nsufficient condition on the sampling rate $p$ for the Laplacian $L=D-S$, stated in the\nstructural quantities of \\Cref{sec:assumptions}: the"
+    }
+  ]
+}

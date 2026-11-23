@@ -1,0 +1,44 @@
+% Appendix B.  Proof of lem:B-bernstein: the operator-norm error of the sampled Laplacian,
+% obtained from the row norms of S rather than from the coherence -- which is why mu(U)
+% does not enter the sampling rate.
+\section{Proof of the Laplacian sampling error}\label{app:comp2}
+
+We prove \Cref{lem:B-bernstein} by bounding
+$\opnorm{\EL}\le\opnorm{\ED}+\opnorm{\ES}$, where $\ES=\hat S-S$ and
+$\ED=\hat D-D$. The only structural fact needed is the entry range
+\eqref{eq:cfbm_floor}. By \eqref{eq:sampling_estimator} the diagonal is observed exactly,
+$\hat S_{ii}=S_{ii}=1$, so it carries no noise and only off-diagonal pairs enter the
+sums below; on those $S_{ij}\le\Smax<1$, giving
+\begin{equation}\label{eq:row_norm_trivial}
+   \max_i\sum_{j\ne i}S_{ij}^2\;\le\;(m-1)\,\Smax^2\;<\;m\,\Smax^2 .
+\end{equation}
+
+\begin{proof}[Proof of \Cref{lem:B-bernstein}]
+\emph{Bounding $\opnorm{\ES}$.} Write $\ES=\sum_{i<j}Z^{(ij)}$, where $Z^{(ij)}$
+is supported on the symmetric off-diagonal pair $(i,j)$ with value
+$(\tfrac1p\Omega_{ij}-1)S_{ij}$;
+the summands are independent and mean zero. The scale is
+$\opnorm{Z^{(ij)}}\le\max(\tfrac1p-1,1)S_{ij}\le\Smax/p=:R$. For the variance proxy,
+$\E[(Z^{(ij)}_{ij})^2]=\tfrac{p(1-p)}{p^2}S_{ij}^2\le\tfrac1pS_{ij}^2$, so by
+\eqref{eq:row_norm_trivial},
+\[
+   \sigma^2\le\tfrac1p\max_i\sum_{j\ne i}S_{ij}^2\le\tfrac1p m\Smax^2 .
+\]
+Matrix Bernstein \cite{tropp2012userfriendly},
+$\Prob(\opnorm{\ES}\ge t)\le2m\exp(\tfrac{-t^2/2}{\sigma^2+Rt/3})$, gives in the
+variance-dominated regime, with probability $1-\epsilon$,
+$\opnorm{\ES}\le2\Smax\sqrt{m\ln(2m/\epsilon)/p}$.
+
+\emph{Bounding $\opnorm{\ED}$.} $\ED$ is diagonal with
+$(\ED)_{ii}=\sum_{j\ne i}(\tfrac1p\Omega_{ij}-1)S_{ij}$; a scalar Bernstein with
+$\sigma_D^2\le\tfrac1p mS_{\max}^2$ and $R_D=\Smax/p$ gives
+$\opnorm{\ED}\lesssim\Smax\sqrt{m\ln(2m/\epsilon)/p}$.
+
+\emph{Synthesis.} The two terms are now of the same order, so
+\[
+   \opnorm{\EL}\le\opnorm{\ES}+\opnorm{\ED}\le\tilde C\sqrt{\frac{m\log m}{p}},
+\]
+with $\tilde C$ absorbing $\Smax$ and absolute constants. The bound is uniform in
+$\eta$: the imbalance enters the argument only through the gap $\Dlam$ this noise
+is compared against, not through the noise itself.
+\end{proof}

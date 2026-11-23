@@ -1,0 +1,34 @@
+{
+  "hunks": [
+    {
+      "file": "sections/6-topological-scaling.tex",
+      "anchor_old": "So under balanced generative models the gap survives polynomial imbalance. A",
+      "replacement_new": "Under balanced generative models the gap therefore remains positive under polynomial\nimbalance. A"
+    },
+    {
+      "file": "sections/6-topological-scaling.tex",
+      "anchor_old": "Two scalar quantities of the population Laplacian sit behind the constants of",
+      "replacement_new": "Two scalar quantities of the population Laplacian determine the constants of"
+    },
+    {
+      "file": "sections/6-topological-scaling.tex",
+      "anchor_old": "This section deals with how the macro-topology of $\\mathcal{T}$ fixes its spectrum: the eigenpair that carries the\nsplit it carries, the coherence of the leading invariant subspace, and the gap",
+      "replacement_new": "This section deals with how the macro-topology of $\\mathcal{T}$ fixes its spectrum: the eigenpair\nthat determines the split, the coherence of the leading invariant subspace, and the gap"
+    },
+    {
+      "file": "sections/7-proof-outline.tex",
+      "anchor_old": "Davis--Kahan route forfeits: the variance of the increment sum is smaller than",
+      "replacement_new": "Davis--Kahan route does not achieve: the variance of the increment sum is smaller than"
+    },
+    {
+      "file": "sections/8-empirical-study.tex",
+      "anchor_old": "sample complexity of \\eqref{eq:main_rate} therefore survives finite-sequence estimation noise.",
+      "replacement_new": "sample complexity of \\eqref{eq:main_rate} therefore persists under finite-sequence estimation noise."
+    },
+    {
+      "file": "sections/8-empirical-study.tex",
+      "anchor_old": "The $\\log m/m$ decay of \\Cref{fig:pstar_synth} survives off-model tree shapes and",
+      "replacement_new": "The $\\log m/m$ decay of \\Cref{fig:pstar_synth} persists under off-model tree shapes and"
+    }
+  ]
+}

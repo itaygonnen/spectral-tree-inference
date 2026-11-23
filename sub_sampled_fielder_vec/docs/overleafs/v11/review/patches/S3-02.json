@@ -1,0 +1,17 @@
+{
+  "file": "sections/3-problem-definition.tex",
+  "hunks": [
+    {
+      "anchor_old": "is governs the computational cost of the algorithm",
+      "replacement_new": "governs the computational cost of the algorithm"
+    },
+    {
+      "anchor_old": "For large tree, say, with",
+      "replacement_new": "For large trees, say, with"
+    },
+    {
+      "anchor_old": "In this regeime, Theorem \\ref{thm:stdr-split} guarantees",
+      "replacement_new": "In this regime, \\Cref{thm:stdr-split} guarantees"
+    }
+  ]
+}

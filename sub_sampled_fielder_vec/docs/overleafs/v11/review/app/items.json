@@ -1,0 +1,1573 @@
+{
+  "generated_from": "docs/overleafs/v11/review/items",
+  "document": [
+    {
+      "file": "0-abstract.tex",
+      "stem": "0-abstract",
+      "title": "abstract",
+      "lines": 11,
+      "mark": "",
+      "appendix": false
+    },
+    {
+      "file": "1-introduction.tex",
+      "stem": "1-introduction",
+      "title": "Introduction",
+      "lines": 94,
+      "mark": "1",
+      "appendix": false
+    },
+    {
+      "file": "2-background.tex",
+      "stem": "2-background",
+      "title": "Background",
+      "lines": 299,
+      "mark": "2",
+      "appendix": false
+    },
+    {
+      "file": "3-problem-definition.tex",
+      "stem": "3-problem-definition",
+      "title": "Problem definition",
+      "lines": 47,
+      "mark": "3",
+      "appendix": false
+    },
+    {
+      "file": "4-assumptions.tex",
+      "stem": "4-assumptions",
+      "title": "Modelling assumptions and the similarity structure",
+      "lines": 126,
+      "mark": "4",
+      "appendix": false
+    },
+    {
+      "file": "5-main-result.tex",
+      "stem": "5-main-result",
+      "title": "Main Result",
+      "lines": 31,
+      "mark": "5",
+      "appendix": false
+    },
+    {
+      "file": "6-topological-scaling.tex",
+      "stem": "6-topological-scaling",
+      "title": "Topological Scaling and Spectral Gap",
+      "lines": 152,
+      "mark": "6",
+      "appendix": false
+    },
+    {
+      "file": "7-proof-outline.tex",
+      "stem": "7-proof-outline",
+      "title": "Proof Outline",
+      "lines": 115,
+      "mark": "7",
+      "appendix": false
+    },
+    {
+      "file": "8-empirical-study.tex",
+      "stem": "8-empirical-study",
+      "title": "Empirical Results",
+      "lines": 94,
+      "mark": "8",
+      "appendix": false
+    },
+    {
+      "file": "A-spectral-geometry.tex",
+      "stem": "A-spectral-geometry",
+      "title": "Proof of the spectral geometry",
+      "lines": 149,
+      "mark": "A",
+      "appendix": true
+    },
+    {
+      "file": "B-laplacian-sampling-error.tex",
+      "stem": "B-laplacian-sampling-error",
+      "title": "Proof of the Laplacian sampling error",
+      "lines": 44,
+      "mark": "B",
+      "appendix": true
+    },
+    {
+      "file": "C-entrywise-perturbation.tex",
+      "stem": "C-entrywise-perturbation",
+      "title": "Proof of the entry-wise perturbation",
+      "lines": 150,
+      "mark": "C",
+      "appendix": true
+    },
+    {
+      "file": "D-neumann-vs-davis-kahan.tex",
+      "stem": "D-neumann-vs-davis-kahan",
+      "title": "The Neumann expansion compared with standard bounds",
+      "lines": 38,
+      "mark": "D",
+      "appendix": true
+    },
+    {
+      "file": "E-split-choice.tex",
+      "stem": "E-split-choice",
+      "title": "Which Split the Fiedler Rule Picks",
+      "lines": 58,
+      "mark": "E",
+      "appendix": true
+    }
+  ],
+  "items": [
+    {
+      "id": "ABS/01",
+      "title": "The abstract reads as machine-written, though its claims are sound",
+      "file": "sections/0-abstract.tex",
+      "line": 5,
+      "label": null,
+      "source": "manual",
+      "category": "ai-trace",
+      "type": "phrasing",
+      "severity": "material",
+      "context": "The whole abstract: the cost problem, the sampling idea, the main rate, the role of imbalance, and the simulations.",
+      "excerpt": {
+        "page": 1,
+        "pages": [
+          1
+        ],
+        "images": [
+          "excerpts/ABS-01.png"
+        ]
+      },
+      "note": "It reads as machine-written: fundamentally bottlenecked, offers a computational workaround, In this work we frame, Our primary contribution is, By utilizing, Furthermore, and three rendering-X participles in one sentence. The claims themselves are sound, and the patch keeps every one.",
+      "verified": "yes -- every claim in the replacement checked against the body: the rate, the fixed-imbalance condition, the square-root-m saving, the two mechanisms and the cubic dependence all survive unchanged",
+      "status": "applied",
+      "coverage": "the whole abstract body is replaced; the checker scored it 12.5 percent, the highest density in the document, yet flagged only one of its sentences",
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "0-abstract.tex",
+        "line": 5
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/0-abstract.tex",
+          "before": "Top-down reconstruction of latent binary phylogenetic trees is fundamentally bottlenecked by the $\\Theta(m^2)$ cost of computing pairwise similarities across $m$ leaves. While observing only a sparse, Bernoulli-sampled subset of entries offers a computational workaround, real-world tree imbalance severely degrades the spectral signal, rendering standard balanced-cluster recovery guarantees inadequate. \nIn this work, we frame spectral tree inference as an eigenvector perturbation problem within the matrix-completion regime, showing that the split obtained from the full similarity matrix of an imbalanced latent tree is recovered exactly from the sign pattern of the empirical Fiedler vector computed on a sparse sample. That split is an edge cut of the tree for any topology.\n\nOur primary contribution is a sharp finite-sample guarantee proving that a sampling rate of $p = \\Theta(\\log m / m)$ suffices for exact recovery of that split at a fixed imbalance. By utilizing a coordinate-wise Neumann-series expansion rather than a standard Davis-Kahan $\\ell_2$ transfer, we eliminate a spurious $\\sqrt{m}$ factor in the entry-wise error bound. \nFurthermore, we identify the imbalance ratio $\\eta$ as the governing topological parameter and prove it dictates recovery through two distinct failure mechanisms: artificially inflating subspace coherence (rendering recovery statistically unaffordable) and eroding the spectral gap (rendering recovery structurally impossible). \nThis yields an explicit sample complexity dependence of $(1+\\eta)^3$. Simulations on closed-form block models and Kingman coalescent trees with JC69 sequence evolution validate the predicted $\\Theta(\\log m / m)$ scaling and the isolated degradation mechanics of topological imbalance.",
+          "after": "Top-down spectral reconstruction of a latent binary phylogeny spends $\\Theta(m^2)$ on pairwise similarities at its first split, before the recursion has taken a step. Sampling a Bernoulli subset of the entries removes that cost, but phylogenies are imbalanced, and the guarantees available for recursive spectral bipartitioning are stated for clusters of comparable size.\nWe treat recovery from a sample as an eigenvector perturbation problem. The split of the full similarity matrix is recovered exactly from the sign pattern of the Fiedler vector of a sparse sample, and that split is an edge cut of the tree for any topology.\n\nA sampling rate $p=\\Theta(\\log m/m)$ suffices at fixed imbalance. Working coordinate-wise, through a Neumann expansion and a per-node Bernstein bound rather than a Davis-Kahan $\\ell_2$ transfer, removes a $\\sqrt m$ factor from the entry-wise error bound.\nThe imbalance ratio $\\eta$ governs the result and enters twice: it raises the coherence of the leading subspace, which raises the sampling rate recovery needs, and it shrinks the spectral gap, which can close recovery off entirely. The rate depends on $\\eta$ as $(1+\\eta)^3$.\nSimulations on closed-form block models and on Kingman trees with JC69 sequences reproduce the predicted $\\Theta(\\log m/m)$ scaling and separate the two mechanisms."
+        }
+      ],
+      "related": []
+    },
+    {
+      "id": "AC/01",
+      "title": "Two appendix lemmas are stated, then rebuilt from scratch instead of used",
+      "file": "sections/C-entrywise-perturbation.tex",
+      "line": 11,
+      "label": "lem:C-series",
+      "source": "deps.py",
+      "category": "uncited-statement",
+      "type": "structure",
+      "severity": "material",
+      "context": "Two lemmas in the entry-wise appendix. The first splits the error in the Fiedler vector into a leading part and a remainder; the second bounds that leading part at one node.",
+      "excerpt": {
+        "page": 20,
+        "pages": [
+          20
+        ],
+        "images": [
+          "excerpts/AC-01.png"
+        ]
+      },
+      "note": "Nothing cites either lemma. The later results in the same appendix rebuild the same quantities instead of calling these. Either the later proofs should refer to them, or the lemmas are not needed.",
+      "verified": "yes -- deps.py reports both with no dependants, no prose sites and no proof title",
+      "status": "open",
+      "coverage": null,
+      "applied_on": null,
+      "decision_note": null,
+      "affects": [],
+      "stated_at": {
+        "file": "C-entrywise-perturbation.tex",
+        "line": 11
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": "\\begin{lemma}[Exact Neumann decomposition]\\label{lem:C-series}\nDefine\n\\[\n   w^{(1)}=\\sum_{\\ell\\ne2}\\frac{-\\langle v^{(\\ell)},\\EL\\vv\\rangle}\n        {\\lambda_\\ell-\\hat\\lambda_2}v^{(\\ell)},\n   \\quad\n   w^{(2)}=\\sum_{\\ell\\ne2}\\frac{-\\langle v^{(\\ell)},\\EL w\\rangle}\n        {\\lambda_\\ell-\\hat\\lambda_2}v^{(\\ell)}+\\langle v^{(2)},w\\rangle v^{(2)}.\n\\]\nThen $w=w^{(1)}+w^{(2)}$ exactly, and under $\\opnorm{\\EL}<\\Dlam$ this is the\nresolvent series $w=\\sum_{k\\ge1}(-1)^k(\\Dlam^{-1}\\Pi\\EL)^k\\vv$.\n\\end{lemma}",
+      "hunks": [],
+      "related": []
+    },
+    {
+      "id": "AD/01",
+      "title": "The Appendix D heading calls the argument a \"trick\", a word used nowhere else",
+      "file": "sections/D-neumann-vs-davis-kahan.tex",
+      "line": 3,
+      "label": null,
+      "source": "manual",
+      "category": "register",
+      "type": "phrasing",
+      "severity": "material",
+      "context": "The title of the appendix that compares the paper's Neumann argument against the standard Davis-Kahan bound.",
+      "excerpt": {
+        "page": 22,
+        "pages": [
+          22
+        ],
+        "images": [
+          "excerpts/AD-01.png"
+        ]
+      },
+      "note": "The heading reads \"The Neumann trick\". Everywhere else the same argument is called the Neumann expansion, decomposition or series. A heading is the most visible line in a section, so the one informal word in the manuscript sits in the worst place for it.",
+      "verified": "yes -- grep over all section files returns this single occurrence",
+      "status": "applied",
+      "coverage": "\"trick\" occurs exactly once in the whole manuscript, in this heading; the body uses expansion, decomposition or series in all 8 other mentions",
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "D-neumann-vs-davis-kahan.tex",
+        "line": 3
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/D-neumann-vs-davis-kahan.tex",
+          "before": "\\section{The Neumann trick --- comparison with standard bounds}",
+          "after": "\\section{The Neumann expansion compared with standard bounds}"
+        }
+      ],
+      "related": []
+    },
+    {
+      "id": "AE/01",
+      "title": "A vague \"essentially always\" sits next to the exact number it describes",
+      "file": "sections/E-split-choice.tex",
+      "line": 50,
+      "label": null,
+      "source": "manual",
+      "category": "claim-strength",
+      "type": "claim-discipline",
+      "severity": "material",
+      "context": "The first of two conclusions drawn from the table of Fiedler-rule behaviour over 1000 simulated trees per cohort.",
+      "excerpt": {
+        "page": 22,
+        "pages": [
+          22
+        ],
+        "images": [
+          "excerpts/AE-01.png"
+        ]
+      },
+      "note": "It reads \"returns an edge of the tree essentially always --- 99.6% on both cohorts\". The measured number is the claim; \"essentially always\" adds nothing and reads as an absolute the data does not support. Putting the number in the sentence removes both the vague phrase and the pair of em-dashes.",
+      "verified": "yes -- the counts were read from tab:eta-agreement at E-split-choice.tex:38-42",
+      "status": "applied",
+      "coverage": "the table gives 996 of 1000 for Kingman and 996 of 1000 for birth-death, so 99.6% is exact for both cohorts and the rewrite changes no number",
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "E-split-choice.tex",
+        "line": 50
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/E-split-choice.tex",
+          "before": "\\item \\textbf{The rule returns an edge of the tree essentially always} --- $99.6\\%$ on both\n      cohorts --- which is \\Cref{thm:stdr-split} measured under estimation noise rather than on the\n      population matrix.",
+          "after": "\\item \\textbf{The rule returns an edge of the tree in $99.6\\%$ of trees on both cohorts}, which\n      is \\Cref{thm:stdr-split} measured under estimation noise rather than on the population\n      matrix."
+        }
+      ],
+      "related": []
+    },
+    {
+      "id": "BIB/01",
+      "title": "Three bibliography entries are never cited",
+      "file": "references.bib",
+      "line": 1,
+      "label": null,
+      "source": "latex-paper-en:bibliography",
+      "category": "unused-entry",
+      "type": "citation",
+      "severity": "editorial",
+      "context": "The bibliography file, which the paper cites from throughout.",
+      "excerpt": null,
+      "note": "Three entries are defined and cited nowhere: BandeltDress1992, Griffing2012 and stone2009fiedler. Griffing belongs to the distance-based route, which v10 removed.",
+      "verified": "yes -- verify_bib.py reports them and a grep for each key over sections/ returns no \\cite",
+      "status": "open",
+      "coverage": null,
+      "applied_on": null,
+      "decision_note": null,
+      "affects": [],
+      "stated_at": {
+        "file": "references.bib",
+        "line": 1
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [],
+      "related": []
+    },
+    {
+      "id": "MST/01",
+      "title": "Two deleted shorthand commands came back from Overleaf and are unused",
+      "file": "thesis_v11.tex",
+      "line": 49,
+      "label": null,
+      "source": "manual",
+      "category": "dead-macro",
+      "type": "notation",
+      "severity": "material",
+      "context": "The list of shorthand commands at the top of the master file, which the sections use to keep the notation consistent.",
+      "excerpt": null,
+      "note": "The Overleaf copy put back two commands that had been deleted, together with comments pointing at files that no longer exist. Neither command is used anywhere in the paper.",
+      "verified": "yes -- defined at thesis_v11.tex:49 and :74; `grep -rc` over sections/ returns zero uses",
+      "status": "applied",
+      "coverage": "`\\Sout` and `\\Dmat` have zero uses in any section file, so removing the two definitions changes no rendered output",
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "thesis_v11.tex",
+        "line": 49
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "thesis_v11.tex",
+          "before": "\\newcommand{\\Sout}{S_{\\mathrm{out}}}\n% \\Smin was never used and is retired.  \\Smax is defined in sec:model as\n% max_{i!=j} S_ij.  Bare \\Sin (no superscript) is a DIFFERENT quantity from\n% \\Sin^{\\min} -- it is the per-clan top-level baseline of the HBM -- and is\n% confined to appendix-D, bridging.tex's HBM coda and the lem:gap proof.\n% It must not appear in sec:model or sec:problem.\n",
+          "after": "% \\Sin always carries a superscript: \\Sin^{\\min} or \\Sin^{\\max}.\n"
+        },
+        {
+          "file": "thesis_v11.tex",
+          "before": "% Pairwise distance matrix D_ij = -log S_ij (\u00a72.3).  Distinct from the degree\n% matrix D of L = D - S.\n\\newcommand{\\Dmat}{\\mathcal{D}}\n",
+          "after": ""
+        }
+      ],
+      "related": []
+    },
+    {
+      "id": "S2/01",
+      "title": "\"terminal\" is misspelled \"termianl\" in the MRCA definition",
+      "file": "sections/2-background.tex",
+      "line": 32,
+      "label": "def:mrca",
+      "source": "manual",
+      "category": "grammar",
+      "type": "phrasing",
+      "severity": "editorial",
+      "context": "The definition of the most recent common ancestor of two leaves: the point in the tree where their lines last meet.",
+      "excerpt": {
+        "page": 3,
+        "pages": [
+          3
+        ],
+        "images": [
+          "excerpts/S2-01.png"
+        ]
+      },
+      "note": "It says \"termianl\" instead of \"terminal\". The i and the a are swapped. It is the second word of the definition.",
+      "verified": "yes -- confirmed by grep at line 32, inside the def:mrca environment",
+      "status": "applied",
+      "coverage": null,
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "2-background.tex",
+        "line": 32
+      },
+      "cited_at": [
+        {
+          "file": "2-background.tex",
+          "line": 146,
+          "by": "sec:bg-model"
+        }
+      ],
+      "prose_sites": [
+        "sec:bg-model"
+      ],
+      "proof_at": null,
+      "statement": "\\begin{definition}[Most recent common ancestor]\\label{def:mrca} For two terminal nodes $x_i, x_j$ of $\\mathcal{X}$, the \\emph{most recent common ancestor} $\\mathrm{MRCA}(x_i,x_j)$ is the node with the smallest value $\\tau$ among the common ancestors of $x_i$ and $x_j$ \\cite{semple2003phylogenetics}. We denote the height of this most recent common ancestor by $\\tau_{ij}$.\n\\end{definition}",
+      "hunks": [
+        {
+          "file": "sections/2-background.tex",
+          "before": "For two termianl nodes",
+          "after": "For two terminal nodes"
+        }
+      ],
+      "related": []
+    },
+    {
+      "id": "S3/01",
+      "title": "The infinity-norm symbol is typed with the wrong command, so it prints a Polish l",
+      "file": "sections/3-problem-definition.tex",
+      "line": 45,
+      "label": null,
+      "source": "manual",
+      "category": "notation-macro",
+      "type": "notation",
+      "severity": "material",
+      "context": "The sentence that says when sub-sampling succeeds: the sampled Fiedler vector must stay close to the true one at every node, with no node allowed to drift.",
+      "excerpt": {
+        "page": 7,
+        "pages": [
+          7
+        ],
+        "images": [
+          "excerpts/S3-01.png"
+        ]
+      },
+      "note": "The symbol for the largest error at any node is typed as \\l, which is the Polish crossed l, not the letter ell. It prints as a slashed l. LaTeX gives no warning, which is why it survived the re-sync.",
+      "verified": "yes -- grep confirms `\\l_` at line 45 and `\\ell` everywhere else in the file",
+      "status": "applied",
+      "coverage": "the misused `\\l` occurs exactly once in the manuscript, at this line, and `\\ell` is already correct in 48 places across 10 files -- the patch covers every occurrence",
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "3-problem-definition.tex",
+        "line": 45
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "the $\\l_{\\infty}$ error between the two Fiedler vectors are bounded by",
+          "after": "the $\\ell_{\\infty}$ error between the two Fiedler vectors is bounded by"
+        }
+      ],
+      "related": [
+        {
+          "id": "S3/02",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 7,
+          "severity": "editorial"
+        },
+        {
+          "id": "S3/03",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 51,
+          "severity": "blocking"
+        },
+        {
+          "id": "S3/04",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 10,
+          "severity": "editorial"
+        },
+        {
+          "id": "S3/05",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 38,
+          "severity": "material"
+        }
+      ]
+    },
+    {
+      "id": "S3/02",
+      "title": "Three typos and a hand-written reference in the opening cost argument",
+      "file": "sections/3-problem-definition.tex",
+      "line": 7,
+      "label": null,
+      "source": "manual",
+      "category": "grammar",
+      "type": "phrasing",
+      "severity": "editorial",
+      "context": "The start of the problem section, which argues that building the full similarity matrix for a large tree costs about 10^14 operations, so a cheaper method is needed.",
+      "excerpt": {
+        "page": 6,
+        "pages": [
+          6
+        ],
+        "images": [
+          "excerpts/S3-02.png"
+        ]
+      },
+      "note": "It reads \"is governs\", \"For large tree\" and \"regeime\". One reference is also written by hand as Theorem \\ref{...} instead of \\Cref, which is what the rest of the paper uses.",
+      "verified": "yes -- all four confirmed by grep at the stated lines",
+      "status": "applied",
+      "coverage": null,
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "3-problem-definition.tex",
+        "line": 7
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "is governs the computational cost of the algorithm",
+          "after": "governs the computational cost of the algorithm"
+        },
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "For large tree, say, with",
+          "after": "For large trees, say, with"
+        },
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "In this regeime, Theorem \\ref{thm:stdr-split} guarantees",
+          "after": "In this regime, \\Cref{thm:stdr-split} guarantees"
+        }
+      ],
+      "related": [
+        {
+          "id": "S3/01",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 45,
+          "severity": "material"
+        },
+        {
+          "id": "S3/03",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 51,
+          "severity": "blocking"
+        },
+        {
+          "id": "S3/04",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 10,
+          "severity": "editorial"
+        },
+        {
+          "id": "S3/05",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 38,
+          "severity": "material"
+        }
+      ]
+    },
+    {
+      "id": "S3/03",
+      "title": "The paper never says the sampling estimator is correct on average, but five later passages need it",
+      "file": "sections/3-problem-definition.tex",
+      "line": 51,
+      "label": null,
+      "source": "manual",
+      "category": "hidden-assumption",
+      "type": "proof-gap",
+      "severity": "blocking",
+      "context": "A paragraph that does two jobs: it says the sampling estimator is right on average, and it gives E_L its name, the gap between the sampled Laplacian and the true one.",
+      "excerpt": {
+        "page": 7,
+        "pages": [
+          7
+        ],
+        "images": [
+          "excerpts/S3-03.png"
+        ]
+      },
+      "note": "That paragraph is commented out, so neither fact is stated anywhere. Five later passages say the error terms average to zero, which only follows from the first fact. E_L itself is used 14 times in the proof outline and in two appendices.",
+      "verified": "yes -- \"unbiased\" and E[hat S]=S appear only on commented lines 51 and 60; grep finds mean-zero asserted live at 7-proof-outline:64, B:20, C:65, C:102 and D:21",
+      "status": "applied",
+      "coverage": null,
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "3-problem-definition.tex",
+        "line": 51
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "%This estimator is unbiased, $\\E[\\hat S]=S$, so $\\EL=\\hat L-L$ is mean zero, where $\\hat L=\\hat\n%D-\\hat S$. The resulting error is missingness rather than additive noise: most pairs are left at\n%zero and the rest rescaled by $1/p$, so it is heavy, structured, and its per-node variance grows as\n%$p\\to0$ (\\Cref{prop:C-var}).\n",
+          "after": "This estimator is unbiased, $\\E[\\hat S]=S$, so $\\EL=\\hat L-L$ is mean zero, where\n$\\hat L=\\hat D-\\hat S$. The resulting error is missingness rather than additive noise:\nmost pairs are left at zero and the rest rescaled by $1/p$, so it is heavy, structured, and\nits per-node variance grows as $p\\to0$ (\\Cref{prop:C-var}).\n"
+        }
+      ],
+      "related": [
+        {
+          "id": "S3/01",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 45,
+          "severity": "material"
+        },
+        {
+          "id": "S3/02",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 7,
+          "severity": "editorial"
+        },
+        {
+          "id": "S3/04",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 10,
+          "severity": "editorial"
+        },
+        {
+          "id": "S3/05",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 38,
+          "severity": "material"
+        }
+      ]
+    },
+    {
+      "id": "S3/04",
+      "title": "Eight blocks of replaced text are left commented in the file instead of deleted",
+      "file": "sections/3-problem-definition.tex",
+      "line": 10,
+      "label": null,
+      "source": "manual",
+      "category": "dead-prose",
+      "type": "structure",
+      "severity": "editorial",
+      "context": "Leftovers from the rewrite of the problem section: eight paragraphs that were commented out rather than removed.",
+      "excerpt": {
+        "page": 6,
+        "pages": [
+          6
+        ],
+        "images": [
+          "excerpts/S3-04.png"
+        ]
+      },
+      "note": "Each was replaced by a shorter live sentence saying the same thing. One of them holds a second copy of the recovery equation that is already live further up. Nothing refers to the cost equation defined in the first block.",
+      "verified": "yes -- each block compared against the live sentence that replaced it; deps.py reports no reference to eq:cost and no dangling labels",
+      "status": "applied",
+      "coverage": null,
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "3-problem-definition.tex",
+        "line": 10
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "the algorithm. %It is the\n%only call that sees all $m$ terminal nodes, and no parent call corrects it: a wrong split at the\n%root cannot be repaired further down. It is also where the similarity matrix is largest.\n",
+          "after": "the algorithm.\n"
+        },
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "say, with %\\begin{equation}\\label{eq:cost}\n%   \\binom{m}{2} = \\Theta(m^2) \\ \\text{pairwise estimates},\n%   \\qquad \\Theta(m^2\\ell) \\ \\text{character comparisons},\n%\\end{equation}\n",
+          "after": "say, with\n"
+        },
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "%pairwise estimates before the recursion has taken a single step. The quadratic term is exactly the cost that divide-and-conquer\n%was introduced to avoid, and it is paid in full at the root.\n%\n%This raises the question the paper answers: can the top-down split be computed at almost linear\n%cost, with a guarantee that it is still the same split the full matrix would have returned?\n",
+          "after": ""
+        },
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "%Our answer is to compute only a random subset of the pairs. Following the matrix-completion\n%paradigm \\cite{candes2009power, candes2008exact}, we observe entries through a random mask and\n%reweight: \n",
+          "after": ""
+        },
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "%Only the $\\Theta(p m^2)$ pairs in the mask are ever estimated, so $p$ is the fraction of the cost in\n%\\eqref{eq:cost} that is actually paid. \n",
+          "after": ""
+        },
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "%Under the assumptions of \\Cref{sec:assumptions}, a rate\n%$p=\\Theta(\\log m/m)$ suffices to reproduce the full-data split (\\Cref{thm:main-sim}), which brings\n%the top-level call down from $\\Theta(m^2)$ to \n\n",
+          "after": ""
+        },
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "%\\medskip\n%Recovery is, at its core, an \\emph{entry-wise} event. Two vectors induce the same\n%sign partition exactly when they agree in sign at every node, so the top-down\n%partition succeeds precisely when the empirical Fiedler vector agrees in sign with\n%its population counterpart coordinate by coordinate, that is, when\n%\\begin{equation}\\label{eq:entrywise}\n%   \\norm{\\vvh-\\vv}_\\infty<\\min_i|\\vv_i|.\n%\\end{equation}\n%Condition \\eqref{eq:entrywise} is the formal recovery event that every bound in the paper is\n%measured against. Its right-hand side is not computable without a model for $S$;\n%\\Cref{sec:assumptions} supplies one, under which $\\min_i|\\vv_i|$ has a closed form\n%(\\Cref{lem:A-decomp}).\n",
+          "after": ""
+        },
+        {
+          "file": "sections/3-problem-definition.tex",
+          "before": "%The scope of the analysis is the population matrix. The empirical estimator of an individual entry\n%concentrates around $S_{ij}$ at rate $\\mathcal O(1/\\sqrt\\ell)$ \\cite{aizenbud2023spectral}, and the\n%structural conditions of \\Cref{sec:assumptions} are stated as properties of the population $S$,\n%whose observable proxy is that estimator.\n",
+          "after": ""
+        }
+      ],
+      "related": [
+        {
+          "id": "S3/01",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 45,
+          "severity": "material"
+        },
+        {
+          "id": "S3/02",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 7,
+          "severity": "editorial"
+        },
+        {
+          "id": "S3/03",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 51,
+          "severity": "blocking"
+        },
+        {
+          "id": "S3/05",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 38,
+          "severity": "material"
+        }
+      ]
+    },
+    {
+      "id": "S3/05",
+      "title": "The formal statement of the problem is commented out; keep it or drop it",
+      "file": "sections/3-problem-definition.tex",
+      "line": 38,
+      "label": null,
+      "source": "manual",
+      "category": "scope-statement",
+      "type": "structure",
+      "severity": "material",
+      "context": "A commented-out paragraph that states the goal in the paper's own symbols: recover the split the full matrix would give, from the sampled matrix, at the smallest sampling rate that works.",
+      "excerpt": {
+        "page": 7,
+        "pages": [
+          7
+        ],
+        "images": [
+          "excerpts/S3-05.png"
+        ]
+      },
+      "note": "The live text states the same goal in words, without the symbols. Keeping the formal version makes the target precise; dropping it keeps the section short. This is a preference, not a mistake.",
+      "verified": "yes -- the commented block read against the live sentence at line 44; both state the recovery goal",
+      "status": "open",
+      "coverage": null,
+      "applied_on": null,
+      "decision_note": null,
+      "affects": [],
+      "stated_at": {
+        "file": "3-problem-definition.tex",
+        "line": 38
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [],
+      "related": [
+        {
+          "id": "S3/01",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 45,
+          "severity": "material"
+        },
+        {
+          "id": "S3/02",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 7,
+          "severity": "editorial"
+        },
+        {
+          "id": "S3/03",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 51,
+          "severity": "blocking"
+        },
+        {
+          "id": "S3/04",
+          "why": "same section",
+          "file": "3-problem-definition.tex",
+          "line": 10,
+          "severity": "editorial"
+        }
+      ]
+    },
+    {
+      "id": "S4/01",
+      "title": "A doubled \"the and the\" in the sentence that introduces the two key quantities",
+      "file": "sections/4-assumptions.tex",
+      "line": 67,
+      "label": null,
+      "source": "manual",
+      "category": "grammar",
+      "type": "phrasing",
+      "severity": "editorial",
+      "context": "The sentence that introduces the two numbers the whole analysis turns on: how lopsided the split is, and how much the within-group similarity beats the across-group similarity.",
+      "excerpt": {
+        "page": 7,
+        "pages": [
+          7
+        ],
+        "images": [
+          "excerpts/S4-01.png"
+        ]
+      },
+      "note": "It reads \"the imbalance ratio and the and the structural margin\".",
+      "verified": "yes -- confirmed by grep at line 67",
+      "status": "applied",
+      "coverage": null,
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "4-assumptions.tex",
+        "line": 67
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/4-assumptions.tex",
+          "before": "the imbalance ratio and the and the structural margin",
+          "after": "the imbalance ratio and the structural margin"
+        }
+      ],
+      "related": [
+        {
+          "id": "S4/02",
+          "why": "same section",
+          "file": "4-assumptions.tex",
+          "line": 87,
+          "severity": "editorial"
+        }
+      ]
+    },
+    {
+      "id": "S4/02",
+      "title": "C1 is named like an assumption but is a condition",
+      "file": "sections/4-assumptions.tex",
+      "line": 87,
+      "label": "asm:margin",
+      "source": "manual",
+      "category": "label-prefix",
+      "type": "notation",
+      "severity": "editorial",
+      "context": "Condition C1: the within-group similarity must beat the across-group similarity by enough, even when one side of the split is far larger than the other.",
+      "excerpt": {
+        "page": 8,
+        "pages": [
+          8
+        ],
+        "images": [
+          "excerpts/S4-02.png"
+        ]
+      },
+      "note": "It is written as a condition but its name starts with asm:, which means assumption. Every other statement's name matches its type. Renaming it means changing the name in 11 other places as well.",
+      "verified": "yes -- confirmed by reading lines 85-90; the env is `condition` and the label is `asm:margin`",
+      "status": "open",
+      "coverage": "3 labels carry the `asm:` prefix; the other 2 sit on assumption environments and are correct. Renaming this one means updating its 11 citation sites, so a patch that touches only line 87 would break the build",
+      "applied_on": null,
+      "decision_note": null,
+      "affects": [
+        "asm:margin -> thm:main-sim -> cor:C-cond",
+        "asm:margin -> thm:main-sim -> cor:infeasible",
+        "asm:margin -> thm:main-sim -> cor:nmi",
+        "asm:margin -> lem:A-decomp -> lem:gap",
+        "asm:margin -> lem:A-decomp -> prop:C-bind",
+        "asm:margin -> lem:A-decomp -> prop:C-within",
+        "asm:margin -> lem:A-decomp -> prop:coherence",
+        "asm:margin -> lem:A-decomp -> thm:main-sim",
+        "asm:margin -> lem:A-decomp",
+        "asm:margin -> rem:E-compare"
+      ],
+      "stated_at": {
+        "file": "4-assumptions.tex",
+        "line": 87
+      },
+      "cited_at": [
+        {
+          "file": "4-assumptions.tex",
+          "line": 95,
+          "by": "sec:assumptions"
+        },
+        {
+          "file": "5-main-result.tex",
+          "line": 18,
+          "by": "thm:main-sim"
+        },
+        {
+          "file": "6-topological-scaling.tex",
+          "line": 23,
+          "by": "lem:A-decomp"
+        },
+        {
+          "file": "6-topological-scaling.tex",
+          "line": 32,
+          "by": "sec:bridging"
+        },
+        {
+          "file": "6-topological-scaling.tex",
+          "line": 115,
+          "by": "sec:bridging-failure"
+        },
+        {
+          "file": "7-proof-outline.tex",
+          "line": 17,
+          "by": "sec:outline"
+        },
+        {
+          "file": "7-proof-outline.tex",
+          "line": 94,
+          "by": "thm:main-sim"
+        },
+        {
+          "file": "8-empirical-study.tex",
+          "line": 6,
+          "by": "sec:empirical"
+        },
+        {
+          "file": "A-spectral-geometry.tex",
+          "line": 90,
+          "by": "app:comp1"
+        },
+        {
+          "file": "A-spectral-geometry.tex",
+          "line": 145,
+          "by": "lem:A-decomp"
+        },
+        {
+          "file": "D-neumann-vs-davis-kahan.tex",
+          "line": 34,
+          "by": "rem:E-compare"
+        }
+      ],
+      "prose_sites": [
+        "app:comp1",
+        "sec:assumptions",
+        "sec:bridging",
+        "sec:bridging-failure",
+        "sec:empirical",
+        "sec:outline"
+      ],
+      "proof_at": null,
+      "statement": "\\begin{condition}[Separation margin]\\label{asm:margin}\nThe structural margin strictly dominates the imbalance-weighted cross-block baseline,\n\\begin{equation}\\label{eq:margin_assumption}\n   \\rho>\\eta\\,\\bze,\\qquad\\text{equivalently}\\qquad\n   \\Sin^{\\min}>(1+\\eta)\\,\\bze .\n\\end{equation}\n\\end{condition}",
+      "hunks": [],
+      "related": [
+        {
+          "id": "S6/01",
+          "why": "depends on this",
+          "file": "6-topological-scaling.tex",
+          "line": 142,
+          "severity": "material"
+        },
+        {
+          "id": "S4/01",
+          "why": "same section",
+          "file": "4-assumptions.tex",
+          "line": 67,
+          "severity": "editorial"
+        }
+      ]
+    },
+    {
+      "id": "S5/01",
+      "title": "The main result opens by saying the sampling rate has to \"buy\" the criterion",
+      "file": "sections/5-main-result.tex",
+      "line": 5,
+      "label": null,
+      "source": "manual",
+      "category": "register",
+      "type": "phrasing",
+      "severity": "material",
+      "context": "The first sentence of the main-result section, which introduces what the theorem will prove about the sampling rate.",
+      "excerpt": {
+        "page": 8,
+        "pages": [
+          8
+        ],
+        "images": [
+          "excerpts/S5-01.png"
+        ]
+      },
+      "note": "It reads \"the entry-wise recovery criterion is what the sampling rate has to buy\". Buying is a commercial metaphor applied to a mathematical condition, and the sentence then repeats itself, since the next clause also says the section converts the criterion into a condition on p. The fix merges the two into one plain sentence.",
+      "verified": "yes -- read at 5-main-result.tex:5-9, and the replacement keeps every reference and equation",
+      "status": "applied",
+      "coverage": "this is the only commercial metaphor in the manuscript; a scan for buy, pay and free over all live text returns no other case",
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "5-main-result.tex",
+        "line": 5
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/5-main-result.tex",
+          "before": "The entry-wise recovery criterion \\eqref{eq:entrywise} is what the sampling rate\nhas to buy. This section converts it into a sufficient condition on $p$ for the\nLaplacian $L=D-S$, stated in the structural quantities of \\Cref{sec:assumptions}: the",
+          "after": "This section converts the entry-wise recovery criterion \\eqref{eq:entrywise} into a\nsufficient condition on the sampling rate $p$ for the Laplacian $L=D-S$, stated in the\nstructural quantities of \\Cref{sec:assumptions}: the"
+        }
+      ],
+      "related": []
+    },
+    {
+      "id": "S6/01",
+      "title": "Two numbered results in the scaling section are never used",
+      "file": "sections/6-topological-scaling.tex",
+      "line": 142,
+      "label": "cor:infeasible",
+      "source": "deps.py",
+      "category": "uncited-statement",
+      "type": "structure",
+      "severity": "material",
+      "context": "Two results in the scaling section. One says the guarantee becomes empty once the tree is too lopsided; the other defines coherence, a measure of how spread out the Fiedler vector is across the leaves.",
+      "excerpt": {
+        "page": 11,
+        "pages": [
+          11
+        ],
+        "images": [
+          "excerpts/S6-01.png"
+        ]
+      },
+      "note": "Nothing uses either one. No later result builds on them and no sentence mentions them. Either they carry weight the paper never picks up, or they can go.",
+      "verified": "yes -- deps.py reports zero dependants and zero prose sites; grep finds no \\Cref to either label",
+      "status": "open",
+      "coverage": null,
+      "applied_on": null,
+      "decision_note": null,
+      "affects": [],
+      "stated_at": {
+        "file": "6-topological-scaling.tex",
+        "line": 142
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": "\\begin{corollary}[Vacuity of the certificate under imbalance]\\label{cor:infeasible}\nUnder the hypotheses of \\Cref{thm:main-sim}, with $\\bze$ and the margin\n$\\rho-\\eta\\bze$ held bounded away from $0$ independently of $\\eta$, the\nright-hand side of \\eqref{eq:main_rate} exceeds $1$ once\n$\\eta=\\Omega\\!\\bigl(\\sqrt[3]{m/\\log m}\\bigr)$; in general the threshold is\nreached when $\\eta^3\\bze^2/(\\rho-\\eta\\bze)^2=\\Omega(m/\\log m)$. No admissible sampling rate\n$p\\in(0,1]$ then satisfies the sufficient condition, so \\Cref{thm:main-sim}\ncertifies nothing in that regime. What the theorem stops certifying there is the\nsampling: \\Cref{thm:stdr-split} continues to make $\\Pisp{S}$ a split of\n$\\mathcal{T}$ whatever $\\eta$ does.\n\\end{corollary}",
+      "hunks": [],
+      "related": [
+        {
+          "id": "S4/02",
+          "why": "this depends on it",
+          "file": "4-assumptions.tex",
+          "line": 87,
+          "severity": "editorial"
+        },
+        {
+          "id": "S6/02",
+          "why": "same section",
+          "file": "6-topological-scaling.tex",
+          "line": 119,
+          "severity": "material"
+        },
+        {
+          "id": "STY/02",
+          "why": "same section",
+          "file": "6-topological-scaling.tex",
+          "line": 134,
+          "severity": "editorial"
+        }
+      ]
+    },
+    {
+      "id": "S6/02",
+      "title": "A corollary about how lopsided the tree may be is proved, then never used",
+      "file": "sections/6-topological-scaling.tex",
+      "line": 119,
+      "label": "cor:tolerance",
+      "source": "deps.py",
+      "category": "uncited-statement",
+      "type": "structure",
+      "severity": "material",
+      "context": "A corollary that turns the imbalance condition into a statement about the tree's shape: how uneven the tree is allowed to be, measured by its depth and its overall spread.",
+      "excerpt": {
+        "page": 11,
+        "pages": [
+          11
+        ],
+        "images": [
+          "excerpts/S6-02.png"
+        ]
+      },
+      "note": "It has a proof in Appendix A, and after that nothing refers to it. No later result uses it and no sentence points at it. If it is meant to tell the reader when the method applies, the paper never says that; if not, it can go.",
+      "verified": "yes -- deps.py finds the proof title and no other reference; grep returns exactly those two lines",
+      "status": "open",
+      "coverage": null,
+      "applied_on": null,
+      "decision_note": null,
+      "affects": [],
+      "stated_at": {
+        "file": "6-topological-scaling.tex",
+        "line": 119
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": "A-spectral-geometry.tex:127",
+      "statement": "\\begin{corollary}[Structural imbalance tolerance]\\label{cor:tolerance}\nMeasure the tree in log-similarity units: by \\eqref{eq:similarity_gtr},\n$r(\\mathcal T):=\\max_{i,j}(-\\log S_{ij})=|\\mathrm{tr}(Q)|\\max_{i,j}d_{ij}$ is its diameter,\nand $h(\\mathcal T)$ its depth in the same units \\cite{aizenbud2023spectral}, with\n$h(\\mathcal T)<r(\\mathcal T)$.\nThen a positive spectral gap is possible only if\n\\begin{equation}\\label{eq:eta_distance_bound}\n   \\eta\\le\\mathcal O\\!\\bigl(e^{\\mathcal O(h(\\mathcal T))-r(\\mathcal T)}\\bigr).\n\\end{equation}\nIn particular, for an average Kingman coalescent tree, where\n$r(\\mathcal T),h(\\mathcal T)=\\mathcal O(\\log m)$\n\\cite{erdos1999logs, aldous2001stochastic}, this gives $\\eta\\le\\mathcal O(m^c)$ for\na model-dependent constant $c$.\n\\end{corollary}",
+      "hunks": [],
+      "related": [
+        {
+          "id": "S6/01",
+          "why": "same section",
+          "file": "6-topological-scaling.tex",
+          "line": 142,
+          "severity": "material"
+        },
+        {
+          "id": "STY/02",
+          "why": "same section",
+          "file": "6-topological-scaling.tex",
+          "line": 134,
+          "severity": "editorial"
+        }
+      ]
+    },
+    {
+      "id": "S8/01",
+      "title": "Eight figure panels are named so they can be cited, and never are",
+      "file": "sections/8-empirical-study.tex",
+      "line": 31,
+      "label": null,
+      "source": "latex-paper-en:references",
+      "category": "unreferenced-label",
+      "type": "figure",
+      "severity": "editorial",
+      "context": "The two figures showing recovery against sampling rate. Each is split into four panels, one per imbalance level.",
+      "excerpt": {
+        "page": 13,
+        "pages": [
+          13,
+          14
+        ],
+        "images": [
+          "excerpts/S8-01-a.png",
+          "excerpts/S8-01-b.png"
+        ]
+      },
+      "note": "Every panel carries its own name so a single panel can be cited. The text only ever cites the two whole figures. Either cite the panels or drop the names.",
+      "verified": "yes -- check_references.py lists them and a grep for each label finds only its own \\label line",
+      "status": "open",
+      "coverage": null,
+      "applied_on": null,
+      "decision_note": null,
+      "affects": [],
+      "stated_at": {
+        "file": "8-empirical-study.tex",
+        "line": 31
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [],
+      "related": [
+        {
+          "id": "S8/02",
+          "why": "same section",
+          "file": "8-empirical-study.tex",
+          "line": 25,
+          "severity": "editorial"
+        },
+        {
+          "id": "S8/03",
+          "why": "same section",
+          "file": "8-empirical-study.tex",
+          "line": 31,
+          "severity": "material"
+        }
+      ]
+    },
+    {
+      "id": "S8/02",
+      "title": "Two figures are discussed before they appear",
+      "file": "sections/8-empirical-study.tex",
+      "line": 25,
+      "label": null,
+      "source": "latex-paper-en:references",
+      "category": "forward-reference",
+      "type": "figure",
+      "severity": "editorial",
+      "context": "The paragraph in the results section that compares the simulated and generated recovery curves.",
+      "excerpt": {
+        "page": 13,
+        "pages": [
+          13
+        ],
+        "images": [
+          "excerpts/S8-02.png"
+        ]
+      },
+      "note": "It points at both figures before either one appears on the page. The same happens in Appendix E with the imbalance histogram. The reader is sent to a figure that is not there yet.",
+      "verified": "yes -- confirmed by the reported line numbers in the source",
+      "status": "open",
+      "coverage": null,
+      "applied_on": null,
+      "decision_note": null,
+      "affects": [],
+      "stated_at": {
+        "file": "8-empirical-study.tex",
+        "line": 25
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [],
+      "related": [
+        {
+          "id": "S8/01",
+          "why": "same section",
+          "file": "8-empirical-study.tex",
+          "line": 31,
+          "severity": "editorial"
+        },
+        {
+          "id": "S8/03",
+          "why": "same section",
+          "file": "8-empirical-study.tex",
+          "line": 31,
+          "severity": "material"
+        }
+      ]
+    },
+    {
+      "id": "S8/03",
+      "title": "Every figure is a PNG at roughly half the resolution wanted for print",
+      "file": "sections/8-empirical-study.tex",
+      "line": 31,
+      "label": null,
+      "source": "latex-paper-en:figures",
+      "category": "figure-resolution",
+      "type": "figure",
+      "severity": "material",
+      "context": "The thirteen images in the results section and Appendix E.",
+      "excerpt": {
+        "page": 13,
+        "pages": [
+          13,
+          14
+        ],
+        "images": [
+          "excerpts/S8-03-a.png",
+          "excerpts/S8-03-b.png"
+        ]
+      },
+      "note": "They are PNGs at 170 to 199 dots per inch, against the 300 normally wanted for print. They sit two to a row, so they print at about half size, which shrinks the text inside them further.",
+      "verified": "yes -- check_figures.py reports 13 issues with per-file DPI; the files are .png",
+      "status": "open",
+      "coverage": null,
+      "applied_on": null,
+      "decision_note": null,
+      "affects": [],
+      "stated_at": {
+        "file": "8-empirical-study.tex",
+        "line": 31
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [],
+      "related": [
+        {
+          "id": "S8/01",
+          "why": "same section",
+          "file": "8-empirical-study.tex",
+          "line": 31,
+          "severity": "editorial"
+        },
+        {
+          "id": "S8/02",
+          "why": "same section",
+          "file": "8-empirical-study.tex",
+          "line": 25,
+          "severity": "editorial"
+        }
+      ]
+    },
+    {
+      "id": "STY/01",
+      "title": "Nineteen em-dash asides, replaced with commas, colons or parentheses",
+      "file": "sections/1-introduction.tex",
+      "line": 21,
+      "label": null,
+      "source": "latex-paper-en:deai",
+      "category": "punctuation",
+      "type": "phrasing",
+      "severity": "editorial",
+      "context": "Em-dashes used to set off asides, spread across the introduction, the proof outline and Appendix A.",
+      "excerpt": {
+        "page": 1,
+        "pages": [
+          1
+        ],
+        "images": [
+          "excerpts/STY-01.png"
+        ]
+      },
+      "note": "The manuscript uses 22 em-dashes in live text where the de-AI check caps a document at five, and the project style note bans the aside-in-dashes. The patch rewrites 19 of them, choosing per site: a comma for an appositive, a colon where a restatement or list follows, parentheses for a true aside.",
+      "verified": "yes -- every site read in place before choosing its replacement, and no replacement reintroduces a dash",
+      "status": "applied",
+      "coverage": "19 of the 22; the other three sit in AD/01 and AE/01, whose patches remove them, so no two patches touch the same text",
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "1-introduction.tex",
+        "line": 21
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/1-introduction.tex",
+          "before": "the two sides are the two halves of a single edge cut --- a \\emph{split} of the tree\n\\cite{wilkinson2007clades} --- which is what keeps the merge tractable. Both the",
+          "after": "the two sides are the two halves of a single edge cut, a \\emph{split} of the tree\n\\cite{wilkinson2007clades}, which is what keeps the merge tractable. Both the"
+        },
+        {
+          "file": "sections/1-introduction.tex",
+          "before": "so that one call costs $\\Theta(m^2)$ estimator evaluations --- the cost\ndivide-and-conquer exists to avoid.",
+          "after": "so that one call costs $\\Theta(m^2)$ estimator evaluations, the cost\ndivide-and-conquer exists to avoid."
+        },
+        {
+          "file": "sections/1-introduction.tex",
+          "before": "Fiedler vector, degrading the signal itself. The two failures are distinct ---\none leaves the eigenvector informative but unaffordable to sample, the other\nleaves nothing worth sampling --- so pooling them shows one curve where there are\ntwo mechanisms.",
+          "after": "Fiedler vector, degrading the signal itself. The two failures are distinct:\none leaves the eigenvector informative but unaffordable to sample, the other\nleaves nothing worth sampling, so pooling them shows one curve where there are\ntwo mechanisms."
+        },
+        {
+          "file": "sections/1-introduction.tex",
+          "before": "\\Cref{sec:problem} builds the STDR recursion on that result and states the problem --- the\nquadratic cost of its top-level call, the sampling scheme that answers it, and the entry-wise",
+          "after": "\\Cref{sec:problem} builds the STDR recursion on that result and states the problem:\nthe quadratic cost of its top-level call, the sampling scheme that answers it, and the entry-wise"
+        },
+        {
+          "file": "sections/4-assumptions.tex",
+          "before": "tree is on top, its branches coloured by the sign of the Fiedler vector --- grey on\nthe one branch that spans both signs --- and below it the Fiedler value of each terminal node",
+          "after": "tree is on top, its branches coloured by the sign of the Fiedler vector (grey on\nthe one branch that spans both signs), and below it the Fiedler value of each terminal node"
+        },
+        {
+          "file": "sections/5-main-result.tex",
+          "before": "be the structural margin and let $\\vvh$ be the empirical Fiedler vector --- the",
+          "after": "be the structural margin and let $\\vvh$ be the empirical Fiedler vector, the"
+        },
+        {
+          "file": "sections/6-topological-scaling.tex",
+          "before": "$\\eta<\\Sin^{\\min}/\\bze$ --- precisely what \\Cref{asm:margin} records.",
+          "after": "$\\eta<\\Sin^{\\min}/\\bze$, precisely what \\Cref{asm:margin} records."
+        },
+        {
+          "file": "sections/7-proof-outline.tex",
+          "before": "It runs in three stages --- population geometry fixes the margin and noise\nbudget, a resolvent expansion reduces the error at each node to a scalar, and a\nper-node Bernstein bound controls that scalar --- after which imposing\n\\eqref{eq:entrywise} yields the rate \\eqref{eq:main_rate}. Each stage is stated",
+          "after": "It runs in three stages: population geometry fixes the margin and noise\nbudget, a resolvent expansion reduces the error at each node to a scalar, and a\nper-node Bernstein bound controls that scalar. Imposing\n\\eqref{eq:entrywise} then yields the rate \\eqref{eq:main_rate}. Each stage is stated"
+        },
+        {
+          "file": "sections/7-proof-outline.tex",
+          "before": "sets both sides of \\eqref{eq:entrywise} at once --- it fixes the margin and the",
+          "after": "sets both sides of \\eqref{eq:entrywise} at once: it fixes the margin and the"
+        },
+        {
+          "file": "sections/7-proof-outline.tex",
+          "before": "Every within-block increment therefore vanishes \\emph{exactly} --- this is a",
+          "after": "Every within-block increment therefore vanishes \\emph{exactly}: this is a"
+        },
+        {
+          "file": "sections/A-spectral-geometry.tex",
+          "before": "vector $\\vv$ is admissible in that minimisation --- it is a unit vector and\n$\\langle v^{(1)},\\vv\\rangle=0$ by construction --- so",
+          "after": "vector $\\vv$ is admissible in that minimisation (it is a unit vector and\n$\\langle v^{(1)},\\vv\\rangle=0$ by construction), so"
+        },
+        {
+          "file": "sections/A-spectral-geometry.tex",
+          "before": "\\emph{inequality} \\eqref{eq:lambda2_upper}, $\\lambda_2\\le m\\bze$ ---\nnot clause (iv) of \\Cref{lem:A-decomp}, whose proof appeals to the interlacing step",
+          "after": "\\emph{inequality} \\eqref{eq:lambda2_upper}, $\\lambda_2\\le m\\bze$, and\nnot clause (iv) of \\Cref{lem:A-decomp}, whose proof appeals to the interlacing step"
+        },
+        {
+          "file": "sections/A-spectral-geometry.tex",
+          "before": "$m_{\\min}\\Sin^{\\min}>m\\bze$ --- a contradiction. Hence $\\lambda_2=m\\bze$, and then",
+          "after": "$m_{\\min}\\Sin^{\\min}>m\\bze$, a contradiction. Hence $\\lambda_2=m\\bze$, and then"
+        },
+        {
+          "file": "sections/2-background.tex",
+          "before": "makes it \\emph{reversible} --- a path observed forwards",
+          "after": "makes it \\emph{reversible}: a path observed forwards"
+        }
+      ],
+      "related": [
+        {
+          "id": "STY/03",
+          "why": "same section",
+          "file": "1-introduction.tex",
+          "line": 39,
+          "severity": "editorial"
+        }
+      ]
+    },
+    {
+      "id": "STY/02",
+      "title": "Six quantities written as if they act, replaced with plain verbs",
+      "file": "sections/6-topological-scaling.tex",
+      "line": 134,
+      "label": null,
+      "source": "manual",
+      "category": "register",
+      "type": "phrasing",
+      "severity": "editorial",
+      "context": "Scattered prose across the scaling section, the proof outline and the empirical section, describing what mathematical quantities do.",
+      "excerpt": {
+        "page": 11,
+        "pages": [
+          11
+        ],
+        "images": [
+          "excerpts/STY-02.png"
+        ]
+      },
+      "note": "The gap survives imbalance, the Davis-Kahan route forfeits a factor, scalar quantities sit behind the constants, and an eigenpair carries a split; one sentence also opens with So. The patch puts a plain verb in each place: remains positive, does not achieve, determine, persists under.",
+      "verified": "yes -- each site read in place, and line-initial so and and that are mid-sentence wraps were excluded by checking what precedes them",
+      "status": "applied",
+      "coverage": "6 sites across 3 files; the other uses of carries describe a graph edge carrying a weight, which is standard usage and is left alone",
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "6-topological-scaling.tex",
+        "line": 134
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/6-topological-scaling.tex",
+          "before": "So under balanced generative models the gap survives polynomial imbalance. A",
+          "after": "Under balanced generative models the gap therefore remains positive under polynomial\nimbalance. A"
+        },
+        {
+          "file": "sections/6-topological-scaling.tex",
+          "before": "Two scalar quantities of the population Laplacian sit behind the constants of",
+          "after": "Two scalar quantities of the population Laplacian determine the constants of"
+        },
+        {
+          "file": "sections/6-topological-scaling.tex",
+          "before": "This section deals with how the macro-topology of $\\mathcal{T}$ fixes its spectrum: the eigenpair that carries the\nsplit it carries, the coherence of the leading invariant subspace, and the gap",
+          "after": "This section deals with how the macro-topology of $\\mathcal{T}$ fixes its spectrum: the eigenpair\nthat determines the split, the coherence of the leading invariant subspace, and the gap"
+        },
+        {
+          "file": "sections/7-proof-outline.tex",
+          "before": "Davis--Kahan route forfeits: the variance of the increment sum is smaller than",
+          "after": "Davis--Kahan route does not achieve: the variance of the increment sum is smaller than"
+        },
+        {
+          "file": "sections/8-empirical-study.tex",
+          "before": "sample complexity of \\eqref{eq:main_rate} therefore survives finite-sequence estimation noise.",
+          "after": "sample complexity of \\eqref{eq:main_rate} therefore persists under finite-sequence estimation noise."
+        },
+        {
+          "file": "sections/8-empirical-study.tex",
+          "before": "The $\\log m/m$ decay of \\Cref{fig:pstar_synth} survives off-model tree shapes and",
+          "after": "The $\\log m/m$ decay of \\Cref{fig:pstar_synth} persists under off-model tree shapes and"
+        }
+      ],
+      "related": [
+        {
+          "id": "S6/01",
+          "why": "same section",
+          "file": "6-topological-scaling.tex",
+          "line": 142,
+          "severity": "material"
+        },
+        {
+          "id": "S6/02",
+          "why": "same section",
+          "file": "6-topological-scaling.tex",
+          "line": 119,
+          "severity": "material"
+        }
+      ]
+    },
+    {
+      "id": "STY/03",
+      "title": "The introduction says \"two things\" and names neither",
+      "file": "sections/1-introduction.tex",
+      "line": 39,
+      "label": null,
+      "source": "latex-paper-en:deai",
+      "category": "ai-trace",
+      "type": "phrasing",
+      "severity": "editorial",
+      "context": "The sentence opening the introduction's account of why the problem is hard, just before the two obstacles are described.",
+      "excerpt": {
+        "page": 2,
+        "pages": [
+          2
+        ],
+        "images": [
+          "excerpts/STY-03.png"
+        ]
+      },
+      "note": "It opens \"Two things keep this from being routine\", where things and this point at nothing in particular, and the following clauses describe the obstacles anyway. Naming them directly costs no words.",
+      "verified": "yes -- read at 1-introduction.tex:39-42; the replacement keeps the citation and both clauses intact",
+      "status": "applied",
+      "coverage": "the only vague-referent hit in the document; four of the checker's other five flags were checked and found false, and are recorded in TOOL_NOTES.md",
+      "applied_on": "2026-11-23",
+      "decision_note": "approved -- approved in chat",
+      "affects": [],
+      "stated_at": {
+        "file": "1-introduction.tex",
+        "line": 39
+      },
+      "cited_at": [],
+      "prose_sites": [],
+      "proof_at": null,
+      "statement": null,
+      "hunks": [
+        {
+          "file": "sections/1-introduction.tex",
+          "before": "Two things keep this from being routine. What decides recoverability from a\nrandom subset is how spread the leading subspace is across coordinates, not how\nlarge the matrix is \\cite{chen2014completing}; and guarantees for recursive\nspectral bipartitioning are stated for clusters of comparable size",
+          "after": "Two obstacles stand in the way. Recoverability from a random subset is decided by how\nspread the leading subspace is across coordinates, not by how\nlarge the matrix is \\cite{chen2014completing}; and guarantees for recursive\nspectral bipartitioning are stated for clusters of comparable size"
+        }
+      ],
+      "related": [
+        {
+          "id": "STY/01",
+          "why": "same section",
+          "file": "1-introduction.tex",
+          "line": 21,
+          "severity": "editorial"
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "blocking": 1,
+    "material": 11,
+    "editorial": 11
+  }
+}

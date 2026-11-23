@@ -1,0 +1,195 @@
+{
+  "ABS/01": {
+    "page": 1,
+    "pages": [
+      1
+    ],
+    "images": [
+      "excerpts/ABS-01.png"
+    ]
+  },
+  "AC/01": {
+    "page": 20,
+    "pages": [
+      20
+    ],
+    "images": [
+      "excerpts/AC-01.png"
+    ]
+  },
+  "AD/01": {
+    "page": 22,
+    "pages": [
+      22
+    ],
+    "images": [
+      "excerpts/AD-01.png"
+    ]
+  },
+  "AE/01": {
+    "page": 22,
+    "pages": [
+      22
+    ],
+    "images": [
+      "excerpts/AE-01.png"
+    ]
+  },
+  "S2/01": {
+    "page": 3,
+    "pages": [
+      3
+    ],
+    "images": [
+      "excerpts/S2-01.png"
+    ]
+  },
+  "S3/01": {
+    "page": 7,
+    "pages": [
+      7
+    ],
+    "images": [
+      "excerpts/S3-01.png"
+    ]
+  },
+  "S3/02": {
+    "page": 6,
+    "pages": [
+      6
+    ],
+    "images": [
+      "excerpts/S3-02.png"
+    ]
+  },
+  "S3/03": {
+    "page": 7,
+    "pages": [
+      7
+    ],
+    "images": [
+      "excerpts/S3-03.png"
+    ]
+  },
+  "S3/04": {
+    "page": 6,
+    "pages": [
+      6
+    ],
+    "images": [
+      "excerpts/S3-04.png"
+    ]
+  },
+  "S3/05": {
+    "page": 7,
+    "pages": [
+      7
+    ],
+    "images": [
+      "excerpts/S3-05.png"
+    ]
+  },
+  "S4/01": {
+    "page": 7,
+    "pages": [
+      7
+    ],
+    "images": [
+      "excerpts/S4-01.png"
+    ]
+  },
+  "S4/02": {
+    "page": 8,
+    "pages": [
+      8
+    ],
+    "images": [
+      "excerpts/S4-02.png"
+    ]
+  },
+  "S5/01": {
+    "page": 8,
+    "pages": [
+      8
+    ],
+    "images": [
+      "excerpts/S5-01.png"
+    ]
+  },
+  "S6/01": {
+    "page": 11,
+    "pages": [
+      11
+    ],
+    "images": [
+      "excerpts/S6-01.png"
+    ]
+  },
+  "S6/02": {
+    "page": 11,
+    "pages": [
+      11
+    ],
+    "images": [
+      "excerpts/S6-02.png"
+    ]
+  },
+  "S8/01": {
+    "page": 13,
+    "pages": [
+      13,
+      14
+    ],
+    "images": [
+      "excerpts/S8-01-a.png",
+      "excerpts/S8-01-b.png"
+    ]
+  },
+  "S8/02": {
+    "page": 13,
+    "pages": [
+      13
+    ],
+    "images": [
+      "excerpts/S8-02.png"
+    ]
+  },
+  "S8/03": {
+    "page": 13,
+    "pages": [
+      13,
+      14
+    ],
+    "images": [
+      "excerpts/S8-03-a.png",
+      "excerpts/S8-03-b.png"
+    ]
+  },
+  "STY/01": {
+    "page": 1,
+    "pages": [
+      1
+    ],
+    "images": [
+      "excerpts/STY-01.png"
+    ]
+  },
+  "STY/02": {
+    "page": 11,
+    "pages": [
+      11
+    ],
+    "images": [
+      "excerpts/STY-02.png"
+    ]
+  },
+  "STY/03": {
+    "page": 2,
+    "pages": [
+      2
+    ],
+    "images": [
+      "excerpts/STY-03.png"
+    ]
+  }
+}

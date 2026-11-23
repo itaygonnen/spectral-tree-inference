@@ -1,0 +1,13 @@
+{
+  "file": "thesis_v11.tex",
+  "hunks": [
+    {
+      "anchor_old": "\\newcommand{\\Sout}{S_{\\mathrm{out}}}\n% \\Smin was never used and is retired.  \\Smax is defined in sec:model as\n% max_{i!=j} S_ij.  Bare \\Sin (no superscript) is a DIFFERENT quantity from\n% \\Sin^{\\min} -- it is the per-clan top-level baseline of the HBM -- and is\n% confined to appendix-D, bridging.tex's HBM coda and the lem:gap proof.\n% It must not appear in sec:model or sec:problem.\n",
+      "replacement_new": "% \\Sin always carries a superscript: \\Sin^{\\min} or \\Sin^{\\max}.\n"
+    },
+    {
+      "anchor_old": "% Pairwise distance matrix D_ij = -log S_ij (\u00a72.3).  Distinct from the degree\n% matrix D of L = D - S.\n\\newcommand{\\Dmat}{\\mathcal{D}}\n",
+      "replacement_new": ""
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "file": "sections/D-neumann-vs-davis-kahan.tex",
+  "hunks": [
+    {
+      "anchor_old": "\\section{The Neumann trick --- comparison with standard bounds}",
+      "replacement_new": "\\section{The Neumann expansion compared with standard bounds}"
+    }
+  ]
+}

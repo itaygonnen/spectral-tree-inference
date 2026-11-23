@@ -1,0 +1,1140 @@
+<title>v11 Review Queue</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: master-detail. Queue left, one item's full case right; one column under 860px. */
+:root{
+  --bg:#eceff5; --surface:#ffffff; --surface-2:#e2e7f1;
+  --fg:#0c1320; --muted:#515e76; --line:#c8d2e3;
+  --accent:#1550d0; --accent-soft:#dce7ff; --track:#c6d0e2;
+  --blocking:#d31331; --material:#b06500; --editorial:#0c7489; --professor:#7b3fd4;
+  --ok:#04794f;
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#060810; --surface:#0e131d; --surface-2:#172031;
+  --fg:#e9eefa; --muted:#8495b2; --line:#1f2a3c; --track:#26344a;
+  --accent:#5b9bff; --accent-soft:#102446;
+  --blocking:#ff4d6d; --material:#ffb02e; --editorial:#2dd4bf; --professor:#b98cff;
+  --ok:#34d399;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#060810; --surface:#0e131d; --surface-2:#172031;
+  --fg:#e9eefa; --muted:#8495b2; --line:#1f2a3c; --track:#26344a;
+  --accent:#5b9bff; --accent-soft:#102446;
+  --blocking:#ff4d6d; --material:#ffb02e; --editorial:#2dd4bf; --professor:#b98cff;
+  --ok:#34d399;
+  color-scheme:dark}
+*{box-sizing:border-box}
+/* An app frame, not a document: the shell is pinned to the viewport and the panes
+   scroll inside it. Height comes from 100%, never 100vh -- the publish skeleton pads
+   :root by the phone's safe-area insets, and 100vh would overflow them. */
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;
+  line-height:1.5;display:flex;flex-direction:column;overflow:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+h1,h2,h3{text-wrap:balance;margin:0}
+button{font:inherit;color:inherit}
+a{color:var(--accent)}
+
+/* ---- header ---- */
+header{flex:none;z-index:9;background:var(--surface);border-bottom:1px solid var(--line)}
+.hwrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:12px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:baseline}
+h1{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:12px}
+.tallies{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.overall{flex-basis:100%}
+.tally{display:flex;align-items:baseline;gap:5px;padding:3px 9px;border-radius:999px;
+  background:var(--surface-2);font-size:12px}
+.tally b{font-variant-numeric:tabular-nums;font-weight:600}
+.tally.blocking b{color:var(--blocking)} .tally.material b{color:var(--material)}
+.tally.editorial b{color:var(--editorial)} .tally.decided b{color:var(--ok)}
+
+/* ---- filters ---- */
+.filters{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:7px;display:flex;gap:6px;align-items:center;flex:none;
+  border-bottom:1px solid var(--line);background:var(--bg)}
+.chip{padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:transparent;
+  color:var(--muted);cursor:pointer;font-size:12px}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.chip.sev::before{content:"";width:9px;height:9px;border-radius:2px;display:inline-block;
+  margin-right:6px;vertical-align:-1px}
+.chip.sev.blocking::before{background:var(--blocking)}
+.chip.sev.material::before{background:var(--material)}
+.chip.sev.editorial::before{background:var(--editorial)}
+.chip.sev.blocking[aria-pressed="true"]{border-color:var(--blocking);color:var(--blocking);background:transparent}
+.chip.sev.material[aria-pressed="true"]{border-color:var(--material);color:var(--material);background:transparent}
+.chip.sev.editorial[aria-pressed="true"]{border-color:var(--editorial);color:var(--editorial);background:transparent}
+.chip.profchip[aria-pressed="true"]{border-color:var(--professor);color:var(--professor);background:transparent}
+.qhead{display:flex;align-items:baseline;gap:7px;font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);padding:0 2px 6px;flex:none}
+.fsep{width:1px;height:16px;background:var(--line);margin:0 2px;flex:none}
+.fmenu{position:relative}
+.fmenu>summary{list-style:none;cursor:pointer;display:inline-block}
+.fmenu>summary::-webkit-details-marker{display:none}
+.fmenu>summary.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.fpop{position:absolute;z-index:12;top:calc(100% + 6px);left:0;min-width:210px;padding:9px;
+  display:flex;flex-direction:column;gap:7px;background:var(--surface);
+  border:1px solid var(--line);border-radius:7px;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.fgroup{display:flex;gap:5px;flex-wrap:wrap}
+.fgroup+.fgroup{border-top:1px solid var(--line);padding-top:7px}
+.secchip{border-color:var(--accent);color:var(--accent)}
+.loading{display:flex;flex-direction:column;gap:7px;padding:2px}
+.skel{height:52px;border-radius:5px;background:var(--surface-2);opacity:.65}
+@media (prefers-reduced-motion:no-preference){
+  .skel{animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.45}50%{opacity:.8}}
+}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+/* ---- shell ---- */
+/* min-height:0 on main and on each pane is the whole trick: without it a grid child
+   refuses to shrink below its content and the panes push the frame open instead of
+   scrolling inside it. */
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,310px) minmax(0,1fr);
+  gap:1px;background:var(--line)}
+.pane{min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;background:var(--bg);
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+.backbtn{display:none}
+
+/* ---- queue ---- */
+.queue{display:flex;flex-direction:column;gap:5px}
+.row{display:grid;grid-template-columns:3px 1fr;gap:9px;text-align:left;width:100%;flex:none;
+  background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:0;cursor:pointer;overflow:hidden}
+.row:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row[aria-current="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.stripe{background:var(--editorial)}
+.row.blocking .stripe{background:var(--blocking)} .row.material .stripe{background:var(--material)}
+.rowbody{padding:8px 10px 9px 1px;min-width:0}
+.rowtop{display:flex;gap:7px;align-items:baseline;min-width:0}
+.rid{font-family:var(--mono);font-size:11px;color:var(--muted);flex:none}
+.rtitle{font-size:12.5px;line-height:1.35;min-width:0}
+.rowmeta{display:flex;gap:6px;align-items:center;margin-top:5px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.mark{font-family:var(--mono);font-size:10px;padding:1px 5px;border-radius:3px;background:var(--surface-2)}
+.mark.waiting{color:var(--material);background:color-mix(in srgb,var(--material) 16%,transparent)}
+.mark.applied{color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,transparent)}
+.mark.rejected{color:var(--blocking);background:var(--surface-2)}
+.mark.needs-work{color:var(--editorial);background:var(--surface-2)}
+.row.st-applied{opacity:.72} .row.st-rejected{opacity:.55}
+.tally.waiting b{color:var(--material)}
+
+/* lifecycle: the three states an item passes through, so "decided" is never
+   mistaken for "in the manuscript" */
+.life{display:flex;align-items:center;gap:0;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted)}
+.life .step{display:flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid var(--line);
+  background:var(--surface-2)}
+.life .step:first-child{border-radius:999px 0 0 999px}
+.life .step:last-child{border-radius:0 999px 999px 0}
+.life .step+.step{border-left:0}
+.life .dot{width:6px;height:6px;border-radius:50%;background:var(--track);flex:none}
+.life .step.on{color:var(--fg);font-weight:600}
+.life .step.on .dot{background:var(--accent)}
+.life .step.done .dot{background:var(--ok)}
+.life .step.done{color:var(--muted)}
+.applynote{font-size:11.5px;color:var(--muted);line-height:1.45}
+.applynote b{color:var(--material)}
+.archnote{font-size:12px;color:var(--muted);padding:8px 11px;border-radius:5px;
+  background:var(--surface-2);box-shadow:inset 2px 0 0 var(--ok)}
+
+/* ---- detail ---- */
+.detail{background:var(--surface)}
+.detailgrid{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:22px;align-items:start}
+@media (max-width:1040px){.detailgrid{grid-template-columns:minmax(0,1fr) 132px}}
+@media (max-width:820px){.detailgrid{grid-template-columns:minmax(0,1fr)}}
+.card{min-width:0;display:flex;flex-direction:column;gap:14px}
+
+/* ---- where am I ---- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.crumb .part{color:var(--fg);font-weight:600}
+.crumb .sep{opacity:.5}
+.crumb .rid{font-family:var(--mono);font-size:11px}
+.sevpill{margin-left:auto;font-size:10px;letter-spacing:.07em;text-transform:uppercase;
+  padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--editorial);font-weight:600}
+.sevpill.blocking{color:var(--blocking)} .sevpill.material{color:var(--material)}
+.dtitle{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1.3}
+.idtag{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--accent);
+  background:var(--accent-soft);border:1px solid transparent;border-radius:4px;
+  padding:1px 7px;margin-right:9px;cursor:pointer;vertical-align:3px;letter-spacing:.02em}
+.idtag:hover{border-color:var(--accent)}
+.idtag:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.idtag.copied{background:var(--ok);color:#06240f;border-color:var(--ok)}
+.idtag.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.idtag{position:relative}
+.tip{position:absolute;left:50%;bottom:calc(100% + 7px);transform:translateX(-50%);
+  font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.03em;
+  white-space:nowrap;padding:3px 8px;border-radius:4px;background:var(--fg);
+  color:var(--bg);pointer-events:none;z-index:5}
+.finding{font-family:var(--serif);font-size:15.5px;line-height:1.55;margin:0}
+.shot{margin:0;display:flex;flex-direction:column;gap:5px}
+.shot figcaption{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+/* The crop comes off a white page, so it keeps a paper surface in both themes rather
+   than being inverted into something the manuscript never looks like. */
+.shot img{display:block;width:100%;height:auto;border-radius:5px;background:#fff;
+  padding:9px 11px;border:1px solid var(--line)}
+.shot img+img{margin-top:-1px}
+.context{font-family:var(--serif);font-size:14.5px;line-height:1.5;margin:0;color:var(--muted);
+  padding:10px 12px;border-radius:6px;background:var(--surface-2)}
+.ctag{display:block;font-family:var(--sans);font-size:9.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:4px;font-weight:600}
+
+/* ---- impact, one line ---- */
+.impact{display:flex;align-items:baseline;gap:7px;font-size:12.5px;padding:8px 11px;
+  border-radius:5px;background:var(--surface-2)}
+.impact b{font-variant-numeric:tabular-nums}
+.impact.heavy{box-shadow:inset 2px 0 0 var(--material)}
+.impact.none{color:var(--muted)}
+.coverage{display:flex;gap:8px;font-size:12.5px;padding:8px 11px;border-radius:5px;
+  background:var(--surface-2);box-shadow:inset 2px 0 0 var(--accent);line-height:1.45}
+.coverage .lbl{color:var(--muted);flex:none;font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;padding-top:2px}
+
+/* ---- the edit ---- */
+.editwrap h3,section h3{font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 7px}
+.hunk{display:grid;grid-template-columns:1fr 1fr;gap:9px;min-width:0;margin-bottom:9px}
+@media (max-width:620px){.hunk{grid-template-columns:1fr}}
+.hunk pre{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.5;padding:10px;
+  border-radius:5px;background:var(--surface-2);overflow-x:auto;white-space:pre-wrap;
+  word-break:break-word;min-width:0}
+.hunk .before{border-left:2px solid var(--blocking)}
+.hunk .after{border-left:2px solid var(--ok)}
+.hunk mark{background:none;color:inherit;padding:1px 2px;border-radius:2px;font-weight:600}
+.hunk mark.del{background:color-mix(in srgb,var(--blocking) 50%,transparent);
+  color:var(--fg);box-shadow:0 0 0 1px var(--blocking)}
+.hunk mark.ins{background:color-mix(in srgb,var(--ok) 50%,transparent);
+  color:var(--fg);box-shadow:0 0 0 1px var(--ok)}
+.hunk mark.empty{display:inline-block;width:2px;height:1.05em;vertical-align:-2px;padding:0}
+.hunk mark.empty.del{background:var(--blocking)} .hunk mark.empty.ins{background:var(--ok)}
+.row.done{opacity:.62}
+.row.done .rtitle{text-decoration:none}
+.hunk .cap{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.none{color:var(--muted);font-size:12.5px;font-style:italic;margin:0}
+
+/* ---- disclosures ---- */
+details{border-top:1px solid var(--line);padding-top:10px}
+details+details{border-top:1px solid var(--line)}
+summary{cursor:pointer;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);list-style:none;display:flex;align-items:center;gap:7px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"\25B8";font-size:9px;transition:transform .12s}
+details[open] summary::before{transform:rotate(90deg)}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+summary b{color:var(--fg);font-weight:600;font-size:11px}
+.dbody{padding-top:10px;min-width:0}
+.statement{font-family:var(--serif);font-size:14.5px;padding:12px 13px;background:var(--surface-2);
+  border-radius:5px;border-left:2px solid var(--accent);overflow-x:auto}
+.chains{display:flex;flex-direction:column;gap:3px;font-family:var(--mono);font-size:11.5px}
+.chains div{overflow-x:auto;white-space:nowrap}
+.chains .arrow{color:var(--muted)}
+.sites{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.sites div{display:flex;gap:8px;align-items:baseline}
+.sites .where{font-family:var(--mono);font-size:11px;color:var(--muted);flex:none;min-width:116px}
+.prov{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px 16px}
+.mlabel{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mval{font-family:var(--mono);font-size:11.5px;overflow-wrap:anywhere}
+.vnote{grid-column:1/-1;font-size:12px;color:var(--muted);line-height:1.45}
+.vnote b{color:var(--ok)}
+
+/* ---- the map ---- */
+.map{position:sticky;top:0;display:flex;flex-direction:column;gap:9px;min-width:0}
+@media (max-width:820px){.map{position:static;order:-1}}
+.maphead{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.spine{display:flex;flex-direction:column;gap:2px}
+.band{position:relative;display:grid;grid-template-columns:15px 1fr 24px;gap:5px;
+  align-items:stretch;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.bcount{font-family:var(--mono);font-size:9px;line-height:1;padding-top:0;color:var(--muted);
+  font-variant-numeric:tabular-nums}
+.band.full .bcount{color:var(--ok);font-weight:600}
+.cell{position:absolute;top:0;bottom:0;border-right:1px solid var(--bg)}
+.cell:last-of-type{border-right:0}
+.cell.c-open{background:transparent}
+.cell.c-waiting{background:color-mix(in srgb,var(--ok) 42%,transparent)}
+.cell.c-applied{background:var(--ok);opacity:.8}
+.cell.c-rejected{background:color-mix(in srgb,var(--muted) 45%,transparent)}
+.cell.c-needs-work{background:color-mix(in srgb,var(--editorial) 42%,transparent)}
+.cell.c-professor{background:color-mix(in srgb,var(--professor) 55%,transparent)}
+.band:hover .btrack{filter:brightness(1.12)}
+.band:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.bmark{font-family:var(--mono);font-size:9.5px;color:var(--muted);line-height:1;padding-top:0;text-align:right}
+.btrack{position:relative;background:var(--track);border-radius:2px;min-height:8px;overflow:hidden}
+.band.here .btrack{background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.band.here .bmark{color:var(--accent);font-weight:600}
+.band.cites .btrack{box-shadow:inset 0 0 0 1px var(--material)}
+.tick{position:absolute;left:0;right:0;height:3px;border-radius:2px;transform:translateY(-1px)}
+.tick.stated{background:var(--accent)}
+.tick.proved{background:none;box-shadow:inset 0 0 0 1.5px var(--accent);height:5px;border-radius:3px}
+.tick.cited{height:3px;background:var(--material);left:auto;right:1px;width:8px;border-radius:1px}
+.tick.rel{height:3px;background:var(--editorial);left:1px;right:auto;width:5px;border-radius:1px}
+.relmap{display:flex;flex-direction:column;gap:3px}
+.relrow{display:flex;align-items:baseline;gap:6px;width:100%;text-align:left;cursor:pointer;
+  padding:4px 6px;border-radius:4px;border:1px solid var(--line);background:var(--surface-2)}
+.relrow:hover{border-color:var(--editorial)}
+.relrow:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.relrow .rid{font-family:var(--mono);font-size:10px;color:var(--accent);flex:none}
+.relrow .why{font-size:9.5px;color:var(--muted);line-height:1.25}
+.relrow.near .rid{color:var(--muted)}
+.swatch.rel{background:var(--editorial)}
+.bnow{font-size:10.5px;line-height:1.35;color:var(--fg);padding:5px 7px;background:var(--surface-2);
+  border-radius:4px;border-left:2px solid var(--accent)}
+.legend{display:flex;flex-direction:column;gap:4px;font-size:9.5px;color:var(--muted)}
+.legend div{display:flex;align-items:center;gap:5px}
+.swatch{width:11px;height:3px;border-radius:2px;flex:none}
+.swatch.stated{background:var(--accent)}
+.swatch.cited{background:var(--material)}
+.swatch.proved{box-shadow:inset 0 0 0 1px var(--accent)}
+.swatch.doneq{background:color-mix(in srgb,var(--ok) 55%,transparent)}
+.overall{display:flex;align-items:center;gap:8px;width:100%;padding-block:2px}
+.obar{position:relative;flex:1;height:4px;border-radius:3px;background:var(--track);overflow:hidden}
+.ofill{position:absolute;inset:0 auto 0 0;background:var(--ok);border-radius:3px;
+  transition:width .25s ease}
+@media (prefers-reduced-motion:reduce){.ofill{transition:none}}
+.octr{font-family:var(--mono);font-size:10px;color:var(--muted);flex:none;
+  font-variant-numeric:tabular-nums}
+
+/* ---- phone: the list and the card are two views, not two stacked panes ---- */
+@media (max-width:860px){
+  main{grid-template-columns:minmax(0,1fr)}
+  body[data-view="card"] .queue{display:none}
+  body[data-view="list"] .detail{display:none}
+  .backbtn{display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;padding:5px 11px;
+    border:1px solid var(--line);border-radius:999px;background:var(--surface-2);
+    color:var(--fg);cursor:pointer;font-size:12px}
+  .backbtn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+}
+
+/* ---- decide ---- */
+.decide{display:flex;flex-direction:column;gap:9px;padding-top:14px;border-top:1px solid var(--line)}
+.btns{display:flex;gap:7px;flex-wrap:wrap}
+.btn{padding:7px 15px;border-radius:5px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-size:13px}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn[aria-pressed="true"]{font-weight:600}
+.btn.approve[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.reject[aria-pressed="true"]{background:var(--blocking);border-color:var(--blocking);color:#fff}
+.btn.needs[aria-pressed="true"]{background:var(--material);border-color:var(--material);color:#fff}
+.btn.prof[aria-pressed="true"]{background:var(--professor);border-color:var(--professor);color:#fff}
+.mark.professor{color:var(--professor);background:color-mix(in srgb,var(--professor) 18%,transparent)}
+.row.st-professor .rowbody{box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--professor) 40%,transparent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+textarea{width:100%;min-height:58px;padding:9px;border:1px solid var(--line);border-radius:5px;
+  background:var(--bg);color:var(--fg);font:inherit;font-size:13px;resize:vertical}
+textarea:focus-visible{outline:2px solid var(--accent);outline-offset:0}
+.status{font-size:11.5px;color:var(--muted);min-height:1.3em}
+.keys{font-size:11px;color:var(--muted)}
+kbd{font-family:var(--mono);font-size:10px;padding:1px 4px;border:1px solid var(--line);border-radius:3px;background:var(--surface-2)}
+.pane-empty{color:var(--muted);font-family:var(--serif);font-size:15px}
+mjx-container{max-width:100%}
+</style>
+
+<header>
+  <div class="hwrap">
+    <div>
+      <h1>v11 Review Queue</h1>
+      <div class="sub" id="sub">Loading the register&hellip;</div>
+    </div>
+    <div class="tallies" id="tallies"></div>
+    <div class="overall" id="overall"></div>
+  </div>
+</header>
+<div class="filters" id="filters"></div>
+<main>
+  <div class="pane queue" id="queue"><div class="loading">
+    <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+    <div class="skel"></div><div class="skel"></div></div></div>
+  <div class="pane detail" id="detail">
+    <p class="pane-empty">Pick an item from the queue to see the finding, the statement it touches, what depends on it, and the exact edit.</p>
+  </div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const SEVS = ["blocking", "material", "editorial"];
+let ITEMS = [], DOC = [], DECISIONS = {}, db = null, user = null, me = null;
+let current = null, filterSev = null, filterType = null, filterFile = null, decideFilter = null;
+
+/* ---------- boot ---------- */
+async function boot() {
+  if (!document.body.dataset.view) document.body.dataset.view = "list";
+  let macros = {};
+  try {
+    const [itemsRes, macroRes] = await Promise.all([
+      fetch("items.json"), fetch("macros.json").catch(() => null),
+    ]);
+    const data = await itemsRes.json();
+    ITEMS = data.items || [];
+    DOC = data.document || [];
+    orderByDocument();
+    if (macroRes && macroRes.ok) macros = await macroRes.json();
+  } catch (err) {
+    $("#sub").textContent = "Could not read items.json.";
+    return;
+  }
+  loadMath(macros);
+  render();
+  connect();
+}
+
+function loadMath(macros) {
+  // MathJax's SVG build carries its glyph outlines in the bundle, so it needs no
+  // stylesheet and no font files -- the two things the artifact CSP blocks. The
+  // manuscript's own \newcommand set is passed in, or every statement renders as
+  // an undefined-macro error.
+  window.MathJax = {
+    tex: { macros, inlineMath: [["$", "$"], ["\\(", "\\)"]],
+           displayMath: [["$$", "$$"], ["\\[", "\\]"]], tags: "none" },
+    svg: { fontCache: "global" },
+    options: { enableMenu: false },
+    startup: { typeset: false },
+  };
+  const s = document.createElement("script");
+  s.src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js";
+  s.async = true;
+  // The bundle lands after the first render, so typeset once it is ready as well as
+  // on every later render -- without this the opening statement stays raw LaTeX.
+  s.onload = () => {
+    const ready = window.MathJax && window.MathJax.startup && window.MathJax.startup.promise;
+    if (ready) ready.then(() => typeset(document.body)).catch(() => {});
+  };
+  document.head.appendChild(s);
+}
+
+function typeset(el) {
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise([el]).catch(() => {});
+  }
+}
+
+/* ---------- decisions (db) ---------- */
+async function connect() {
+  const give_up = setTimeout(() => {
+    if (!db) note("Decisions are read-only here — the store did not answer.");
+  }, 10000);
+  try {
+    db = await window.claude?.use?.("db");
+    user = await window.claude?.use?.("user");
+    me = user ? await user.id().catch(() => null) : null;
+  } catch (_) { db = null; }
+  clearTimeout(give_up);
+  if (!db) { render(); return; }
+  db.collection("decisions").onSnapshot((snap) => {
+    DECISIONS = {};
+    // `data` is a METHOD on a DocumentSnapshot. Reading it as a property stored the
+    // function itself, so every decision came back truthy-but-empty and the UI never
+    // showed a single approval that had in fact been saved.
+    const before = DECISIONS;
+    DECISIONS = {};
+    for (const doc of snap.docs || []) {
+      const body = typeof doc.data === "function" ? doc.data() : doc.data;
+      if (body) DECISIONS[doc.id] = body;
+    }
+    applyDecisionDelta(before, DECISIONS);
+  }, () => note("Lost the decisions feed."));
+}
+
+function docId(id) { return id.replace("/", "-"); }
+
+function applyDecisionDelta(before, after) {
+  // Only the rows whose state actually moved are redrawn. A full rebuild here is what
+  // used to destroy the textarea mid-typing, because a note's own autosave comes back
+  // through this very callback.
+  const ids = new Set([...Object.keys(before), ...Object.keys(after)]);
+  const moved = [...ids].filter((k) =>
+    JSON.stringify(before[k] || null) !== JSON.stringify(after[k] || null));
+  if (!moved.length) return;
+  renderHeader();
+  renderFilters();
+
+  const itemIdOf = (key) => {
+    const hit = ITEMS.find((i) => docId(i.id) === key);
+    return hit ? hit.id : null;
+  };
+  const visibleNow = new Set(visible().map((r) => r.id));
+  let needQueue = false;
+  for (const key of moved) {
+    const id = itemIdOf(key);
+    if (!id) continue;
+    const shown = !!$(`.row[data-id="${CSS.escape(id)}"]`);
+    if (shown !== visibleNow.has(id)) { needQueue = true; continue; }
+    if (shown && !patchRow(id)) needQueue = true;
+    if (id === current) patchDetail(id);
+  }
+  if (needQueue) renderQueue();
+}
+
+/* An item has two independent facts: the decision you made (kept in the shared store)
+   and whether the edit is in the .tex (kept in the register, written by the apply run).
+   "approved" and "in v11" are days apart, so they are never the same badge. */
+function stateOf(it) {
+  if (it.status === "applied") return "applied";
+  const d = DECISIONS[docId(it.id)];
+  if (!d) return "open";
+  if (d.state === "approved") return "waiting";
+  if (d.state === "rejected") return "rejected";
+  if (d.state === "professor") return "professor";
+  return "needs-work";
+}
+const STATE_TEXT = {
+  open: "", waiting: "approved \u00b7 not in v11 yet", applied: "in v11",
+  rejected: "rejected", "needs-work": "needs work", professor: "ask professor",
+};
+
+async function decide(item, state) {
+  if (!db) { note("Cannot save — no decisions store in this view."); return; }
+  const comment = $("#comment") ? $("#comment").value.trim() : "";
+  const prev = DECISIONS[docId(item.id)];
+  if (prev && prev.state === state && (prev.comment || "") === comment) return;
+  setBusy(true);
+  try {
+    await db.doc("decisions/" + docId(item.id)).set({
+      state, comment, at: new Date().toISOString(), by: me || "unknown",
+    });
+    writeDraft(item.id, "");
+    note("Saved " + state + " for " + item.id + ".");
+    advance(item.id);
+  } catch (err) {
+    note("Could not save: " + (err && err.code ? err.code : "unknown error"));
+  }
+  setBusy(false);
+}
+
+let noteTimer = null;
+
+function draftKey(id) { return "v11draft:" + id; }
+function readDraft(id) { try { return localStorage.getItem(draftKey(id)); } catch (_) { return null; } }
+function writeDraft(id, v) { try { v ? localStorage.setItem(draftKey(id), v) : localStorage.removeItem(draftKey(id)); } catch (_) {} }
+
+async function saveNote(item, why) {
+  // The note used to be read only at the instant a decision button was clicked, so a
+  // note typed AFTER deciding was silently dropped. It now saves on its own.
+  const box = $("#comment");
+  if (!box || !item) return;
+  const comment = box.value.trim();
+  const prev = DECISIONS[docId(item.id)];
+  if (!prev) {
+    writeDraft(item.id, comment);
+    if (comment) note("Note kept on this device \u2014 choose a decision to save it with.");
+    return;
+  }
+  if ((prev.comment || "") === comment) return;
+  if (!db) { writeDraft(item.id, comment); note("Cannot save \u2014 no store in this view."); return; }
+  try {
+    await db.doc("decisions/" + docId(item.id)).update({
+      comment, at: new Date().toISOString(), by: me || "unknown" });
+    writeDraft(item.id, "");
+    note(comment ? "Note saved." : "Note cleared.");
+  } catch (err) {
+    note("Could not save the note: " + (err && err.code ? err.code : "unknown error"));
+  }
+}
+
+function advance(fromId) {
+  // Running the queue: a decision moves you to the next item that still needs one.
+  // Only in the views where that makes sense -- advancing inside the archive would
+  // walk you through work already finished.
+  if (decideFilter && decideFilter !== "open") return;
+  const rows = visible();
+  const at = rows.findIndex((r) => r.id === fromId);
+  const after = rows.slice(at + 1).concat(rows.slice(0, Math.max(at, 0)));
+  const next = after.find((r) => stateOf(r) === "open");
+  if (next) selectItem(next.id);
+  else note("Nothing left to review.");
+}
+
+function setBusy(on) {
+  document.querySelectorAll(".decide .btn").forEach((b) => { b.disabled = on; });
+}
+function note(msg) { const el = $("#status"); if (el) el.textContent = msg; }
+
+/* ---------- document order ---------- */
+function bare(f) { return String(f || "").split("/").pop(); }
+function partOf(file) { return DOC.findIndex((d) => d.file === bare(file)); }
+
+function orderByDocument() {
+  // Reading order, not ID order. Items in one section arrive together, so the
+  // author stays in one part of the manuscript instead of jumping between them.
+  ITEMS.sort((a, b) => {
+    const pa = partOf(a.file), pb = partOf(b.file);
+    if (pa !== pb) return (pa < 0 ? 99 : pa) - (pb < 0 ? 99 : pb);
+    return (a.line || 0) - (b.line || 0);
+  });
+}
+
+function sectionStats() {
+  // Decided-per-part, so the map answers "how far through this section am I"
+  // as well as "where am I". A part with no items gets no count at all --
+  // an empty section and an untouched one must not look the same.
+  const stat = {};
+  for (const it of ITEMS) {
+    const f = bare(it.file);
+    stat[f] = stat[f] || { total: 0, done: 0, states: [] };
+    stat[f].total++;
+    const st = stateOf(it);
+    stat[f].states.push(st);
+    if (st !== "open") stat[f].done++;
+  }
+  return stat;
+}
+
+function partLabel(part) {
+  if (!part) return "";
+  return part.appendix ? "Appendix " + part.mark : (part.mark ? "\u00a7" + part.mark : "Abstract");
+}
+
+/* ---------- render ---------- */
+function visible() {
+  return ITEMS.filter((it) => {
+    if (filterSev && it.severity !== filterSev) return false;
+    if (filterType && it.type !== filterType) return false;
+    if (filterFile && bare(it.file) !== filterFile) return false;
+    const st = stateOf(it);
+    if (decideFilter === "open" && st !== "open") return false;
+    if (decideFilter === "waiting" && st !== "waiting") return false;
+    if (decideFilter === "archive" && !["applied", "rejected"].includes(st)) return false;
+    if (decideFilter === "professor" && st !== "professor") return false;
+    if (!decideFilter && ["applied", "rejected"].includes(st)) return false;
+    return true;
+  });
+}
+
+/* ---------- rendering, one region at a time ----------
+   render() used to rewrite five regions from strings on every click, every keystroke
+   through j/k and every arriving snapshot. That reset the queue scroll, closed every
+   disclosure, and -- the one that lost data -- replaced the note textarea while it was
+   being typed in. Each region now redraws only when its own inputs change. */
+
+function counts() {
+  const by = (f) => ITEMS.filter(f).length;
+  return {
+    decided: by((it) => stateOf(it) !== "open"),
+    waiting: by((it) => stateOf(it) === "waiting"),
+    archived: by((it) => ["applied", "rejected"].includes(stateOf(it))),
+    open: by((it) => stateOf(it) === "open"),
+    professor: by((it) => stateOf(it) === "professor"),
+  };
+}
+
+function renderHeader() {
+  const c = counts();
+  const pct = ITEMS.length ? Math.round((c.decided / ITEMS.length) * 100) : 0;
+  $("#sub").textContent = ITEMS.length
+    ? `${ITEMS.length} suggested changes against v11 \u2014 v10 is untouched`
+    : "No items in the register yet.";
+  $("#overall").innerHTML = ITEMS.length
+    ? `<div class="obar" role="progressbar" aria-valuenow="${c.decided}" aria-valuemin="0"
+         aria-valuemax="${ITEMS.length}" aria-label="items decided"><span class="ofill"
+         style="width:${pct}%"></span></div><span class="octr">${pct}%</span>`
+    : "";
+  const sev = {};
+  for (const x of SEVS) sev[x] = ITEMS.filter((i) => i.severity === x).length;
+  $("#tallies").innerHTML = SEVS.map((x) =>
+    `<span class="tally ${x}"><b>${sev[x]}</b>${x}</span>`).join("") +
+    `<span class="tally decided"><b>${c.decided}</b>of ${ITEMS.length} decided</span>` +
+    (c.waiting ? `<span class="tally waiting"><b>${c.waiting}</b>waiting to apply</span>` : "");
+}
+
+function renderFilters() {
+  const c = counts();
+  const chip = (label, on, kind, val, cls) =>
+    `<button class="chip ${cls || ""}" aria-pressed="${on}" data-kind="${kind}"
+      data-val="${val || ""}">${label}</button>`;
+  const part = filterFile ? DOC.find((d) => d.file === filterFile) : null;
+  const types = [...new Set(ITEMS.map((i) => i.type))].sort();
+  const nNarrow = (filterSev ? 1 : 0) + (filterType ? 1 : 0);
+
+  // The three workflow views stay on the bar; severity and type live behind one menu,
+  // so the chrome is one row at every width and the panes keep the space.
+  $("#filters").innerHTML =
+    chip("to review" + (c.open ? " " + c.open : ""), decideFilter === "open", "open") +
+    chip("waiting" + (c.waiting ? " " + c.waiting : ""), decideFilter === "waiting", "waiting") +
+    chip("for professor" + (c.professor ? " " + c.professor : ""),
+         decideFilter === "professor", "professor", "", "profchip") +
+    chip("archive" + (c.archived ? " " + c.archived : ""), decideFilter === "archive", "archive") +
+    `<span class="fsep"></span>` +
+    `<details class="fmenu" id="fmenu"${nNarrow ? " open" : ""}>
+       <summary class="chip ${nNarrow ? "on" : ""}">Filter${nNarrow ? " \u00b7 " + nNarrow : ""}</summary>
+       <div class="fpop">
+         <div class="fgroup">${SEVS.map((x) =>
+            chip(x, filterSev === x, "sev", x, "sev " + x)).join("")}</div>
+         <div class="fgroup">${types.map((t) =>
+            chip(t, filterType === t, "type", t)).join("")}</div>
+       </div>
+     </details>` +
+    (part ? chip(partLabel(part) + " \u00d7", true, "file", filterFile, "secchip") : "") +
+    ((filterSev || filterType || filterFile || decideFilter)
+      ? chip("clear all", false, "clear") : "");
+}
+
+function rowHTML(it) {
+  const st = stateOf(it);
+  return `<button class="row ${it.severity} ${st !== "open" ? "done" : ""} st-${st}"
+    data-id="${it.id}" aria-current="${current === it.id}">
+    <span class="stripe"></span>
+    <span class="rowbody">
+      <span class="rowtop"><span class="rid">${it.id}</span><span class="rtitle">${esc(it.title)}</span></span>
+      <span class="rowmeta">
+        <span class="mark">${it.type}</span>
+        <span>${esc(it.file || "")}${it.line ? ":" + it.line : ""}</span>
+        ${st !== "open" ? `<span class="mark ${st}">${STATE_TEXT[st]}</span>` : ""}
+      </span>
+    </span></button>`;
+}
+
+function renderQueue() {
+  const pane = $("#queue");
+  const keep = pane.scrollTop;          // a redraw must not throw away where you were
+  const rows = visible();
+  const c = counts();
+  const head = `<div class="qhead"><span>${rows.length} in reading order</span>
+    <span>&middot;</span><span>stripe = severity</span>
+    ${!decideFilter && c.archived ? `<span>&middot;</span><span>${c.archived} archived</span>` : ""}</div>`;
+  pane.innerHTML = head + (rows.length ? rows.map(rowHTML).join("")
+    : `<p class="none">${emptyText()}</p>`);
+  pane.scrollTop = keep;
+}
+
+function emptyText() {
+  if (decideFilter === "open") return "Nothing left to review under this filter.";
+  if (decideFilter === "waiting") return "Nothing is waiting to be applied.";
+  if (decideFilter === "archive") return "Nothing applied or rejected yet.";
+  if (decideFilter === "professor") return "Nothing set aside for the professor.";
+  return "No item matches this filter.";
+}
+
+function patchRow(id) {
+  const el = $(`.row[data-id="${CSS.escape(id)}"]`);
+  const it = ITEMS.find((i) => i.id === id);
+  if (!el || !it) return false;
+  el.outerHTML = rowHTML(it);
+  return true;
+}
+
+function selectItem(id, opts) {
+  if (!id || id === current) return;
+  const prev = $(`.row[aria-current="true"]`);
+  if (prev) prev.setAttribute("aria-current", "false");
+  current = id;
+  const el = $(`.row[data-id="${CSS.escape(id)}"]`);
+  if (el) {
+    el.setAttribute("aria-current", "true");
+    if (!opts || opts.scroll !== false) el.scrollIntoView({ block: "nearest" });
+  }
+  document.body.dataset.view = "card";
+  renderDetail();
+}
+
+/** One item's decision moved while its card is open: update the parts that show
+    state and nothing else, so a note being typed is never replaced. */
+function patchDetail(id) {
+  const it = ITEMS.find((i) => i.id === id);
+  if (!it || id !== current) return;
+  const d = DECISIONS[docId(id)] || {};
+  const pane = $("#detail");
+  for (const btn of pane.querySelectorAll(".decide .btn")) {
+    btn.setAttribute("aria-pressed", String(d.state === btn.dataset.act));
+  }
+  const life = pane.querySelector(".life");
+  if (life) {
+    const st = stateOf(it);
+    const steps = life.querySelectorAll(".step");
+    const flags = [[st !== "open", st === "open"],
+                   [st === "waiting" || st === "applied", st === "waiting"],
+                   [st === "applied", false]];
+    steps.forEach((el, i) => {
+      el.classList.toggle("done", flags[i][0]);
+      el.classList.toggle("on", flags[i][1]);
+    });
+  }
+  const box = pane.querySelector("#comment");
+  if (box && document.activeElement !== box && (d.comment || "") !== box.value) {
+    box.value = d.comment || "";
+  }
+}
+
+/** Everything changed (first load, a filter, the item set): redraw the lot. */
+function render() {
+  renderHeader();
+  renderFilters();
+  renderQueue();
+  const rows = visible();
+  if (current && !rows.some((r) => r.id === current)) current = null;
+  if (!current && rows.length) current = rows[0].id;
+  renderDetail();
+}
+
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function cleanTex(tex) {
+  // The export ships the whole environment. Drop the wrapper and the labels: the
+  // bracketed name becomes the heading, the body goes to MathJax.
+  let name = "";
+  let body = tex.replace(/\\begin\{(\w+\*?)\}(\[[^\]]*\])?/, (m, env, opt) => {
+    if (opt) name = opt.slice(1, -1);
+    return "";
+  }).replace(/\\end\{\w+\*?\}\s*$/, "");
+  body = body.replace(/\\label\{[^}]*\}/g, "");
+  return { name, body: body.trim() };
+}
+
+function buildMap(it) {
+  // The manuscript as a spine: one band per part, height proportional to its length,
+  // so the shape is the document's own. Low resolution on purpose -- it answers
+  // "where am I", not "which line".
+  if (!DOC.length) return "";
+  const total = DOC.reduce((n, d) => n + d.lines, 0) || 1;
+  const here = it ? bare(it.file) : null;
+  const stated = it && it.stated_at ? it.stated_at : null;
+  const proof = it && it.proof_at ? { file: it.proof_at.split(":")[0],
+                                      line: +it.proof_at.split(":")[1] } : null;
+  const cites = {};
+  if (it) for (const c of it.cited_at || []) (cites[c.file] = cites[c.file] || []).push(c.line);
+  const rel = {};
+  for (const r of (it && it.related) || []) (rel[r.file] = rel[r.file] || []).push(r);
+
+  const stat = sectionStats();
+  const bands = DOC.map((d) => {
+    const st = stat[d.file];
+    // Discrete, not a sliding bar: one cell per item, coloured by what was decided.
+    // A section's progress is a count of items, so it should look like counted things.
+    const cells = st ? st.states.map((x, i) => {
+      const w = 100 / st.total;
+      return `<span class="cell c-${x}" style="left:${i * w}%;width:${w}%"></span>`;
+    }).join("") : "";
+    const h = Math.max(7, Math.round((d.lines / total) * 430));
+    const at = (line) => Math.min(97, Math.max(0, ((line - 1) / Math.max(1, d.lines)) * 100));
+    let marks = "";
+    if (stated && stated.file === d.file && stated.line)
+      marks += `<span class="tick stated" style="top:${at(stated.line)}%"></span>`;
+    if (proof && proof.file === d.file)
+      marks += `<span class="tick proved" style="top:${at(proof.line)}%"></span>`;
+    for (const line of cites[d.file] || [])
+      marks += `<span class="tick cited" style="top:${at(line)}%"></span>`;
+    for (const r of rel[d.file] || [])
+      marks += `<span class="tick rel" style="top:${at(r.line)}%"
+        title="${esc(r.id + " \u2014 " + r.why)}"></span>`;
+    const cls = [d.file === here ? "here" : "", cites[d.file] ? "cites" : "",
+                 st && st.done === st.total ? "full" : ""].join(" ");
+    const progress = st ? `${st.done} of ${st.total} decided` : "no items";
+    const label = `${partLabel(d)} ${d.title} \u2014 ${progress}`;
+    return `<button class="band ${cls}" data-file="${d.file}"
+      title="${esc(label)}" aria-label="${esc(label)}">
+      <span class="bmark">${esc(d.mark || "\u2013")}</span>
+      <span class="btrack" style="height:${h}px">${cells}${marks}</span>
+      <span class="bcount">${st ? st.done + "/" + st.total : ""}</span></button>`;
+  }).join("");
+
+  const part = here ? DOC.find((d) => d.file === here) : null;
+  const hereStat = part ? stat[part.file] : null;
+  const nCited = Object.keys(cites).length;
+  return `<div class="maphead">Where in the paper</div>
+    <div class="spine">${bands}</div>
+    ${part ? `<div class="bnow"><b>${esc(partLabel(part))}</b> ${esc(part.title)}${
+        hereStat ? `<br><span style="color:var(--muted)">${hereStat.done} of ${hereStat.total} decided here</span>` : ""}</div>` : ""}
+    ${(() => {
+      const strong = ((it && it.related) || []).filter((r) => r.why !== "same section");
+      const near = ((it && it.related) || []).filter((r) => r.why === "same section");
+      if (!strong.length && !near.length) return "";
+      return `<div class="relmap">
+        ${strong.map((r) => `<button class="relrow" data-goto="${r.id}">
+            <span class="rid">${r.id}</span><span class="why">${esc(r.why)}</span></button>`).join("")}
+        ${near.length ? `<button class="relrow near" data-goto="${near[0].id}">
+            <span class="rid">${near.length} more</span><span class="why">same section</span>
+          </button>` : ""}</div>`;
+    })()}
+    <div class="legend">
+      <div><span class="swatch doneq"></span>one cell per item, filled when decided</div>
+      ${((it && it.related) || []).length ? `<div><span class="swatch rel"></span>related item</div>` : ""}
+      <div><span class="swatch stated"></span>stated here</div>
+      ${nCited ? `<div><span class="swatch cited"></span>cited in ${nCited} part${nCited > 1 ? "s" : ""}</div>` : ""}
+      ${proof ? `<div><span class="swatch proved"></span>proved here</div>` : ""}
+    </div>`;
+}
+
+function diffMark(a, b) {
+  // Common prefix and suffix, mark the middle. For a transposition like
+  // "termianl" -> "terminal" this is the difference between reading two
+  // identical-looking lines and seeing the two letters that moved.
+  a = String(a); b = String(b);
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  let ea = a.length, eb = b.length;
+  while (ea > i && eb > i && a[ea - 1] === b[eb - 1]) { ea--; eb--; }
+  const span = (txt, cls) => txt.length
+    ? `<mark class="${cls}">${esc(txt)}</mark>`
+    : `<mark class="${cls} empty"></mark>`;
+  return {
+    before: esc(a.slice(0, i)) + span(a.slice(i, ea), "del") + esc(a.slice(ea)),
+    after: esc(b.slice(0, i)) + span(b.slice(i, eb), "ins") + esc(b.slice(eb)),
+  };
+}
+
+function renderDetail() {
+  const it = ITEMS.find((i) => i.id === current);
+  const pane = $("#detail");
+  pane.scrollTop = 0;            // a new item starts at its title, not mid-card
+  if (!it) {
+    pane.innerHTML = `<button class="backbtn" type="button">&larr; All items</button>
+      <p class="pane-empty">Pick an item from the queue. Each one shows the finding, what it
+      would change, and where you are in the manuscript.</p>`;
+    return;
+  }
+  const d = DECISIONS[docId(it.id)] || {};
+  const part = DOC.find((x) => x.file === bare(it.file));
+  const stmt = it.statement ? cleanTex(it.statement) : null;
+  const openStmt = ["proof-gap", "statement", "assumption"].includes(it.type);
+  const n = (it.affects || []).length;
+  const vparts = String(it.verified || "").split(/\s+--\s+/);
+  const nFiles = new Set((it.cited_at || []).map((c) => c.file)).size;
+
+  pane.innerHTML = `
+    <button class="backbtn" type="button">&larr; All items</button>
+    <div class="detailgrid">
+    <div class="card">
+      <div class="crumb">
+        <span class="part">${esc(partLabel(part))} ${esc(part ? part.title : bare(it.file))}</span>
+        <span class="sep">&rsaquo;</span><span>line ${it.line}</span>
+        ${it.label ? `<span class="sep">&middot;</span><span class="rid">${esc(it.label)}</span>` : ""}
+        <span class="sevpill ${it.severity}">${it.severity}</span>
+      </div>
+      <h2 class="dtitle"><button class="idtag" data-copy="${it.id}"
+        title="Copy ${it.id} to the clipboard">${it.id}</button>${esc(it.title)}</h2>
+      ${it.excerpt ? `<figure class="shot">
+        <figcaption>In the paper &middot; page ${it.excerpt.pages.join(" and ")}</figcaption>
+        ${it.excerpt.images.map((src) =>
+          `<img src="${esc(src)}" alt="The passage as printed on page ${it.excerpt.page}" loading="lazy">`).join("")}
+      </figure>` : ""}
+      ${it.context ? `<p class="context"><span class="ctag">What it says</span>
+        ${esc(it.context)}</p>` : ""}
+      <p class="finding">${esc(it.note)}</p>
+
+      <div class="impact ${n > 3 ? "heavy" : n ? "" : "none"}">
+        ${n ? `<b>${n}</b> result${n > 1 ? "s" : ""} would need re-checking${
+              nFiles ? ` &middot; cited in <b>${nFiles}</b> part${nFiles > 1 ? "s" : ""}` : ""}`
+            : `Nothing depends on this${it.prose_sites && it.prose_sites.length
+                ? `, though prose in ${it.prose_sites.length} place${it.prose_sites.length > 1 ? "s" : ""} mentions it` : ""}.`}
+      </div>
+
+      ${it.coverage ? `<div class="coverage"><span class="lbl">Covers</span>
+        <span>${esc(it.coverage)}</span></div>` : ""}
+
+      <div class="editwrap">
+        <h3>The edit</h3>
+        ${it.hunks && it.hunks.length ? it.hunks.map((h) => {
+            const dm = diffMark(h.before, h.after);
+            const live = it.status === "applied";
+            return `<div class="hunk">
+              <div><div class="cap">${live ? "v10 still reads" : "now"}</div>
+                <pre class="before">${dm.before}</pre></div>
+              <div><div class="cap">${live ? "v11 now reads" : "if approved"}</div>
+                <pre class="after">${dm.after}</pre></div>
+            </div>`;
+          }).join("")
+          : `<p class="none">No edit written yet &mdash; this item needs a decision on what to
+             do before a patch can be drafted.</p>`}
+      </div>
+
+      <div class="decide">
+        ${(() => {
+          const st = stateOf(it);
+          const step = (name, on, done) =>
+            `<span class="step ${on ? "on" : ""} ${done ? "done" : ""}"><span class="dot"></span>${name}</span>`;
+          const reviewed = st !== "open";
+          const approved = st === "waiting" || st === "applied";
+          const inv11 = st === "applied";
+          return `<div class="life">
+            ${step("reviewed", st === "open", reviewed)}
+            ${step("approved", st === "waiting", approved)}
+            ${step("in v11", false, inv11)}
+          </div>`;
+        })()}
+        ${it.status === "applied" ? `<div class="archnote">This edit is in
+          <b>v11</b>${it.applied_on ? ` since ${esc(it.applied_on)}` : ""}. v10 still has the
+          original.${it.decision_note ? ` &mdash; ${esc(it.decision_note.replace(/^approved -- /, ""))}` : ""}</div>` : ""}
+        <div class="btns">
+          <button class="btn approve" data-act="approved" aria-pressed="${d.state === "approved"}">Approve</button>
+          <button class="btn reject" data-act="rejected" aria-pressed="${d.state === "rejected"}">Reject</button>
+          <button class="btn needs" data-act="needs-work" aria-pressed="${d.state === "needs-work"}">Needs work</button>
+          <button class="btn prof" data-act="professor" aria-pressed="${d.state === "professor"}">Ask professor</button>
+        </div>
+        <textarea id="comment" placeholder="Note to Claude \u2014 what to change, or what you want checked">${esc(
+          readDraft(it.id) || d.comment || "")}</textarea>
+        <div class="status" id="status"></div>
+      </div>
+
+      ${stmt ? `<details id="stmtwrap" ${openStmt ? "open" : ""}><summary><b>The statement</b>${
+          stmt.name ? " &mdash; " + esc(stmt.name) : ""}</summary>
+        <div class="dbody"><div class="statement" id="stmt">${esc(stmt.body)}</div></div></details>` : ""}
+
+      ${(it.cited_at && it.cited_at.length) ? `<details><summary><b>Where it is cited</b>
+        ${it.cited_at.length} place${it.cited_at.length > 1 ? "s" : ""}</summary>
+        <div class="dbody"><div class="sites">${it.cited_at.map((c) => {
+          const cp = DOC.find((x) => x.file === c.file);
+          return `<div><span class="where">${esc(partLabel(cp))} line ${c.line}</span>
+                  <span>${esc(c.by.startsWith("sec:") || c.by.startsWith("app:")
+                    ? "in the prose" : "inside " + c.by)}</span></div>`;
+        }).join("")}</div></div></details>` : ""}
+
+      ${n ? `<details><summary><b>What would need re-checking</b> ${n}</summary>
+        <div class="dbody"><div class="chains">${it.affects.map((c) =>
+          `<div>${c.split(" -> ").map(esc).join('<span class="arrow"> \u2192 </span>')}</div>`
+        ).join("")}</div></div></details>` : ""}
+
+      <details><summary><b>How this was found</b></summary>
+        <div class="dbody"><div class="prov">
+          <div><div class="mlabel">Anchor</div><div class="mval">${esc(it.file)}:${it.line}</div></div>
+          <div><div class="mlabel">Found by</div><div class="mval">${esc(it.source)}</div></div>
+          <div><div class="mlabel">Category</div><div class="mval">${esc(it.category)}</div></div>
+          <div><div class="mlabel">Type</div><div class="mval">${esc(it.type)}</div></div>
+          ${it.proof_at ? `<div><div class="mlabel">Proved at</div><div class="mval">${esc(it.proof_at)}</div></div>` : ""}
+          <div class="vnote"><b>${esc(vparts[0] || "unverified")}</b> &mdash;
+            ${esc(vparts.slice(1).join(" \u2014 "))}</div>
+        </div></div></details>
+
+    </div>
+    <div class="map">${buildMap(it)}</div></div>`;
+
+  if (stmt && openStmt) typeset($("#stmt"));
+  const det = pane.querySelector("details#stmtwrap");
+  if (det) det.addEventListener("toggle", () => typeset($("#stmt")), { once: true });
+}
+
+/* ---------- copying the ticket id ---------- */
+
+function selectText(el) {
+  const range = document.createRange();
+  const tip = el.querySelector(".tip");
+  if (tip) tip.remove();              // never select the feedback label itself
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function tell(el, msg) {
+  const tip = el.querySelector(".tip") || document.createElement("span");
+  tip.className = "tip";
+  tip.textContent = msg;
+  el.appendChild(tip);
+  el.classList.add(msg === "Copied" ? "copied" : "selected");
+  clearTimeout(el._tipTimer);
+  el._tipTimer = setTimeout(() => {
+    tip.remove();
+    el.classList.remove("copied", "selected");
+  }, 1600);
+}
+
+function copyId(el) {
+  // The async clipboard API is DENIED in the artifact frame (NotAllowedError), and the
+  // rejection can take a second to arrive -- long enough that waiting on it makes the
+  // click look dead. So act synchronously: select, try the old execCommand copy, say
+  // what happened now, and let the async API upgrade the message only if it works.
+  const text = el.dataset.copy;
+  selectText(el);
+  let done = false;
+  try { done = document.execCommand("copy"); } catch (_) { done = false; }
+  tell(el, done ? "Copied" : "Press \u2318C");
+  if (!done && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => tell(el, "Copied"), () => {});
+  }
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (chip) {
+    const { kind, val } = chip.dataset;
+    if (kind === "clear") { filterSev = filterType = filterFile = null; decideFilter = null; }
+    else if (kind === "sev") { filterSev = filterSev === val ? null : val; }
+    else if (kind === "type") { filterType = filterType === val ? null : val; }
+    else if (["open", "waiting", "archive", "professor"].includes(kind)) {
+      decideFilter = decideFilter === kind ? null : kind;
+    }
+    else if (kind === "file") { filterFile = filterFile === val ? null : val; }
+    renderFilters();
+    renderQueue();
+    const rows = visible();
+    if (!rows.some((r) => r.id === current)) {
+      current = rows.length ? rows[0].id : null;
+      renderDetail();
+    }
+    return;
+  }
+  if (e.target.closest(".backbtn")) { document.body.dataset.view = "list"; return; }
+  const idtag = e.target.closest(".idtag");
+  if (idtag) { copyId(idtag); return; }
+  const rel = e.target.closest(".relrow");
+  if (rel) {
+    // Jump to a sibling item, clearing any filter that would hide it.
+    if (!ITEMS.some((i) => i.id === rel.dataset.goto && visible().includes(i))) {
+      filterSev = filterType = filterFile = null; decideFilter = null;
+    }
+    const target = rel.dataset.goto;
+    if (!visible().some((i) => i.id === target)) {
+      filterSev = filterType = filterFile = null; decideFilter = null;
+      renderFilters(); renderQueue();
+    }
+    current = null;
+    selectItem(target);
+    return;
+  }
+  const band = e.target.closest(".band");
+  if (band) {
+    filterFile = filterFile === band.dataset.file ? null : band.dataset.file;
+    renderFilters();
+    renderQueue();
+    const rows = visible();
+    if (!rows.some((r) => r.id === current)) {
+      current = rows.length ? rows[0].id : null;
+      renderDetail();
+    }
+    return;
+  }
+  const row = e.target.closest(".row");
+  if (row) { selectItem(row.dataset.id, { scroll: false }); return; }
+  const btn = e.target.closest(".decide .btn");
+  if (btn) {
+    const it = ITEMS.find((i) => i.id === current);
+    if (it) decide(it, btn.dataset.act);
+  }
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.id !== "comment") return;
+  clearTimeout(noteTimer);
+  const it = ITEMS.find((i) => i.id === current);
+  writeDraft(it ? it.id : "", e.target.value.trim());
+  noteTimer = setTimeout(() => saveNote(it, "idle"), 1200);
+}, true);
+
+document.addEventListener("blur", (e) => {
+  if (e.target.id === "comment") {
+    clearTimeout(noteTimer);
+    saveNote(ITEMS.find((i) => i.id === current), "blur");
+  }
+}, true);
+
+document.addEventListener("keydown", (e) => {
+  if (e.target.id === "comment" && e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    clearTimeout(noteTimer);
+    saveNote(ITEMS.find((i) => i.id === current), "shortcut");
+    return;
+  }
+  if (e.target.tagName === "TEXTAREA" || e.metaKey || e.ctrlKey || e.altKey) return;
+  const rows = visible();
+  const at = rows.findIndex((r) => r.id === current);
+  if (e.key === "j" && at < rows.length - 1) selectItem(rows[at + 1].id);
+  else if (e.key === "k" && at > 0) selectItem(rows[at - 1].id);
+  else if ("arnp".includes(e.key)) {
+    const it = ITEMS.find((i) => i.id === current);
+    if (it) decide(it, { a: "approved", r: "rejected", n: "needs-work",
+                         p: "professor" }[e.key]);
+  }
+});
+
+boot();
+</script>

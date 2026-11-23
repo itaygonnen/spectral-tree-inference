@@ -1,0 +1,9 @@
+{
+  "file": "sections/3-problem-definition.tex",
+  "hunks": [
+    {
+      "anchor_old": "the $\\l_{\\infty}$ error between the two Fiedler vectors are bounded by",
+      "replacement_new": "the $\\ell_{\\infty}$ error between the two Fiedler vectors is bounded by"
+    }
+  ]
+}

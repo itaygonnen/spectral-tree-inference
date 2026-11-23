@@ -1,0 +1,9 @@
+{
+  "file": "sections/1-introduction.tex",
+  "hunks": [
+    {
+      "anchor_old": "Two things keep this from being routine. What decides recoverability from a\nrandom subset is how spread the leading subspace is across coordinates, not how\nlarge the matrix is \\cite{chen2014completing}; and guarantees for recursive\nspectral bipartitioning are stated for clusters of comparable size",
+      "replacement_new": "Two obstacles stand in the way. Recoverability from a random subset is decided by how\nspread the leading subspace is across coordinates, not by how\nlarge the matrix is \\cite{chen2014completing}; and guarantees for recursive\nspectral bipartitioning are stated for clusters of comparable size"
+    }
+  ]
+}

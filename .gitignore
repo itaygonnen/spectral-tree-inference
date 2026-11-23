@@ -35,6 +35,11 @@ sub_sampled_fielder_vec/**/*.png
 !sub_sampled_fielder_vec/docs/overleafs/v9/figures/**/*.png
 !sub_sampled_fielder_vec/docs/overleafs/v10/figures/*.png
 !sub_sampled_fielder_vec/docs/overleafs/v10/figures/**/*.png
+!sub_sampled_fielder_vec/docs/overleafs/v11/figures/*.png
+!sub_sampled_fielder_vec/docs/overleafs/v11/figures/**/*.png
+# v11/review/app/excerpts/*.png stays ignored on purpose: those crops are derived from
+# the tracked thesis_v11.pdf and are rebuilt by `python -m scripts.review.excerpt`, so
+# tracking them would churn ~20 binaries on every apply.
 # Notebook scratch figure dir (v8-era leftovers; see analysis/README.md).
 # Both paths listed while the theoretical_interpretation/ layer is being collapsed;
 # the second line goes away once the move lands.

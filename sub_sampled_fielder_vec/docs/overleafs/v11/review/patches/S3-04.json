@@ -1,0 +1,37 @@
+{
+  "file": "sections/3-problem-definition.tex",
+  "hunks": [
+    {
+      "anchor_old": "the algorithm. %It is the\n%only call that sees all $m$ terminal nodes, and no parent call corrects it: a wrong split at the\n%root cannot be repaired further down. It is also where the similarity matrix is largest.\n",
+      "replacement_new": "the algorithm.\n"
+    },
+    {
+      "anchor_old": "say, with %\\begin{equation}\\label{eq:cost}\n%   \\binom{m}{2} = \\Theta(m^2) \\ \\text{pairwise estimates},\n%   \\qquad \\Theta(m^2\\ell) \\ \\text{character comparisons},\n%\\end{equation}\n",
+      "replacement_new": "say, with\n"
+    },
+    {
+      "anchor_old": "%pairwise estimates before the recursion has taken a single step. The quadratic term is exactly the cost that divide-and-conquer\n%was introduced to avoid, and it is paid in full at the root.\n%\n%This raises the question the paper answers: can the top-down split be computed at almost linear\n%cost, with a guarantee that it is still the same split the full matrix would have returned?\n",
+      "replacement_new": ""
+    },
+    {
+      "anchor_old": "%Our answer is to compute only a random subset of the pairs. Following the matrix-completion\n%paradigm \\cite{candes2009power, candes2008exact}, we observe entries through a random mask and\n%reweight: \n",
+      "replacement_new": ""
+    },
+    {
+      "anchor_old": "%Only the $\\Theta(p m^2)$ pairs in the mask are ever estimated, so $p$ is the fraction of the cost in\n%\\eqref{eq:cost} that is actually paid. \n",
+      "replacement_new": ""
+    },
+    {
+      "anchor_old": "%Under the assumptions of \\Cref{sec:assumptions}, a rate\n%$p=\\Theta(\\log m/m)$ suffices to reproduce the full-data split (\\Cref{thm:main-sim}), which brings\n%the top-level call down from $\\Theta(m^2)$ to \n\n",
+      "replacement_new": ""
+    },
+    {
+      "anchor_old": "%\\medskip\n%Recovery is, at its core, an \\emph{entry-wise} event. Two vectors induce the same\n%sign partition exactly when they agree in sign at every node, so the top-down\n%partition succeeds precisely when the empirical Fiedler vector agrees in sign with\n%its population counterpart coordinate by coordinate, that is, when\n%\\begin{equation}\\label{eq:entrywise}\n%   \\norm{\\vvh-\\vv}_\\infty<\\min_i|\\vv_i|.\n%\\end{equation}\n%Condition \\eqref{eq:entrywise} is the formal recovery event that every bound in the paper is\n%measured against. Its right-hand side is not computable without a model for $S$;\n%\\Cref{sec:assumptions} supplies one, under which $\\min_i|\\vv_i|$ has a closed form\n%(\\Cref{lem:A-decomp}).\n",
+      "replacement_new": ""
+    },
+    {
+      "anchor_old": "%The scope of the analysis is the population matrix. The empirical estimator of an individual entry\n%concentrates around $S_{ij}$ at rate $\\mathcal O(1/\\sqrt\\ell)$ \\cite{aizenbud2023spectral}, and the\n%structural conditions of \\Cref{sec:assumptions} are stated as properties of the population $S$,\n%whose observable proxy is that estimator.\n",
+      "replacement_new": ""
+    }
+  ]
+}

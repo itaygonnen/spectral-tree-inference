@@ -1,0 +1,9 @@
+{
+  "file": "sections/2-background.tex",
+  "hunks": [
+    {
+      "anchor_old": "For two termianl nodes",
+      "replacement_new": "For two terminal nodes"
+    }
+  ]
+}

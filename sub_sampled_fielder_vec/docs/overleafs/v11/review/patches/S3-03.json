@@ -1,0 +1,9 @@
+{
+  "file": "sections/3-problem-definition.tex",
+  "hunks": [
+    {
+      "anchor_old": "%This estimator is unbiased, $\\E[\\hat S]=S$, so $\\EL=\\hat L-L$ is mean zero, where $\\hat L=\\hat\n%D-\\hat S$. The resulting error is missingness rather than additive noise: most pairs are left at\n%zero and the rest rescaled by $1/p$, so it is heavy, structured, and its per-node variance grows as\n%$p\\to0$ (\\Cref{prop:C-var}).\n",
+      "replacement_new": "This estimator is unbiased, $\\E[\\hat S]=S$, so $\\EL=\\hat L-L$ is mean zero, where\n$\\hat L=\\hat D-\\hat S$. The resulting error is missingness rather than additive noise:\nmost pairs are left at zero and the rest rescaled by $1/p$, so it is heavy, structured, and\nits per-node variance grows as $p\\to0$ (\\Cref{prop:C-var}).\n"
+    }
+  ]
+}

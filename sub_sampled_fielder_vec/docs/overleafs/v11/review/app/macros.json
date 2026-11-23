@@ -1,0 +1,34 @@
+{
+ "1": "\\mathbf{1}",
+ "Dlam": "\\Delta\\lambda",
+ "Dmat": "\\mathcal{D}",
+ "E": "\\mathbb{E}",
+ "ED": "E_{D}",
+ "EL": "E_{L}",
+ "ES": "E_{S}",
+ "Pisp": [
+  "\\Pi(#1)",
+  1
+ ],
+ "Prob": "\\mathbb{P}",
+ "R": "\\mathbb{R}",
+ "Sin": "S_{\\mathrm{in}}",
+ "Smax": "S_{\\max}",
+ "Sout": "S_{\\mathrm{out}}",
+ "bze": "\\beta_0",
+ "coh": "\\mu(U)",
+ "hp": "with high probability",
+ "norm": [
+  "\\left\\lVert #1 \\right\\rVert",
+  1
+ ],
+ "opnorm": [
+  "\\norm{#1}_{2}",
+  1
+ ],
+ "rhotil": "\\tilde\\rho(\\eta)",
+ "theassumption": "A\\arabic{assumption}",
+ "thecondition": "C\\arabic{condition}",
+ "vv": "v^{(2)}",
+ "vvh": "\\hat v^{(2)}"
+}

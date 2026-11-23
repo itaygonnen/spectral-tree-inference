@@ -1,0 +1,74 @@
+{
+  "hunks": [
+    {
+      "file": "sections/1-introduction.tex",
+      "anchor_old": "the two sides are the two halves of a single edge cut --- a \\emph{split} of the tree\n\\cite{wilkinson2007clades} --- which is what keeps the merge tractable. Both the",
+      "replacement_new": "the two sides are the two halves of a single edge cut, a \\emph{split} of the tree\n\\cite{wilkinson2007clades}, which is what keeps the merge tractable. Both the"
+    },
+    {
+      "file": "sections/1-introduction.tex",
+      "anchor_old": "so that one call costs $\\Theta(m^2)$ estimator evaluations --- the cost\ndivide-and-conquer exists to avoid.",
+      "replacement_new": "so that one call costs $\\Theta(m^2)$ estimator evaluations, the cost\ndivide-and-conquer exists to avoid."
+    },
+    {
+      "file": "sections/1-introduction.tex",
+      "anchor_old": "Fiedler vector, degrading the signal itself. The two failures are distinct ---\none leaves the eigenvector informative but unaffordable to sample, the other\nleaves nothing worth sampling --- so pooling them shows one curve where there are\ntwo mechanisms.",
+      "replacement_new": "Fiedler vector, degrading the signal itself. The two failures are distinct:\none leaves the eigenvector informative but unaffordable to sample, the other\nleaves nothing worth sampling, so pooling them shows one curve where there are\ntwo mechanisms."
+    },
+    {
+      "file": "sections/1-introduction.tex",
+      "anchor_old": "\\Cref{sec:problem} builds the STDR recursion on that result and states the problem --- the\nquadratic cost of its top-level call, the sampling scheme that answers it, and the entry-wise",
+      "replacement_new": "\\Cref{sec:problem} builds the STDR recursion on that result and states the problem:\nthe quadratic cost of its top-level call, the sampling scheme that answers it, and the entry-wise"
+    },
+    {
+      "file": "sections/4-assumptions.tex",
+      "anchor_old": "tree is on top, its branches coloured by the sign of the Fiedler vector --- grey on\nthe one branch that spans both signs --- and below it the Fiedler value of each terminal node",
+      "replacement_new": "tree is on top, its branches coloured by the sign of the Fiedler vector (grey on\nthe one branch that spans both signs), and below it the Fiedler value of each terminal node"
+    },
+    {
+      "file": "sections/5-main-result.tex",
+      "anchor_old": "be the structural margin and let $\\vvh$ be the empirical Fiedler vector --- the",
+      "replacement_new": "be the structural margin and let $\\vvh$ be the empirical Fiedler vector, the"
+    },
+    {
+      "file": "sections/6-topological-scaling.tex",
+      "anchor_old": "$\\eta<\\Sin^{\\min}/\\bze$ --- precisely what \\Cref{asm:margin} records.",
+      "replacement_new": "$\\eta<\\Sin^{\\min}/\\bze$, precisely what \\Cref{asm:margin} records."
+    },
+    {
+      "file": "sections/7-proof-outline.tex",
+      "anchor_old": "It runs in three stages --- population geometry fixes the margin and noise\nbudget, a resolvent expansion reduces the error at each node to a scalar, and a\nper-node Bernstein bound controls that scalar --- after which imposing\n\\eqref{eq:entrywise} yields the rate \\eqref{eq:main_rate}. Each stage is stated",
+      "replacement_new": "It runs in three stages: population geometry fixes the margin and noise\nbudget, a resolvent expansion reduces the error at each node to a scalar, and a\nper-node Bernstein bound controls that scalar. Imposing\n\\eqref{eq:entrywise} then yields the rate \\eqref{eq:main_rate}. Each stage is stated"
+    },
+    {
+      "file": "sections/7-proof-outline.tex",
+      "anchor_old": "sets both sides of \\eqref{eq:entrywise} at once --- it fixes the margin and the",
+      "replacement_new": "sets both sides of \\eqref{eq:entrywise} at once: it fixes the margin and the"
+    },
+    {
+      "file": "sections/7-proof-outline.tex",
+      "anchor_old": "Every within-block increment therefore vanishes \\emph{exactly} --- this is a",
+      "replacement_new": "Every within-block increment therefore vanishes \\emph{exactly}: this is a"
+    },
+    {
+      "file": "sections/A-spectral-geometry.tex",
+      "anchor_old": "vector $\\vv$ is admissible in that minimisation --- it is a unit vector and\n$\\langle v^{(1)},\\vv\\rangle=0$ by construction --- so",
+      "replacement_new": "vector $\\vv$ is admissible in that minimisation (it is a unit vector and\n$\\langle v^{(1)},\\vv\\rangle=0$ by construction), so"
+    },
+    {
+      "file": "sections/A-spectral-geometry.tex",
+      "anchor_old": "\\emph{inequality} \\eqref{eq:lambda2_upper}, $\\lambda_2\\le m\\bze$ ---\nnot clause (iv) of \\Cref{lem:A-decomp}, whose proof appeals to the interlacing step",
+      "replacement_new": "\\emph{inequality} \\eqref{eq:lambda2_upper}, $\\lambda_2\\le m\\bze$, and\nnot clause (iv) of \\Cref{lem:A-decomp}, whose proof appeals to the interlacing step"
+    },
+    {
+      "file": "sections/A-spectral-geometry.tex",
+      "anchor_old": "$m_{\\min}\\Sin^{\\min}>m\\bze$ --- a contradiction. Hence $\\lambda_2=m\\bze$, and then",
+      "replacement_new": "$m_{\\min}\\Sin^{\\min}>m\\bze$, a contradiction. Hence $\\lambda_2=m\\bze$, and then"
+    },
+    {
+      "file": "sections/2-background.tex",
+      "anchor_old": "makes it \\emph{reversible} --- a path observed forwards",
+      "replacement_new": "makes it \\emph{reversible}: a path observed forwards"
+    }
+  ]
+}

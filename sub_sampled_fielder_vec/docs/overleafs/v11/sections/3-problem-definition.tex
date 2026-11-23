@@ -1,0 +1,47 @@
+% §3 Problem definition.  One continuous argument: the STDR recursion, the Theta(m^2) cost of its
+% top-level call, the Bernoulli(p) observation model that answers that cost, and the entry-wise
+% criterion eq:entrywise that every bound in the paper is measured against.  No subsections --
+% the section is one argument and headings would restart it.
+\section{Problem definition}\label{sec:problem}
+
+The top-level call of \Cref{alg:stdr} governs the computational cost of the algorithm.
+Computing the full matrix at the top level has a cost of order $\Theta(m^2\ell)$. For large trees, say, with
+$m \sim 10^5$ terminal nodes and $\ell = 10^4$, the computational cost is on the order of $10^{14}$. 
+In this paper, our goal is to derive a divide-and-conquer algorithm, with theoretical guarantees, with a computational cost that is linear in the number of terminal nodes, up to logarithmic terms. 
+
+We apply a randomized approach, where only a random subset of the entries of the similarity matrix is computed at each level. 
+Let $\Omega\in\{0,1\}^{m\times m}$ be a symmetric mask whose upper-triangular entries are
+independent $\mathrm{Bernoulli}(p)$, $p\in(0,1]$. We compute a sparse similarity with
+inverse-probability weighting \cite{candes2009matrix},
+\begin{equation}\label{eq:sampling_estimator}
+   \hat S_{ij}=\begin{cases}\tfrac1p\,\Omega_{ij}\,S_{ij}, & i\ne j,\\ 1, & i=j.\end{cases}.
+\end{equation}
+In \Cref{sec:assumptions} we prove, under appropriate assumptions, that a sample rate of $p=\Theta(\log m/m)$ suffices to reproduce the full-data split (\Cref{thm:main-sim}) with high probability. This reduces the overall computational cost of the divide-and-conquer algorithm to 
+$\Theta(m\log m)$ pairwise estimates.
+
+
+Our analysis addresses the asymptotic regime of infinite sequence length $\ell \to \infty$, which implies that the estimation error in the entries of $S$ reduces to $0$.
+In this regime, \Cref{thm:stdr-split} guarantees that partitioning the terminal nodes according to the sign pattern of the Fiedler vector $v^{(2)}$ gives a valid partition $\Pi(S)$ in the underlying tree $\mathcal T$.
+Our goal is to show that partitioning the terminal nodes according to the entry-wise sign pattern of the Fiedler vector $\hat v^{(2)}$, gives an identical partition with high probability. 
+A sufficient condition is that the $\ell_{\infty}$ error between the two Fiedler vectors is bounded by 
+\begin{equation}\label{eq:entrywise}
+   \norm{\vvh-\vv}_\infty<\min_i|\vv_i|.
+\end{equation}
+
+
+This estimator is unbiased, $\E[\hat S]=S$, so $\EL=\hat L-L$ is mean zero, where
+$\hat L=\hat D-\hat S$. The resulting error is missingness rather than additive noise:
+most pairs are left at zero and the rest rescaled by $1/p$, so it is heavy, structured, and
+its per-node variance grows as $p\to0$ (\Cref{prop:C-var}).
+
+%\medskip
+%\noindent\textbf{Problem.} Given the sparsely observed estimate $\hat S$ of
+%\eqref{eq:sampling_estimator}, recover the Fiedler split $\Pisp{S}$ of the full matrix from the sign
+%pattern of the Fiedler vector $\vvh$ of $\hat L$. We ask for the minimal sampling rate $p$ at which
+%$\Pisp{\hat S}=\Pisp{S}$ \hp. Since $\E[\hat S]=S$, the question reduces to an
+%eigenvector-perturbation problem over $\EL=\hat L-L$, which the remainder of the paper analyzes.
+%The full-data split $\Pisp{S}$ is already a split of $\mathcal{T}$ (\Cref{thm:stdr-split}), so a
+%rate at which $\Pisp{\hat S}=\Pisp{S}$ is a rate at which the sub-sampled operator returns a genuine
+%split of the tree.
+
+
