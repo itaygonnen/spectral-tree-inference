@@ -1,0 +1,27 @@
+================================================================================
+Experiment Log Started: 2026-11-25 17:55:40
+================================================================================
+
+[17:55:40] BOOTSTRAP_SWEEP | INFO | sailfish_yule_n4000_L1000_g1x4: 0/18 cached, 18 to run, operators ('Lsym',), p=0.0001..1, reps=10
+[17:57:55] BOOTSTRAP_SWEEP | INFO | [1/18] random_tree_0017 done
+[17:58:10] BOOTSTRAP_SWEEP | INFO | [2/18] random_tree_0041 done
+[17:58:10] BOOTSTRAP_SWEEP | INFO | [3/18] random_tree_0042 done
+[17:58:33] BOOTSTRAP_SWEEP | INFO | [4/18] random_tree_0006 done
+[17:58:35] BOOTSTRAP_SWEEP | INFO | [5/18] random_tree_0013 done
+[17:58:45] BOOTSTRAP_SWEEP | INFO | [6/18] random_tree_0024 done
+[18:00:16] BOOTSTRAP_SWEEP | INFO | [7/18] random_tree_0050 done
+[18:00:29] BOOTSTRAP_SWEEP | INFO | [8/18] random_tree_0047 done
+[18:00:57] BOOTSTRAP_SWEEP | INFO | [9/18] random_tree_0054 done
+[18:00:59] BOOTSTRAP_SWEEP | INFO | [10/18] random_tree_0048 done
+[18:01:00] BOOTSTRAP_SWEEP | INFO | [11/18] random_tree_0053 done
+[18:01:47] BOOTSTRAP_SWEEP | INFO | [12/18] random_tree_0051 done
+[18:02:24] BOOTSTRAP_SWEEP | INFO | [13/18] random_tree_0057 done
+[18:02:58] BOOTSTRAP_SWEEP | INFO | [14/18] random_tree_0060 done
+[18:02:59] BOOTSTRAP_SWEEP | INFO | [15/18] random_tree_0063 done
+[18:03:16] BOOTSTRAP_SWEEP | INFO | [16/18] random_tree_0072 done
+[18:03:25] BOOTSTRAP_SWEEP | INFO | [17/18] random_tree_0067 done
+[18:03:26] BOOTSTRAP_SWEEP | INFO | [18/18] random_tree_0080 done
+
+================================================================================
+Experiment Log Ended: 2026-11-25 18:03:26
+================================================================================

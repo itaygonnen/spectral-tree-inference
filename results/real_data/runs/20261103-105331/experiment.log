@@ -1,0 +1,126 @@
+================================================================================
+Experiment Log Started: 2026-11-03 10:53:31
+================================================================================
+
+[10:53:31] SCREEN | INFO | cache: 4 rows in /Users/itayg/PythonRepo/spectral-tree-inference/results/real_data/_cache/sailfish_yule_n150_l300_g1x4_buckets/screen.npz
+[10:53:31] SCREEN | INFO | sailfish_yule_n150_L300_g1x4_buckets: nothing to do, all 4 ids cached
+[10:53:31] BOOTSTRAP_SWEEP | INFO | sailfish_yule_n150_L300_g1x4_buckets: 0/4 cached, 4 to run, operators ('S',), p=0.0001..1, reps=10
+[10:53:31] BOOTSTRAP_SWEEP | INFO | eta01_001: loaded m=150, true-tree top split 142/8
+[10:53:31] BOOTSTRAP_SWEEP | INFO | eta01_001: S reference kmeans eta=7.33, sign eta=1.42 -> using sign
+[10:53:31] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.01274 results: nmi=0.0001, ari=-0.0051, agr=52.67%, dot=0.2129, sign=47.33%, s2_full=2.7725, s2_sub=6.6432, opnorm=51.7426, eta=1.63, split=57-93
+[10:53:31] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.02069 results: nmi=0.0111, ari=-0.0157, agr=51.33%, dot=0.1116, sign=48.67%, s2_full=2.3945, s2_sub=4.7665, opnorm=29.9632, eta=4.56, split=27-123
+[10:53:31] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.007848 results: nmi=0.0002, ari=-0.0072, agr=51.33%, dot=0.1837, sign=48.67%, s2_full=2.7468, s2_sub=8.6199, opnorm=61.9237, eta=1.63, split=57-93
+[10:53:31] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.0336 results: nmi=0.0194, ari=-0.0149, agr=55.33%, dot=0.1462, sign=44.67%, s2_full=0.9976, s2_sub=3.2252, opnorm=20.8570, eta=20.43, split=7-143
+[10:53:31] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:31] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.0001 results: nmi=0.0000, ari=0.0000, agr=58.67%, dot=0.0120, sign=0.67%, s2_full=nan, s2_sub=nan, opnorm=210.0171, eta=150.00, split=0-150
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.05456 results: nmi=0.0017, ari=0.0051, agr=58.00%, dot=0.2311, sign=58.00%, s2_full=1.6925, s2_sub=3.7215, opnorm=17.1689, eta=7.82, split=17-133
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.08859 results: nmi=0.0196, ari=-0.0164, agr=50.00%, dot=0.2640, sign=50.00%, s2_full=1.7833, s2_sub=2.1676, opnorm=11.7316, eta=4.56, split=27-123
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.1438 results: nmi=0.0007, ari=-0.0066, agr=50.67%, dot=0.5450, sign=50.67%, s2_full=2.8176, s2_sub=3.1781, opnorm=8.3326, eta=1.21, split=68-82
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.2336 results: nmi=0.4043, ari=0.4948, agr=85.33%, dot=0.7824, sign=85.33%, s2_full=1.8319, s2_sub=2.3018, opnorm=5.7857, eta=2.00, split=50-100
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.3793 results: nmi=0.6594, ari=0.7029, agr=92.00%, dot=0.8572, sign=92.00%, s2_full=1.2990, s2_sub=1.4752, opnorm=3.9794, eta=2.00, split=50-100
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.6158 results: nmi=0.9478, ari=0.9733, agr=99.33%, dot=0.9751, sign=99.33%, s2_full=0.8679, s2_sub=0.9011, opnorm=2.3980, eta=1.46, split=61-89
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.3147, s2_sub=0.3147, opnorm=0.0000, eta=1.42, split=62-88
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.000162 EXTRAPOLATED: nmi=0.0001, ari=-0.0061, agr=52.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.000264 EXTRAPOLATED: nmi=0.0001, ari=-0.0061, agr=52.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.000428 EXTRAPOLATED: nmi=0.0001, ari=-0.0061, agr=52.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.000695 EXTRAPOLATED: nmi=0.0001, ari=-0.0061, agr=52.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.001129 EXTRAPOLATED: nmi=0.0001, ari=-0.0061, agr=52.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.001833 EXTRAPOLATED: nmi=0.0001, ari=-0.0061, agr=52.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.002976 EXTRAPOLATED: nmi=0.0001, ari=-0.0061, agr=52.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta01_001 [L] p=0.004833 EXTRAPOLATED: nmi=0.0001, ari=-0.0061, agr=52.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | [1/4] eta01_001 done in 0 s (elapsed 0.00 h, ETA 0.00 h)
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001: loaded m=150, true-tree top split 147/3
+[10:53:32] P_SWEEP_INNER | WARNING | k-means split smaller side 3 < min_split 5
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001: S reference kmeans eta=49.00, sign eta=4.77 -> using sign
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.01274 results: nmi=0.0000, ari=-0.0017, agr=60.67%, dot=0.0510, sign=60.67%, s2_full=2.3344, s2_sub=8.3181, opnorm=58.7678, eta=1.94, split=51-99
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.02069 results: nmi=0.0023, ari=-0.0282, agr=68.67%, dot=0.0726, sign=31.33%, s2_full=2.0978, s2_sub=5.6421, opnorm=39.6737, eta=4.17, split=29-121
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.007848 results: nmi=0.0160, ari=0.0048, agr=54.67%, dot=0.1446, sign=54.67%, s2_full=2.5353, s2_sub=11.5691, opnorm=69.1397, eta=1.03, split=74-76
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.0336 results: nmi=0.0003, ari=-0.0120, agr=76.67%, dot=0.2454, sign=23.33%, s2_full=1.4551, s2_sub=2.8797, opnorm=25.4464, eta=10.54, split=13-137
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.0001 results: nmi=0.0051, ari=-0.0103, agr=82.00%, dot=0.0141, sign=0.67%, s2_full=0.0000, s2_sub=0.0000, opnorm=469.9551, eta=149.00, split=1-149
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.05456 results: nmi=0.0158, ari=-0.0651, agr=73.33%, dot=0.1174, sign=26.67%, s2_full=1.8361, s2_sub=2.3750, opnorm=18.7217, eta=8.38, split=16-134
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.08859 results: nmi=0.0051, ari=0.0005, agr=53.33%, dot=0.4531, sign=46.67%, s2_full=2.3641, s2_sub=3.1652, opnorm=13.4234, eta=1.03, split=74-76
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.1438 results: nmi=0.0017, ari=0.0110, agr=62.00%, dot=0.4439, sign=38.00%, s2_full=2.2894, s2_sub=2.5788, opnorm=9.5816, eta=1.94, split=51-99
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.2336 results: nmi=0.0087, ari=0.0229, agr=60.67%, dot=0.6049, sign=60.67%, s2_full=2.4395, s2_sub=2.5587, opnorm=6.9645, eta=1.54, split=59-91
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.3793 results: nmi=0.1779, ari=0.1800, agr=72.00%, dot=0.7011, sign=72.00%, s2_full=2.1268, s2_sub=2.4115, opnorm=4.8834, eta=1.42, split=62-88
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.6158 results: nmi=0.9278, ari=0.9678, agr=99.33%, dot=0.9881, sign=99.33%, s2_full=0.3541, s2_sub=0.3557, opnorm=2.9181, eta=4.56, split=27-123
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.2021, s2_sub=0.2021, opnorm=0.0000, eta=4.77, split=26-124
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.000162 EXTRAPOLATED: nmi=0.0080, ari=0.0015, agr=57.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.000264 EXTRAPOLATED: nmi=0.0080, ari=0.0015, agr=57.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.000428 EXTRAPOLATED: nmi=0.0080, ari=0.0015, agr=57.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.000695 EXTRAPOLATED: nmi=0.0080, ari=0.0015, agr=57.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.001129 EXTRAPOLATED: nmi=0.0080, ari=0.0015, agr=57.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.001833 EXTRAPOLATED: nmi=0.0080, ari=0.0015, agr=57.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.002976 EXTRAPOLATED: nmi=0.0080, ari=0.0015, agr=57.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta05_001 [L] p=0.004833 EXTRAPOLATED: nmi=0.0080, ari=0.0015, agr=57.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | [2/4] eta05_001 done in 0 s (elapsed 0.00 h, ETA 0.00 h)
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001: loaded m=150, true-tree top split 1/149
+[10:53:32] P_SWEEP_INNER | WARNING | k-means split smaller side 3 < min_split 5
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001: S reference kmeans eta=49.00, sign eta=10.54 -> using sign
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.01274 results: nmi=0.0050, ari=-0.0324, agr=70.00%, dot=0.2717, sign=30.00%, s2_full=2.3233, s2_sub=6.1892, opnorm=53.1391, eta=3.17, split=36-114
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.02069 results: nmi=0.0078, ari=-0.0479, agr=76.67%, dot=0.1881, sign=23.33%, s2_full=2.0926, s2_sub=5.1104, opnorm=34.2864, eta=5.25, split=24-126
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.007848 results: nmi=0.0360, ari=0.0468, agr=64.00%, dot=0.1691, sign=64.00%, s2_full=2.5414, s2_sub=10.2464, opnorm=67.0049, eta=1.54, split=59-91
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.0336 results: nmi=0.0021, ari=-0.0285, agr=81.33%, dot=0.3656, sign=18.67%, s2_full=1.6617, s2_sub=3.0314, opnorm=23.5582, eta=7.82, split=17-133
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.0001 results: nmi=0.0036, ari=-0.0114, agr=90.67%, dot=0.0147, sign=0.67%, s2_full=0.0000, s2_sub=0.0000, opnorm=173.5991, eta=149.00, split=1-149
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.05456 results: nmi=0.0005, ari=-0.0152, agr=83.33%, dot=0.4172, sign=16.67%, s2_full=1.7055, s2_sub=3.2723, opnorm=16.2581, eta=9.71, split=14-136
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.08859 results: nmi=0.1166, ari=0.2803, agr=90.67%, dot=0.9250, sign=90.67%, s2_full=1.2308, s2_sub=2.0109, opnorm=11.2816, eta=15.67, split=9-141
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.1438 results: nmi=0.3696, ari=0.5388, agr=94.67%, dot=0.8907, sign=94.67%, s2_full=0.7404, s2_sub=0.8257, opnorm=8.5171, eta=20.43, split=7-143
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.2336 results: nmi=0.5328, ari=0.6492, agr=96.00%, dot=0.9071, sign=96.00%, s2_full=0.6198, s2_sub=0.6156, opnorm=5.8920, eta=20.43, split=7-143
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.3793 results: nmi=0.8902, ari=0.9488, agr=99.33%, dot=0.9628, sign=99.33%, s2_full=0.2891, s2_sub=0.3620, opnorm=3.8063, eta=11.50, split=12-138
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.9918, sign=100.00%, s2_full=0.1366, s2_sub=0.2022, opnorm=2.2969, eta=10.54, split=13-137
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.1366, s2_sub=0.1366, opnorm=0.0000, eta=10.54, split=13-137
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.000162 EXTRAPOLATED: nmi=0.0205, ari=0.0072, agr=67.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.000264 EXTRAPOLATED: nmi=0.0205, ari=0.0072, agr=67.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.000428 EXTRAPOLATED: nmi=0.0205, ari=0.0072, agr=67.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.000695 EXTRAPOLATED: nmi=0.0205, ari=0.0072, agr=67.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.001129 EXTRAPOLATED: nmi=0.0205, ari=0.0072, agr=67.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.001833 EXTRAPOLATED: nmi=0.0205, ari=0.0072, agr=67.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.002976 EXTRAPOLATED: nmi=0.0205, ari=0.0072, agr=67.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta10_001 [L] p=0.004833 EXTRAPOLATED: nmi=0.0205, ari=0.0072, agr=67.00%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | [3/4] eta10_001 done in 0 s (elapsed 0.00 h, ETA 0.00 h)
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001: loaded m=150, true-tree top split 148/2
+[10:53:32] P_SWEEP_INNER | WARNING | k-means split smaller side 2 < min_split 5
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001: S reference kmeans eta=74.00, sign eta=14.00 -> using sign
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.01274 results: nmi=0.0000, ari=-0.0010, agr=59.33%, dot=0.2024, sign=40.67%, s2_full=1.7451, s2_sub=5.7254, opnorm=34.6176, eta=1.54, split=59-91
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.02069 results: nmi=0.0086, ari=0.0514, agr=79.33%, dot=0.1036, sign=79.33%, s2_full=1.4727, s2_sub=4.5583, opnorm=28.6179, eta=4.56, split=27-123
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.007848 results: nmi=0.0001, ari=-0.0013, agr=52.00%, dot=0.0788, sign=52.00%, s2_full=1.8467, s2_sub=7.0750, opnorm=44.2500, eta=1.08, split=72-78
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.0336 results: nmi=0.0181, ari=-0.0587, agr=87.33%, dot=0.1131, sign=12.67%, s2_full=1.1573, s2_sub=2.2158, opnorm=19.2719, eta=15.67, split=9-141
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] METRIC_COMPOSER | WARNING | eigsh failed for ||A||_2 (ARPACK error -9: Starting vector is zero.); power-iterating
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.0001 results: nmi=0.0032, ari=-0.0115, agr=92.67%, dot=0.0080, sign=0.67%, s2_full=0.0000, s2_sub=0.0000, opnorm=170.0442, eta=149.00, split=1-149
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.05456 results: nmi=0.0671, ari=0.1957, agr=87.33%, dot=0.3148, sign=87.33%, s2_full=1.2932, s2_sub=2.2482, opnorm=13.2737, eta=7.82, split=17-133
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.08859 results: nmi=0.0235, ari=-0.0048, agr=50.67%, dot=0.5703, sign=50.67%, s2_full=1.8030, s2_sub=3.1517, opnorm=9.1897, eta=1.14, split=70-80
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.1438 results: nmi=0.0708, ari=0.1574, agr=80.67%, dot=0.6589, sign=80.67%, s2_full=1.3453, s2_sub=2.6641, opnorm=6.2486, eta=3.84, split=31-119
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.2336 results: nmi=0.3782, ari=0.5318, agr=92.67%, dot=0.6085, sign=92.67%, s2_full=1.0112, s2_sub=1.6434, opnorm=4.2243, eta=6.89, split=19-131
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.3793 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.8850, sign=100.00%, s2_full=0.0852, s2_sub=0.1611, opnorm=2.7547, eta=14.00, split=10-140
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.6158 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=0.8918, sign=100.00%, s2_full=0.0852, s2_sub=0.1077, opnorm=1.7210, eta=14.00, split=10-140
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=1 results: nmi=1.0000, ari=1.0000, agr=100.00%, dot=1.0000, sign=100.00%, s2_full=0.0852, s2_sub=0.0852, opnorm=0.0000, eta=14.00, split=10-140
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.000162 EXTRAPOLATED: nmi=0.0001, ari=-0.0011, agr=55.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.000264 EXTRAPOLATED: nmi=0.0001, ari=-0.0011, agr=55.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.000428 EXTRAPOLATED: nmi=0.0001, ari=-0.0011, agr=55.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.000695 EXTRAPOLATED: nmi=0.0001, ari=-0.0011, agr=55.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.001129 EXTRAPOLATED: nmi=0.0001, ari=-0.0011, agr=55.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.001833 EXTRAPOLATED: nmi=0.0001, ari=-0.0011, agr=55.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.002976 EXTRAPOLATED: nmi=0.0001, ari=-0.0011, agr=55.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | eta15_001 [L] p=0.004833 EXTRAPOLATED: nmi=0.0001, ari=-0.0011, agr=55.67%, dot=nan, sign=nan%, s2_full=nan, s2_sub=nan, opnorm=nan, eta=N/A, split=N/A
+[10:53:32] BOOTSTRAP_SWEEP | INFO | [4/4] eta15_001 done in 0 s (elapsed 0.00 h, ETA 0.00 h)
+
+================================================================================
+Experiment Log Ended: 2026-11-03 10:53:32
+================================================================================

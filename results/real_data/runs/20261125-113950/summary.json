@@ -1,0 +1,19 @@
+{
+  "status": "completed",
+  "commit": "1e508cb",
+  "datasets": {
+    "sailfish_yule_n1000_L1000_g1x4": {
+      "trees_selected": 100,
+      "screening": {
+        "trees": 100,
+        "m": 1000,
+        "valid_L": 42,
+        "median_eta_L": 17.350168350168353,
+        "valid_Lsym": 34,
+        "median_eta_Lsym": 1.8370221327967808,
+        "valid_L_and_B": 0
+      }
+    }
+  },
+  "finished": "2026-11-25T11:40:07"
+}

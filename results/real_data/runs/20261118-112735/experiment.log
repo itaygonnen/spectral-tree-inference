@@ -1,0 +1,27 @@
+================================================================================
+Experiment Log Started: 2026-11-18 11:27:35
+================================================================================
+
+[11:27:35] BOOTSTRAP_SWEEP | INFO | sailfish_yule_n200_L1000_g1x4_buckets: 0/18 cached, 18 to run, operators ('S',), p=0.0001..1, reps=10
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [1/18] eta05_001 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [2/18] eta05_002 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [3/18] eta10_001 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [4/18] eta10_003 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [5/18] eta10_002 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [6/18] eta05_003 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [7/18] eta1p2000_001 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [8/18] eta1p2000_003 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [9/18] eta1p4700_003 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [10/18] eta1p2000_002 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [11/18] eta1p4700_001 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [12/18] eta1p4700_002 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [13/18] eta2p1100_001 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [14/18] eta2p1100_002 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [15/18] eta2p3500_001 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [16/18] eta2p3500_002 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [17/18] eta2p1100_003 done
+[11:27:38] BOOTSTRAP_SWEEP | INFO | [18/18] eta2p3500_003 done
+
+================================================================================
+Experiment Log Ended: 2026-11-18 11:27:38
+================================================================================

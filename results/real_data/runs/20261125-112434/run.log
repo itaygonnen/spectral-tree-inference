@@ -1,0 +1,4 @@
+  4 cached row(s) predate Lsym -- topping them up (the existing verdicts stay until then)
+SCREEN | INFO | 4 row(s) re-run for ['Lsym']
+  4/4 trees cached, 4 to run on 6 workers (S, Lsym)
+  4 tree(s) screened; cuts a real edge: S on 2, Lsym on 2

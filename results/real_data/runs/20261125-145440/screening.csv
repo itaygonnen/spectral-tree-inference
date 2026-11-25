@@ -1,0 +1,17 @@
+dataset,m,tree,eta_Lsym,valid_Lsym,rule_Lsym,eta_Lsym_kmeans,valid_Lsym_kmeans,eta_Lsym_sign,valid_Lsym_sign
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta2p7200_001,2.7383,1,sign,13.5985,0,2.7383,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta2p7200_002,2.8873,1,sign,13.1844,0,2.8873,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta2p7200_003,2.4934,1,sign,2.4965,0,2.4934,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta2p7200_004,2.4423,1,sign,2.4542,0,2.4423,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta2p7200_005,2.5556,1,sign,2.5619,0,2.5556,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta2p7200_006,2.5651,1,sign,3.3621,0,2.5651,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta2p7200_007,2.6731,1,sign,3.8193,0,2.6731,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta2p7200_008,2.2841,1,sign,2.5026,0,2.2841,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta3p2600_001,3.6674,1,sign,5.8847,0,3.6674,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta3p2600_002,3.4248,1,sign,4.1282,0,3.4248,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta3p2600_003,3.1451,1,sign,3.4395,0,3.1451,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta3p2600_004,3.0323,1,sign,5.4205,0,3.0323,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta3p2600_005,3.0692,1,sign,3.1451,1,3.0692,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta3p2600_006,3.3337,1,sign,9.2564,0,3.3337,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta3p2600_007,3.0282,1,sign,3.5351,1,3.0282,1
+sailfish_yule_n4000_L1000_g1x4_buckets,4000,eta3p2600_008,3.0692,1,kmeans,3.0692,1,3.0692,1

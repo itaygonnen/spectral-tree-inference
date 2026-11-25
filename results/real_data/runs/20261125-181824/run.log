@@ -1,0 +1,5 @@
+  0/42 trees cached, 42 to run (20 p x 10 reps x 1 operators, p=0.0001..1)
+  6 workers, 42 trees
+  [1/42] random_tree_0017 249s
+  [2/42] random_tree_0007 156s
+  [3/42] random_tree_0013 125s

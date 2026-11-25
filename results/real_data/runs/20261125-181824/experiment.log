@@ -1,0 +1,8 @@
+================================================================================
+Experiment Log Started: 2026-11-25 18:18:24
+================================================================================
+
+[18:18:24] BOOTSTRAP_SWEEP | INFO | sailfish_yule_n5000_L1000_g1x4: 0/42 cached, 42 to run, operators ('Lsym',), p=0.0001..1, reps=10
+[18:22:33] BOOTSTRAP_SWEEP | INFO | [1/42] random_tree_0017 done
+[18:23:35] BOOTSTRAP_SWEEP | INFO | [2/42] random_tree_0007 done
+[18:24:38] BOOTSTRAP_SWEEP | INFO | [3/42] random_tree_0013 done

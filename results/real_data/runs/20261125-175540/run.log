@@ -1,0 +1,21 @@
+  0/18 trees cached, 18 to run (20 p x 10 reps x 1 operators, p=0.0001..1)
+  6 workers, 18 trees
+  [1/18] random_tree_0017 135s
+  [2/18] random_tree_0041 75s
+  [3/18] random_tree_0042 50s
+  [4/18] random_tree_0006 43s
+  [5/18] random_tree_0013 35s
+  [6/18] random_tree_0024 31s
+  [7/18] random_tree_0050 39s
+  [8/18] random_tree_0047 36s
+  [9/18] random_tree_0054 35s
+  [10/18] random_tree_0048 32s
+  [11/18] random_tree_0053 29s
+  [12/18] random_tree_0051 31s
+  [13/18] random_tree_0057 31s
+  [14/18] random_tree_0060 31s
+  [15/18] random_tree_0063 29s
+  [16/18] random_tree_0072 28s
+  [17/18] random_tree_0067 27s
+  [18/18] random_tree_0080 26s
+  18 tree(s) swept in 0.13 h

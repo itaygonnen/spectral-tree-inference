@@ -1,0 +1,209 @@
+================================================================================
+Experiment Log Started: 2026-11-25 11:39:50
+================================================================================
+
+[11:39:50] SCREEN | INFO | sailfish_yule_n1000_L1000_g1x4: computing 100 trees on 6 workers, operators ('S', 'Lsym') (0 already cached)
+[11:39:52] SCREEN | INFO | random_tree_0003: S eta=10.76/edge (sign), Lsym eta=1.42/edge (sign)
+[11:39:52] SCREEN | INFO | [1/100] saved 1 rows
+[11:39:52] SCREEN | INFO | random_tree_0005: S eta=9.99/edge (sign), Lsym eta=1.24/not-an-edge (sign)
+[11:39:52] SCREEN | INFO | [2/100] saved 2 rows
+[11:39:52] SCREEN | INFO | random_tree_0001: S eta=20.28/not-an-edge (sign), Lsym eta=1.98/not-an-edge (sign)
+[11:39:52] SCREEN | INFO | [3/100] saved 3 rows
+[11:39:52] SCREEN | INFO | random_tree_0004: S eta=4.15/edge (sign), Lsym eta=1.11/edge (sign)
+[11:39:52] SCREEN | INFO | [4/100] saved 4 rows
+[11:39:52] SCREEN | INFO | random_tree_0002: S eta=49.00/not-an-edge (sign), Lsym eta=4.68/not-an-edge (sign)
+[11:39:52] SCREEN | INFO | [5/100] saved 5 rows
+[11:39:52] SCREEN | INFO | random_tree_0006: S eta=15.95/edge (sign), Lsym eta=1.86/not-an-edge (sign)
+[11:39:52] SCREEN | INFO | [6/100] saved 6 rows
+[11:39:53] SCREEN | INFO | random_tree_0007: S eta=27.57/edge (sign), Lsym eta=1.06/not-an-edge (sign)
+[11:39:53] SCREEN | INFO | [7/100] saved 7 rows
+[11:39:53] SCREEN | INFO | random_tree_0008: S eta=5.02/not-an-edge (sign), Lsym eta=1.60/edge (sign)
+[11:39:53] SCREEN | INFO | [8/100] saved 8 rows
+[11:39:53] SCREEN | INFO | random_tree_0010: S eta=32.33/edge (sign), Lsym eta=2.82/not-an-edge (sign)
+[11:39:53] SCREEN | INFO | [9/100] saved 9 rows
+[11:39:53] SCREEN | INFO | random_tree_0009: S eta=32.33/not-an-edge (sign), Lsym eta=1.95/not-an-edge (sign)
+[11:39:53] SCREEN | INFO | [10/100] saved 10 rows
+[11:39:53] SCREEN | INFO | random_tree_0011: S eta=57.82/edge (sign), Lsym eta=2.83/edge (sign)
+[11:39:53] SCREEN | INFO | [11/100] saved 11 rows
+[11:39:53] SCREEN | INFO | random_tree_0012: S eta=9.20/not-an-edge (sign), Lsym eta=1.34/not-an-edge (sign)
+[11:39:53] SCREEN | INFO | [12/100] saved 12 rows
+[11:39:54] SCREEN | INFO | random_tree_0015: S eta=3.13/not-an-edge (sign), Lsym eta=1.10/edge (kmeans)
+[11:39:54] SCREEN | INFO | [13/100] saved 13 rows
+[11:39:54] SCREEN | INFO | random_tree_0013: S eta=1.91/not-an-edge (sign), Lsym eta=1.67/not-an-edge (sign)
+[11:39:54] SCREEN | INFO | [14/100] saved 14 rows
+[11:39:54] SCREEN | INFO | random_tree_0014: S eta=30.25/edge (sign), Lsym eta=1.15/edge (kmeans)
+[11:39:54] SCREEN | INFO | [15/100] saved 15 rows
+[11:39:54] SCREEN | INFO | random_tree_0016: S eta=7.85/not-an-edge (sign), Lsym eta=1.90/not-an-edge (sign)
+[11:39:54] SCREEN | INFO | [16/100] saved 16 rows
+[11:39:54] SCREEN | INFO | random_tree_0017: S eta=9.87/not-an-edge (sign), Lsym eta=1.70/edge (kmeans)
+[11:39:54] SCREEN | INFO | [17/100] saved 17 rows
+[11:39:54] SCREEN | INFO | random_tree_0018: S eta=1.30/not-an-edge (sign), Lsym eta=1.30/not-an-edge (sign)
+[11:39:54] SCREEN | INFO | [18/100] saved 18 rows
+[11:39:55] SCREEN | INFO | random_tree_0019: S eta=7.13/not-an-edge (sign), Lsym eta=4.10/not-an-edge (sign)
+[11:39:55] SCREEN | INFO | [19/100] saved 19 rows
+[11:39:55] SCREEN | INFO | random_tree_0021: S eta=15.67/not-an-edge (sign), Lsym eta=1.01/not-an-edge (kmeans)
+[11:39:55] SCREEN | INFO | [20/100] saved 20 rows
+[11:39:55] SCREEN | INFO | random_tree_0023: S eta=65.67/edge (sign), Lsym eta=1.19/not-an-edge (sign)
+[11:39:55] SCREEN | INFO | [21/100] saved 21 rows
+[11:39:55] SCREEN | INFO | random_tree_0020: S eta=9.64/edge (sign), Lsym eta=2.04/not-an-edge (sign)
+[11:39:55] SCREEN | INFO | [22/100] saved 22 rows
+[11:39:55] SCREEN | INFO | random_tree_0022: S eta=14.15/not-an-edge (sign), Lsym eta=1.65/not-an-edge (sign)
+[11:39:55] SCREEN | INFO | [23/100] saved 23 rows
+[11:39:55] SCREEN | INFO | random_tree_0024: S eta=10.11/not-an-edge (sign), Lsym eta=3.33/edge (sign)
+[11:39:55] SCREEN | INFO | [24/100] saved 24 rows
+[11:39:56] SCREEN | INFO | random_tree_0025: S eta=32.33/edge (sign), Lsym eta=2.42/edge (sign)
+[11:39:56] SCREEN | INFO | [25/100] saved 25 rows
+[11:39:56] SCREEN | INFO | random_tree_0026: S eta=17.18/edge (sign), Lsym eta=1.92/not-an-edge (sign)
+[11:39:56] SCREEN | INFO | [26/100] saved 26 rows
+[11:39:56] SCREEN | INFO | random_tree_0027: S eta=1.68/not-an-edge (sign), Lsym eta=1.49/not-an-edge (sign)
+[11:39:56] SCREEN | INFO | [27/100] saved 27 rows
+[11:39:56] SCREEN | INFO | random_tree_0028: S eta=11.50/not-an-edge (sign), Lsym eta=2.98/edge (sign)
+[11:39:56] SCREEN | INFO | [28/100] saved 28 rows
+[11:39:56] SCREEN | INFO | random_tree_0029: S eta=5.41/edge (sign), Lsym eta=4.21/edge (sign)
+[11:39:56] SCREEN | INFO | [29/100] saved 29 rows
+[11:39:56] SCREEN | INFO | random_tree_0030: S eta=10.11/edge (sign), Lsym eta=2.17/not-an-edge (sign)
+[11:39:56] SCREEN | INFO | [30/100] saved 30 rows
+[11:39:56] SCREEN | INFO | random_tree_0032: S eta=8.90/not-an-edge (sign), Lsym eta=1.11/not-an-edge (sign)
+[11:39:56] SCREEN | INFO | [31/100] saved 31 rows
+[11:39:56] SCREEN | INFO | random_tree_0031: S eta=17.52/not-an-edge (sign), Lsym eta=1.16/edge (sign)
+[11:39:56] SCREEN | INFO | [32/100] saved 32 rows
+[11:39:56] SCREEN | INFO | random_tree_0034: S eta=11.82/not-an-edge (sign), Lsym eta=1.94/not-an-edge (sign)
+[11:39:56] SCREEN | INFO | [33/100] saved 33 rows
+[11:39:56] SCREEN | INFO | random_tree_0035: S eta=26.78/edge (sign), Lsym eta=1.28/edge (kmeans)
+[11:39:56] SCREEN | INFO | [34/100] saved 34 rows
+[11:39:57] SCREEN | INFO | random_tree_0033: S eta=6.25/edge (sign), Lsym eta=5.99/edge (sign)
+[11:39:57] SCREEN | INFO | [35/100] saved 35 rows
+[11:39:57] SCREEN | INFO | random_tree_0036: S eta=65.67/edge (sign), Lsym eta=2.46/not-an-edge (sign)
+[11:39:57] SCREEN | INFO | [36/100] saved 36 rows
+[11:39:57] SCREEN | INFO | random_tree_0037: S eta=12.33/not-an-edge (sign), Lsym eta=4.65/not-an-edge (sign)
+[11:39:57] SCREEN | INFO | [37/100] saved 37 rows
+[11:39:57] SCREEN | INFO | random_tree_0038: S eta=4.13/edge (sign), Lsym eta=1.46/not-an-edge (sign)
+[11:39:57] SCREEN | INFO | [38/100] saved 38 rows
+[11:39:57] SCREEN | INFO | random_tree_0039: S eta=8.43/not-an-edge (sign), Lsym eta=2.72/not-an-edge (sign)
+[11:39:57] SCREEN | INFO | [39/100] saved 39 rows
+[11:39:57] SCREEN | INFO | random_tree_0040: S eta=11.50/not-an-edge (sign), Lsym eta=2.13/not-an-edge (sign)
+[11:39:57] SCREEN | INFO | [40/100] saved 40 rows
+[11:39:57] SCREEN | INFO | random_tree_0042: S eta=5.76/not-an-edge (sign), Lsym eta=1.15/edge (kmeans)
+[11:39:57] SCREEN | INFO | [41/100] saved 41 rows
+[11:39:57] SCREEN | INFO | random_tree_0041: S eta=17.87/edge (sign), Lsym eta=1.55/edge (kmeans)
+[11:39:57] SCREEN | INFO | [42/100] saved 42 rows
+[11:39:58] SCREEN | INFO | random_tree_0043: S eta=46.62/not-an-edge (sign), Lsym eta=1.22/not-an-edge (sign)
+[11:39:58] SCREEN | INFO | [43/100] saved 43 rows
+[11:39:58] SCREEN | INFO | random_tree_0044: S eta=7.13/edge (sign), Lsym eta=2.69/not-an-edge (sign)
+[11:39:58] SCREEN | INFO | [44/100] saved 44 rows
+[11:39:58] SCREEN | INFO | random_tree_0045: S eta=51.63/edge (sign), Lsym eta=1.04/not-an-edge (sign)
+[11:39:58] SCREEN | INFO | [45/100] saved 45 rows
+[11:39:58] SCREEN | INFO | random_tree_0046: S eta=7.85/not-an-edge (sign), Lsym eta=5.54/not-an-edge (sign)
+[11:39:58] SCREEN | INFO | [46/100] saved 46 rows
+[11:39:58] SCREEN | INFO | random_tree_0047: S eta=22.81/not-an-edge (sign), Lsym eta=1.48/edge (sign)
+[11:39:58] SCREEN | INFO | [47/100] saved 47 rows
+[11:39:58] SCREEN | INFO | random_tree_0048: S eta=22.26/not-an-edge (sign), Lsym eta=1.62/not-an-edge (sign)
+[11:39:58] SCREEN | INFO | [48/100] saved 48 rows
+[11:39:59] SCREEN | INFO | random_tree_0049: S eta=30.25/edge (sign), Lsym eta=2.31/not-an-edge (sign)
+[11:39:59] SCREEN | INFO | [49/100] saved 49 rows
+[11:39:59] SCREEN | INFO | random_tree_0050: S eta=21.22/edge (sign), Lsym eta=1.34/edge (kmeans)
+[11:39:59] SCREEN | INFO | [50/100] saved 50 rows
+[11:39:59] SCREEN | INFO | random_tree_0052: S eta=46.62/edge (sign), Lsym eta=2.80/not-an-edge (sign)
+[11:39:59] SCREEN | INFO | [51/100] saved 51 rows
+[11:39:59] SCREEN | INFO | random_tree_0054: S eta=54.56/edge (sign), Lsym eta=1.11/edge (sign)
+[11:39:59] SCREEN | INFO | [52/100] saved 52 rows
+[11:39:59] SCREEN | INFO | random_tree_0053: S eta=25.32/not-an-edge (sign), Lsym eta=1.60/not-an-edge (sign)
+[11:39:59] SCREEN | INFO | [53/100] saved 53 rows
+[11:39:59] SCREEN | INFO | random_tree_0051: S eta=3.95/not-an-edge (sign), Lsym eta=2.39/not-an-edge (sign)
+[11:39:59] SCREEN | INFO | [54/100] saved 54 rows
+[11:40:00] SCREEN | INFO | random_tree_0055: S eta=44.45/not-an-edge (sign), Lsym eta=1.97/not-an-edge (sign)
+[11:40:00] SCREEN | INFO | [55/100] saved 55 rows
+[11:40:00] SCREEN | INFO | random_tree_0056: S eta=1.30/not-an-edge (sign), Lsym eta=1.19/not-an-edge (sign)
+[11:40:00] SCREEN | INFO | [56/100] saved 56 rows
+[11:40:00] SCREEN | INFO | random_tree_0058: S eta=44.45/not-an-edge (sign), Lsym eta=4.43/not-an-edge (sign)
+[11:40:00] SCREEN | INFO | [57/100] saved 57 rows
+[11:40:00] SCREEN | INFO | random_tree_0057: S eta=16.54/edge (sign), Lsym eta=1.38/edge (kmeans)
+[11:40:00] SCREEN | INFO | [58/100] saved 58 rows
+[11:40:00] SCREEN | INFO | random_tree_0060: S eta=44.45/not-an-edge (sign), Lsym eta=1.16/edge (kmeans)
+[11:40:00] SCREEN | INFO | [59/100] saved 59 rows
+[11:40:00] SCREEN | INFO | random_tree_0059: S eta=36.04/edge (sign), Lsym eta=1.66/edge (sign)
+[11:40:00] SCREEN | INFO | [60/100] saved 60 rows
+[11:40:01] SCREEN | INFO | random_tree_0061: S eta=42.48/edge (sign), Lsym eta=2.01/not-an-edge (sign)
+[11:40:01] SCREEN | INFO | [61/100] saved 61 rows
+[11:40:01] SCREEN | INFO | random_tree_0062: S eta=16.86/edge (sign), Lsym eta=3.93/not-an-edge (sign)
+[11:40:01] SCREEN | INFO | [62/100] saved 62 rows
+[11:40:01] SCREEN | INFO | random_tree_0065: S eta=82.33/edge (sign), Lsym eta=5.67/not-an-edge (sign)
+[11:40:01] SCREEN | INFO | [63/100] saved 63 rows
+[11:40:01] SCREEN | INFO | random_tree_0066: S eta=54.56/edge (sign), Lsym eta=2.28/not-an-edge (sign)
+[11:40:01] SCREEN | INFO | [64/100] saved 64 rows
+[11:40:01] SCREEN | INFO | random_tree_0063: S eta=26.03/not-an-edge (sign), Lsym eta=1.46/edge (kmeans)
+[11:40:01] SCREEN | INFO | [65/100] saved 65 rows
+[11:40:01] SCREEN | INFO | random_tree_0064: S eta=14.87/not-an-edge (sign), Lsym eta=1.90/not-an-edge (sign)
+[11:40:01] SCREEN | INFO | [66/100] saved 66 rows
+[11:40:02] SCREEN | INFO | random_tree_0067: S eta=42.48/edge (sign), Lsym eta=1.92/edge (kmeans)
+[11:40:02] SCREEN | INFO | [67/100] saved 67 rows
+[11:40:02] SCREEN | INFO | random_tree_0068: S eta=19.83/not-an-edge (sign), Lsym eta=1.24/edge (sign)
+[11:40:02] SCREEN | INFO | [68/100] saved 68 rows
+[11:40:02] SCREEN | INFO | random_tree_0069: S eta=37.46/not-an-edge (sign), Lsym eta=1.70/not-an-edge (sign)
+[11:40:02] SCREEN | INFO | [69/100] saved 69 rows
+[11:40:02] SCREEN | INFO | random_tree_0071: S eta=34.71/not-an-edge (sign), Lsym eta=3.98/not-an-edge (sign)
+[11:40:02] SCREEN | INFO | [70/100] saved 70 rows
+[11:40:02] SCREEN | INFO | random_tree_0070: S eta=27.57/not-an-edge (sign), Lsym eta=1.21/not-an-edge (sign)
+[11:40:02] SCREEN | INFO | [71/100] saved 71 rows
+[11:40:02] SCREEN | INFO | random_tree_0072: S eta=2.89/not-an-edge (sign), Lsym eta=2.01/edge (sign)
+[11:40:02] SCREEN | INFO | [72/100] saved 72 rows
+[11:40:02] SCREEN | INFO | random_tree_0073: S eta=14.15/not-an-edge (sign), Lsym eta=1.38/not-an-edge (sign)
+[11:40:02] SCREEN | INFO | [73/100] saved 73 rows
+[11:40:02] SCREEN | INFO | random_tree_0074: S eta=37.46/not-an-edge (sign), Lsym eta=2.94/not-an-edge (sign)
+[11:40:02] SCREEN | INFO | [74/100] saved 74 rows
+[11:40:03] SCREEN | INFO | random_tree_0075: S eta=6.63/edge (sign), Lsym eta=2.70/not-an-edge (sign)
+[11:40:03] SCREEN | INFO | [75/100] saved 75 rows
+[11:40:03] SCREEN | INFO | random_tree_0076: S eta=46.62/not-an-edge (sign), Lsym eta=2.51/not-an-edge (sign)
+[11:40:03] SCREEN | INFO | [76/100] saved 76 rows
+[11:40:03] SCREEN | INFO | random_tree_0078: S eta=39.00/edge (sign), Lsym eta=3.41/not-an-edge (sign)
+[11:40:03] SCREEN | INFO | [77/100] saved 77 rows
+[11:40:03] SCREEN | INFO | random_tree_0077: S eta=14.62/edge (sign), Lsym eta=8.09/not-an-edge (sign)
+[11:40:03] SCREEN | INFO | [78/100] saved 78 rows
+[11:40:03] SCREEN | INFO | random_tree_0079: S eta=17.18/not-an-edge (sign), Lsym eta=1.31/not-an-edge (sign)
+[11:40:03] SCREEN | INFO | [79/100] saved 79 rows
+[11:40:03] SCREEN | INFO | random_tree_0080: S eta=12.89/not-an-edge (sign), Lsym eta=1.53/edge (kmeans)
+[11:40:03] SCREEN | INFO | [80/100] saved 80 rows
+[11:40:03] SCREEN | INFO | random_tree_0081: S eta=40.67/edge (sign), Lsym eta=1.60/edge (sign)
+[11:40:03] SCREEN | INFO | [81/100] saved 81 rows
+[11:40:04] SCREEN | INFO | random_tree_0082: S eta=12.89/edge (sign), Lsym eta=1.56/not-an-edge (sign)
+[11:40:04] SCREEN | INFO | [82/100] saved 82 rows
+[11:40:04] SCREEN | INFO | random_tree_0083: S eta=6.19/not-an-edge (sign), Lsym eta=1.05/not-an-edge (sign)
+[11:40:04] SCREEN | INFO | [83/100] saved 83 rows
+[11:40:04] SCREEN | INFO | random_tree_0084: S eta=39.00/not-an-edge (sign), Lsym eta=1.40/edge (kmeans)
+[11:40:04] SCREEN | INFO | [84/100] saved 84 rows
+[11:40:04] SCREEN | INFO | random_tree_0085: S eta=65.67/not-an-edge (sign), Lsym eta=2.61/not-an-edge (sign)
+[11:40:04] SCREEN | INFO | [85/100] saved 85 rows
+[11:40:04] SCREEN | INFO | random_tree_0086: S eta=19.00/edge (sign), Lsym eta=2.28/not-an-edge (sign)
+[11:40:04] SCREEN | INFO | [86/100] saved 86 rows
+[11:40:04] SCREEN | INFO | random_tree_0087: S eta=15.67/edge (sign), Lsym eta=1.15/not-an-edge (sign)
+[11:40:04] SCREEN | INFO | [87/100] saved 87 rows
+[11:40:04] SCREEN | INFO | random_tree_0088: S eta=1.33/not-an-edge (sign), Lsym eta=3.13/edge (sign)
+[11:40:04] SCREEN | INFO | [88/100] saved 88 rows
+[11:40:04] SCREEN | INFO | random_tree_0089: S eta=37.46/not-an-edge (sign), Lsym eta=2.32/not-an-edge (sign)
+[11:40:04] SCREEN | INFO | [89/100] saved 89 rows
+[11:40:04] SCREEN | INFO | random_tree_0090: S eta=18.23/not-an-edge (sign), Lsym eta=1.11/edge (kmeans)
+[11:40:04] SCREEN | INFO | [90/100] saved 90 rows
+[11:40:05] SCREEN | INFO | random_tree_0091: S eta=51.63/not-an-edge (sign), Lsym eta=1.27/not-an-edge (sign)
+[11:40:05] SCREEN | INFO | [91/100] saved 91 rows
+[11:40:05] SCREEN | INFO | random_tree_0092: S eta=16.54/not-an-edge (sign), Lsym eta=2.38/not-an-edge (sign)
+[11:40:05] SCREEN | INFO | [92/100] saved 92 rows
+[11:40:05] SCREEN | INFO | random_tree_0093: S eta=110.11/edge (sign), Lsym eta=1.23/not-an-edge (sign)
+[11:40:05] SCREEN | INFO | [93/100] saved 93 rows
+[11:40:05] SCREEN | INFO | random_tree_0095: S eta=8.62/not-an-edge (sign), Lsym eta=1.05/not-an-edge (sign)
+[11:40:05] SCREEN | INFO | [94/100] saved 94 rows
+[11:40:05] SCREEN | INFO | random_tree_0096: S eta=110.11/edge (sign), Lsym eta=2.92/not-an-edge (sign)
+[11:40:05] SCREEN | INFO | [95/100] saved 95 rows
+[11:40:05] SCREEN | INFO | random_tree_0094: S eta=18.61/not-an-edge (sign), Lsym eta=1.66/not-an-edge (sign)
+[11:40:05] SCREEN | INFO | [96/100] saved 96 rows
+[11:40:06] SCREEN | INFO | random_tree_0097: S eta=5.90/not-an-edge (sign), Lsym eta=2.42/edge (kmeans)
+[11:40:06] SCREEN | INFO | [97/100] saved 97 rows
+[11:40:06] SCREEN | INFO | random_tree_0098: S eta=42.48/not-an-edge (sign), Lsym eta=2.15/not-an-edge (sign)
+[11:40:06] SCREEN | INFO | [98/100] saved 98 rows
+[11:40:06] SCREEN | INFO | random_tree_0099: S eta=3.93/not-an-edge (sign), Lsym eta=2.25/edge (kmeans)
+[11:40:06] SCREEN | INFO | [99/100] saved 99 rows
+[11:40:06] SCREEN | INFO | random_tree_0100: S eta=39.00/edge (sign), Lsym eta=1.82/edge (sign)
+[11:40:06] SCREEN | INFO | [100/100] saved 100 rows
+
+================================================================================
+Experiment Log Ended: 2026-11-25 11:40:06
+================================================================================

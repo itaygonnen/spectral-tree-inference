@@ -1,0 +1,40 @@
+================================================================================
+Experiment Log Started: 2026-11-25 17:21:37
+================================================================================
+
+[17:21:37] BOOTSTRAP_SWEEP | INFO | sailfish_yule_n2000_L1000_g1x4: 0/31 cached, 31 to run, operators ('Lsym',), p=0.0001..1, reps=10
+[17:22:19] BOOTSTRAP_SWEEP | INFO | [1/31] random_tree_0012 done
+[17:22:20] BOOTSTRAP_SWEEP | INFO | [2/31] random_tree_0013 done
+[17:22:51] BOOTSTRAP_SWEEP | INFO | [3/31] random_tree_0016 done
+[17:22:51] BOOTSTRAP_SWEEP | INFO | [4/31] random_tree_0015 done
+[17:22:59] BOOTSTRAP_SWEEP | INFO | [5/31] random_tree_0005 done
+[17:23:00] BOOTSTRAP_SWEEP | INFO | [6/31] random_tree_0004 done
+[17:23:10] BOOTSTRAP_SWEEP | INFO | [7/31] random_tree_0017 done
+[17:23:18] BOOTSTRAP_SWEEP | INFO | [8/31] random_tree_0020 done
+[17:23:51] BOOTSTRAP_SWEEP | INFO | [9/31] random_tree_0028 done
+[17:24:00] BOOTSTRAP_SWEEP | INFO | [10/31] random_tree_0035 done
+[17:24:02] BOOTSTRAP_SWEEP | INFO | [11/31] random_tree_0041 done
+[17:24:09] BOOTSTRAP_SWEEP | INFO | [12/31] random_tree_0042 done
+[17:24:11] BOOTSTRAP_SWEEP | INFO | [13/31] random_tree_0021 done
+[17:24:11] BOOTSTRAP_SWEEP | INFO | [14/31] random_tree_0038 done
+[17:24:40] BOOTSTRAP_SWEEP | INFO | [15/31] random_tree_0043 done
+[17:25:00] BOOTSTRAP_SWEEP | INFO | [16/31] random_tree_0050 done
+[17:25:12] BOOTSTRAP_SWEEP | INFO | [17/31] random_tree_0057 done
+[17:25:19] BOOTSTRAP_SWEEP | INFO | [18/31] random_tree_0044 done
+[17:25:21] BOOTSTRAP_SWEEP | INFO | [19/31] random_tree_0047 done
+[17:25:22] BOOTSTRAP_SWEEP | INFO | [20/31] random_tree_0059 done
+[17:25:22] BOOTSTRAP_SWEEP | INFO | [21/31] random_tree_0063 done
+[17:25:52] BOOTSTRAP_SWEEP | INFO | [22/31] random_tree_0070 done
+[17:25:55] BOOTSTRAP_SWEEP | INFO | [23/31] random_tree_0067 done
+[17:26:02] BOOTSTRAP_SWEEP | INFO | [24/31] random_tree_0080 done
+[17:26:05] BOOTSTRAP_SWEEP | INFO | [25/31] random_tree_0072 done
+[17:26:06] BOOTSTRAP_SWEEP | INFO | [26/31] random_tree_0071 done
+[17:26:13] BOOTSTRAP_SWEEP | INFO | [27/31] random_tree_0081 done
+[17:27:12] BOOTSTRAP_SWEEP | INFO | [28/31] random_tree_0084 done
+[17:27:12] BOOTSTRAP_SWEEP | INFO | [29/31] random_tree_0090 done
+[17:27:14] BOOTSTRAP_SWEEP | INFO | [30/31] random_tree_0086 done
+[17:27:17] BOOTSTRAP_SWEEP | INFO | [31/31] random_tree_0099 done
+
+================================================================================
+Experiment Log Ended: 2026-11-25 17:27:17
+================================================================================

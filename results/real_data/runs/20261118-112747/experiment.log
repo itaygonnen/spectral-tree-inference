@@ -1,0 +1,36 @@
+================================================================================
+Experiment Log Started: 2026-11-18 11:27:47
+================================================================================
+
+[11:27:47] BOOTSTRAP_SWEEP | INFO | sailfish_yule_n500_L1000_g1x4_buckets: 0/27 cached, 27 to run, operators ('S',), p=0.0001..1, reps=10
+[11:27:50] BOOTSTRAP_SWEEP | INFO | [1/27] eta01_003 done
+[11:27:50] BOOTSTRAP_SWEEP | INFO | [2/27] eta01_002 done
+[11:27:50] BOOTSTRAP_SWEEP | INFO | [3/27] eta05_001 done
+[11:27:50] BOOTSTRAP_SWEEP | INFO | [4/27] eta05_002 done
+[11:27:50] BOOTSTRAP_SWEEP | INFO | [5/27] eta05_003 done
+[11:27:50] BOOTSTRAP_SWEEP | INFO | [6/27] eta01_001 done
+[11:27:52] BOOTSTRAP_SWEEP | INFO | [7/27] eta10_003 done
+[11:27:52] BOOTSTRAP_SWEEP | INFO | [8/27] eta10_002 done
+[11:27:52] BOOTSTRAP_SWEEP | INFO | [9/27] eta10_001 done
+[11:27:52] BOOTSTRAP_SWEEP | INFO | [10/27] eta15_001 done
+[11:27:52] BOOTSTRAP_SWEEP | INFO | [11/27] eta15_002 done
+[11:27:52] BOOTSTRAP_SWEEP | INFO | [12/27] eta15_003 done
+[11:27:54] BOOTSTRAP_SWEEP | INFO | [13/27] eta1p5200_002 done
+[11:27:54] BOOTSTRAP_SWEEP | INFO | [14/27] eta1p5200_001 done
+[11:27:54] BOOTSTRAP_SWEEP | INFO | [15/27] eta1p8300_001 done
+[11:27:54] BOOTSTRAP_SWEEP | INFO | [16/27] eta1p5200_003 done
+[11:27:54] BOOTSTRAP_SWEEP | INFO | [17/27] eta1p8300_002 done
+[11:27:54] BOOTSTRAP_SWEEP | INFO | [18/27] eta1p8300_003 done
+[11:27:55] BOOTSTRAP_SWEEP | INFO | [19/27] eta2p1800_002 done
+[11:27:55] BOOTSTRAP_SWEEP | INFO | [20/27] eta2p1800_001 done
+[11:27:56] BOOTSTRAP_SWEEP | INFO | [21/27] eta2p1800_003 done
+[11:27:56] BOOTSTRAP_SWEEP | INFO | [22/27] eta3p0100_002 done
+[11:27:56] BOOTSTRAP_SWEEP | INFO | [23/27] eta3p0100_001 done
+[11:27:56] BOOTSTRAP_SWEEP | INFO | [24/27] eta3p0100_003 done
+[11:27:57] BOOTSTRAP_SWEEP | INFO | [25/27] eta3p3200_001 done
+[11:27:57] BOOTSTRAP_SWEEP | INFO | [26/27] eta3p3200_002 done
+[11:27:57] BOOTSTRAP_SWEEP | INFO | [27/27] eta3p3200_003 done
+
+================================================================================
+Experiment Log Ended: 2026-11-18 11:27:57
+================================================================================

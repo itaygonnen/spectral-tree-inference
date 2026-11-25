@@ -1,0 +1,4 @@
+  screening complete: 4 tree(s) already done, 4 with a real tree edge -- nothing to recompute.
+  next: run the recovery sweep over these trees (menu option 2, or --stage sweep).
+  4/4 trees cached, 0 to run (20 p x 10 reps x 1 operators, p=0.0001..1)
+  0 tree(s) swept in 0.00 h

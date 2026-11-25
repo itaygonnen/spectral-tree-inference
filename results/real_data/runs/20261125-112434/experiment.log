@@ -1,0 +1,19 @@
+================================================================================
+Experiment Log Started: 2026-11-25 11:24:34
+================================================================================
+
+[11:24:34] SCREEN | INFO | cache: 4 rows in /Users/itayg/PythonRepo/spectral-tree-inference/results/real_data/_cache/sailfish_yule_n1000_l1000_g1x4/screen.npz
+[11:24:34] SCREEN | INFO | 4 row(s) re-run for ['Lsym']
+[11:24:34] SCREEN | INFO | sailfish_yule_n1000_L1000_g1x4: computing 4 trees on 6 workers, operators ('S', 'Lsym') (4 already cached)
+[11:24:37] SCREEN | INFO | random_tree_0001: S eta=20.28/not-an-edge (sign), Lsym eta=1.98/not-an-edge (sign)
+[11:24:37] SCREEN | INFO | [1/4] saved 4 rows
+[11:24:37] SCREEN | INFO | random_tree_0002: S eta=49.00/not-an-edge (sign), Lsym eta=4.68/not-an-edge (sign)
+[11:24:37] SCREEN | INFO | [2/4] saved 4 rows
+[11:24:37] SCREEN | INFO | random_tree_0004: S eta=4.15/edge (sign), Lsym eta=1.11/edge (sign)
+[11:24:37] SCREEN | INFO | [3/4] saved 4 rows
+[11:24:37] SCREEN | INFO | random_tree_0003: S eta=10.76/edge (sign), Lsym eta=1.42/edge (sign)
+[11:24:37] SCREEN | INFO | [4/4] saved 4 rows
+
+================================================================================
+Experiment Log Ended: 2026-11-25 11:24:37
+================================================================================

@@ -1,0 +1,43 @@
+================================================================================
+Experiment Log Started: 2026-11-25 18:03:28
+================================================================================
+
+[18:03:28] BOOTSTRAP_SWEEP | INFO | sailfish_yule_n4000_L1000_g1x4_b2: 0/34 cached, 34 to run, operators ('Lsym',), p=0.0001..1, reps=10
+[18:05:26] BOOTSTRAP_SWEEP | INFO | [1/34] random_tree_0017 done
+[18:05:40] BOOTSTRAP_SWEEP | INFO | [2/34] random_tree_0041 done
+[18:05:42] BOOTSTRAP_SWEEP | INFO | [3/34] random_tree_0042 done
+[18:06:05] BOOTSTRAP_SWEEP | INFO | [4/34] random_tree_0006 done
+[18:06:06] BOOTSTRAP_SWEEP | INFO | [5/34] random_tree_0013 done
+[18:06:17] BOOTSTRAP_SWEEP | INFO | [6/34] random_tree_0024 done
+[18:07:44] BOOTSTRAP_SWEEP | INFO | [7/34] random_tree_0050 done
+[18:07:58] BOOTSTRAP_SWEEP | INFO | [8/34] random_tree_0047 done
+[18:08:22] BOOTSTRAP_SWEEP | INFO | [9/34] random_tree_0048 done
+[18:08:23] BOOTSTRAP_SWEEP | INFO | [10/34] random_tree_0054 done
+[18:08:26] BOOTSTRAP_SWEEP | INFO | [11/34] random_tree_0053 done
+[18:09:10] BOOTSTRAP_SWEEP | INFO | [12/34] random_tree_0051 done
+[18:09:44] BOOTSTRAP_SWEEP | INFO | [13/34] random_tree_0057 done
+[18:10:25] BOOTSTRAP_SWEEP | INFO | [14/34] random_tree_0060 done
+[18:10:26] BOOTSTRAP_SWEEP | INFO | [15/34] random_tree_0063 done
+[18:10:52] BOOTSTRAP_SWEEP | INFO | [16/34] random_tree_0072 done
+[18:11:09] BOOTSTRAP_SWEEP | INFO | [17/34] random_tree_0067 done
+[18:11:16] BOOTSTRAP_SWEEP | INFO | [18/34] random_tree_0080 done
+[18:12:15] BOOTSTRAP_SWEEP | INFO | [19/34] random_tree_0081 done
+[18:13:05] BOOTSTRAP_SWEEP | INFO | [20/34] random_tree_0086 done
+[18:13:25] BOOTSTRAP_SWEEP | INFO | [21/34] random_tree_0088 done
+[18:13:26] BOOTSTRAP_SWEEP | INFO | [22/34] random_tree_0085 done
+[18:13:51] BOOTSTRAP_SWEEP | INFO | [23/34] random_tree_0101 done
+[18:13:59] BOOTSTRAP_SWEEP | INFO | [24/34] random_tree_0099 done
+[18:14:56] BOOTSTRAP_SWEEP | INFO | [25/34] random_tree_0104 done
+[18:15:58] BOOTSTRAP_SWEEP | INFO | [26/34] random_tree_0109 done
+[18:16:12] BOOTSTRAP_SWEEP | INFO | [27/34] random_tree_0129 done
+[18:16:16] BOOTSTRAP_SWEEP | INFO | [28/34] random_tree_0142 done
+[18:16:24] BOOTSTRAP_SWEEP | INFO | [29/34] random_tree_0125 done
+[18:16:26] BOOTSTRAP_SWEEP | INFO | [30/34] random_tree_0111 done
+[18:17:48] BOOTSTRAP_SWEEP | INFO | [31/34] random_tree_0148 done
+[18:17:53] BOOTSTRAP_SWEEP | INFO | [32/34] random_tree_0154 done
+[18:18:18] BOOTSTRAP_SWEEP | INFO | [33/34] random_tree_0166 done
+[18:18:22] BOOTSTRAP_SWEEP | INFO | [34/34] random_tree_0159 done
+
+================================================================================
+Experiment Log Ended: 2026-11-25 18:18:22
+================================================================================

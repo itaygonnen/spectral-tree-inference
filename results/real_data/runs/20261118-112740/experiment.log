@@ -1,0 +1,33 @@
+================================================================================
+Experiment Log Started: 2026-11-18 11:27:40
+================================================================================
+
+[11:27:40] BOOTSTRAP_SWEEP | INFO | sailfish_yule_n300_L1000_g1x4_buckets: 0/24 cached, 24 to run, operators ('S',), p=0.0001..1, reps=10
+[11:27:43] BOOTSTRAP_SWEEP | INFO | [1/24] eta10_002 done
+[11:27:43] BOOTSTRAP_SWEEP | INFO | [2/24] eta05_003 done
+[11:27:43] BOOTSTRAP_SWEEP | INFO | [3/24] eta05_002 done
+[11:27:43] BOOTSTRAP_SWEEP | INFO | [4/24] eta10_001 done
+[11:27:43] BOOTSTRAP_SWEEP | INFO | [5/24] eta05_001 done
+[11:27:43] BOOTSTRAP_SWEEP | INFO | [6/24] eta10_003 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [7/24] eta15_001 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [8/24] eta15_002 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [9/24] eta1p1900_001 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [10/24] eta15_003 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [11/24] eta1p1900_003 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [12/24] eta1p1900_002 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [13/24] eta1p4600_001 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [14/24] eta1p4600_003 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [15/24] eta1p4600_002 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [16/24] eta1p7600_001 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [17/24] eta1p7600_002 done
+[11:27:44] BOOTSTRAP_SWEEP | INFO | [18/24] eta1p7600_003 done
+[11:27:45] BOOTSTRAP_SWEEP | INFO | [19/24] eta2p4800_001 done
+[11:27:45] BOOTSTRAP_SWEEP | INFO | [20/24] eta2p4800_002 done
+[11:27:45] BOOTSTRAP_SWEEP | INFO | [21/24] eta2p4800_003 done
+[11:27:45] BOOTSTRAP_SWEEP | INFO | [22/24] eta2p7500_001 done
+[11:27:45] BOOTSTRAP_SWEEP | INFO | [23/24] eta2p7500_002 done
+[11:27:45] BOOTSTRAP_SWEEP | INFO | [24/24] eta2p7500_003 done
+
+================================================================================
+Experiment Log Ended: 2026-11-18 11:27:45
+================================================================================
