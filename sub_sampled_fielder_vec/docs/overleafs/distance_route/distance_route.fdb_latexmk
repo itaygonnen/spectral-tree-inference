@@ -1,14 +1,13 @@
 # Fdb version 4
-["bibtex distance_route"] 1788253342.47633 "distance_route.aux" "distance_route.bbl" "distance_route" 1788253342.52472 2
-  "./bibi.bib" 1787001739.85673 3898 3e975b38922ba785fc574b48b01ca9f6 ""
+["bibtex distance_route"] 1794829105.06138 "distance_route.aux" "distance_route.bbl" "distance_route" 1794829106.59871 0
+  "./bibi.bib" 1794829104.98402 3644 dd6b7a4f5189b2f186a6f9dbcb570dcc ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/bibtex/bst/base/plain.bst" 1772380719 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
-  "distance_route.aux" 1788253342.30191 11202 a1e61c8b4298af0ae7f01f92cf242107 "pdflatex"
+  "distance_route.aux" 1794829106.41746 11202 a1e61c8b4298af0ae7f01f92cf242107 "pdflatex"
   (generated)
   "distance_route.bbl"
   "distance_route.blg"
   (rewritten before read)
-["pdflatex"] 1788253341.16097 "/Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/docs/overleafs/v9/distance-route-2/distance_route.tex" "distance_route.pdf" "distance_route" 1788253342.5248 0
-  "/Users/itayg/PythonRepo/spectral-tree-inference/sub_sampled_fielder_vec/docs/overleafs/v9/distance-route-2/distance_route.tex" 1788253339.35192 34413 1bd93f19ce9c07a4dcaeecc76dd73d85 ""
+["pdflatex"] 1794829105.14261 "distance_route.tex" "distance_route.pdf" "distance_route" 1794829106.59881 0
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1772380719 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/fonts/map/fontname/texfonts.map" 1772380719 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/fonts/map/pdftex/updmap/pdftex.map" 1772380719 5541360 f183aac233c4cd1e5ef882fcbe8e7096 ""
@@ -195,9 +194,9 @@
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/tex/latex/xcolor/xcolor.sty" 1772380719 55384 b454dec21c2d9f45ec0b793f0995b992 ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/web2c/texmf.cnf" 1772380719 43633 14bbc273cebd985e64ab1a698333eaf9 ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-var/web2c/pdftex/pdflatex.fmt" 1772380719 3636956 5168b884cb430e6a6336cfea08fa659a ""
-  "distance_route.aux" 1788253342.30191 11202 a1e61c8b4298af0ae7f01f92cf242107 "pdflatex"
-  "distance_route.bbl" 1788253342.52385 2262 f7dee7f9c562cbfd965da8b42af662d8 "bibtex distance_route"
-  "distance_route.out" 1788253342.30266 1991 512baacb0cbf1efd24a8af706a17390b "pdflatex"
+  "distance_route.aux" 1794829106.41746 11202 a1e61c8b4298af0ae7f01f92cf242107 "pdflatex"
+  "distance_route.bbl" 1794829105.1332 2276 92316ebd96dc890509b9aa473b7a9cb3 "bibtex distance_route"
+  "distance_route.out" 1794829106.41823 1991 512baacb0cbf1efd24a8af706a17390b "pdflatex"
   "distance_route.tex" 1788253339.35192 34413 1bd93f19ce9c07a4dcaeecc76dd73d85 ""
   "figures/dr2_eig_bd_B.png" 1786986857.53034 24358 dd91753df8cff1bf933ba8249b1e844a ""
   "figures/dr2_eig_bd_L.png" 1786986857.44159 24165 97f4472e57876a657c04dbe1ceada6f7 ""

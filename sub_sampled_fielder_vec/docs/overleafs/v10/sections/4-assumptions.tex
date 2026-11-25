@@ -2,55 +2,57 @@
 % root split, and the two scalars eta and rho in which the sampling rate is stated.  C1 is on its
 % own counter: it is an inequality on the tree, not a hypothesis on the data.  The proof of
 % prop:cfbm is deferred to app:comp1; the Fiedler-vector shape belongs to lem:A-decomp, not here.
-\section{Modelling assumptions}\label{sec:assumptions}
+\section{Modelling assumptions and the similarity structure}\label{sec:assumptions}
 
-In this section we state the two hypotheses the analysis carries, the block model they put the
-similarity matrix in, and the two scalars in which the sampling rate of \Cref{sec:main} is
-expressed.
+In this section we state the two main assumptions that underlie our analysis. In addition, we describe the implication of these assumptions on the hierarchical structure of the similarity matrix. %hypotheses the analysis carries, the block model they put the
+%similarity matrix in, and the two scalars in which the sampling rate of \Cref{sec:main} is
+%expressed.
 
-\begin{assumption}[GTR substitution model]\label{asm:gtr}
-The substitution model of \Cref{sec:bg-model} holds: a single GTR generator $Q$ satisfying
-(i)--(iv) drives every edge.
+\begin{assumption}[GTR substitution model with fixed rate]\label{asm:gtr}
+There is a single rate matrix $Q$ that determines the transition rates as described in \Cref{sec:bg-model}. These rates are fixed throughout the sequence. 
+%The substitution model of \Cref{sec:bg-model} holds, where a single GTR generator $Q$ satisfying
+%(i)--(iv) drives every edge.
 \end{assumption}
 
-\begin{assumption}[Molecular clock]\label{asm:clock}
-Every branch of $\mathcal{T}$ has positive length, and all $m$ terminal nodes are contemporaneous:
-$\tau_{x_i}=0$ for every $i$.
+\begin{assumption}[Ultrametric tree  and the molecular clock model]\label{asm:clock}
+Every branch of $\mathcal{T}$ has positive length, and all $m$ terminal nodes are contemporaneous with
+$\tau_{x_i}=0$ for every $i$, such that the time difference between all terminal nodes and the root are equal.
 \end{assumption}
 
-\Cref{asm:gtr} already removes per-lineage rate variation --- one generator, and a branch length
-that is a difference of heights --- so \Cref{asm:clock} is what makes $\mathcal{T}$ ultrametric.
-That is what places $S$ in the model on which spectral bipartitioning is analysed: the
-\emph{constant block model} (CBM) of Balakrishnan et al.\ \cite{Balakrishnan2011clustering}, in the
-localized form used for latent trees by \cite{aizenbud2023spectral}.
+Together, assumptions \ref{asm:gtr} and \ref{asm:clock} imply that the similarity matrix satisfies the \textit{constant block model}, addressed in \cite{Balakrishnan2011clustering}, which we now define. 
+
+%\Cref{asm:gtr} already removes per-lineage rate variation --- one generator, and a branch length
+%that is a difference of heights --- so \Cref{asm:clock} is what makes $\mathcal{T}$ ultrametric.
+%That is what places $S$ in the model on which spectral bipartitioning is analysed: the
+%\emph{constant block model} (CBM) of Balakrishnan et al.\ \cite{Balakrishnan2011clustering}, in the
+%localized form used for latent trees by \cite{aizenbud2023spectral}.
 
 \begin{definition}[Constant block model at a bipartition]\label{def:cfbm}
-A symmetric matrix $S$ with unit diagonal satisfies the \emph{constant block model} at a
-bipartition $\mathcal{X} = C_1 \cup C_2$ if its cross-block entries share one value
-$\bze\in(0,1)$ and every within-block entry exceeds it:
+A symmetric matrix $S \in \R^{m \times m}$ with unit diagonal satisfies the \emph{constant block model} for a partition of $[m]$ into subsets $C_1$ and $C_2$ if its cross-block entries are equal to a single value $\bze\in(0,1)$ and every within-block entry exceeds it:
 \begin{equation}\label{eq:cfbm_floor}
    S_{ij}=\bze\quad(i\in C_1,\ j\in C_2),
    \qquad
-   \bze<\Sin^{\min}\le S_{ij}\le\Smax<1\quad(i\ne j\ \text{in one block}),
+   \bze<\Sin^{\min}\le S_{ij}\le\Sin^{\max}<1\quad(i\ne j\ \text{in one block}),
 \end{equation}
-where $\Sin^{\min}$ and $\Smax$ are the extreme within-block entries. The blocks themselves are
-arbitrary.
+where $\Sin^{\min}$ and $\Sin^{\max}$ are the extreme within-block entries. %The blocks themselves are
+%arbitrary.
 \end{definition}
 
-
+The following proposition follows immediately from assumptions \Cref{asm:gtr} and \Cref{asm:clock}.
 \begin{proposition}[The population similarity is a constant block model at the root split]\label{prop:cfbm}
-Under \Cref{asm:gtr,asm:clock}, the population similarity matrix of \Cref{def:simgraph} satisfies
-\Cref{def:cfbm} at the root split $\mathcal{X}=C_1\cup C_2$, whose blocks are complementary clades
-of $\mathcal{T}$, with
+Let $C_1 \cup C_2$ be a partition of the terminal nodes $\mathcal X$ according to the descendants of the two child nodes of the root node $r$ of $\mathcal{T}$.
+Under \Cref{asm:gtr,asm:clock}, the population similarity matrix $S$ of \Cref{def:simgraph} satisfies
+\Cref{def:cfbm} at the bipartition $C_1 \cup C_2$, such that %root split $\mathcal{X}=C_1\cup C_2$, whose blocks are complementary clades
+%of $\mathcal{T}$, with
 \begin{equation}\label{eq:cfbm_from_model}
    \bze = \exp\bigl(2\,\mathrm{tr}(Q)\,\tau_r\bigr),
    \qquad
    \Sin^{\min} = \exp\bigl(2\,\mathrm{tr}(Q)\,\tau^{\max}\bigr),
 \end{equation}
-for $\tau_r$ the root height and $\tau^{\max}<\tau_r$ the greatest within-clade MRCA height.
+where $\tau_r$ is the root height and $\tau^{\max}<\tau_r$ is the largest within-clade MRCA height.
 \end{proposition}
 
-\noindent \Cref{app:comp1} proves it. With the terminal nodes ordered along the split as in
+\noindent \Cref{app:comp1} provides a formal derivation of \Cref{prop:cfbm}. With the terminal nodes ordered along the split as in
 \Cref{sec:bg-model}, the matrix and its Laplacian take the block form
 \begin{equation}\label{eq:block_forms}
    S=\begin{pmatrix} S_{C_1} & \bze J_{|C_1|\times|C_2|}\\ \bze J_{|C_2|\times|C_1|} & S_{C_2}\end{pmatrix},
@@ -59,37 +61,28 @@ for $\tau_r$ the root height and $\tau^{\max}<\tau_r$ the greatest within-clade 
 \end{equation}
 with $J$ the all-ones block and the block degrees
 $D_{C_1}=\operatorname{diag}(S_{C_1}\1_{|C_1|})+|C_2|\bze I_{|C_1|}$,
-$D_{C_2}=\operatorname{diag}(S_{C_2}\1_{|C_2|})+|C_1|\bze I_{|C_2|}$. The diagonal blocks are
-whatever the two subtrees make them; only the off-diagonal block is pinned, and that is the single
-structural fact the spectral analysis of \Cref{sec:bridging} runs on.
+$D_{C_2}=\operatorname{diag}(S_{C_2}\1_{|C_2|})+|C_1|\bze I_{|C_2|}$. 
 
-Two scalars carry the split through the analysis: how unevenly it divides the terminal nodes, and
-how sharply within-block similarities exceed cross-block ones.
+
+We next define two tree properties that play a pivotal role in our analysis: the imbalance ratio and the and the structural margin.
 
 \begin{definition}[Imbalance ratio and structural margin]\label{def:imbalance}
-For block sizes $|C_1| \le |C_2|$ with $|C_1|+|C_2|=m$, the \emph{imbalance ratio} is
+For partition sizes $|C_1| \le |C_2|$ with $|C_1|+|C_2|=m$, the \emph{imbalance ratio} is
 \begin{equation}\label{eq:imbalance_ratio}
-   \eta:=\frac{|C_2|}{|C_1|}\ \ge\ 1 .
+   \eta=\frac{|C_2|}{|C_1|}\ \ge\ 1 .
 \end{equation}
-With $\bze$ and $\Sin^{\min}$ as in \eqref{eq:cfbm_floor}, the \emph{structural margin} is the
-amount by which the weakest within-block similarity clears the cross-block baseline,
+The \emph{structural margin} is the
+amount by which the weakest within-block similarity $\Sin^{\min}$ exceeds the cross-block similarity value $\bze$,
 \begin{equation}\label{eq:margin_definition}
-   \rho := \Sin^{\min}-\bze \ >\ 0 .
+   \rho = \Sin^{\min}-\bze \ >\ 0 .
 \end{equation}
 \end{definition}
 
-\noindent A balanced split has $\eta=1$, while caterpillar-like lineages reach
-$\eta=\mathcal{O}(m)$. The pair plays the role of the two constants of Balakrishnan et al.\
-\cite{Balakrishnan2011clustering}: $\eta$ is their balanced-cluster constant and $\rho$ their
-separation gap. Because \Cref{def:cfbm} pins every cross-block entry to the single value $\bze$,
-the range restriction of that work contributes no further term to $\rho$ here.
+\noindent A balanced split has $\eta=1$, while caterpillar-like trees models may have
+$\eta=\mathcal{O}(m)$. 
 
-\Cref{asm:gtr,asm:clock} are hypotheses on how the data are generated, and they already fix every
-quantity in \eqref{eq:margin_definition}. What they do not fix is whether those quantities stand in
-the relation the analysis needs. That relation is the following inequality. It is not an assumption
-about the data but a property checkable on any given tree, and it is what delimits the trees the
-guarantee covers; it is the only condition beyond \Cref{asm:gtr,asm:clock} that the main result
-carries.
+In our analysis, 
+we build on the following condition which depends on the relation between the imbalance ratio and structural margin.
 
 \begin{condition}[Separation margin]\label{asm:margin}
 The structural margin strictly dominates the imbalance-weighted cross-block baseline,
@@ -99,8 +92,8 @@ The structural margin strictly dominates the imbalance-weighted cross-block base
 \end{equation}
 \end{condition}
 
-\Cref{fig:fiedler_partitions} shows the Fiedler split on three simulated trees spanning the range of
-$\eta$: the smaller the clade the rule cuts off, the larger the values its terminal nodes carry.
+\Cref{asm:margin} implies that a relatively balanced tree can tolerate a smaller difference between $\Sin^{\min}$ and $\bze$. In contrast, in a caterpillar-like tree, our analysis requires that the ratio between $\Sin^{\min}$ and $\bze$ is of order $\mathcal O(m)$.
+\Cref{fig:fiedler_partitions} shows the Fiedler split on three simulated trees with various values of $\eta$ and $\rho$. The smaller the clade the rule cuts off, the larger the values its terminal nodes carry.
 
 \begin{figure}[t]
 \centering

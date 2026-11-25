@@ -257,3 +257,43 @@ parameters, and it is the property that underlies the divide-and-conquer algorit
 \Cref{sec:problem}. We denote by $\Pisp{S}$ the bipartition
 \eqref{eq:sign_rule} of the Fiedler vector of $L=D-S$.
 
+\subsection{Spectral divide-and-conquer algorithms}
+
+Because the Fiedler split of the full similarity matrix is always a split of $\mathcal{T}$
+(\Cref{thm:stdr-split}), tree reconstruction becomes a divide-and-conquer recursion. Spectral
+Top-Down Reconstruction (STDR) \cite{aizenbud2023spectral} forms the similarity matrix over the
+current node set, splits it by the sign pattern of the Fiedler vector, solves each side
+independently by any accurate reconstruction method once the subproblem is small enough, and merges
+the two subtrees along the recovered edge (\Cref{alg:stdr}).
+
+\begin{algorithm}[t]
+\caption{Spectral Top-Down Reconstruction (STDR) for Latent Tree Models. The algorithm recursively partitions terminal nodes using the Fiedler vector of the similarity graph until the subset size falls below $m_0$. A base method recovers the small subtrees, which are then deterministically merged by identifying optimal placeholder edges via singular vectors of the cross-similarity matrix \cite{aizenbud2023spectral}.}
+
+
+\label{alg:stdr}
+\begin{algorithmic}[1]
+\State \textbf{Input:} $\mathcal{X}$, a set of terminal nodes with associated sequence data of length $\ell$; $m_0$, the maximum partition size for base reconstruction.
+\State \textbf{Output:} $\mathcal{T}$, a rooted binary latent tree spanning the terminal nodes $\mathcal{X}$.
+\Procedure{STDR}{$\mathcal{X}$}
+  \If{$|\mathcal{X}| \le m_0$}
+    \State \Return $\textsc{BaseReconstruct}(\mathcal{X})$
+           \Comment{any accurate method; superlinear in $|\mathcal{X}|$}
+  \EndIf
+  \State $S \gets \bigl[\,S(x_i,x_j)\,\bigr]_{x_i,x_j \in \mathcal{X}}$
+         \Comment{$\Theta(|\mathcal{X}|^2)$ pairwise estimates}
+  \State $L \gets D - S$ \Comment{$D_{ii}=\sum_j S_{ij}$, \Cref{def:fiedler}}
+  \State $v \gets$ eigenvector of $L$ at $\lambda_2$ \Comment{the Fiedler vector}
+  \State $C_1 \gets \{x_i : v_i \ge 0\}$, \quad $C_2 \gets \{x_j : v_j < 0\}$
+         \Comment{a split of $\mathcal{T}$, \Cref{thm:stdr-split}}
+  \State $\mathcal{T}_1 \gets \textsc{STDR}(C_1)$, \quad
+         $\mathcal{T}_2 \gets \textsc{STDR}(C_2)$
+  \State \Return $\textsc{Merge}(\mathcal{T}_1, \mathcal{T}_2, S(C_1, C_2))$
+         \Comment{join the two subtrees at recovered placeholder edges}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+The recursion is attractive because the expensive part of tree reconstruction is superlinear in the
+number of terminal nodes, so cutting the problem in half repeatedly reduces the total work sharply,
+while \Cref{thm:stdr-split} guarantees that each cut is a genuine split and the merge is therefore
+well-posed \cite{aizenbud2023spectral}.
