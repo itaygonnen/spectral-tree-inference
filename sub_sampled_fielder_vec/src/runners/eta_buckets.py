@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-from ..utils.eta_pool_cache import bin_name, closest_target
+from ..utils.eta_pool_cache import bin_name, closest_target, norm_target
 
 # The paper's buckets and the per-bucket counts the eta-pool figures read with
 # (``src.utils.eta_pool_sweep.ETA_TARGETS`` / ``ETA_SAMPLE_CAP``). Restated as parallel
@@ -42,7 +42,7 @@ ETA_TOL: float = 1.0
 UNBUCKETED = None       # the dict key for "matched no target"
 
 
-def window(target: int, eta_tol: float = ETA_TOL) -> Tuple[float, float]:
+def window(target: float, eta_tol: float = ETA_TOL) -> Tuple[float, float]:
     """The closed interval a target accepts, clamped at 1.
 
     Purely for display -- the membership test is ``closest_target``, which also breaks
@@ -54,7 +54,7 @@ def window(target: int, eta_tol: float = ETA_TOL) -> Tuple[float, float]:
     return (max(1.0, float(target) - float(eta_tol)), float(target) + float(eta_tol))
 
 
-def label(target: Optional[int]) -> str:
+def label(target: Optional[float]) -> str:
     """``5 -> 'eta05'``, ``None -> 'unbucketed'``. The bucket name is the pool's
     (:func:`eta_pool_cache.bin_name`) so a bucket, a pool directory and a generated tree
     id all spell it the same way and stay greppable together."""
@@ -72,15 +72,15 @@ def tree_eta(row: dict, cap_ops: Sequence[str]) -> float:
 
 
 def bucket_of(row: dict, cap_ops: Sequence[str],
-              eta_targets: Sequence[int] = ETA_TARGETS,
+              eta_targets: Sequence[float] = ETA_TARGETS,
               eta_tol: float = ETA_TOL) -> Optional[int]:
     """The target this tree belongs to, or ``None`` for no bucket."""
-    return closest_target(tree_eta(row, cap_ops), [int(t) for t in eta_targets],
+    return closest_target(tree_eta(row, cap_ops), [norm_target(t) for t in eta_targets],
                           float(eta_tol))
 
 
 def bucket_counts(ids: Sequence[str], rows: Dict[str, dict], cap_ops: Sequence[str],
-                  eta_targets: Sequence[int] = ETA_TARGETS,
+                  eta_targets: Sequence[float] = ETA_TARGETS,
                   eta_tol: float = ETA_TOL) -> Dict[Optional[int], List[str]]:
     """``{target: [tree ids]}`` with an ``UNBUCKETED`` key, every target present.
 
@@ -88,7 +88,7 @@ def bucket_counts(ids: Sequence[str], rows: Dict[str, dict], cap_ops: Sequence[s
     order the caller enumerated the directory in. Every requested target gets a key even
     when empty -- an empty bucket is a thing to display, not a thing to omit.
     """
-    out: Dict[Optional[int], List[str]] = {int(t): [] for t in eta_targets}
+    out: Dict[Optional[float], List[str]] = {norm_target(t): [] for t in eta_targets}
     out[UNBUCKETED] = []
     for tree_id in ids:
         row = rows.get(tree_id)
@@ -101,7 +101,7 @@ def bucket_counts(ids: Sequence[str], rows: Dict[str, dict], cap_ops: Sequence[s
 
 
 def apply_caps(buckets: Dict[Optional[int], List[str]],
-               eta_targets: Sequence[int] = ETA_TARGETS,
+               eta_targets: Sequence[float] = ETA_TARGETS,
                per_bucket: Sequence[int] = PER_BUCKET,
                ) -> Tuple[List[str], Dict[int, Tuple[int, int]]]:
     """``(kept ids, {target: (got, want)} for every short bucket)``.
@@ -114,10 +114,10 @@ def apply_caps(buckets: Dict[Optional[int], List[str]],
     ``UNBUCKETED`` is never kept. That is the whole point -- those are the trees the run
     does not need.
     """
-    caps = {int(t): int(c) for t, c in zip(eta_targets, per_bucket)}
+    caps = {norm_target(t): int(c) for t, c in zip(eta_targets, per_bucket)}
     kept: List[str] = []
     shortfall: Dict[int, Tuple[int, int]] = {}
-    for target in (int(t) for t in eta_targets):
+    for target in (norm_target(t) for t in eta_targets):
         want = caps.get(target, 0)
         have = buckets.get(target, [])
         kept.extend(have[:want])
@@ -127,7 +127,7 @@ def apply_caps(buckets: Dict[Optional[int], List[str]],
 
 
 def select(ids: Sequence[str], rows: Dict[str, dict], cap_ops: Sequence[str],
-           eta_targets: Sequence[int] = ETA_TARGETS,
+           eta_targets: Sequence[float] = ETA_TARGETS,
            per_bucket: Sequence[int] = PER_BUCKET,
            eta_tol: float = ETA_TOL,
            ) -> Tuple[List[str], Dict[Optional[int], List[str]], Dict[int, Tuple[int, int]]]:
@@ -142,7 +142,7 @@ def select(ids: Sequence[str], rows: Dict[str, dict], cap_ops: Sequence[str],
 
 
 def panel_lines(buckets: Dict[Optional[int], List[str]],
-                eta_targets: Sequence[int] = ETA_TARGETS,
+                eta_targets: Sequence[float] = ETA_TARGETS,
                 per_bucket: Sequence[int] = PER_BUCKET,
                 eta_tol: float = ETA_TOL, bar_width: int = 24,
                 legend: bool = True, done: Optional[Set[str]] = None) -> List[str]:
@@ -186,8 +186,8 @@ def panel_lines(buckets: Dict[Optional[int], List[str]],
     80-column terminal; an overflowing bar is truncated and the count carries the truth.
     ``legend=False`` drops the footer for a redraw that has already shown it once.
     """
-    caps = {int(t): int(c) for t, c in zip(eta_targets, per_bucket)}
-    rows_out = [(int(t), len(buckets.get(int(t), []))) for t in eta_targets]
+    caps = {norm_target(t): int(c) for t, c in zip(eta_targets, per_bucket)}
+    rows_out = [(norm_target(t), len(buckets.get(norm_target(t), []))) for t in eta_targets]
     n_unb = len(buckets.get(UNBUCKETED, []))
 
     def bar(n_done: int, n_run: int, cap: int) -> str:

@@ -57,8 +57,28 @@ def param_key(
     return base
 
 
-def bin_name(eta_target: int) -> str:
-    return f"eta{int(eta_target):02d}"
+def norm_target(eta_target: float) -> Any:
+    """``1.0 -> 1`` (int), ``1.44 -> 1.44`` (float).
+
+    Targets are dict keys, directory names and manifest keys, so they have to mean
+    exactly one thing. Integral targets normalise to ``int`` so that every key and
+    path written before targets could be fractional is reproduced byte for byte;
+    a fractional target stays a ``float`` and gets the 4-decimal slug.
+    """
+    value = float(eta_target)
+    return int(value) if value.is_integer() else value
+
+
+def bin_name(eta_target: float) -> str:
+    """``5 -> 'eta05'``, ``1.44 -> 'eta1p4400'``.
+
+    The zero-padded integer form is the one on disk for every pool built to the
+    paper's buckets, so it is kept for integral targets rather than reformatted.
+    """
+    target = norm_target(eta_target)
+    if isinstance(target, int):
+        return f"eta{target:02d}"
+    return f"eta{_fmt_value(target)}"
 
 
 # ----- paths --------------------------------------------------------------
@@ -248,11 +268,11 @@ def save_manifest(cache_root: Path, key: str, manifest: Dict[str, Any]) -> None:
 def init_manifest(
     key: str,
     params: Dict[str, Any],
-    eta_targets: Iterable[int],
+    eta_targets: Iterable[float],
     eta_tol: float,
     samples_per_bin: int,
 ) -> Dict[str, Any]:
-    targets = [int(t) for t in eta_targets]
+    targets = [norm_target(t) for t in eta_targets]
     return {
         "param_key": key,
         "params": dict(params),
@@ -267,10 +287,10 @@ def init_manifest(
 
 
 def bin_counts_from_disk(
-    cache_root: Path, key: str, eta_targets: Iterable[int]
+    cache_root: Path, key: str, eta_targets: Iterable[float]
 ) -> Dict[int, int]:
     return {
-        int(t): count_completed_samples(cache_root, key, int(t))
+        norm_target(t): count_completed_samples(cache_root, key, norm_target(t))
         for t in eta_targets
     }
 
@@ -282,18 +302,23 @@ def all_bins_full(manifest: Dict[str, Any]) -> bool:
 
 def remaining_capacity(manifest: Dict[str, Any], eta_target: int) -> int:
     target = int(manifest["samples_per_bin"])
-    have = int(manifest["bin_counts"].get(str(int(eta_target)), 0))
+    have = int(manifest["bin_counts"].get(str(norm_target(eta_target)), 0))
     return max(0, target - have)
 
 
 def closest_target(
-    eta: float, eta_targets: List[int], eta_tol: float
-) -> Optional[int]:
+    eta: float, eta_targets: List[float], eta_tol: float
+) -> Optional[Any]:
+    """The nearest target within ``eta_tol``, or ``None``.
+
+    Ties break to the smaller target. Targets keep their own value through
+    :func:`norm_target`, so a fractional grid is admitted without changing what an
+    integral one returns.
+    """
     if not eta_targets:
         return None
-    diffs = [(abs(eta - float(t)), int(t)) for t in eta_targets]
-    diffs.sort()
+    diffs = sorted((abs(eta - float(t)), float(t)) for t in eta_targets)
     best_diff, best_t = diffs[0]
     if best_diff <= float(eta_tol):
-        return best_t
+        return norm_target(best_t)
     return None
