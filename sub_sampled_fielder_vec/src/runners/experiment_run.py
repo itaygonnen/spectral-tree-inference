@@ -28,7 +28,8 @@ from .operator_screen import run_screen
 from .operator_sweep import run_sweep
 from .eta_buckets import ETA_TARGETS, ETA_TOL, PER_BUCKET, label, panel_lines
 from .eta_buckets import select as bucket_select
-from .operators import ALL_OPERATORS, ARM_OF, OPERATORS, resolve
+from .operators import (ALL_OPERATORS, ARM_OF, OPERATORS, needs_distance,
+                        resolve)
 
 # Which screened trees a sweep may use. The gate is whether that operator's partition of
 # the FULL matrix is a real single-edge split of the true tree -- recovery towards a
@@ -435,9 +436,10 @@ def plan(spec: RunSpec, sources: Sequence[Source],
                 selected = capped
             # cheap: a header read per selected tree, and the selection is capped
             n_done = len(already_swept(src.name, src.m, selected, spec))
-            # serial: run_sweep walks the trees one at a time, so this is wall time.
             # ``workers`` parallelises the screen AND, since 2026-11-03, the sweep
-            # (one tree per worker). An UPPER bound when
+            # (one tree per worker), so this is wall time divided by nothing: the
+            # estimate is the serial total, and a node running N trees at once finishes
+            # in about a 1/N of it. An UPPER bound when
             # ``early_stop`` is on: how many p's each end skips depends on where that
             # tree's curve turns, which is not knowable before sweeping it.
             # Trees already swept on this grid are reused, so they cost nothing -- and
@@ -458,11 +460,31 @@ def plan(spec: RunSpec, sources: Sequence[Source],
     return rows
 
 
+def loader_for(loader, operators: Sequence[str]):
+    """The source's loader, minus ``D`` when no selected operator reads it.
+
+    ``RealLoader`` already knows how to skip the distance matrix and the eta pool's fill
+    already asks it to; the screen and the sweep did not, so a Fiedler-only run -- which
+    is every run since the sweep went S-only -- paid for a second O(m^2 L) pass per tree
+    and then ignored the result. Measured 54% of a load at m=1000, 58% at m=2000.
+
+    Loaders that do not carry the switch are returned untouched, so a source type that
+    has never heard of ``D`` needs no special case here.
+    """
+    import dataclasses
+    if needs_distance(operators) or not dataclasses.is_dataclass(loader):
+        return loader
+    if not any(f.name == "need_distance" for f in dataclasses.fields(loader)):
+        return loader
+    return dataclasses.replace(loader, need_distance=False)
+
+
 def _run_source(row: PlanRow, spec: RunSpec) -> List[str]:
     """Both stages on one source. Returns the ids this run covered."""
     src = row.source
+    loader = loader_for(src.loader, spec.operators)
     if spec.runs_screen:
-        run_screen(row.ids, screen_cache_path(src.name), src.loader,
+        run_screen(row.ids, screen_cache_path(src.name), loader,
                    operators=spec.operators, source=src.name, workers=spec.workers,
                    min_split=spec.min_split)
         if not verdicts(src.name):
@@ -481,7 +503,7 @@ def _run_source(row: PlanRow, spec: RunSpec) -> List[str]:
               f"{f' with eta <= {spec.max_eta:g}' if spec.max_eta else ''}. "
               f"Widen the gate (--dataset-rule any, or all).", flush=True)
         return []
-    run_sweep(ids, sweep_cache_dir(src.name), src.loader, spec.p_values(),
+    run_sweep(ids, sweep_cache_dir(src.name), loader, spec.p_values(),
               reps=spec.reps, num_gaps=spec.num_gaps, min_split=spec.min_split,
               operators=spec.operators, source=src.name, m=row.m,
               extra_metrics=spec.extra_metrics, early_stop=spec.early_stop,
@@ -498,6 +520,10 @@ def already_swept(source: str, m: int, selected: Sequence[str],
     to be recomputed. Measured on 1000 taxa, two eta15 trees had a cache file and one of
     them was reusable -- counting the file would have promised half the work that
     remained.
+
+    The run's own ARMS are part of that: a cache finished on S holds nothing for an
+    ``--operators Lsym`` run, so the panel must show those trees as work to do rather
+    than as done.
     """
     from ..utils.run_paths import sweep_cache_dir
     from .operator_sweep import load_tree_sweep, sweep_meta
@@ -512,7 +538,7 @@ def already_swept(source: str, m: int, selected: Sequence[str],
     meta = dict(sweep_meta(spec.reps, spec.num_gaps, spec.min_split, int(m),
                            spec.early_stop))
     return {t for t in selected
-            if load_tree_sweep(cache, t, grid, meta) is not None}
+            if load_tree_sweep(cache, t, grid, meta, require=spec.arms) is not None}
 
 
 def bucket_panel(row: "PlanRow", spec: RunSpec, legend: bool = True) -> List[str]:

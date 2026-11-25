@@ -142,6 +142,58 @@ def _cache_file(cache_dir: Path, tree_id: str) -> Path:
     return Path(cache_dir) / f"{tree_id}.npz"
 
 
+def swept_arms(z) -> Tuple[str, ...]:
+    """The arms one cached tree actually holds.
+
+    Recorded as ``arms`` since 2026-11-25 and inferred from the columns for every file
+    written before that, so a cache finished on one operator stays reusable for that
+    operator and is a MISS for an arm it never swept. Without this an ``--operators
+    Lsym`` run over an L-only cache reported every tree cached and exported NaN: the
+    operator list is deliberately out of :data:`META_KEYS`, and a missing column reads
+    as NaN rather than as a miss.
+    """
+    if "arms" in z.files:
+        return tuple(str(a) for a in np.atleast_1d(z["arms"]))
+    return tuple(a for a in ARM_OF.values() if f"nmi_{a}_{REF_FULL}" in z.files)
+
+
+def _save_tree_sweep(cache_dir, tree_id: str, p_values, meta: Dict,
+                     curves: Dict[str, np.ndarray]) -> None:
+    """Write one tree's curves, KEEPING the arms an earlier run left in the same file.
+
+    A sweep writes only its own arms' columns and ``np.savez`` replaces a file rather
+    than adding to it, so sweeping L_sym into a directory already holding L used to
+    delete L. Every column is arm-suffixed, so merging is an update: this run's arms
+    replace themselves and the others stay.
+
+    Merged only when the stored grid and meta match this run's -- anything else is a
+    stale file and is replaced outright. The merged ``early_stop`` is the MAX of the
+    two, because 0 means "measured at every p" and a file is only as measured as its
+    weakest arm.
+    """
+    path = _cache_file(Path(cache_dir), tree_id)
+    out = dict(curves)
+    arms = {a for a in ARM_OF.values() if f"nmi_{a}_{REF_FULL}" in out}
+    stop = int(meta.get("early_stop", 0) or 0)
+    if path.exists():
+        try:
+            with np.load(path, allow_pickle=True) as z:
+                stored = dict(z["meta"].item())
+                if (list(np.round(z["p_values"], 6)) == list(np.round(p_values, 6))
+                        and all(stored.get(k) == meta[k] for k in META_KEYS)):
+                    kept = {k: z[k] for k in z.files
+                            if k not in ("p_values", "meta", "arms")}
+                    kept.update(out)
+                    out = kept
+                    arms |= set(swept_arms(z))
+                    stop = max(stop, int(stored.get("early_stop", 0) or 0))
+        except Exception:                    # unreadable file: replace it
+            pass
+    np.savez(path, p_values=p_values,
+             meta=np.array(dict(meta, early_stop=stop), dtype=object),
+             arms=np.array(sorted(arms), dtype="U16"), **out)
+
+
 def seed_for(tree_id: str, stride: int = 1000) -> int:
     """Seed from the tree's own number, not its position in some list, so a pilot run,
     a partial run and the full run all produce the same curve for a tree."""
@@ -150,7 +202,8 @@ def seed_for(tree_id: str, stride: int = 1000) -> int:
 
 
 def load_tree_sweep(cache_dir, tree_id: str, p_values: Sequence[float], meta: Dict,
-                    metric: str = f"nmi_{REF_FULL}", arms: Sequence[str] = ("L", "B")
+                    metric: str = f"nmi_{REF_FULL}", arms: Sequence[str] = ("L", "B"),
+                    require: Sequence[str] = ()
                     ) -> Optional[Tuple[np.ndarray, ...]]:
     """One metric's curve per arm for one tree, if a matching cache exists.
 
@@ -158,6 +211,11 @@ def load_tree_sweep(cache_dir, tree_id: str, p_values: Sequence[float], meta: Di
     read as the full-matrix reference. A column the cached tree predates comes back as
     NaN rather than a cache miss -- the tree IS swept, it just does not carry that
     column, and recomputing it costs ~30 min at m=6000.
+
+    ``require`` is the other case and the opposite answer: an arm the cached tree never
+    swept is a MISS, not a NaN column, because no amount of reading gets L_sym out of a
+    file that holds L. A hit test passes the arms its run needs; a reader that only
+    wants whatever is there leaves it empty.
     """
     if "_vs_" not in metric:
         metric = f"{metric}_{REF_FULL}"
@@ -179,6 +237,8 @@ def load_tree_sweep(cache_dir, tree_id: str, p_values: Sequence[float], meta: Di
         want = int(meta.get("early_stop", 0) or 0)
         have = int(stored.get("early_stop", 0) or 0)
         if have and (not want or have > want):
+            return None
+        if require and not set(require) <= set(swept_arms(z)):
             return None
         met, ref = metric.rsplit("_vs_", 1)
         nan = np.full(len(z["p_values"]), np.nan)
@@ -345,9 +405,11 @@ def sweep_one_tree(tree_id: str, loader, seed: int, p_values: Sequence[float], *
     return out
 
 
-# The arm the progress shades. DEFAULT_OPERATORS is ("S",) whose arm is "L"; a run
-# sweeping several arms still draws one grid, because the figure reads one curve.
-REF_ARM = "L"
+# The arm the progress shades is the run's FIRST, not a constant: a run sweeping several
+# arms still draws one grid, because the figure reads one curve. This was hardcoded to
+# "L", so an ``--operators Lsym`` run drew a panel that never moved and workers that
+# reported no curve -- every callback was tested against an arm the run never swept.
+REF_ARM = "L"       # the default, for a caller that names no operators
 
 
 class SweepProgress:
@@ -482,14 +544,18 @@ def _sweep_worker(tree_id: str):
     kw = dict(_SWEEP_CTX["kwargs"])
     cache_dir, pv, meta, stride = (kw.pop("cache_dir"), kw.pop("pv"),
                                    kw.pop("meta"), kw.pop("seed_stride"))
+    ref_arm = kw.pop("ref_arm", REF_ARM)
     try:
         curves = sweep_one_tree(tree_id, _SWEEP_CTX["loader"],
                                 seed=seed_for(tree_id, stride), p_values=pv, **kw)
     except Exception as exc:                        # one tree must not end the run
         return tree_id, None, f"{type(exc).__name__}: {exc}"
-    _np.savez(_cache_file(cache_dir, tree_id), p_values=pv,
-              meta=_np.array(meta, dtype=object), **curves)
-    key = f"nmi_{REF_FULL}_{REF_ARM}"
+    _save_tree_sweep(cache_dir, tree_id, pv, meta, curves)
+    # ``nmi_<arm>_vs_fullmatrix`` -- the order ``columns()`` writes. This read the two
+    # halves the other way round, so it never matched a column and every PARALLEL sweep
+    # (the cluster default) returned no curve: the live panel drew cells that never
+    # filled while the serial path, which calls back per p, filled correctly.
+    key = f"nmi_{ref_arm}_{REF_FULL}"
     curve = curves.get(key)
     return tree_id, (None if curve is None else _np.asarray(curve).tolist()), None
 
@@ -512,6 +578,7 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
 
     ops = resolve(operators)
     arms = [ARM_OF[k] for k in ops]
+    ref_arm = arms[0] if arms else REF_ARM
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
     meta = dict(sweep_meta(reps, num_gaps, min_split, m, early_stop),
@@ -520,7 +587,8 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
                 eigsolver=eigsolver, aggregation=aggregation)
     pv = np.round(np.asarray(p_values, float), 6)
 
-    todo = [t for t in ids if load_tree_sweep(cache_dir, t, pv, meta) is None]
+    todo = [t for t in ids
+            if load_tree_sweep(cache_dir, t, pv, meta, require=arms) is None]
     print(f"  {len(ids) - len(todo)}/{len(ids)} trees cached, {len(todo)} to run "
           f"({len(pv)} p x {reps} reps x {len(ops)} operators, "
           f"p={pv[0]:g}..{pv[-1]:g})", flush=True)
@@ -542,7 +610,7 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
 
     if workers > 1 and len(todo) > 1:
         finished += _sweep_parallel(todo, loader, cache_dir, pv, meta, seed_stride,
-                                    inner_kw, workers, bar, t0)
+                                    inner_kw, workers, bar, t0, ref_arm)
         bar.close()
         print(f"  {len(finished)} tree(s) swept in {(time.time() - t0)/3600:.2f} h",
               flush=True)
@@ -558,9 +626,8 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
             extra_metrics=extra_metrics, rule_policy=rule_policy,
             eigsolver=eigsolver, aggregation=aggregation, early_stop=early_stop,
             progress_cb=lambda arm, i, p, nmi, _t=tree_id: (
-                bar.point(_t, i, nmi) if arm == REF_ARM else None))
-        np.savez(_cache_file(cache_dir, tree_id), p_values=pv,
-                 meta=np.array(meta, dtype=object), **curves)
+                bar.point(_t, i, nmi) if arm == ref_arm else None))
+        _save_tree_sweep(cache_dir, tree_id, pv, meta, curves)
         finished.append(tree_id)
         el = time.time() - t0
         bar.finish(tree_id, time.time() - t_tree)
@@ -575,7 +642,7 @@ def run_sweep(ids: Sequence[str], cache_dir, loader, p_values: Sequence[float], 
 
 
 def _sweep_parallel(todo, loader, cache_dir, pv, meta, seed_stride, inner_kw,
-                    workers, bar, t0) -> List[str]:
+                    workers, bar, t0, ref_arm: str = REF_ARM) -> List[str]:
     """Trees across a process pool, main process drawing and nothing else."""
     import multiprocessing as mp
 
@@ -587,7 +654,7 @@ def _sweep_parallel(todo, loader, cache_dir, pv, meta, seed_stride, inner_kw,
         os.environ.setdefault(var, "1")
 
     kwargs = dict(inner_kw, cache_dir=cache_dir, pv=pv, meta=meta,
-                  seed_stride=seed_stride)
+                  seed_stride=seed_stride, ref_arm=ref_arm)
     done: List[str] = []
     print(f"  {workers} workers, {len(todo)} trees", flush=True)
     ctx = mp.get_context("spawn")

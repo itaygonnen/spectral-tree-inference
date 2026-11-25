@@ -36,7 +36,8 @@ import numpy as np
 
 from ..models.sailfish_sim import SailfishSpec, find_iqtree, make_msa, make_tree
 from ..utils.run_paths import screen_cache_path
-from .eta_buckets import ETA_TARGETS, ETA_TOL, PER_BUCKET, bucket_of
+from ..utils.eta_pool_cache import bin_name, norm_target
+from .eta_buckets import ETA_TARGETS, ETA_TOL, PER_BUCKET, bucket_of, label
 from .experiment_run import DEFAULT_OPERATORS, gate_operators
 
 _ERROR_ABORT = 10          # consecutive failures that mean the environment, not the seed
@@ -100,7 +101,7 @@ class Progress:
     HEARTBEAT = 250            # attempts between log lines when nothing is kept
 
     def __init__(self, targets, caps, counts, tty: Optional[bool] = None):
-        self.targets = [int(t) for t in targets]
+        self.targets = [norm_target(t) for t in targets]
         self.caps = dict(caps)
         self.counts = dict(counts)
         self.attempts = 0
@@ -169,15 +170,18 @@ class Progress:
         print(msg, flush=True)
 
 
-def stem_for(target: int, index: int) -> str:
-    """``eta05_003`` -- the bucket is in the name, so ``ls`` answers which is which."""
-    return f"eta{int(target):02d}_{int(index):03d}"
+def stem_for(target: float, index: int) -> str:
+    """``eta05_003`` -- the bucket is in the name, so ``ls`` answers which is which.
+
+    Through ``bin_name``, so a fractional target reads ``eta2p0700_003`` and two
+    targets that round to the same integer stay distinct directories.
+    """
+    return f"{bin_name(target)}_{int(index):03d}"
 
 
-def needs_distance(operators: Sequence[str]) -> bool:
-    """Whether any selected operator reads ``D``. Only the griffing arm (``B``) does."""
-    from .operators import OPERATORS, resolve
-    return any(OPERATORS[k].kind == "griffing" for k in resolve(operators))
+# Re-exported: this module's callers import it from here, and the screen and the sweep
+# ask the same question of the same table.
+from .operators import needs_distance                                   # noqa: E402,F401
 
 
 # ---------------------------------------------------------------------------
@@ -233,7 +237,7 @@ def _worker(seed: int) -> Dict:
 # ---------------------------------------------------------------------------
 
 def verdict(row: Dict, counts: Dict[int, int], caps: Dict[int, int],
-            cap_ops: Sequence[str], targets: Sequence[int],
+            cap_ops: Sequence[str], targets: Sequence[float],
             tol: float) -> Tuple[Optional[int], str]:
     """``(target, reason)`` -- the accept/reject decision for one screened tree.
 
@@ -247,28 +251,28 @@ def verdict(row: Dict, counts: Dict[int, int], caps: Dict[int, int],
     if target is None:
         return None, "no bucket"
     if counts.get(target, 0) >= caps.get(target, 0):
-        return None, f"eta{target:02d} full"
+        return None, f"{label(target)} full"
     arm = cap_ops[0] if cap_ops else "S"
     if not row.get(f"valid_{arm}", False):
-        return None, f"eta{target:02d} invalid split"
-    return target, f"eta{target:02d}"
+        return None, f"{label(target)} invalid split"
+    return target, label(target)
 
 
 def existing_state(dataset: Path, source: str, cap_ops: Sequence[str],
-                   targets: Sequence[int], tol: float) -> Tuple[Dict[int, int], List[Dict]]:
+                   targets: Sequence[float], tol: float) -> Tuple[Dict, List[Dict]]:
     """``(bucket counts, cached rows)`` for a dataset that is already part-filled."""
     path = screen_cache_path(source)
     if not path.exists():
-        return {int(t): 0 for t in targets}, []
+        return {norm_target(t): 0 for t in targets}, []
     rows = [dict(r) for r in np.load(path, allow_pickle=True)["rows"]]
-    counts = {int(t): 0 for t in targets}
+    counts = {norm_target(t): 0 for t in targets}
     on_disk = {p.stem for p in (dataset / "fasta").glob("*.fasta")}
     for r in rows:
         if r.get("tree") not in on_disk:
             continue
         t = bucket_of(r, cap_ops, targets, tol)
         if t is not None:
-            counts[int(t)] = counts.get(int(t), 0) + 1
+            counts[norm_target(t)] = counts.get(norm_target(t), 0) + 1
     return counts, rows
 
 
@@ -291,9 +295,15 @@ def fill_buckets(spec: SailfishSpec, out_root: Path, *,
     leaving it to the end means a killed job resumes by re-drawing every tree it had
     already rejected.
     """
-    targets = [int(t) for t in targets]
-    caps = {int(t): int(c) for t, c in zip(targets, per_bucket)}
+    targets = [norm_target(t) for t in targets]
+    caps = {norm_target(t): int(c) for t, c in zip(targets, per_bucket)}
     cap_ops = gate_operators(gate)
+    # ``operators`` is what each attempt SCREENS; ``gate`` is what it is accepted on. The
+    # second must be inside the first or every tree is rejected for a missing verdict, so
+    # the gate's arm is folded in rather than trusted to be there. Screening MORE arms
+    # than the gate uses is the point: an accepted tree then carries a verdict and an eta
+    # for each of them, and the sweep needs no second screening pass.
+    operators = tuple(dict.fromkeys(tuple(operators) + tuple(cap_ops)))
 
     dataset = Path(out_root) / (name or spec.name)
     source = dataset.name
@@ -495,8 +505,8 @@ def _finish(stats, counts, caps, targets, seed, t0, staging_root,
         shutil.rmtree(staging_root, ignore_errors=True)
     stats["elapsed_sec"] = round(time.time() - t0, 1)
     stats["last_seed"] = int(seed)
-    stats["counts"] = {int(t): int(counts.get(t, 0)) for t in targets}
-    stats["caps"] = {int(t): int(caps[t]) for t in targets}
+    stats["counts"] = {norm_target(t): int(counts.get(t, 0)) for t in targets}
+    stats["caps"] = {norm_target(t): int(caps[t]) for t in targets}
     stats["complete"] = all(counts.get(t, 0) >= caps[t] for t in targets)
     a = stats["attempts"]
     stats["acceptance"] = round(stats["accepted"] / a, 4) if a else 0.0

@@ -102,6 +102,17 @@ def resolve(operators: Sequence[str] | None) -> Tuple[str, ...]:
     return out
 
 
+def needs_distance(operators: Sequence[str] = ()) -> bool:
+    """Whether any selected operator reads ``D``. Only the griffing arm (``B``) does.
+
+    It lives beside the table because every caller that builds a loader has to ask it:
+    the fill, the screen and the sweep. ``D`` is a second O(m^2 L) pass over the same
+    alignment -- measured 54% of a load at m=1000 and 58% at m=2000 -- so a run reading
+    the Fiedler arms alone pays that for nothing.
+    """
+    return any(OPERATORS[k].kind == "griffing" for k in resolve(operators))
+
+
 RULES = ("kmeans", "sign", "sigma2")
 
 

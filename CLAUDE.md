@@ -2,6 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Reporting results
+
+After running something, report the **finding**, not the deliverable.
+
+- The first line says what is now true, never what was built or which file holds it.
+- One fact per line, ≤6 lines. Bare numbers inline (`drops 2x to 7x`); no `file:line`
+  trail, no "measured over N cells via X".
+- No list of changed files and no links to them unless asked.
+- Anything still running gets one short line at the end.
+
+A sweep's output is a number about the problem. The script that produced it is not the
+result, and an inventory of paths buries the number inside the proof of it.
+
 ## Repository layout (two distinct projects in one repo)
 
 This repo contains two related but separate codebases. Don't mix imports between them.
@@ -140,9 +153,16 @@ python scripts/generate_dataset.py --n-taxa 6000 --fill-buckets \
 (`operators.Operator.vector`); `S` and `Lsym` never touch it, and it is a second O(m²L) pass
 — measured **54% of the load at m=1000, 58% at m=2000**. `RealLoader(…, need_distance=False)`
 skips it, which made an S-only attempt 33% faster at m=1000 and 47% at m=2000 with
-bit-identical η. The default is still `True`, so the ordinary screen and the three-operator
-benchmark are unchanged; `sailfish_pool.needs_distance()` decides per run. The same saving is
-available to `operator_screen.run_screen` for S-only screens and is **not** taken yet.
+bit-identical η. The default is still `True`, so the three-operator benchmark is unchanged;
+`operators.needs_distance()` decides per run, and it lives beside the operator table because
+all three callers ask it.
+
+**The screen and the sweep take that saving too** (`experiment_run.loader_for`, 2026-11-25).
+Both used to build `D` and then ignore it on every Fiedler-only run — which is every run
+since the sweep went S-only. One helper trims the source's loader when no selected operator
+reads `D`: measured **49% off a load at m=2000, 48% at m=4000**, with the screen row and all
+56 sweep columns bit-identical (`sigma2_*` moves ~1e-7 either way, from the global-RNG
+`TruncatedSVD` noted below). A loader without the switch is returned untouched.
 
 Generation is free (~0.2 s/tree at m=10000, 10 MB of FASTA); **reading** it is the cost, so
 `--dry-run` reports disk and the downstream screening estimate rather than its own runtime.
@@ -300,8 +320,16 @@ the global RNG. It affects `sigma2_*` and `rank_op_sub_std` only — never a pap
 2026-11-03): `sailfish_sizes.sbatch` is a SLURM array with one task per taxon count
 (1000/2000/4000/6000/8000), each filling 10 trees per eta bucket, then screening, then
 sweeping. **Everything is configured by one file, `cluster/series.json`** — sizes, buckets,
-alignment length, p-grid, workers — read by `scripts/run_series.py`, which is also the
-no-SLURM entry point (`--only 8000`, `--dry-run`). One file because the job has two halves
+alignment length, p-grid, workers, **operators and gate** — read by `scripts/run_series.py`,
+which is also the no-SLURM entry point (`--only 8000`, `--dry-run`). `operators` and `gate`
+drive BOTH halves since 2026-11-25: the fill screens every operator listed and accepts on the
+gate's arm, so `["S", "Lsym"]` with `valid_L` writes both verdicts at fill time while still
+selecting the η_S buckets the figures are stated in, and the sweep then reads both arms. They
+used to reach the sweep alone, which is how a run meant to carry L_sym filled a pool that had
+never heard of it. `generate_dataset.py --operators` is the same knob for a hand-run fill.
+η_Lsym is NOT interchangeable with η_S: measured over 830 screened trees its median is 1.5 at
+every size and it never exceeded ~6, so a pool conditioned on `valid_Lsym` fills η01 and η05
+and can never fill η10 or η15. One file because the job has two halves
 that used to be configured differently: the simulation took CLI flags while the sweep took
 a `config.json`, which is how a series gets launched with the caps you meant and the p-grid
 you did not. One task per size because they
@@ -337,6 +365,12 @@ down. The first version here invented a five-level NMI shading that reused `█`
 `·` with *different* meanings from the panel's own legend; two vocabularies for the same
 glyphs in one run is a defect, not a richer display.
 
+The arm it shades is the run's FIRST, not the constant `"L"`, and the key it reads a
+finished tree's curve by is `nmi_<arm>_vs_fullmatrix`. Both were wrong: the key had the arm
+and the reference the other way round, so it never matched a column and **every parallel
+sweep — the cluster default — handed the panel no curve at all**, drawing cells that never
+filled, while the serial path (which calls back per p) filled correctly.
+
 It repaints to **`sys.__stdout__`**, not `sys.stdout`: a run replaces the latter with a
 `Tee` into `run.log`, so repainting there fills the log with escape codes, while testing
 it for `isatty` reports "not a terminal" and the panel never draws at all. Writing to the
@@ -358,6 +392,17 @@ in `operator_sweep.META_KEYS`, so no cached tree was invalidated. `early_stop` I
 stored meta but compared under a partial order: a tree swept with a smaller (or no) stop
 holds strictly more measurement and is reused; a run that asked for measurement is never
 handed an extrapolated tail.
+
+**The ARM is the other half of that key** (2026-11-25). The operator list is deliberately out
+of `META_KEYS`, and a missing column reads as NaN rather than as a miss — so `--operators
+Lsym` over a finished L cache reported every tree cached and exported NaN. A cached tree now
+records the `arms` it holds (inferred from the columns for older files), `load_tree_sweep`
+takes `require=` and misses on an arm the tree never swept, and `_save_tree_sweep` MERGES
+arm-suffixed columns instead of replacing the file — sweeping L_sym into a directory holding
+L used to delete L. The merged `early_stop` is the max of the two, since a file is only as
+measured as its weakest arm. So both arms live in one file per tree and each is computed
+once. The panel's `done` column follows the same rule, so a two-arm run shows the L-only
+trees as work rather than as finished.
 
 **Ctrl+C during a screen exits immediately and keeps what finished.** `run_screen`
 installs its own SIGINT handler for the life of the pool: it saves the rows, prints the

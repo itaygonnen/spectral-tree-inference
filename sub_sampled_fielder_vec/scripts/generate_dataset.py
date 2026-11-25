@@ -41,6 +41,7 @@ from src.models.sailfish_sim import (SailfishSpec, generate,     # noqa: E402
 from src.runners.eta_buckets import ETA_TARGETS, ETA_TOL, PER_BUCKET        # noqa: E402
 from src.runners.experiment_run import screen_secs              # noqa: E402
 from src.utils.dataset_check import check_dataset               # noqa: E402
+from src.utils.eta_pool_cache import bin_name, norm_target     # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -96,10 +97,21 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     g.add_argument("--fill-buckets", action="store_true",
                    help="generate until every bucket is at its cap (ignores --n-trees)")
     g.add_argument("--eta-targets", default=",".join(str(t) for t in ETA_TARGETS),
-                   metavar="A,B,...", help=f"default: {','.join(map(str, ETA_TARGETS))}")
+                   metavar="A,B,...", help=f"may be fractional, as an iso-r grid needs "
+                        f"(default: {','.join(map(str, ETA_TARGETS))})")
     g.add_argument("--per-bucket", default=",".join(str(c) for c in PER_BUCKET),
                    metavar="A,B,...", help=f"one number per eta target, or a single number for all "
                         f"(default: {chr(44).join(map(str, PER_BUCKET))})")
+    g.add_argument("--gate", default="valid_L",
+                   choices=("valid_L", "valid_Lsym", "valid_B", "both", "any"),
+                   help="which operator's eta and validity the fill accepts on "
+                        "(default: valid_L)")
+    g.add_argument("--operators", default="",
+                   metavar="S,Lsym,B",
+                   help="also screen these arms on every accepted tree. The gate's own "
+                        "arm is always screened; adding another records its validity "
+                        "and eta at fill time, so a sweep of that arm needs no second "
+                        "screening pass (default: the gate's arm alone)")
     g.add_argument("--eta-tol", type=float, default=ETA_TOL,
                    help=f"bucket half-width (default: {ETA_TOL:g})")
     g.add_argument("--max-attempts", type=int, default=2000,
@@ -114,6 +126,34 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
 
 def _ints(text: str) -> List[int]:
     return [int(x) for x in str(text).replace(" ", "").split(",") if x]
+
+
+def _ops_for(gate: str, extra: str = "") -> tuple:
+    """Operators the screen must compute for this gate, plus any asked for.
+
+    The gate names which arm decides acceptance, but the screen has to be told to
+    compute that arm: gating on L_sym while screening only S gives every tree a
+    missing eta and rejects the lot. ``extra`` adds arms the gate does not need --
+    their verdict and eta are recorded on every accepted tree, which is what lets a
+    sweep read them without screening the pool again.
+    """
+    from src.runners.experiment_run import gate_operators
+    from src.runners.operators import resolve
+    asked = tuple(x for x in str(extra).replace(" ", "").split(",") if x)
+    resolve(asked)                      # fail here, not 2 h into a fill
+    return tuple(dict.fromkeys(tuple(gate_operators(gate)) + asked))
+
+
+def _targets(text: str) -> List[float]:
+    """Parse eta targets, keeping fractional ones.
+
+    The paper's buckets are integers, but an iso-r grid asks for the eta that a
+    given (r, m) cell needs -- 1.44 at m=1000, say -- so a target is a real number.
+    ``norm_target`` sends an integral value back to ``int``, which is what keeps the
+    bucket directories and manifest keys of every existing pool unchanged.
+    """
+    return [norm_target(float(x))
+            for x in str(text).replace(" ", "").split(",") if x]
 
 
 def spec_from(args: argparse.Namespace) -> SailfishSpec:
@@ -169,15 +209,15 @@ def report_calibration(rows: List[dict], targets: List[int], caps: List[int],
     # Counted twice on purpose: an empty bucket because no tree had that eta needs a
     # wider --eta-tol, while an empty bucket whose window was reached but never by a
     # valid split needs more attempts. The two call for opposite actions.
-    hits = {int(t): 0 for t in targets}
-    in_window = {int(t): 0 for t in targets}
+    hits = {norm_target(t): 0 for t in targets}
+    in_window = {norm_target(t): 0 for t in targets}
     for r in ok:
         t = bucket_of(r, cap_ops, targets, tol)
         if t is None:
             continue
-        in_window[int(t)] += 1
+        in_window[norm_target(t)] += 1
         if r.get(f"valid_{arm}"):
-            hits[int(t)] += 1
+            hits[norm_target(t)] += 1
 
     n = len(rows)
     print(f"\n{n} attempts in {_duration(elapsed)} "
@@ -191,7 +231,7 @@ def report_calibration(rows: List[dict], targets: List[int], caps: List[int],
               f"median={q[1]:.1f}  p90={q[2]:.1f}  max={etas[-1]:.1f}")
     print("\n  bucket   in window   valid    rate    attempts for the cap")
     for t, cap in zip(targets, caps):
-        h, w = hits[int(t)], in_window[int(t)]
+        h, w = hits[norm_target(t)], in_window[norm_target(t)]
         rate = h / n if n else 0.0
         need = f"{cap / rate:>6.0f}" if rate else "     -"
         if rate:
@@ -200,7 +240,7 @@ def report_calibration(rows: List[dict], targets: List[int], caps: List[int],
             flag = "   <- reached, never valid: needs more attempts"
         else:
             flag = "   <- window never reached: widen --eta-tol"
-        print(f"  eta{int(t):02d}   {w:>9}   {h:>5}   {100 * rate:>5.1f}%   {need}{flag}")
+        print(f"  {bin_name(t):<11} {w:>7}   {h:>5}   {100 * rate:>5.1f}%   {need}{flag}")
     total_rate = sum(hits.values()) / n if n else 0.0
     print(f"  overall accepted {100 * total_rate:.1f}%")
 
@@ -284,7 +324,7 @@ def _one_size(args: argparse.Namespace, n_taxa: int) -> int:
         return 2
 
     dataset = Path(args.out_root) / (args.name or spec.name)
-    targets, caps = _ints(args.eta_targets), _ints(args.per_bucket)
+    targets, caps = _targets(args.eta_targets), _ints(args.per_bucket)
     if len(caps) == 1:
         caps = caps * len(targets)      # one number plainly means that many everywhere
     bucket_mode = bool(args.fill_buckets or args.calibrate)
@@ -349,7 +389,7 @@ def run_calibration(spec: SailfishSpec, args, targets, caps) -> int:
     from src.runners.sailfish_pool import _attempts
     from src.models.sailfish_sim import find_iqtree
 
-    cap_ops = gate_operators("valid_L")
+    cap_ops = gate_operators(args.gate)
     staging = Path(tempfile.mkdtemp(prefix="sailfish_calib_"))
     binary = find_iqtree(spec)
     print(f"\ncalibrating on {args.calibrate} attempts "
@@ -358,8 +398,8 @@ def run_calibration(spec: SailfishSpec, args, targets, caps) -> int:
     rows = []
     try:
         seeds = iter(range(spec.tree_seed_base, spec.tree_seed_base + args.calibrate))
-        for row in _attempts(seeds, spec, staging, ("S",), binary, args.workers,
-                             spec_policy="best"):
+        for row in _attempts(seeds, spec, staging, _ops_for(args.gate, args.operators), binary,
+                             args.workers, spec_policy="best"):
             rows.append(row)
             shutil.rmtree(row.get("_staging", ""), ignore_errors=True)
             print(".", end="", flush=True)
@@ -385,9 +425,10 @@ def run_fill(spec: SailfishSpec, args, dataset: Path, targets, caps) -> int:
         spec, Path(args.out_root), name=args.name,
         targets=targets, per_bucket=caps, tol=args.eta_tol,
         max_attempts=args.max_attempts, workers=args.workers,
+        gate=args.gate, operators=_ops_for(args.gate, args.operators),
         seed_start=None)
 
-    got = [stats["counts"][int(t)] for t in targets]
+    got = [stats["counts"][norm_target(t)] for t in targets]
     print(f"\n{stats['accepted']} accepted of {stats['attempts']} attempts "
           f"({100 * stats['acceptance']:.1f}%) in {_duration(stats['elapsed_sec'])}")
     print(f"  buckets      {got} of {caps}")
@@ -407,8 +448,9 @@ def run_fill(spec: SailfishSpec, args, dataset: Path, targets, caps) -> int:
         why = {"signal": "stopped by a signal (time limit?)",
                "exhausted": f"ran out of --max-attempts ({args.max_attempts})"}.get(
                    stats.get("stopped"), "stopped early")
-        short = [f"eta{t:02d} {stats['counts'][int(t)]}/{c}"
-                 for t, c in zip(targets, caps) if stats["counts"][int(t)] < c]
+        short = [f"{bin_name(t)} {stats['counts'][norm_target(t)]}/{c}"
+                 for t, c in zip(targets, caps)
+                 if stats["counts"][norm_target(t)] < c]
         print(f"\nINCOMPLETE after {stats['attempts']} attempts -- {why}. "
               f"Short: {', '.join(short)}.\n"
               f"  Re-run the same command to continue from seed "

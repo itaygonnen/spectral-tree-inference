@@ -12,6 +12,12 @@ launched with the caps you meant and the p-grid you did not.
 
 Every stage is resumable, so this is safe to re-run: the fill continues from its
 manifest's ``last_seed``, the screen reuses its cached rows, the sweep skips cached trees.
+
+``operators`` and ``gate`` drive BOTH halves. The fill screens every operator listed and
+accepts on the gate's arm, so a series with ``["S", "Lsym"]`` writes both verdicts at fill
+time while still selecting the eta_S buckets the figures are stated in; the sweep then
+reads both arms, reusing whatever is already cached per arm. They used to reach the sweep
+alone, which is how a run meant to carry L_sym filled a pool that had never heard of it.
 """
 from __future__ import annotations
 
@@ -97,7 +103,8 @@ def main() -> int:
                              per_bucket=cfg["per_bucket"],
                              tol=float(cfg.get("eta_tol", 1.0)),
                              workers=int(spec.workers),
-                             max_attempts=int(cfg.get("max_attempts", 20000)))
+                             max_attempts=int(cfg.get("max_attempts", 20000)),
+                             operators=spec.operators, gate=spec.gate)
         if not stats["complete"]:
             short = [f"eta{t:02d} {stats['counts'][int(t)]}/{c}"
                      for t, c in zip(cfg["eta_targets"], cfg["per_bucket"])

@@ -16,7 +16,8 @@
   "p_points":     20,
   "reps":         10,
   "early_stop":   2,
-  "operators":    ["S"],
+  "_operators":   "screened at fill time, swept in order; the gate picks the arm the eta buckets weigh",
+  "operators":    ["S", "Lsym"],
   "gate":         "valid_L",
 
   "_iqtree_bin":  "a name on PATH, or a full path; ~ and $HOME are expanded",
