@@ -78,6 +78,22 @@ shifts with m, and at m=1000 the measured median was 19.8, above every target.
 Results land in `results/real_data/runs/<timestamp>/` (curves.csv, recovery_curve.png,
 per_tree.csv, eta_buckets.png) with resumable state in `results/real_data/_cache/`.
 
+## Kingman, without IQ-TREE
+
+`kingman_series.json` runs the in-process builders instead of the Sailfish simulator --
+no IQ-TREE, no msasim, no FASTA on disk. The trees come from the eta pool, rejection
+sampled to eta {1,5,10,15}; what is already pooled is reused and only the short cells are
+built. One line, every size, both Laplacian arms:
+
+```bash
+python scripts/run_series.py --config cluster/kingman_series.json
+```
+
+Pooled at 10/cell today: m=1000, 2000, 4000. m=6000 is short 14 samples and m=8000 short
+36, so those are built first and that is where the time goes before any sweep. The 40
+m=1000 trees already swept on the L arm are reused on their grid, so edit `p_min`,
+`p_points`, `reps` or `early_stop` only if you mean to recompute them.
+
 One invocation writes ONE run directory holding every size it ran, with the dataset as
 the first column of every CSV. The array runs one size per task, though, and a task is
 its own process -- so five tasks leave five directories. Collect them afterwards:

@@ -310,19 +310,23 @@ def prompt_generated_plan() -> GeneratedPlan:
     return plan
 
 
-def resolve_pool_ids(plan: GeneratedPlan) -> List[str]:
+def resolve_pool_ids(plan: GeneratedPlan, build: bool = True) -> List[str]:
     """Top the pool up if needed, then return the ids that actually exist.
 
     Called after the run is confirmed, because building a bin is the expensive
     part. Cells still short after the build contribute what they have and are
     reported rather than silently dropped.
+
+    ``build=False`` reports what is on disk and samples nothing -- for a run whose job
+    is to collect finished work rather than to produce any.
     """
     from ..runners.eta_pool_bridge import available_samples, ensure_cells
 
     models = plan.pool_models()
     kw = dict(seq_len=plan.seq_len, mu=plan.mutation_rate, pop_size=plan.pop_size)
-    ensure_cells(models, plan.n_values, plan.etas or [], plan.per_cell,
-                 max_attempts=plan.max_attempts, **kw)
+    if build:
+        ensure_cells(models, plan.n_values, plan.etas or [], plan.per_cell,
+                     max_attempts=plan.max_attempts, **kw)
 
     slots: Dict[Tuple[str, int, int], int] = {}
     short: List[str] = []

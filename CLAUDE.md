@@ -345,6 +345,21 @@ finishes in minutes. The fill parallelises across cores; the sweep does not, so 
 do not shorten it. Every stage resumes, so a killed task is fixed by resubmitting the
 identical command. `cluster/README.md` carries the per-size table and the install.
 
+**Kingman without IQ-TREE is the same series, another source**
+(`cluster/kingman_series.json`, 2026-11-26). `"source": "generated"` builds the trees in
+process from `src/models/tree_models.py` instead of calling IQ-TREE and msasim: the η pool
+supplies them, `resolve_pool_ids` reuses every sample on disk and builds only the short
+cells, and everything after that — screen, gate, buckets, sweep, export — is the same code
+on the same terms. Pooled at 10/cell today: m=1000/2000/4000 (m=6000 short 14 samples,
+m=8000 short 36).
+
+The same pass fixed what would have made it pointless: the generated source's cache slug
+hashed the plan's whole `models`/`n_values` lists, so the m=1000 cell of a five-size series
+got a DIFFERENT slug (`#ed25d7`) from a run of m=1000 alone (`#c987ce`) — the 40 trees
+already swept there would have been recomputed and the cache fragmented by how many sizes
+a run happened to ask for. The fingerprint is per cell now, which is what it always meant:
+the cell's own model and size are already in the readable part of the name.
+
 **A run is replayable from its own `config.json`** (2026-10-29). Every run already
 wrote that file before starting, so `--config` reads back what it wrote rather than
 inventing a second format:

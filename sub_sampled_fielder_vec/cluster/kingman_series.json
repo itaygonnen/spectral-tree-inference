@@ -1,0 +1,32 @@
+{
+  "_comment": "Kingman coalescent trees, built in process -- no IQ-TREE, no FASTA. One file describes the whole job; edit this, not the scripts.",
+
+  "source":         "generated",
+  "models":         ["kingman"],
+  "_params":        "the pool on disk was built with pop_size 1.0, mu 0.1, L 10000 -- change one of these and it is a different pool, built from scratch",
+  "params":         {"pop_size": 1.0},
+  "mutation_rate":  0.1,
+  "seq_len":        10000,
+
+  "_sizes":         "m=1000..4000 are already pooled at 10/cell; m=6000 is short 14 samples and m=8000 is short 36, and building those is where the time goes before any sweep starts",
+  "sizes":          [1000, 2000, 4000, 6000, 8000],
+
+  "eta_targets":    [1, 5, 10, 15],
+  "_per_bucket":    "one number per bucket and all equal: the eta pool is built per cell",
+  "per_bucket":     [10, 10, 10, 10],
+  "eta_tol":        1.0,
+  "max_attempts":   2000,
+
+  "workers":        50,
+  "stage":          "both",
+
+  "_grid":          "the grid the 40 swept m=1000 trees are already on, so their L curves are reused and only the Lsym arm is computed",
+  "p_min":          0.0001,
+  "p_points":       20,
+  "reps":           10,
+  "early_stop":     2,
+
+  "_operators":     "both Laplacian arms; the gate still weighs eta_S, which is what the eta buckets mean",
+  "operators":      ["S", "Lsym"],
+  "gate":           "valid_L"
+}

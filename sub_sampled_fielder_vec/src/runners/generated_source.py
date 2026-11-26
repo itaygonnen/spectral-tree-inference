@@ -72,9 +72,16 @@ def sources_from_plan(plan) -> List[Source]:
 
     out: List[Source] = []
     for (model, n_taxa), ids in sorted(by_cell.items()):
+        # The fingerprint stands for the parameters that change the TREES, and this cell's
+        # model and size are already spelled out in the readable part. Hashing the plan's
+        # whole ``models``/``n_values`` lists instead made the slug depend on what else
+        # was asked for in the same run: a series over five sizes gave the m=1000 cell a
+        # different cache from a run of m=1000 alone, so 40 swept trees were recomputed
+        # and the cache fragmented by batch shape.
+        cell_key = dict(plan.data_key(), models=[model], n_values=[n_taxa])
         out.append(Source(
             name=source_name(model, n_taxa, plan.seq_len, plan.mutation_rate,
-                             plan.etas, plan.data_key()),
+                             plan.etas, cell_key),
             loader=loader,
             ids=sorted(ids),
             m=int(n_taxa),
