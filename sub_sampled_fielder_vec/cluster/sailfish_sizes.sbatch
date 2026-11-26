@@ -7,6 +7,12 @@
 # so nothing waits on the slowest. EVERY STAGE RESUMES: if a task hits the time limit,
 # resubmit the identical command and nothing is recomputed.
 #
+# Each task is its own process, so each writes its own run directory. When the array is
+# done, collect every size into ONE directory -- it computes nothing, every tree is
+# already cached, and that single directory is what you download:
+#
+#   python scripts/run_series.py --config cluster/series.json --gather
+#
 # Edit the two paths below and everything else in cluster/series.json.
 
 #SBATCH --job-name=sailfish

@@ -77,3 +77,15 @@ shifts with m, and at m=1000 the measured median was 19.8, above every target.
 
 Results land in `results/real_data/runs/<timestamp>/` (curves.csv, recovery_curve.png,
 per_tree.csv, eta_buckets.png) with resumable state in `results/real_data/_cache/`.
+
+One invocation writes ONE run directory holding every size it ran, with the dataset as
+the first column of every CSV. The array runs one size per task, though, and a task is
+its own process -- so five tasks leave five directories. Collect them afterwards:
+
+```bash
+python scripts/run_series.py --config series.json --gather
+```
+
+It fills nothing and finds every tree cached, so it is an export: seconds, and the one
+directory to download. The `_cache/` tree is what it reads, so that is the thing to keep
+-- every CSV, curve and figure can be rebuilt from it, and a later run resumes from it.

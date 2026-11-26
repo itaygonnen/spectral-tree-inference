@@ -332,7 +332,12 @@ every size and it never exceeded ~6, so a pool conditioned on `valid_Lsym` fills
 and can never fill η10 or η15. One file because the job has two halves
 that used to be configured differently: the simulation took CLI flags while the sweep took
 a `config.json`, which is how a series gets launched with the caps you meant and the p-grid
-you did not. One task per size because they
+you did not. **One invocation writes ONE run directory**, holding every size it ran, with the dataset
+as the first column of every CSV (`execute` has always taken a list of sources; the series
+driver called it once per size, scattering one experiment over five timestamps). The array
+runs one size per task and a task is its own process, so it still leaves one directory per
+size -- `run_series.py --gather` sweeps nothing, finds every tree cached and exports them
+all into a single directory in seconds. One task per size because they
 are independent and unequal — extrapolated from measured attempt costs (0.57 s at
 m=1000, 1.08 s at m=2000, 3.48 s at m=4000) and the measured ~30 min/tree sweep at
 m=6000, the total is **~74 h of sweep with 90% of it in m=6000 and m=8000**, while m=1000
